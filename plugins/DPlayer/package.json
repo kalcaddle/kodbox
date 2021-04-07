@@ -1,0 +1,45 @@
+{
+	"id":"DPlayer",
+	"name":"DPlayer播放器",
+	"title":"DPlayer视频播放器",
+	"version":"1.19",
+	"source":{
+		"icon":"{{pluginHost}}static/images/icon.png",
+	},
+	"category":"media,file",
+	"description":"DPlayer mediafile player;",
+	"keywords":"",
+	"auther":{
+		"copyright":"kodcloud.",
+		"homePage":"http://www.kodcloud.com",
+	},
+	"configItem":{
+		"pluginAuth":{
+			"type":"userSelect",
+			"value":{"all":1},
+			"display":"{{LNG['admin.plugin.auth']}}",
+			"desc":"{{LNG['admin.plugin.authDesc']}}",
+			"require":1
+		},
+		"subtitle":{
+			"type":"switch",
+			"display":"自动加载字幕",
+			"desc":"字幕需要放在视频文件同位置,与视频文件同名并追加.vtt. 例如: test.mp4 => test.mp4.vtt",
+			"value":"0"
+		},
+		"step001":"<hr/>",
+		"fileSort":{
+			"type":"number",
+			"display":"{{LNG['admin.plugin.fileSort']}}",
+			"desc":"{{LNG['admin.plugin.fileSortDesc']}}",
+			"value":200,
+		},
+		"fileExt":{
+			"type":"tags",
+			"display":"{{LNG['admin.plugin.fileExt']}}",
+			"desc":"{{LNG['admin.plugin.fileExtDesc']}}",
+			//"value":"mp3,wav,m4a,aac,oga,ogg,webma,mp4,m4v,flv,mov,f4v,ogv,webm,webmv,mkv",
+			"value":"mp4,m4v,flv,mov,f4v,ogv,webm,webmv,mkv,magnet"
+		}
+	}
+}

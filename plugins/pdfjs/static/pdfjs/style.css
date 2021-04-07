@@ -1,0 +1,65 @@
+body{background: #eeeef4;}
+.pdfViewer .page{
+	border: none;
+	background: none;
+	/* box-shadow: 0 1px 10px rgba(0,0,0,0.1); */
+	box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+	margin: 10px auto;
+	border-radius: 2px;
+	overflow: hidden;
+}
+.pdfViewer >.spread .page{
+	margin-right:15px;
+}
+#viewBookmark{display:none;}
+#toolbarContainer button{
+	cursor: pointer;
+	transition: all 250ms ease 0s;
+}
+#toolbarContainer, .findbar, .secondaryToolbar,#toolbarSidebar{
+	background:#87929e;
+	background: linear-gradient(0deg,#6f788a,#818a9a);
+	box-shadow:none !important;
+	box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
+}
+.doorHanger, .doorHangerRight{border:none;}
+.horizontalToolbarSeparator,.splitToolbarButtonSeparator {
+    background: rgba(200,200,200,0.1);
+    box-shadow: none;
+}
+
+#loadingBar {
+	background: rgba(0,0,0,0.15);
+	border: none;
+	height:2px;
+}
+#loadingBar .progress{
+	background: #1890ff;
+	box-shadow: 0 2px 15px #1890ff;
+	transform: translate3d(-0.6%, 0px, 0px);
+	transition: all 250ms ease 0s;
+}
+.toolbarButton.pdfSidebarNotification::after{display:none;}
+.outlineItem > a, .attachmentsItem > button{color:#666;}
+.outlineItem > a:hover, .attachmentsItem > button:hover{color:#333;}
+.thumbnailImage {
+	border:none;
+	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);
+}
+.thumbnail.selected > .thumbnailSelectionRing > .thumbnailImage{
+	box-shadow: 0 0 0 1px #1890ff73;
+}
+.toolbarField{border-color:rgba(0,0,0,0.1);}
+#overlayContainer > .container > .dialog{
+	border:none;
+	background:linear-gradient(12deg, rgba(0, 35, 68, 0.8), rgba(0, 0, 0, 0.7));
+}
+#sidebarContainer{border-top: 1px solid #aeadb2;}
+
+.overlayButton {padding: 2px 2em 3px 2em;cursor: pointer;}
+.doorHanger:after, .doorHangerRight:after {
+	border-bottom-color:#818a9a;
+}
+html[dir='ltr'] .outlineWithDeepNesting > .outlineItem, html[dir='ltr'] .outlineItem > .outlineItems{
+	margin-left: 10px;
+}

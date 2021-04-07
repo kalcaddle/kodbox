@@ -1,0 +1,73 @@
+{
+	"id":"webdav",
+	"name":"{{LNG['webdav.meta.name']}}",
+	"title":"{{LNG['webdav.meta.title']}}",
+	"version":"1.23",
+	"source":{
+		"className":" font-icon ri-hard-drive-fill-2 bg-yellow-6",
+		"icon":""
+	},
+	"category":"file",
+	"description":"{{LNG['webdav.meta.desc']}}",
+	"keywords":"",
+	"auther":{
+		"copyright":"kodcloud.",
+		"homePage":"http://www.kodcloud.com",
+	},
+	"configItem":{
+		"pluginAuthOpen":{
+			"type":"switch",
+			"value":1,
+            "className":"hidden"
+		},
+		"webdavName":{
+			"type":"input",
+			"value":"kodbox",
+            "className":"hidden"
+		},
+		"isOpen":{
+			"type":"switch",
+			"value":0,
+			"display":"{{LNG['webdav.config.isOpen']}}",
+			"desc":"{{LNG['webdav.config.isOpenDesc']}}",
+			"switchItem":{"1":"pluginAuth,detailAddress,pathAllow,detailConnect"}
+		},
+		"pluginAuth":{
+			"type":"userSelect",
+			"value":{"all":1},
+			"display":"{{LNG['admin.plugin.auth']}}",
+			"desc":"{{LNG['admin.plugin.authDesc']}}",
+			"require":1
+		},
+		"pathAllow":{
+			"type":"segment",
+			"value":"all",
+			"display":"{{LNG['webdav.config.pathAllow']}}",
+			"info":{
+				"all":"<i class='ri-node-tree font-icon'></i>{{LNG['webdav.config.pathAllowAll']}}",
+				"self":"<i class='ri-account-circle-fill font-icon'></i>{{LNG['webdav.config.pathAllowSelf']}}"
+			},
+			"desc":"{{LNG['webdav.config.pathAllowDesc']}}",
+		},
+		"sep001":"<hr/>",
+		"detail":{
+			"display":"",
+			"value":
+			"<div class='info-alert info-alert-blue p-10 align-left can-select can-right-menu mb-10'>
+			<div class='mb-15'><b>{{LNG['common.tips']}}:</b></div>
+			<li>{{LNG['webdav.meta.desc']}}</li><hr/>
+			<li>{{LNG['webdav.tips.https']}}</li>
+			<li>{{LNG['webdav.tips.upload']}}</li>
+			<li>{{LNG['webdav.tips.auth']}}</li>
+			</div>			
+			<p class='info-alert info-alert-green p-10 align-left can-select can-right-menu'>
+			{{LNG['webdav.tips.use']}}<br/>{{LNG['webdav.tips.use3thAccount']}}
+			</p>"
+		},
+		"detailConnect":{
+			"display":"",
+			"value":"<div class='kui-btn kui-btn-blue goto-connect-webdav' 
+					 link-href='#setting/user/webdav'>{{LNG['webdav.help.connect']}}</div></p>"
+		},
+	}
+}

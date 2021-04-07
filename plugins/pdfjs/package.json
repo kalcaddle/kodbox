@@ -1,0 +1,41 @@
+{
+	"id":"pdfjs",
+	"name":"PDFjs",
+	"title":"PDF文件阅读器",
+	"version":"1.36",
+	"source":{
+		"icon":"{{pluginHost}}static/app/images/icon.png",
+		"screenshoot":[
+			"{{pluginHost}}static/app/images/screenshoot1.png"
+		]
+	},
+	"category":"file",
+	"description":"pdfjs viewer",
+	"keywords":"",
+	"auther":{
+		"copyright":"kodcloud.",
+		"homePage":"http://www.kodcloud.com",
+	},
+	"configItem":{
+		"pluginAuth":{
+			"type":"userSelect",
+			"value":{"all":1},
+			"display":"{{LNG['admin.plugin.auth']}}",
+			"desc":"{{LNG['admin.plugin.authDesc']}}",
+			"require":1
+		},
+		"sep1001":"<hr/>",
+		"fileExt":{
+			"type":"tags",
+			"display":"{{LNG['admin.plugin.fileExt']}}",
+			"desc":"{{LNG['admin.plugin.fileExtDesc']}}",
+			"value":"pdf,djvu,ofd",
+		},
+		"fileSort":{
+			"type":"number",
+			"display":"{{LNG['admin.plugin.fileSort']}}",
+			"desc":"{{LNG['admin.plugin.fileSortDesc']}}",
+			"value":500,
+		}
+	}
+}

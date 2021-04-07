@@ -1,0 +1,31 @@
+
+<div style="padding: 20px 40px;line-height:30px;font-size:14px;color:#333333;font-family:'宋体',arial,sans-serif;">
+    <div style="line-height:20px;height:20px;">&nbsp;</div>
+    <p style="margin:0px;padding:0px;">
+        <strong style="font-family:arial,sans-serif;"><?php echo $data['dear'];?></strong>
+    </p>
+    <div style="line-height:20px;height:20px;">&nbsp;</div>
+    
+    <?php if($data['type'] == 'code') { ?>
+        <div style="margin:0px;padding:0px;">
+            <p style="margin:0px;"><?php echo $data['text'];?></p>
+            <p style="margin:0px;">
+                <span style="font-size:18px;color:#ff9900;"><?php echo $data['code'];?></span>
+                <span style="margin:0px;padding:0px;margin-left:10px;color:#979797;">(<?php echo $data['tips'];?>)</span>
+            </p>
+        </div>
+    <?php } else if ($data['type'] == 'notice') { ?>
+        <div style="margin:0px;padding:0px;">
+            <?php foreach($data['text'] as $line) { ?>
+            <p style="margin:0px"><?php echo $line; ?></p>
+            <?php } ?>
+        </div>
+    <?php } ?>
+
+    <div style="line-height:20px;height:20px;">&nbsp;</div>
+    <div style="margin:0px;padding:0px;">
+        <p style="margin:0px;"><?php echo $data['name'];?></p>
+        <p style="margin:0px;"><?php echo $data['date'];?></p>
+    </div>
+    <div style="line-height:20px;height:20px;">&nbsp;</div>
+</div>

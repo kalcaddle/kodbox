@@ -1,0 +1,91 @@
+.mce-content-body,.article-content-body{
+    font-family: Chinese Quote,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,PingFang SC,Hiragino Sans GB,Microsoft YaHei,Helvetica Neue,Helvetica,Arial,sans-serif;
+    color: #444;
+    font-size:14px;
+}
+body.mce-content-body{
+	position: absolute;
+    left: 0;top: 0;right: 0;bottom: 0;
+    border: 0;
+    margin: 0;padding:10px 10px;
+    box-sizing: border-box;
+}
+
+.mce-content-body p,.article-content-body p{
+	margin: 0.65em 0;
+    line-height: 1.5em;
+}
+.mce-content-body hr,.article-content-body hr{
+    border: none;
+    border-top: 1px solid #ccc;
+    margin: 0.5em 0;
+}
+.mce-content-body .mce-item-table,
+.mce-content-body .mce-item-table caption, 
+.mce-content-body .mce-item-table td, 
+.mce-content-body .mce-item-table th,
+.mce-content-body table td,
+.mce-content-body table th,
+
+.article-content-body .mce-item-table,
+.article-content-body .mce-item-table caption, 
+.article-content-body .mce-item-table td, 
+.article-content-body .mce-item-table th,
+.article-content-body table td,
+.article-content-body table th{
+    border: 1px solid #e1e1e1;
+    vertical-align: middle;
+    padding:0.2em 1em 0.2em 0.3em;
+}
+
+.mce-content-body table th,
+.mce-content-body .mce-item-table table th,
+.article-content-body table th,
+.article-content-body .mce-item-table table th{
+    background-color: #f3f3f3;
+}
+
+.mce-content-body code[class*=language-], 
+.mce-content-body pre[class*=language-],
+.article-content-body code[class*=language-], 
+.article-content-body pre[class*=language-]{line-height:1.3em;}
+
+.mce-content-body pre, 
+.mce-content-body pre > code,
+.article-content-body pre, 
+.article-content-body pre > code{
+    display: block;
+    font-size: 13px;
+    line-height: 1.5;
+    background: #f6f6f6;
+    color: #333;
+    font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
+    
+    position: relative;
+    margin: 0 0 20px;
+    padding: 1em;
+    box-sizing: border-box;
+    border: none;
+    border-radius: 4px;
+    word-break: break-word;
+    word-wrap: normal;
+    white-space: pre;
+    overflow: auto;
+}
+.mce-content-body pre > code,
+.article-content-body pre > code{margin:0;padding:0;}
+.mce-content-body code[data-mce-selected=inline-boundary]{background:none;}
+
+.mce-content-body blockquote,
+.article-content-body blockquote{
+    position: relative;
+    margin: 0 0 20px 0;
+    padding:5px 10px;
+    background-color: #f6f6f6;
+    border-left: 4px solid #e6e6e6;
+    font-style: normal;
+    font-weight: normal;
+    word-break: break-word;
+}
+.mce-content-body img,
+.article-content-body img{max-width: 100%;}

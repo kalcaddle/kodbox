@@ -1,0 +1,222 @@
+.install-box .content-main-message{
+    /* overflow-y: auto; */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: #444;
+    background-image: url(../../../../../static/images/wall_page/2.jpg);
+    background-repeat: no-repeat;
+    background-size: 100% 100%;
+}
+.install-box .form-box .form-row .setting-content{text-align: left;}
+.install-box .content-main-message .check-result .env-table{text-align: left;}
+
+.install-box .form-box .form-target-save .setting-content{text-align: center;}
+.install-box .form-box .form-target-save .setting-title{display: none;}
+.install-box .form-box .form-target-save .form-row .setting-content{text-align: left;padding-left: 150px;}
+.install-box .form-box .form-row .setting-title .require{font-size: 16px;}
+
+
+.install-box .content-main-message .header{
+    flex: 0 0 auto;
+    position: relative;
+}
+.install-box .content-main-message .header img{
+    position: absolute;
+    width: 200px;
+}
+.install-box .content-main-message .body{
+    flex: 1 1 auto;
+    border-bottom: 1px solid #ccc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* overflow-y: auto; */
+}
+.install-box .content-main-message .footer{
+    height: 40px;
+    flex: 0 0 auto;
+    line-height: 40px;
+    color: #fff;
+    text-align: center;
+}
+.install-box .content-main-message .footer .copyright-content a{
+    color: #adf;
+    text-decoration: none;
+}
+.install-box .content-main-message .footer .copyright-content a:hover{
+    color: #86ceff;
+    background: none;
+}
+
+.content-main-message .content-main{
+	margin: 5% auto 60px auto;
+	width: 95%;
+    max-width: 800px;
+}
+/* .content-main-message .content-main .title-box{ */
+.title-box{
+    height: 40px;
+    line-height: 40px;
+    margin-top: 20px;
+    font-size: 22px;
+    color: #888;
+}
+
+.install-box .form-target-save .setting-title{
+    width: 0px;
+}
+.install-box .form-target-save .setting-content{
+    width: 100%;
+}
+
+
+.progress-box {
+    width: 80%;
+    margin: 0px auto;
+    /* padding: 20px 0px; */
+    padding: 10px 0px;
+    display: table;
+}
+.progress-box.update>div{
+    position: relative;
+}
+.progress-box.update .btm-line{
+    width: 100%;
+}
+.progress-box.update>div .btm-line.update{
+    position: absolute;
+    background: #1890ff;
+    left: 0px;
+    width: 0px;
+    bottom: 6px;
+}
+/* .progress-box div { */
+.progress-box>div {
+    display: table-cell;
+    text-align: center;
+    color: #949494;
+}
+.progress-box div .btm-line {
+    width: 99%;
+    display: inline-block;
+    background: #ddd;
+    height: 5px;
+}
+.progress-box .active {
+    color: #1890ff;
+}
+.progress-box .active .btm-line {
+    background: #1890ff;
+}
+
+.env-table, .db-table, .user-table, .update-table {
+    width: 80%;
+    margin: 0px auto;
+}
+.env-table .bit-desc{
+    font-size: 12px;
+    font-style: italic;
+}
+
+.step-box.env .env-table{
+    height: 300px;
+}
+.step-box.env .env-table p {
+    /* height: 20px; */
+    display: flow-root;
+}
+.step-box.env .env-table p>span {
+    display: inline-block;
+    float: left;
+	line-height: 20px;
+    padding: 4px 0 0px 0;
+}
+.step-box.env .env-table p:nth-child(even) {background: #fafafa;}
+.step-box.env .env-table .row-title{color:#336;}
+.step-box.env .env-table .row-value{word-break:break-all; }
+.step-box.env .env-table .row-desc{color:#aaa;}
+
+.step-box .icon-checkmark{
+    color: #52c41a;
+}
+.step-box .icon-close1{
+    color: #f5222d;
+}
+
+.w10 {width: 10%;}
+.w20 {width: 20%;}
+.w30 {width: 30%;}
+.w40 {width: 40%;}
+.w60 {width: 60%;}
+
+.install-box .step-box.env .message-content {
+    padding-bottom: 125px;
+}
+.install-box .step-box.env .help {
+    margin-left: 10px;
+}
+.install-box .step-box.db .message-content,
+.install-box .step-box.user .message-content {
+    padding-bottom: 40px;
+}
+.install-box .step-box.db .message-content .info-alert{
+    margin-top: -25px;
+    margin-bottom: 5px;
+    width: 80%;
+}
+.install-box .step-box.db .panel-form-body,
+.install-box .step-box.user .panel-form-body {
+    padding: 0px !important;
+}
+.install-box .step-box.msg .success {
+    width: 82px;height: 82px;line-height: 82px;
+}
+
+.install-box  .form-box.config-box .panel-form-body{overflow: hidden;}
+.install-box  .form-row.item-dbDescMysql,
+.install-box  .form-row.item-dbDescPDO,
+.install-box  .form-row.item-dbDescSqlite{
+    position: relative;
+    top: -6px;
+    padding-left: 15px;
+    text-align: left;
+	/* height: 15px; */
+	height: 16px;
+	color:#bcc4d0;
+}
+.install-box  .form-row.item-dbDescMysql>div,
+.install-box  .form-row.item-dbDescPDO>div,
+.install-box  .form-row.item-dbDescSqlite>div{
+    padding-top: 0px;
+}
+
+
+.icon{
+    display: inline-block;
+    width: 20px;height: 20px;
+    background: rgba(0, 0, 0, 0.02);
+    text-align: center;
+    color: #666;
+    border-radius: 50%;
+    line-height: 20px;
+    font-size: 12px;
+    line-height: inherit!important;
+}
+.common-footer{
+	position: fixed;
+	bottom: 0px;
+	color: #999;
+	font-size: 1em;
+	width: 100%;
+	text-align: center;
+	height: 31px;line-height: 32px;
+	overflow: hidden;
+	
+	color: #eee;
+	background: rgba(0,0,0,0.1);
+    box-shadow: 0 0 0px 1px rgba(255,255,255,0.2), 0 -1px 0px 1px rgba(0,0,0,0.05);
+}
+.aero:before{
+	background-image: url(../../../../../static/images/wall_page/2.jpg);
+}

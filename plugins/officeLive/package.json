@@ -1,0 +1,79 @@
+{
+	"id":"officeLive",
+	"name":"{{LNG['officeLive.meta.name']}}",
+	"title":"{{LNG['officeLive.meta.title']}}",
+	"version":"1.28",
+	"category":"file",
+	"source":{
+		"icon":"{{pluginHost}}static/images/icon.png"
+	},
+	"description":"{{LNG['officeLive.meta.desc']}}",
+	"auther":{
+		"copyright":"kodcloud",
+		"homePage":"http://kodcloud.com"
+	},
+	"meta":{
+		"needNetwork": 1
+	},
+	"networkDesc": "{{LNG['officeLive.meta.netwrokDesc']}}<br/>{{LNG['officeLive.meta.netwrokUrl']}}: <br/>
+		<span class='blue-6'>https://owa-box.vips100.com</span><br/>
+		<span class='blue-6'>https://docview.mingdao.com</span><br/>
+		<span class='blue-6'>https://preview.tita.com</span><br/>
+		<span class='blue-6'>https://view.officeapps.live.com</span>",
+	"configItem":{
+		"formStyle":{
+			"className":"form-box-title-left",
+			"tabs":{
+				"{{LNG['admin.setting.base']}}":"pluginAuth,pluginAuthOpen,sep001,openWith,apiServer",
+			}
+			
+		},
+		"pluginAuth":{
+			"type":"userSelect",
+			"value":{"all":1},
+			"display":"{{LNG['admin.plugin.auth']}}",
+			"desc":"{{LNG['admin.plugin.authDesc']}}",
+			"require":1
+		},
+		"pluginAuthOpen":{
+			"type":"switch",
+			"value":0,
+			"display":"{{LNG['admin.plugin.authOpen']}}",
+			"desc":"{{LNG['admin.plugin.authOpenDesc']}}",
+			"require":1
+		},
+		"sep001":"<hr/>",
+		"openWith":{
+			"type":"radio",
+			"value":"dialog",
+			"display":"{{LNG['admin.plugin.openWith']}}",
+			"info1":{
+				"dialog":"{{LNG['admin.plugin.openWithDilog']}}",
+				"window":"{{LNG['admin.plugin.openWithWindow']}}"
+			},
+			"info":{
+				"dialog":"{{LNG['admin.plugin.openWithDilog']}}",
+				"window":"{{LNG['admin.plugin.openWithWindow']}}"
+			}
+		},
+		"apiServer":{
+			"type":"input",
+			"value":"https://view.officeapps.live.com/op/embed.aspx?src=",
+			"display":"{{LNG['officeLive.Config.apiServer']}}",
+			"desc":"{{LNG['officeLive.Config.apiServerDesc']}}",
+			"require":1
+		},
+		"fileExt":{
+			"type":"tags",
+			"display":"{{LNG['admin.plugin.fileExt']}}",
+			"desc":"{{LNG['admin.plugin.fileExtDesc']}}",
+			"value":"doc,docx,docm,dot,dotx,dotm,rtf,xls,xlsx,xlt,xlsb,xlsm,csv,ppt,pptx,pps,ppsx,pptm,potm,ppam,potx,ppsm,odt,ods,odp,ott,ots,otp,wps,wpt",
+		},
+		"fileSort":{
+			"type":"number",
+			"display":"{{LNG['admin.plugin.fileSort']}}",
+			"desc":"{{LNG['admin.plugin.fileSortDesc']}}",
+			"value":5,
+		}	
+	}
+}

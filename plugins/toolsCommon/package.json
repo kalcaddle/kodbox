@@ -1,0 +1,16 @@
+{
+	"id":"toolsCommon",
+	"name":"toolsCommon",
+	"title":"toos setting",
+	"version":"1.1",
+	"hidden":1,
+	"source":{
+		"className":"x-item-icon x-ini"
+	},
+	"description":"some configs",
+	"auther":{
+		"copyright":"kodcloud.",
+		"homePage":"http://www.kodcloud.com",
+	},
+	"configItem":{}
+}

@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="renderer" content="webkit">
+    <link rel="stylesheet" href="kityformula/assets/styles/base.css">
+    <link rel="stylesheet" href="kityformula/assets/styles/ui.css">
+    <link rel="stylesheet" href="kityformula/assets/styles/scrollbar.css">
+    <style>
+        html, body {
+            padding: 0;
+            margin: 0;
+        }
+        .kf-editor {
+            width: 820px;
+            height:420px;
+        }
+        #loading {
+            height: 32px;
+            width: 340px;
+            line-height: 32px;
+            position: absolute;
+            top: 42%;
+            left: 50%;
+            margin-left: -170px;
+            font-family: arial, "Hiragino Sans GB", "Microsoft YaHei", "WenQuanYi Micro Hei", sans-serif;
+        }
+        #loading img {
+            position: absolute;
+        }
+        #loading p {
+            display: block;
+            position: absolute;
+            left: 40px;
+            top: 0px;
+            margin: 0;
+        }
+        .kf-editor{
+            width:100%;height:100%;
+            min-width:760px;box-sizing: border-box;
+            position: absolute;top: 0;left: 0;bottom: 0;right: 0;
+            border:none;
+        }
+        .kf-editor-edit-area {
+            width: auto !important;
+            height: auto !important;
+            position: absolute;top: 100px;bottom: 0px;left: 0;right:0;
+        }
+    
+        .latex-editor{
+            position: absolute;
+            top:0;bottom:0;left:0;right:0;
+        }
+        .latex-editor .math{
+            width:100%;height:100%;
+            border:none;
+            outline: none;
+
+            padding: 1em;
+            font-size: 16px;
+            box-sizing: border-box;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1) inset;
+        }
+        .latex-editor .math:focus{
+            box-shadow: 0 0 20px rgba(0,0,0,0.1) inset;
+        }
+        
+        .latex-toggle{
+            position: absolute;
+            top: 5px;right: 5px;
+            text-align: center;
+            z-index: 20;
+            padding:2px 1em;
+            border-radius: 3px;
+            cursor: pointer;
+            
+            color: #446;
+            background: #fafafa;
+            border: 1px solid #eee;
+            user-select: none;
+        }
+        .latex-toggle:hover{border-color: #8fcc91;}
+        .latex-toggle.active{
+            color: #5fb162;
+            background: #e0f0dd;
+            border: 1px solid #8fcc91;
+        }
+        .hidden{display: none;}
+    </style>
+    <title></title>
+</head>
+<body>
+<div id="kfEditorContainer" class="kf-editor">
+    <div id="tips" class="tips">
+        <div id="loading"><img src="kityformula/loading.gif" alt="loading" /></div>
+    </div>
+</div>
+
+<script src="../../../../dist/vendor.js"></script>
+<script src="../../../../dist/lib.js"></script>
+<script src="kityformula/js/kitygraph.all.js"></script>
+<script src="kityformula/js/kity-formula-render.all.js"></script>
+<script src="kityformula/js/kity-formula-parser.all.min.js"></script>
+<script src="kityformula/js/kityformula-editor.all.min.js"></script>
+<script>
+    $( function ($) {
+        if (document.body.addEventListener ) {
+            $( "#tips").html('<div id="loading"><img src="kityformula/loading.gif" alt="loading" /><p>正在加载，请耐心等待...</p></div>' );
+            var factory = kf.EditorFactory.create($("#kfEditorContainer" )[ 0 ], {
+                render: {fontsize: 24},
+                resource: {
+                    path: "./kityformula/resource/"
+                }
+            } );
+            factory.ready(function(KFEditor) {
+ 	            window.kfe = this;
+	            initEditView();
+            });
+        } else {
+            $( "#tips").css( "color", "black" );
+            $( "#tips").css( "padding", "10px" );
+        }
+    });
+
+    var initEditView = function(){
+        var math = window.defaultMath || "\\placeholder";
+        kfe.execCommand('render',math);
+        kfe.execCommand('focus');
+        if(window.defaultMath){
+            setValueMath(window.defaultMath,100);
+        }
+        
+        var html  = '\
+        <div class="latex-toggle">latex</div>\
+        <div class="latex-editor hidden"><textarea class="math"></textarea></div>';
+        $(html).appendTo('.kf-editor-edit-area');
+        
+    
+        var $editor = $('.latex-editor');
+        $('.latex-toggle').bind('click',function(){
+            var isEdit = $(this).hasClass('active');
+            if(isEdit){
+                var value = $editor.find('.math').val();
+                $(this).removeClass('active');
+                $editor.addClass('hidden');
+                kfe.execCommand('render',value);
+            }else{
+                var value = kfe.execCommand('get.source');
+                $(this).addClass('active');
+                $editor.removeClass('hidden');
+                
+                $editor.find('.math').val(value).focus();
+                setTimeout(function() {
+                    $editor.find('.math').focus();
+                },20);
+            }
+        });
+    }
+    function setValueMath(math,delay){
+        if(!kfe){
+            window.defaultMath = math;
+            return;
+        }
+
+        $('.kf-editor-canvas-container').hide();
+        setTimeout(function(){
+            $('.kf-editor-canvas-container').show();
+            try {
+                kfe.execCommand('render',math);
+                // kfe.execCommand('focus');
+            } catch(e) {}
+        },delay || 400);
+    }
+    
+    function getData(callback) {
+	    if(kfe) {
+	        kfe.execCommand('get.image.data', function(data) {
+	            var latex = kfe.execCommand('get.source');
+	            latex = latex.replace(/\\placeholder/g,'');
+	            callback(data.img, latex);
+	        });
+	    } else {
+	        callback(false)
+	    }
+	}
+</script>
+</body>
+</html>

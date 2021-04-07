@@ -1,0 +1,48 @@
+{
+	"id":"webodf",
+	"name":"Opendocument Viewer",
+	"title":"",
+	"version":"1.26",
+	"source":{
+		"className":"x-item-icon x-odt",
+		"icon":""
+	},
+	"category":"file",
+	"description":"Opendocument Viewer",
+	"keywords":"",
+	"auther":{
+		"copyright":"kodcloud.",
+		"homePage":"http://www.kodcloud.com",
+	},
+	"configItem":{
+		"pluginAuth":{
+			"type":"userSelect",
+			"value":{"all":1},
+			"display":"{{LNG['admin.plugin.auth']}}",
+			"desc":"{{LNG['admin.plugin.authDesc']}}",
+			"require":1
+		},
+		"openWith":{
+			"type":"radio",
+			"value":"dialog",
+			"display":"{{LNG['admin.plugin.openWith']}}",
+			"info":{
+				"dialog":"{{LNG['admin.plugin.openWithDilog']}}",
+				"window":"{{LNG['admin.plugin.openWithWindow']}}"
+			}
+		},
+		"sep1001":"<hr/>",
+		"fileExt":{
+			"type":"tags",
+			"display":"{{LNG['admin.plugin.fileExt']}}",
+			"desc":"{{LNG['admin.plugin.fileExtDesc']}}",
+			"value":"odf,odt,ods,odp"
+		},
+		"fileSort":{
+			"type":"number",
+			"display":"{{LNG['admin.plugin.fileSort']}}",
+			"desc":"{{LNG['admin.plugin.fileSortDesc']}}",
+			"value":5000
+		}
+	}
+}

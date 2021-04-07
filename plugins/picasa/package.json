@@ -1,0 +1,42 @@
+{
+	"id":"picasa",
+	"name":"Picasa",
+	"title":"图片管理工具",
+	"version":"1.26",
+	"source":{
+		"className":"x-item-icon x-jpg",
+		"screenshoot":[
+			"{{staticPath}}images/wall_page/1.jpg",
+			"{{staticPath}}images/wall_page/5.jpg"
+		]
+	},
+	"category":"media,file",
+	"description":"{{LNG['admin.plugin.defaultPicasa']}}",
+	"keywords":"",
+	"auther":{
+		"copyright":"kodcloud.",
+		"homePage":"http://www.kodcloud.com",
+	},
+	"configItem":{
+		"pluginAuth":{
+			"type":"userSelect",
+			"value":{"all":1},
+			"display":"{{LNG['admin.plugin.auth']}}",
+			"desc":"{{LNG['admin.plugin.authDesc']}}",
+			"require":1
+		},
+		"sep1001":"<hr/>",
+		"fileExt":{
+			"type":"tags",
+			"display":"{{LNG['admin.plugin.fileExt']}}",
+			"desc":"{{LNG['admin.plugin.fileExtDesc']}}",
+			"value":"jpg,jpeg,png,bmp,gif,ico,svg,cur,webp",
+		},
+		"fileSort":{
+			"type":"number",
+			"display":"{{LNG['admin.plugin.fileSort']}}",
+			"desc":"{{LNG['admin.plugin.fileSortDesc']}}",
+			"value":10
+		}
+	}
+}

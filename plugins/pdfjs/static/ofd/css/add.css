@@ -1,0 +1,107 @@
+
+
+	
+.MainPanelContent {background-color: #eeeef4;}
+.ant-layout-header{
+	padding: 0 10px;
+	background: #fcfcfc;
+	background: linear-gradient(0deg,#fafafa,#fff);
+    border-bottom: 1px solid #e6e6e6;
+}
+
+.ant-layout-sider.ant-layout-sider-collapsed{display:none;}
+.SidebarButton {padding: 0 12px;}
+#RightSidePanel.ant-layout-sider.ant-layout-sider-collapsed{
+	position: absolute;
+    display: block;
+	top: 30px;bottom: 0;right: 0;
+	background:transparent;
+	/* background:rgba(255, 0, 0, 0.3); */
+}
+.app-window-touch #RightSidePanel.ant-layout-sider.ant-layout-sider-collapsed{
+	left: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 100% !important;
+    transition: none;
+}
+
+
+.HFlexBoxLeftContainer{
+    margin: 0 auto;
+    flex: none;display: block;
+}
+.HFlexBoxRightContainer{
+    position: absolute;
+    right: 10px;
+    height: 30px;
+}
+
+.ant-select-selection, 
+.ant-select-selection-selected-value, 
+.ant-select-selection__rendered,
+#PageNumberInput,
+.ant-input-search #search{
+    border-radius: 2px;
+    height: 22px;line-height: 22px;
+    position: relative;top: -1px;
+    padding-left: 0.5em;
+}
+.ant-input-search #search{top:-1px;}
+.ant-select-selection,.ant-select-selection__rendered{
+	top: 0px;padding-left: 0;
+	margin-left: 0px;
+}
+.ant-select.ant-select-enabled{width:80px !important;}
+.SearchBox, .SearchBox input{width:100px;}
+#root,#root .App,#root .App > .ant-layout{overflow: hidden;}
+
+.header .HFlexBox button{
+    border-radius: 3px;
+    height: 25px;
+    position: relative;
+    margin-right: 1px;
+    background: transparent;
+    border: none;
+    font-size: 13px;
+    transition: all 0.2s;
+}
+.header .HFlexBox button:hover{background:#eee;}
+.header .HFlexBox button.toolbar-file-open{
+    position: absolute;
+    right: 215px;top: 2px;
+}
+.header .HFlexBox button#printButton{
+    position: absolute;
+    right:190px;top: 2px;
+}
+.header .HFlexBox button#printButton span{display: none;}
+
+.ant-select-dropdown{
+    margin-top: -6px;
+    border-radius: 0 0 3px 3px;
+    border: 1px solid #ddd;
+    border-top: none;
+    box-shadow: 0 8px 8px rgba(0,0,0,.15);
+}
+.ant-select-dropdown-menu{max-height: 300px;}
+.ant-select-dropdown-menu-item {
+    padding: 2px 10px;
+    font-size: 13px;
+    line-height: 20px;
+}
+
+
+@media only screen and (max-width: 500px) {
+	.header .HFlexBox button#printButton{right:115px;}
+
+	.header .HFlexBox button#printButton,
+	.toolbar-file-open,
+	/* .ant-select.ant-select-enabled, */
+	.ant-divider.ant-divider-vertical,
+	.view-turn-left,.view-turn-right,.view-turn-full
+	{display: none;}
+	
+	.HFlexBoxLeftContainer{margin:0;}
+	.HFlexBoxRightContainer button{display:none;}
+}

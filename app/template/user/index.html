@@ -1,0 +1,73 @@
+<?php
+	function linkHref($src,$dev=false){
+		if($dev){echo STATIC_PATH.$src.'?v='.time(); return;}
+		$static  = STATIC_PATH;
+		$version = GLOBAL_DEBUG ? time() : KOD_VERSION.'.'.KOD_VERSION_BUILD;//debug;
+		echo $static . $src . '?v='.$version;
+	}
+?>
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<meta http-equiv="Cache-Control" content="no-transform" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no" />
+	<meta name="renderer" content="webkit">
+	<meta name="format-detection" content="telephone=no" />
+	<meta name="format-detection" content="email=no" />
+
+	<meta name="description" itemprop="description" content="<?php echo LNG('common.copyright.desc');?>" />
+	<meta name="keywords" content="<?php echo LNG('common.copyright.metaKeywords');?>" />
+	<meta name="generator" content="<?php echo LNG('common.copyright.metaName').' '.KOD_VERSION;?>"/>
+	<meta name="author" content="<?php echo LNG('common.copyright.name');?>" />
+	<meta name="copyright" content="<?php echo LNG('common.copyright.name');?>" />
+	<title><?php echo LNG('common.copyright.name')." - ".LNG('common.copyright.powerBy');?></title>
+	<link href="<?php linkHref('style/dist/loading.css');?>" rel='stylesheet' />
+	<?php if(STATIC_DEV){?>
+	<link href="<?php linkHref('style/lib/index.css',1);?>" rel="stylesheet" />
+	<link href="<?php linkHref('style/skin_dev/index.less',1);?>" rel='stylesheet/less' type='text/css' />
+	<script>var lessENV = "development";var less={useFileCache:false,async:1,fileAsync:1,env:lessENV};</script>
+	<script src="<?php linkHref('app/vender/less.min.js',1);?>" data-async="true"></script>
+	<?php }else{?>
+	<link href="<?php linkHref('style/lib/main.css');?>" rel="stylesheet" />
+	<link href="<?php linkHref('style/dist/main.css');?>" rel='stylesheet' />
+	<?php } ?>
+	<link href="./?user/view/manifest" rel="manifest" />
+	<meta itemprop="image" content="<?php linkHref('images/icon/icon_512.png');?>" />
+	<link head-type='kod' href="<?php linkHref('images/icon/icon_512.png');?>" rel="apple-touch-icon"/>
+	<link head-type='kod' href="<?php linkHref('images/icon/fav.png');?>" rel="Shortcut Icon" type="image/x-icon" />
+	<link head-type='kod' href="<?php linkHref('images/icon/fav.png');?>" rel="icon" type="image/x-icon" />
+	
+	<meta name="theme-color" content="#1b6de1" />
+	<meta name="apple-touch-fullscreen" content="yes" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="apple-mobile-web-app-status-bar-style" content="default" />
+	<meta name="apple-mobile-web-app-title" content="<?php echo LNG('common.copyright.metaName');?>" />
+	
+	<meta name="browsermode" content="application" />
+	<meta name="full-screen" content="yes" />
+	<meta name="x5-page-mode" content="app" />
+	<meta name="x5-fullscreen" content="true" />
+	<?php Hook::trigger('templateCommonHeader');?>
+</head>
+
+
+<body>
+	<div id="app"></div>
+	<div class="loading-msg loading-msg-mask loading-body">
+		<img src="<?php linkHref('images/common/loading-page.gif');?>"
+		style="position:absolute;margin:auto;left:0;top:0;right:0;bottom:0;max-width:64px;max-height:64px;width:64px;border-radius:4px;">
+	</div>
+	
+	<script type="text/javascript"> 
+		window.API_HOST = "<?php echo app_host_get();?>";
+		window.STATIC_PATH = "<?php echo STATIC_PATH;?>";
+        if(navigator.serviceWorker){navigator.serviceWorker.register('./?user/view/manifestJS');}
+	</script>
+	<script src="<?php linkHref('app/vender/es3-profill.js');?>"></script>
+	<script src="<?php linkHref('app/dist/vendor.js');?>"></script>
+	<script src="<?php linkHref('app/dist/main.js');?>"></script>
+	<?php Hook::trigger('templateCommonFooter');?>
+</body>
+</html>

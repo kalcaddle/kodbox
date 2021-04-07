@@ -1,0 +1,173 @@
+{
+	"dbType": {
+		"type": "segment",
+		"value": "sqlite",
+		"display": LNG['admin.install.dbType'],
+		"info": {
+			"sqlite": "SQLite",
+			"mysql": "MySQL",
+			"pdo": "PDO"
+		},
+		"switchItem": {
+			"sqlite": "dbDescSqlite",
+			"mysql": "dbDescMysql,dbHost,dbUser,dbPwd,dbName",
+			"pdo": "dbDescPDO,pdoType"
+		}
+	},
+	"dbDescSqlite": {
+		"type": "html","display": "",
+		"value": LNG['admin.install.sqliteDesc']
+	},
+	"dbDescMysql": {
+		"type": "html","display": "",
+		"value": LNG['admin.install.mysqlDesc']
+	},
+	"dbDescPDO": {
+		"type": "html","display": "",
+		"value": LNG['admin.install.pdoDesc']
+	},
+	
+	
+	"pdoType": {
+		"type": "segment",
+		"value": "sqlite",
+		"display": LNG['common.type'],
+		"info": {
+			"sqlite": "SQLite",
+			"mysql": "MySQL"
+		},
+		"switchItem": {
+			"sqlite": "",
+			"mysql": "pdoDbHost,pdoDbUser,pdoDbPwd,pdoDbName"
+		}
+	},
+
+	"dbHost": {
+		"type": "input",
+		"value": "127.0.0.1",
+		"attr": {
+			"placeholder": "127.0.0.1"
+		},
+		"display": LNG['common.server'],
+		"desc": "",
+		"require": "1"
+	},
+
+	"dbUser": {
+		"type": "input",
+		"value": "root",
+		"display": LNG['admin.install.userName'],
+		"desc": "",
+		"require": "1"
+	},
+
+	"dbPwd": {
+		"type": "password",
+		"value": "",
+		"display": LNG['common.password'],
+		"desc": ""
+	},
+
+	"dbName": {
+		"type": "input",
+		"value": "kodbox",
+		"display": LNG['admin.install.database'],
+		"desc": "",
+		"require": "1"
+	},
+
+	"pdoDbHost": {
+		"type": "input",
+		"value": "127.0.0.1",
+		"attr": {
+			"placeholder": "127.0.0.1"
+		},
+		"display": LNG['common.server'],
+		"desc": "",
+		"require": "1"
+	},
+
+	"pdoDbUser": {
+		"type": "input",
+		"value": "root",
+		"display": LNG['admin.install.userName'],
+		"desc": "",
+		"require": "1"
+	},
+
+	"pdoDbPwd": {
+		"type": "password",
+		"value": "",
+		"display": LNG['common.password'],
+		"desc": ""
+	},
+
+	"pdoDbName": {
+		"type": "input",
+		"value": "kodbox",
+		"display": LNG['admin.install.dbName'],
+		"require": "1"
+	},
+	
+	"step0": "<hr/>",
+	"cacheType": {
+		"type": "segment",
+		"value": "file",
+		"display": LNG['admin.install.cacheType'],
+		"desc":"<br/>"+LNG['admin.install.cacheTypeDesc'],
+		"info": {
+			"file": LNG['admin.install.fileCache'],
+			"redis": "Redis",
+			"memcached": "Memcached"
+		},
+		"switchItem": {
+			"file": "",
+			"redis": "redisHost,redisPort",
+			"memcached": "memcachedHost,memcachedPort"
+		}
+	}, 
+
+	"redisHost": {
+		"type": "input",
+		"value": "127.0.0.1",
+		"attr": {
+			"placeholder": "127.0.0.1"
+		},
+		"display": LNG['common.server'],
+		"desc": "",
+		"require": "1"
+	},
+	"redisPort": {
+		"type": "input",
+		"value": "6379",
+		"attr": {
+			"placeholder": "6379"
+		},
+		"display": LNG['admin.install.dbPort'],
+		"desc": "",
+		"require": "1"
+	},
+
+	"memcachedHost": {
+		"type": "input",
+		"value": "127.0.0.1",
+		"attr": {
+			"placeholder": "127.0.0.1"
+		},
+		"display": LNG['common.server'],
+		"desc": "",
+		"require": "1"
+	},
+
+	"memcachedPort": {
+		"type": "input",
+		"value": "11211",
+		"attr": {
+			"placeholder": "11211"
+		},
+		"display": LNG['admin.install.dbPort'],
+		"desc": "",
+		"require": "1"
+	}
+
+}
