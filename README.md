@@ -79,8 +79,8 @@ chmod -Rf 777 ./kodbox/*
 
 **2. Install via download**
 ```
-wget https://github.com/kalcaddle/kodbox/archive/master.zip
-unzip master.zip
+wget https://github.com/kalcaddle/kodbox/archive/refs/heads/main.zip
+unzip main.zip
 chmod -Rf 777 ./*
 ```
 
