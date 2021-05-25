@@ -853,7 +853,7 @@ function is_text_file($ext){
 		'vtt','filters','cer','reg','config','pem','srt','ass','lrc','opf','ncx',
 		'classpath','mymetadata','jsdtscope','project','tern-project','tld','iml','sln',
 		'gitattributes','mf','name','container','lock','applescript','mvnw','apple-app-site-association',
-		'magnet','sample','example','http','puml','plantuml'
+		'magnet','sample','example','http','puml','plantuml','plist',
 	);
 	return in_array($ext,$extArray);
 }

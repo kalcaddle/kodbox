@@ -225,19 +225,11 @@ class userSetting extends Controller {
 	 * 用户头像上传
 	 */
 	public function setHeadImage() {
-		$file = $this->in['path'];
-		$userID = $this->user['userID'];
-		$fileInfo = IO::info($file);
-		if(!$fileInfo || 
-			!in_array($fileInfo['ext'],$this->imageExt) ||
-			$fileInfo['targetType'] != 'system' || 
-			$fileInfo['createUser']['userID'] != USER_ID
-		){
-			show_json(LNG('user.unAuthFile'),false);
+		$link = Input::get('link', 'require');
+		if(strpos($link, APP_HOST) != 0) {
+			show_json(LNG('common.illegalRequest'), false);
 		}
-
-		$link = Action('explorer.share')->linkFile($file);
-		if(!$link) show_json(null, false);
+		$userID = USER_ID;
 		$link = str_replace(APP_HOST, './', $link);
 		if(!$this->model->userEdit($userID, array("avatar" => $link))) {
 			show_json(LNG('explorer.upload.error'), false);
