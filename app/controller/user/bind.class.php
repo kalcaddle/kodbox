@@ -337,16 +337,14 @@ class userBind extends Controller {
 	 */
 	public function sendMsg() {
 		$data = Input::getArray(array(
-			'type'	 => array('check' => 'require'),
+			'type'	 => array('check' => 'in', 'param' => array('email', 'phone')),
 			'input'	 => array('check' => 'require'),
 		));
 		$type = $data['type'];
 
-		// 0. 发送短信,先检查图片验证码
-		if ($type == 'phone') {
-			$checkCode = Input::get('checkCode', 'require', '');
-			Action('user.setting')->checkImgCode($checkCode);
-		}
+		// 检查图片验证码
+		$checkCode = Input::get('checkCode', 'require', '');
+		Action('user.setting')->checkImgCode($checkCode);
 
 		// 1.1 判断邮箱是否已绑定-自己
 		$userInfo = Session::get("kodUser");
@@ -355,23 +353,19 @@ class userBind extends Controller {
 		}
 		// 1.2 判断邮箱是否已绑定-他人
 		if ($res = Model('User')->userSearch(array($type => $data['input']), 'name,nickName')) {
-			$name = $res['nickName'] ? $res['nickName'] : $res['name'];
-			show_json(LNG('common.' . $type) . LNG('user.bindOthers') . "[{$name}]", false);
+			$typeTit = $type . ($type == 'phone' ? 'Number' : '');
+			show_json(LNG('common.' . $typeTit) . LNG('common.error'), false);
+			// $name = $res['nickName'] ? $res['nickName'] : $res['name'];
+			// show_json(LNG('common.' . $type) . LNG('user.bindOthers') . "[{$name}]", false);
 		}
 
-		// 2.1 发送邮件
-		if ($type == 'email') {
-			$res = $this->sendEmail($data['input'], 'email_bind');
-			if (!$res['code']) {
-				show_json(LNG('user.sendFail') . ': ' . $res['data'], false);
-			}
-		}
-		// 2.2 发送短信
-		if ($type == 'phone') {
-			$res = $this->sendSms($data['input'], 'phone_bind');
-			if (!$res['code']) {
-				show_json(LNG('user.sendFail') . ': ' . $res['data'], false);
-			}
+		$data['source'] = 'bind';
+		Action('user.setting')->checkMsgFreq($data);	// 消息发送频率检查
+		// 2 发送邮件/短信
+		$func = $type == 'email' ? 'sendEmail' : 'sendSms';
+		$res = $this->$func($data['input'], $type.'_'.$data['source']);
+		if (!$res['code']) {
+			show_json(LNG('user.sendFail') . ': ' . $res['data'], false);
 		}
 
 		// 3. 存储验证码
@@ -379,7 +373,7 @@ class userBind extends Controller {
 			'type' => 'setting',
 			'input' => $data['input']
 		);
-		Action("user.regist")->msgCodeExec($type, $res['data'], $param, true);
+		Action("user.setting")->checkMsgCode($type, $res['data'], $param, true);
 		show_json(LNG('user.sendSuccess'), true);
 	}
 

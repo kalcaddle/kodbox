@@ -22,12 +22,14 @@ class filterIndex extends Controller{
 		Action("filter.userCheck")->bind();
 		Action("filter.attachment")->bind();
 		Action("filter.html")->bind();
+		
 	}
 
 	public function trigger(){
 		Action("filter.post")->check();
 		Action("filter.userGroup")->check();
 		Action("filter.limit")->check();
+		Action("explorer.seo")->check();
 		
 		Hook::trigger(strtolower(ACTION).'.before',array());
 		Hook::bind('show_json',array($this,'eventAfter'));

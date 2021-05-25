@@ -27,6 +27,8 @@ class adminNotice extends Controller{
 			"mode" 		=> array("check"=>"require"),
 			"time" 		=> array("check"=>"require"),
 			"type" 		=> array("default"=>"1"),	// 通知类型，1:系统通知；2:活动通知
+			"level" 	=> array("default"=>"0"),	// 提示级别，0:弱提示；1:强提示
+			'enable'	=> array('default'=>'0'),		// 是否启用
 		));
 		$res = $this->model->add($data);
 		$msg = $res ? LNG('explorer.success') : LNG('explorer.error') . '! ' . LNG('explorer.pathExists');
@@ -45,6 +47,8 @@ class adminNotice extends Controller{
 			"mode" 		=> array("check"=>"require"),
 			"time" 		=> array("check"=>"require"),
 			"type" 		=> array("default"=>"1"),
+			"level" 	=> array("default"=>"0"),
+			'enable'	=> array('default'=>'0'),		// 是否启用
 		));
 		$res = $this->model->update($data['id'],$data);
 		$msg = $res ? LNG('explorer.success') : LNG('explorer.error') . '! ' . LNG('explorer.pathExists');
@@ -71,6 +75,18 @@ class adminNotice extends Controller{
 		show_json(LNG('explorer.success'));
 	}
 
+	/**
+	 * 启/禁用通知
+	 */
+	public function enable() {
+		$data = Input::getArray(array(
+			"id"    	=> array("check"=>"int"),
+			"enable"	=> array("check"=>"bool"),
+		));
+		$res = $this->model->enable($data['id'],(bool)$data['enable']);
+		$msg = !!$res ? LNG('explorer.success') : LNG('explorer.error');
+		show_json($msg,!!$res);
+	}
 	// ----------------------- 用户通知 -----------------------
 
 	// 检查是否具有接受某通知的权限
@@ -87,6 +103,7 @@ class adminNotice extends Controller{
 		// 初始化用户通知列表
 		$result = $this->model->listData(false, 'id');	// 通知列表，按id升序
 		foreach($result as $value) {
+			if(isset($value['enable']) && !$value['enable']) continue;	// 未启用
 			if($value['time'] > time()) continue;	// 未到通知时间
 			if(!$this->authCheck($value['auth'])) continue;	// 权限
 			$this->model->userNoticeAdd($value);
@@ -100,17 +117,14 @@ class adminNotice extends Controller{
 	}
 	// 用户通知详情
 	public function noticeInfo($id){
-		// 通知列表
-		$result = $this->model->listData();
+		// 通知详情
+		$result = $this->model->listData($id);
 		if(!$result) show_json(array(), false);
 		// 用户通知
 		$notice = $this->model->userNoticeGet($id);
 		if(!$notice) show_json(array(), false);
-		
-		$noticeID = $notice['noticeID'];
-		$list = array_to_keyvalue($result,'id');
-		if(!isset($list[$noticeID])) show_json(array(), false);
-		$notice['content'] = $list[$noticeID]['content'];
+		$notice['content'] = $result['content'];
+
 		show_json($notice);
 	}
 	// 用户通知更新(已查看)

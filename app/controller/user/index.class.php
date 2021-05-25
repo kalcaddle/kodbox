@@ -17,7 +17,6 @@ class userIndex extends Controller {
 	}
 	// 进入初始化
 	public function init(){
-		$this->checkUrl();
 		Hook::trigger('globalRequestBefore');
 		Hook::bind('beforeShutdown','user.index.shutdownEvent');
 		if( !file_exists(USER_SYSTEM . 'install.lock') ){
@@ -27,18 +26,13 @@ class userIndex extends Controller {
 		$this->initSession();   //
 		$this->initSetting();   // 
 		init_check_update();	// 升级检测处理;
+		KodIO::initSystemPath();
 		
 		Action('filter.index')->bind();
 		$this->loginCheck();
-		KodIO::initSystemPath();
 		Model('Plugin')->init();
 		Action('filter.index')->trigger();
 	}
-	
-	public function checkUrl(){
-		if(!isset($_GET['check_app_host_get'])) return;
-		echo '[ok]';exit;
-	}	
 	public function shutdownEvent(){
 		CacheLock::unlockRuntime();// 清空异常时退出,未解锁的加锁;
 	}
@@ -94,9 +88,9 @@ class userIndex extends Controller {
 		$upload['chunkSize'] = $upload['chunkSize'] <= 1024*1024*0.1 ? 1024*1024*0.4:$upload['chunkSize'];
 		$upload['chunkSize'] = intval($upload['chunkSize']);
 		// 对象存储分片大小
-		$upload['osChunkSize'] = isset($upload['osChunkSize']) ? $upload['osChunkSize'] : 1024*1024*10;
+		$upload['osChunkSize'] = isset($upload['osChunkSize']) ? $upload['osChunkSize'] : 10;
 		if(isset($sysOption['osChunkSize'])) {
-			$upload['osChunkSize'] = floatval($sysOption['chunkSize']);
+			$upload['osChunkSize'] = floatval($sysOption['osChunkSize']);
 		}
 		$upload['osChunkSize'] = $upload['osChunkSize']*1024*1024;
 		$upload['osChunkSize'] = $upload['osChunkSize'] <= 1024*1024*0.1 ? 1024*1024*0.4 : $upload['osChunkSize'];
@@ -123,7 +117,7 @@ class userIndex extends Controller {
 	private function userDataInit() {
 		$this->user = Session::get('kodUser');
 		if($this->user){
-			$findUser = Model('User')->getInfo($this->user['userID']);
+			$findUser = Model('User')->getInfoFull($this->user['userID']);
 			// 用户账号hash对比; 账号密码修改自动退出处理;
 			if($findUser['userHash'] != $this->user['userHash']){
 				Session::destory();
@@ -169,6 +163,27 @@ class userIndex extends Controller {
 	}
 	public function accessTokenGet(){
 		show_json($this->accessToken(),true);
+	}
+	
+	// 登陆校验并自动跳转 (已登录则直接跳转,未登录则登陆成功后跳转)
+	public function autoLogin(){
+		$link = $this->in['link'];
+		if(!$link) return;
+
+		$errorTips = _get($this->in,'msg','');
+		$errorTips = $errorTips == '[API LOGIN]' ? '':$errorTips; // 未登录标记,不算做登陆错误;
+		if(Session::get('kodUser') && !$errorTips){
+			$param = 'kodTokenApi='.$this->accessToken();
+			if($this->in['callbackToken'] == '1'){
+				$link .= strstr($link,'?') ? '&'.$param:'?'.$param;
+			}
+			header('Location:'.$link);exit;
+		}
+		
+		$param  = '#user/login&link='.rawurlencode($link);
+		$param .= isset($this->in['msg']) ? "&msg=".$this->in['msg']:'';
+		$param .= isset($this->in['callbackToken']) ? '&callbackToken=1':'';
+		header('Location:'.APP_HOST.$param);exit;
 	}
 
 	/**
@@ -216,10 +231,8 @@ class userIndex extends Controller {
 			"salt"		=> array("default"=>false),
 		));
 		$checkCode = Input::get('checkCode', 'require', '');
-		if( need_check_code()
-			&& $data['name'] != 'guest'
-			&& Session::get('checkCode') !== strtolower($checkCode) ){
-			show_json(LNG('user.codeError'),false);
+		if( need_check_code() && $data['name'] != 'guest'){
+			Action('user.setting')->checkImgCode($checkCode);
 		}
 		if ($data['salt']) {
 			$key = substr($data['password'], 0, 5) . "2&$%@(*@(djfhj1923";
@@ -235,6 +248,10 @@ class userIndex extends Controller {
 			show_json(LNG('user.userEnabled'), ERROR_CODE_USER_INVALID);
 		}
 		$this->loginSuccessUpdate($user);
+		//自动登陆跳转; http://xxx.com/?user/index/loginSubmit&name=guest&password=guest&auto=1
+		if($this->in['auto'] == '1'){
+			header("Location: ".APP_HOST);exit;
+		}
 		show_json('ok',true,$this->accessToken());
 	}
 	private function loginWithToken(){
@@ -302,7 +319,7 @@ class userIndex extends Controller {
 			'type' => 'regist',
 			'input' => $data['input']
 		);
-		Action('user.regist')->msgCodeExec($data['type'], $data['code'], $param);
+		Action('user.setting')->checkMsgCode($data['type'], $data['code'], $param);
 		$user = Model('User')->where(array($data['type'] => $data['input']))->find();
 		if (empty($user)) {
 			show_json(LNG('user.notBind'), false);

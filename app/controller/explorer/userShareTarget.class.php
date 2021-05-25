@@ -51,7 +51,7 @@ class explorerUserShareTarget extends Controller{
 					$targetInfo = Model("Group")->getInfo($info['id']);
 				}else{
 					$targetInfo = Model("User")->getInfoSimpleOuter($info['id']);
-					if($targetInfo['userID'] == '0'){
+					if($targetInfo['userID'] == '0' || $targetInfo['userID'] == '-1'){
 						$targetInfo = false;
 					}
 				}

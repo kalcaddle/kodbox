@@ -20,7 +20,7 @@ var jPlayerConfigInit = function($player,config){
 		warningAlerts: false,
 		size: {
 			width: "100%",
-			height: "auto"
+			height: "100%"
 		},
 		cssSelectorAncestor: "#"+$($player).attr('id'),
 		cssSelector: {
@@ -47,14 +47,7 @@ var jPlayerConfigInit = function($player,config){
 				$(this).jPlayer('setMedia',media);
 			}
 		},
-		loadedmetadata:function(){//载入后重置窗口大小
-			try{
-				$player.data('player_resize','0');
-				setTimeout(function(){
-					jPlayerResizeVedio($player);
-				},200);
-			}catch(e){};
-		},
+		loadedmetadata:function(){},
 		error: function(current) {
 			if( current.jPlayer.error.type == 'e_no_solution' && 
 				current.jPlayer.error.context.indexOf("solution:'flash'") === 1){
@@ -91,10 +84,6 @@ var jPlayerConfigInit = function($player,config){
 		},
 		playing:function(){
 			$($player).find('.video-play-loading').hide();
-			if($player.data('player_resize') != '1'){
-				$player.data('player_resize','1');
-				jPlayerResizeVedio($($player));
-			}
 		},
 		play: function() {
 			$($player).find('.video-play').stop(true, true).fadeOut(150);
@@ -112,30 +101,6 @@ var jPlayerConfigInit = function($player,config){
 
 	$.extend(playerConfig,config);
 	return playerConfig;
-}
-
-var jPlayerResizeVedio = function($player){
-	var name = $player.parents('.dialog-simple').find('.aui-title-bar').attr('id');
-	var dialog = $.artDialog.list[name];
-	var $vedio = $player.find('video');
-	if(name != 'movie-player-dialog' || $vedio.length == 0){
-		return;
-	}
-	var vWidth    = $vedio.width(),
-		vHeight   = $vedio.height(),
-		winWidth  = $(window).width(),
-		winHeight = $(window).height(),
-		r = vWidth/vHeight;
-
-	if(vHeight >= winHeight*0.8){
-		vHeight = winHeight*0.8;
-		vWidth  = vHeight*r;
-	}
-	if(vWidth >= winWidth*0.8){
-		vWidth = winWidth*0.8;
-		vHeight = vWidth/r;
-	}
-	dialog.size(vWidth,vHeight);
 }
 
 var jPlayerBindControl = function($player){

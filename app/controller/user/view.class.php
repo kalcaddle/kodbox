@@ -14,7 +14,7 @@ class userView extends Controller{
 			"kod"	=> array(
 				'systemOS'		=> $this->config['systemOS'],
 				'phpVersion'	=> PHP_VERSION,
-				'appApi'		=> app_host_get(),
+				'appApi'		=> appHostGet(),
 				'APP_HOST'		=> APP_HOST,
 				'APP_HOST_LINK' => $this->config['APP_HOST_LINK'],
 				'ENV_DEV'		=> GLOBAL_DEBUG,

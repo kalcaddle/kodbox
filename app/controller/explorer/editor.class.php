@@ -23,7 +23,7 @@ class explorerEditor extends Controller{
 			return $this->fileGetMake($path,$pathInfo);
 		}
 		$pathInfo = IO::info($path);
-		$pathInfo = Action('explorer.list')->pathInfoParse($pathInfo,0,0);
+		$pathInfo = Action('explorer.list')->pathInfoParse($pathInfo);
 		$this->fileGetMake($path,$pathInfo);
 	}
 	
@@ -119,23 +119,6 @@ class explorerEditor extends Controller{
 		show_json($msg,!!$result);
 	}
 	
-	
-	// 文件锁定状态: 保存文件生成临时文件;
-	public function checkLock(){
-		$path = Input::get('path','require');
-		$pathInfo = IO::info($path);
-		$lockUser = _get($pathInfo,'metaInfo.systemLock');
-		if($lockUser && $lockUser != USER_ID) return;
-
-		//锁定状态处理;
-		$user = Session::get('kodUser');
-		$userName = isset($user['name']) ? $user['name']:$user['userID'];
-		$fielName = substr($pathInfo['name'],0,-1-strlen($pathInfo['ext'])).'@'.$userName.'.'.$pathInfo['ext'];
-		$fileTemp = rtrim(IO::pathFather($path),'/').'/'.$fielName;
-		$path = IO::mkfile($fileTemp,'',REPEAT_REPLACE);
-		if($path){$this->in['path'] = $path;}
-	}
-
 	/*
 	* 保存编辑器配置信息
 	*/

@@ -326,31 +326,28 @@ function think_trace($value = '[think]', $label = '', $level = 'DEBUG', $record 
     if ($value == '[trace]') return $_trace;
 	if ($value == '[think]') return think_exception($_trace);
 
-	$logMax = 50;//最多纪录前30条sql; 避免额外开销及内存不可控		
-	$level = strtoupper($level);
-	if (!isset($_trace[$level])) {
-		$_trace[$level] = array(
-			'totalTime' => 0.0,
-			'totalCount'=> 0,
-			'time' 		=> array(),
-			'list' 		=> array(),
-			'trace' 	=> array(),
-		);
+	$logMax 	= 50;//最多纪录前30条sql; 避免额外开销及内存不可控
+	$level  	= strtoupper($level);
+	$keyTrace 	= $level.'-trace';
+	$keyList	= $level.'-list';
+	$keyTime	= $level.'-allTime';
+	if (!isset($_trace[$keyList])) {
+		$_trace[$keyTrace]	= array();
+		$_trace[$keyList]	= array();
+		$_trace[$keyTime]  = 0.0;
 	}
 	
-	$useTime = substr($info,strrpos($info,'[ RunTime:')+10,-3);
-	$_trace[$level]['totalTime'] += floatval($useTime);
-	$_trace[$level]['totalTime'] = sprintf('%.6f',$_trace[$level]['totalTime']);
-	$_trace[$level]['totalCount']  += 1;
-	if($_trace[$level]['totalCount'] < $logMax){
-		if(!is_array($_trace[$level]['list'])){
-			$_trace[$level]['list'] = array();
-		}
-		$index = count($_trace[$level]['list']).' ';
-		$_trace[$level]['list'][$index]  = $info;
-		// 过滤重复无效内容;1-4(路由处理);最后2行:记录日志,本函数;
-		$_trace[$level]['trace'][$index] = array_slice(get_caller_info(),4,-2);
-		$_trace[$level]['time'][$index]  = $useTime;
+	$useTime = substr($info,strrpos($info,'[ RunTime:')+10,-5);
+	$_trace[$keyTime]  = sprintf('%.5f',$_trace[$keyTime] + $useTime );
+	if(count($_trace[$keyTrace]) < $logMax){
+		$timeNow = explode('.',timeFloat().'000');
+		$timeNow = date('H:i:s.',$timeNow[0]).substr($timeNow[1],0,4);
+		$index = count($_trace[$keyTrace]) + 1;
+		$index = $index < 10 ? '0'.$index.'' : $index.'';
+		$trace = array_slice(get_caller_info(),4,-2);
+
+		$_trace[$keyList][$index] = $info;
+		$_trace[$keyTrace][$index]= array_merge(array('// '.$useTime."s;  ".$timeNow,'// '.$info),$trace);
 	}
 	if ($record){write_log($info,$level);}
 }

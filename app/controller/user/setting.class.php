@@ -37,9 +37,9 @@ class userSetting extends Controller {
 	 * 个人中心-账号设置保存
 	 */
 	public function setUserInfo() {
+		$limit = array('nickName', 'email', 'phone', 'password');
 		$data = Input::getArray(array(
-			"type"		 => array("check" => "require"),
-			"checkCode"	 => array("default" => null),
+			"type"		 => array("check" => "in", "param" => $limit),
 			"msgCode"	 => array("default" => null),
 		));
 		if($data['type'] != 'password') {
@@ -53,10 +53,6 @@ class userSetting extends Controller {
 			if($input == $this->user[$data['type']]){
 				show_json(LNG('common.' . $data['type']) . LNG('user.binded'), false);
 			}
-		}
-		// 图片验证码校验
-		if (isset($data['checkCode'])) {
-			$this->checkImgCode($data['checkCode']);
 		}
 		// 邮件、手机验证码校验
 		if (isset($data['msgCode'])) {
@@ -74,7 +70,6 @@ class userSetting extends Controller {
 			$msg = $this->model->errorLang($res);
 			show_json(($msg ? $msg : LNG('explorer.error')), false);
 		}
-		Session::remove('checkCode');
 		Model('User')->cacheFunctionClear('getInfo',$userID);
 		$userInfo = Model('User')->getInfo($userID);
 		Cache::set('kodUser', $userInfo);
@@ -86,9 +81,83 @@ class userSetting extends Controller {
 	 * @param type $code
 	 */
 	public function checkImgCode($code){
-		if (!Session::get('checkCode') || Session::get('checkCode') !== $code) {
-			show_json(LNG('user.codeError'), false);
+		$checkCode = Session::get('checkCode');
+		Session::remove('checkCode');
+		if (!$checkCode || strtolower($checkCode) !== strtolower($code)) {
+			show_json(LNG('user.codeError'), false, ERROR_IMG_CODE);
 		}
+	}
+
+	/**
+	 * 手机、邮箱验证码存储、验证
+	 * @param type $type
+	 * @param type $code
+	 * @param type $data	{type: [source], input: ''}
+	 * @param type $set	首次存储验证码(检测错误次数)
+	 * @return type
+	 */
+	public function checkMsgCode($type, $code, $data = array(), $set = false) {
+		$typeList = array('setting', 'regist', 'findpwd');	// 个人设置、注册、找回密码
+		if(!in_array($data['type'], $typeList)){
+			show_json(LNG('common.invalid') . LNG('explorer.file.action'), false);
+		}
+		$name = md5("{$data['type']}_{$type}_{$data['input']}_msgcode");
+		// 1. 存储
+		if ($set) {
+			$sess = array(
+				'code'	 => $code,
+				'cnt'	 => 0,
+				'time'	 => time()
+			);
+			return Session::set($name, $sess);
+		}
+		// 2. 验证
+		$type = $type == 'phone' ? 'sms' : $type;
+		if (!$sess = Session::get($name)) {
+			$msg = LNG('common.invalid') . LNG('common.' . $type) . LNG('user.code');
+			show_json($msg, false);
+		}
+		// 超过20分钟
+		if (($sess['time'] + 60 * 20) < time()) {
+			Session::remove($name);
+			show_json(LNG('common.' . $type) . LNG('user.codeExpired'), false);
+		}
+		// 错误次数过多，锁定一段时间——没有锁定，重新获取
+		if ($sess['cnt'] >= 10) {
+			Session::remove($name);
+			show_json(LNG('common.' . $type) . LNG('user.codeErrorTooMany'), false);
+		}
+		if (strtolower($sess['code']) != strtolower($code)) {
+			$sess['cnt'] ++;
+			Session::set($name, $sess);
+			show_json(LNG('common.' . $type) . LNG('user.codeError'), false);
+		}
+		Session::remove($name);
+	}
+
+	/**
+	 * 消息发送频率检查
+	 * [type/input/source]
+	 * @param [type] $data
+	 * @return void
+	 */
+	public function checkMsgFreq($data){
+		$name = md5("{$data['type']}_{$data['input']}_{$data['source']}_msgtime");
+		$hours = 12;	// 缓存12小时
+		if(!$cache = Cache::get($name)) {
+			$cache = array('time' => time(), 'cnt' => 1);
+			return Cache::set($name, $cache, 3600*$hours);
+		}
+		$tt = $data['type'] == 'email' ? 60 : 90;
+		if(($cache['time'] + $tt) > time()) {
+			show_json(LNG('user.codeErrorFreq'), false);
+		}
+		if($cache['cnt'] >= 10) {
+			show_json(sprintf(LNG('user.codeErrorCnt'), $hours), false);
+		}
+		$cache['cnt']++;
+		$cache['time'] = time();
+		Cache::set($name, $cache, 3600*$hours);
 	}
 
 	/**
@@ -103,15 +172,17 @@ class userSetting extends Controller {
 
 		$where = array($type=> $input);
 		if ($res = Model('User')->userSearch($where, 'name,nickName')) {
-			$name = $res['nickName'] ? $res['nickName'] : $res['name'];
-			show_json(LNG('common.' . $type) . LNG('user.bindOthers') . "[{$name}]", false);
+			$typeTit = $type . ($type == 'phone' ? 'Number' : '');
+			show_json(LNG('common.' . $typeTit) . LNG('common.error'), false);
+			// $name = $res['nickName'] ? $res['nickName'] : $res['name'];
+			// show_json(LNG('common.' . $type) . LNG('user.bindOthers') . "[{$name}]", false);
 		}
 		// 判断邮箱、短信验证码
 		$param = array(
 			'type' => 'setting',
 			'input' => $input
 		);
-		Action("user.regist")->msgCodeExec($type, $data['msgCode'], $param);
+		$this->checkMsgCode($type, $data['msgCode'], $param);
 	}
 
 	/**
@@ -167,7 +238,8 @@ class userSetting extends Controller {
 
 		$link = Action('explorer.share')->linkFile($file);
 		if(!$link) show_json(null, false);
-		if(!$this->model->userEdit($userID, array("avatar" => str_replace(APP_HOST, './', $link)))) {
+		$link = str_replace(APP_HOST, './', $link);
+		if(!$this->model->userEdit($userID, array("avatar" => $link))) {
 			show_json(LNG('explorer.upload.error'), false);
 		}
 		$user = $this->model->getInfo($userID);
@@ -224,23 +296,21 @@ class userSetting extends Controller {
 	 */
 	private function findPwdCheck() {
 		$data = Input::getArray(array(
-			'type'			 => array('check' => 'in','default'=>'','param'=>array('phone','email')),
-			'input'			 => array('check' => 'require'),
-			'checkCode'		 => array('check' => 'require'),
-			'msgCode'	 => array('check' => 'require')
+			'type'			=> array('check' => 'in','default'=>'','param'=>array('phone','email')),
+			'input'			=> array('check' => 'require'),
+			'msgCode'		=> array('check' => 'require')
 		));
 		// 是否绑定
 		$res = Model('User')->userSearch(array($data['type'] => $data['input']), 'userID');
 		if (empty($res)) {
 			show_json(LNG('user.notBind'), false);
 		}
-		$this->checkImgCode($data['checkCode']);
 		$param = array(
 			'type' => 'findpwd',
 			'input' => $data['input']
 		);
-		Action("user.regist")->msgCodeExec($data['type'], $data['msgCode'], $param);
-		Session::remove('checkCode');
+		$this->checkMsgCode($data['type'], $data['msgCode'], $param);
+
 		$data = array(
 			'type' => $data['type'],
 			'input' => $data['input'],

@@ -1,6 +1,4 @@
 kodReady.push(function () {
-	G.webdavAllow = parseInt("{{isAllow}}");
-	G.webdavHost  = G.kod.APP_HOST+'index.php/plugin/webdav/{{webdavName}}/';
 	G.webdavOption = {
 		host:  G.kod.APP_HOST+'index.php/plugin/webdav/{{webdavName}}/',
 		allow: parseInt("{{isAllow}}"),

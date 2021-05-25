@@ -38,6 +38,7 @@ class explorerListSearch extends Controller{
 		if($param['parentPath']){
 			$list['searchParent'] = IO::info($param['parentPath']);
 		}
+		$this->searchResultCount($list);
 		return $list;
 	}
 
@@ -265,6 +266,15 @@ class explorerListSearch extends Controller{
 			}
 		}
 		return $result;
+	}
+	
+	private function searchResultCount(&$list){
+		if(!$list['searchParam']['words']) return;
+		$list['searchCount'] = 0;
+		foreach ($list['fileList'] as $item) {
+			if(!is_array($item['searchTextFile'])) continue;
+			$list['searchCount'] += count($item['searchTextFile']);
+		}
 	}
 	
 	public function parseSearch($param){

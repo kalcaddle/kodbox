@@ -790,8 +790,8 @@ class RequestCore
             $this->response = $response;
         }
 
-        // As long as this came back as a valid resource...
-        if (is_resource($curl_handle)) {
+        // As long as this came back as a valid resource... //php8兼容; add by kodbox
+        if (is_resource($curl_handle) || (is_object($curl_handle)&&get_class($curl_handle)=='CurlHandle') ) {
             // Determine what's what.
             $header_size = curl_getinfo($curl_handle, CURLINFO_HEADER_SIZE);
             $this->response_headers = substr($this->response, 0, $header_size);

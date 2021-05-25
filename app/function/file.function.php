@@ -350,6 +350,7 @@ function _path_info_more($dir, &$fileCount = 0, &$pathCount = 0, &$size = 0){
  * 获取多选文件信息,包含子文件夹数量，文件数量，总大小，父目录权限
  */
 function path_info_muti($list,$timeType){
+	$list = is_array($list) ? $list : array();
 	if (count($list) == 1) {
 		if ($list[0]['type']=="folder"){
 			return path_info($list[0]['path'],$timeType);
@@ -841,38 +842,20 @@ function path_is_absolute($path){
 
 
 function is_text_file($ext){
-	$ext_arr = array(
-		"txt","textile",'oexe','inc','csv','log','asc','tsv','lnk','url','webloc','meta',"localized",
-		"xib","xsd","storyboard","plist","csproj","pch","pbxproj","local","xcscheme","manifest","vbproj",
-		"strings",'jshintrc','sublime-project','readme','changes',"changelog",'version','license','changelog',
+	$extArray = array(
+		'4th','a','abap','abc','ada','adb','adoc','ahk','alda','apex','apl','aql','as','asc','asciidoc','asl','asm','asn','asn1','asp','aspx','atom','aw','b','bash','bashrc','bat','bf','bib','blade.php','bro','build','bzl','c','c++','c9search_results','cabal','cakefile','cbl','cc','cf','cfg','cfm','cirru','cl','clj','cljc','cljs','cljx','cls','cmake','cmake.in','cmd','cob','coffee','component','conf','cpp','cpy','cql','cr','cs','csd','cshtml','cson','css','ctp','curly','cxx','cyp','cypher','d','dart','def','di','diff','dockerfile','dot','drl','dsl','dtd','dyalog','dyl','dylan','e','ecl','edi','edn','eex','ejs','el','elm','epp','erb','erl','ex','exs','f','f77','f90','f95','factor','feature','for','forth','frag','frt','fs','fsi','fsl','fsscript','fsx','fth','ftl','fun','gbs','gcode','ge','gemfile','gemspec','gitignore','glsl','go','gql','gradle','groovy','gss','guardfile','gunmakefile','h','h++','haml','handlebars','hbs','hh','hjson','hpp','hrl','hs','htaccess','htgroups','htm','html','html.eex','html.erb','htpasswd','hx','hxml','hxx','in','inc','ini','ino','intr','io','j2','jack','jade','java','jinja','jinja2','jl','jq','js','jsm','json','json5','jsonld','jsp','jssm','jssm_state','jsx','ksh','kt','kts','latex','latte','ldr','less','lhs','liquid','lisp','list','log','logic','lp','lql','ls','lsl','ltx','lua','lucene','m','make','makefile','map','markdown','mask','mathml','matlab','mbox','mc','md','mediawiki','mel','mixal','mkd','ml','mli','mll','mly','mm','mml','mo','module','mps','msc','mscgen','mscin','msgenny','mush','mustache','mysql','mz','nb','nginx','nim','nix','nj','njk','nq','nsh','nsi','nt','nunjs','nunjucks','nut','oak','ocamlmakefile','orc','oz','p','p6','page','pas','patch','pgp','pgsql','php','php3','php4','php5','php7','phps','phpt','phtml','pig','pl','pl6','plg','pls','pm','pm6','pp','praat','praatscript','prefs','prisma','pro','proc','prolog','properties','proto','ps1','psc','psd1','psm1','pug','pxd','pxi','py','pyw','pyx','q','qml','r','rake','rakefile','raku','rakumod','rakutest','rb','rd','rdf','red','reds','rhtml','rkt','rq','rs','rss','rst','ru','s','sas','sass','sbt','scad','scala','scheme','scm','sco','scss','sh','shtml','sieve','sig','siv','sjs','skim','slim','sm','smackspec','smarty','smithy','sml','snippets','soy','space','sparql','spec','sql','sqlserver','ss','st','str','styl','stylus','sv','svg','svh','swift','swig','tcl','terragrunt','tex','text','textile','tf','tfvars','tgr','toml','tpl','trigger','ts','tsx','ttcn','ttcn3','ttcnpp','ttl','twig','txt','typescript','v','vala','vb','vbs','vert','vfp','vh','vhd','vhdl','vm','vtl','vue','wast','wat','we','webidl','wiki','wl','wlk','wls','wpgm','wpy','wsdl','wtest','xaml','xbl','xhtml','xml','xq','xquery','xsd','xsl','xslt','xu','xul','xy','yaml','yml','ys','z80','zeek',
 
-		"abap","abc","as","asp",'aspx',"ada","adb","htaccess","htgroups","htgroups",
-		"htpasswd","asciidoc","adoc","asm","a","ahk","bat","cmd","cpp","c","cc","cxx","h","hh","hpp",
-		"ino","c9search_results","cirru","cr","clj","cljs","cbl","cob","coffee","cf","cson","cakefile",
-		"cfm","cs","css","curly","d","di","dart","diff","patch","dockerfile","dot","dummy","dummy","e",
-		"ge","ejs","ex","exs","elm","erl","hrl","frt","fs","ldr","ftl","gcode","feature",".gitignore",
-		"glsl","frag","vert","gbs","go","groovy","haml","hbs","handlebars","tpl","mustache","hs","hx",
-		"html","hta","htm","xhtml","eex","html.eex","erb","rhtml","html.erb","ini",'inf',"conf","cfg","prefs","io",
-		"jack","jade","java","ji","jl","jq","js","jsm","json","jsp","jsx","latex","ltx","bib",
-		"lean","hlean","less","liquid","lisp","ls","logic","lql","lsl","lua","lp","lucene","Makefile","makemakefile",
-		"gnumakefile","makefile","ocamlmakefile","make","md","markdown","mask","matlab","mz","mel",
-		"mc","mush","mysql","nix","nsi","nsh","m","mm","ml","mli","pas","p","pl","pm","pgsql","php",
-		"phtml","shtml","php3","php4","php5","phps","phpt","aw","ctp","module","ps1","praat",
-		"praatscript","psc","proc","plg","prolog","properties","proto","py","r","cshtml","rd",
-		"rhtml","rst","rb","ru","gemspec","rake","guardfile","rakefile","gemfile","rs","sass",
-		"scad","scala","scm","sm","rkt","oak","scheme","scss","sh","bash","bashrc","sjs","smarty",
-		"tpl","snippets","soy","space","sql","sqlserver","styl","stylus","svg","swift","tcl","tex",
-		"toml","twig","swig","ts","typescript","str","vala","vbs","vb","vm","v","vh",
-		"sv","svh","vhd","vhdl","wlk","wpgm","wtest","xml","rdf","rss","wsdl","xslt","atom","mathml",
-		"mml","xul","xbl","xaml","xq","yaml","yml",
-
-		"cer","reg","config"
+		'oexe','csv','tsv','lnk','url','webloc','meta','inf','dummy','hta','cgi','lean','hlean','ji',
+		'readme','changes','changelog','version','license','bash_logout','bash_profile',
+		'vbproj','storyboard','vcproj','vcxproj','pbxproj','csproj','xib','strings','jshintrc',
+		'sublime-project','plistpch','localized','local','xcscheme','manifest',
+		'gitmodules','webapp','npmignore','babelrc','editorconfig','prettierrc',
+		'vtt','filters','cer','reg','config','pem','srt','ass','lrc','opf','ncx',
+		'classpath','mymetadata','jsdtscope','project','tern-project','tld','iml','sln',
+		'gitattributes','mf','name','container','lock','applescript','mvnw','apple-app-site-association',
+		'magnet','sample','example','http','puml','plantuml'
 	);
-	if(in_array($ext,$ext_arr)){
-		return true;
-	}else{
-		return false;
-	}
+	return in_array($ext,$extArray);
 }
 
 /**

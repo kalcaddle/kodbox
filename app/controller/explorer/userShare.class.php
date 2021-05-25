@@ -315,6 +315,8 @@ class explorerUserShare extends Controller{
 			$result = $this->model->shareAdd('0',$data);
 		}else{
 			$sourceID = KodIO::sourceID($data['path']);
+			$pathInfo = Model('Source')->pathInfo($sourceID);
+			$this->checkSetAuthAllow($data['authTo'],$pathInfo);
 			$result = $this->model->shareAdd($sourceID,$data);
 		}
 		
@@ -328,11 +330,25 @@ class explorerUserShare extends Controller{
 	 */
 	public function edit(){
 		$data = $this->_getParam('shareID');
+		$shareInfo = $this->model->getInfo($data['shareID']);
+		$this->checkSetAuthAllow($data['authTo'],$shareInfo['sourceInfo']);
 		$result = $this->model->shareEdit($data['shareID'],$data);
 		if(!$result) show_json(LNG('explorer.error'),false);
 		
 		$shareInfo = $this->model->getInfo($data['shareID']);
 		show_json($shareInfo,true);
+	}
+	
+	// 协作分享: 可以设置的权限,必须小于等于自己在当前文档的权限;
+	public function checkSetAuthAllow($authTo,$pathInfo){
+		if(!$authTo || !$pathInfo || !$pathInfo['auth']) return;
+		$selfAuth = intval($pathInfo['auth']['authInfo']['auth']);
+		foreach ($authTo as $authItem){
+			$authInfo = Model("Auth")->listData($authItem['authID']);
+			$authBoth = $selfAuth | intval($authInfo['auth']);
+			if($authBoth == $selfAuth) continue;
+			show_json(LNG('admin.auth.errorAdmin'),false);
+		}
 	}
 	
 	/**

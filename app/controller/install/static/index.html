@@ -7,7 +7,7 @@
 	<link href="<?php echo STATIC_PATH;?>style/lib/main.css" rel='stylesheet'>
 	<link href="<?php echo STATIC_PATH;?>style/dist/main.css" rel='stylesheet'>
 	<link href="<?php echo $installPath;?>static/static/index.css" rel='stylesheet'>
-	<?php Hook::trigger('templateCommonHeader');?>
+	<?php Hook::trigger('template.commonHeader');?>
 </head>
 
 <body>
@@ -88,7 +88,7 @@
 	</div>
 
 	<script type="text/javascript"> 
-		window.API_HOST = "<?php echo APP_HOST.'?';?>";
+		window.API_HOST = "<?php echo appHostGet();?>";
 		window.STATIC_PATH = "<?php echo STATIC_PATH;?>";
 	</script>
 	<script src="<?php echo STATIC_PATH;?>app/vender/es3-profill.js"></script>

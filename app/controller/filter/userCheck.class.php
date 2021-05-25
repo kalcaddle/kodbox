@@ -75,8 +75,8 @@ class filterUserCheck extends Controller {
 		if(_get($this->config,'loginIpCheckIgnore') == '1') return true;// 手动关闭ip白名单检测;
 		if(!_get($this->options,'loginCheckAllow')) return true;
 
-		$ip  = get_client_ip();
-		$serverIP 	= gethostbyname(gethostname().'.');
+		$ip  		= get_client_ip();
+		$serverIP 	= get_server_ip();
 		$device 	= $this->getDevice();
 		$checkList 	= json_decode($this->options['loginCheckAllow'],true);
 		if(!$checkList) return true;
@@ -106,7 +106,7 @@ class filterUserCheck extends Controller {
 		if(!$this->options['loginCheckAllow']) return true;
 		
 		$ip 		= get_client_ip();
-		$serverIP 	= gethostbyname(gethostname().'.');
+		$serverIP 	= get_server_ip();
 		$device 	= $this->getDevice();
 		$checkList 	= json_decode($this->options['loginCheckAllow'],true);
 		if(!$checkList) return true;

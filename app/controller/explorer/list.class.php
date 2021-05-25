@@ -22,6 +22,7 @@ class explorerList extends Controller{
 	public function path($thePath = false){
 		$path     = $thePath ? $thePath : $this->in['path'];
 		$path     = $path != '/' ? rtrim($path,'/') : '/';//路径保持统一;
+		$path	  = $path == '{io:systemRecycle}' ? IO_PATH_SYSTEM_RECYCLE:$path;
 		$path 	  = $this->checkDesktop($path);
 		$pathParse= KodIO::parse($path);
 		$id 	  = $pathParse['id'];
@@ -162,11 +163,11 @@ class explorerList extends Controller{
 	private function pageParse(&$data){
 		if(isset($data['pageInfo'])) return;
 		$in = $this->in;
-		$pageNumMax = 5000;
-		$pageNum = isset($in['pageNum'])?$in['pageNum']: 3000;
+		$pageNumMax = 1000;
+		$pageNum = isset($in['pageNum'])?$in['pageNum']: $pageNumMax;
 		if($pageNum === -1){ // 不限分页情况; webdav列表处理;
 			unset($in['pageNum']);
-			$pageNumMax = 100000000;
+			$pageNumMax = 1000000;
 			$pageNum = $pageNumMax;
 		}
 				
@@ -313,8 +314,10 @@ class explorerList extends Controller{
 			$pathInfo = Action('explorer.fav')->favAppendItem($pathInfo);
 			$pathInfo = Action('explorer.userShare')->shareAppendItem($pathInfo);
 		}
-		$pathInfo = Action('explorer.listDriver')->parsePathIO($pathInfo,$current);
-		$pathInfo = Action('explorer.listDriver')->parsePathChildren($pathInfo,$current);
+		if($infoFull){
+			$pathInfo = Action('explorer.listDriver')->parsePathIO($pathInfo,$current);
+			$pathInfo = Action('explorer.listDriver')->parsePathChildren($pathInfo,$current);
+		}
 		$pathInfo['pathDisplay'] = _get($pathInfo,'pathDisplay',$pathInfo['path']);
 
 		// 下载权限处理;
@@ -339,6 +342,10 @@ class explorerList extends Controller{
 			$pathInfo = $this->pathParseOexe($pathInfo);
 			$pathInfo = $this->pathInfoMore($pathInfo);
 		}
+		if($pathInfo['type'] == 'file' && !$pathInfo['ext']){
+			$pathInfo['ext'] = strtolower($pathInfo['name']);
+		}
+		
 		// 没有下载权限,不显示fileInfo信息;
 		if(!$pathInfo['canDownload']){
 			unset($pathInfo['fileInfo']);
@@ -464,9 +471,8 @@ class explorerList extends Controller{
 				$pathInfo[$infoKey] = $infoMore;
 			}else{
 				GetInfo::infoAdd($pathInfo);
-				if(is_array(_get($pathInfo,$infoKey)) ){
-					Cache::set($cacheKey,$pathInfo[$infoKey],3600*24*20);
-				}
+				$infoAdd = is_array($pathInfo[$infoKey]) ? $pathInfo[$infoKey]:array();
+				Cache::set($cacheKey,$infoAdd,3600*24*20);
 			}
 		}
 		// 文件封面;
@@ -491,7 +497,13 @@ class explorerList extends Controller{
 			isset($pathInfo['oexeContent']['value']) ){
 			$linkPath = $pathInfo['oexeContent']['value'];
 			if(Action('explorer.auth')->fileCan($linkPath,'show')){
-				$pathInfo['oexeSourceInfo'] = IO::info($linkPath);
+				if(substr($linkPath,0,4) == '{io:'){ //io路径不处理;
+					$infoTarget = array('path'=>$linkPath);
+					$infoTarget = Action('explorer.listDriver')->parsePathIO($infoTarget);
+				}else{
+					$infoTarget = IO::info($linkPath);
+				}
+				$pathInfo['oexeSourceInfo'] = $infoTarget;
 			}
 		}
 		return $pathInfo;
@@ -570,10 +582,6 @@ class explorerList extends Controller{
 			'shareToMe'	=> array("path"	=> KodIO::KOD_USER_SHARE_TO_ME),
 		);
 		
-		//不归属于任何部门； 获只属于根部门则不显示我所在的部门；
-		if(count($groupInfo) == 0 || (count($groupInfo) == 1 && $groupInfo[$groupRoot])  ){
-			unset($list['myGroup']);
-		}
 		if(!$this->pathEnable('myFav')){unset($list['fav']);}
 		if(!$this->pathEnable('my')){unset($list['my']);}
 		if(!$this->pathEnable('rootGroup')){unset($list['rootGroup']);}
@@ -663,6 +671,9 @@ class explorerList extends Controller{
 		));
 		if(!$this->pathEnable('recentDoc')){
 			unset($list[KodIO::KOD_USER_RECENT]);
+		}
+		if(Model('UserOption')->get('recycleOpen') == '0'){
+			unset($list[KodIO::KOD_USER_RECYCLE]);
 		}
 		return array_values($list);
 	}

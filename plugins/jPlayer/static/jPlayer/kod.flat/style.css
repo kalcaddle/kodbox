@@ -52,9 +52,8 @@
 	-o-transition:all 0.1s linear
 }
 .jPlayer-movie .jPlayer-container {
-	margin:0;
-	padding:0;
-	line-height:0;
+	margin:0;padding:0;line-height:0;
+	display: flex;align-content: center;justify-content: center;align-items: center;
 }
 .jPlayer-movie .jPlayerMask,
 .jPlayer-movie.jp-video-full .jPlayerMask{
@@ -107,8 +106,7 @@
 	display: flex;display: -webkit-flex;
 	align-items: center;-webkit-align-items: center;
 	justify-content: center;-webkit-justify-content: center;
-	
-	position: absolute;overflow: hidden;
+	/* position: absolute;overflow: hidden; */
 }
 .jPlayer-movie .current-time-tips{
 	display: none;

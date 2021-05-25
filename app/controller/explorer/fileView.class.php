@@ -26,7 +26,7 @@ class explorerFileView extends Controller{
 			return header('Location: '.APP_HOST.'#fileView&path='.$fileUri);
 		}		
 		
-		$link = APP_HOST.'?plugin/'.$app.'&path='.$fileUri;
+		$link = urlApi('plugin/'.$app,'path='.$fileUri);
 		$link .= '&ext='.rawurlencode($fileInfo['ext']).'&name='.rawurlencode($fileInfo['name']);
 		header('Location: '.$link);
 	}

@@ -25,7 +25,18 @@ class explorerAttachment extends Controller{
 		//去除svg; 避免xxs攻击;
 		$this->imageExt = array('png','jpg','jpeg','gif','webp','bmp','ico');
 	}
-
+	
+	// 上传; 扩展名限制jpg,jpeg,png,ico
+	public function upload(){
+		$ext = get_path_ext(Uploader::fileName());
+		if(!in_array($ext,$this->imageExt)){
+			show_json("only support image",false);
+		}
+		$this->in['name'] = date("YmdHi").rand_string(6).'.'.$ext;
+		$this->in['path'] = KodIO::systemFolder('attachmentTemp/');
+		Action('explorer.upload')->fileUpload();
+	}
+	
 	// 文档评论;
 	public function commentLink($id){
 		$where 	= array('commentID'=>$id);
@@ -56,17 +67,6 @@ class explorerAttachment extends Controller{
 		$this->clearTarget($id,'notice');
 	}
 
-	// 上传; 扩展名限制jpg,jpeg,png,ico
-	public function upload(){
-		$ext = get_path_ext(Uploader::fileName());
-		if(!in_array($ext,$this->imageExt)){
-			show_json("only support image",false);
-		}
-		$this->in['name'] = date("YmdHi").rand_string(6).'.'.$ext;
-		$this->in['path'] = KodIO::systemFolder('attachmentTemp/');
-		Action('explorer.upload')->fileUpload();
-	}
-	
 	// 自动清理24小时未转移的临时文件;
 	public function clearCache(){
 		$timeStart  = time() - 3600*24;//1天前未关联的临时文件区域;

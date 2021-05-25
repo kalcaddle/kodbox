@@ -692,6 +692,13 @@
       "unicode_decimal": 58942
     },
     {
+      "icon_id": "21361394",
+      "name": "回收站",
+      "font_class": "huishouzhan2-copy",
+      "unicode": "eb18",
+      "unicode_decimal": 60184
+    },
+    {
       "icon_id": "8215030",
       "name": "file3",
       "font_class": "file-doc",

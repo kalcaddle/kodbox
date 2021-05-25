@@ -89,7 +89,7 @@ define(function(require, exports) {
 				img.onload = function() {
 					item.w = this.width;
 					item.h = this.height;
-					gallery.updateSize(true);
+					try {gallery.updateSize(true);}catch(err){}
 				}
 				img.src = item.src;
 			}

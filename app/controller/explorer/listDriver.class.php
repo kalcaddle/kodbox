@@ -116,6 +116,7 @@ class explorerListDriver extends Controller{
 			}
 		}
 		if(is_array($infoMore)){
+			unset($infoMore['name']);
 			$info = array_merge($info,$infoMore);
 		}
 		return $info;

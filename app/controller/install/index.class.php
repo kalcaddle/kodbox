@@ -11,7 +11,6 @@ class installIndex extends Controller {
     public $installLock; 
     public $installFastLock; 
     public $dbType;
-    public $dbWasSet = 'dbWasSet';
 	public function __construct() {
         parent::__construct();
         $this->userSetting      = BASIC_PATH  . 'config/setting_user.php';
@@ -39,12 +38,13 @@ class installIndex extends Controller {
         }
         // 判断是否需要安装
         if($this->installCheck()) return;
+		if(ACTION == 'user.view.call'){exit;}
         if(ACTION == 'user.view.options'){
             $options = array(
                 "kod"	=> array(
                     'systemOS'		=> $this->config['systemOS'],
                     'phpVersion'	=> PHP_VERSION,
-                    'appApi'		=> APP_HOST.'/index.php?',
+                    'appApi'		=> appHostGet(),
                     'APP_HOST'		=> APP_HOST,
                     'ENV_DEV'		=> !!STATIC_DEV,
                     'staticPath'	=> STATIC_PATH,
@@ -73,8 +73,13 @@ class installIndex extends Controller {
         exit;
     }
     private function installCheck(){
-        if(@file_exists($this->installLock) && @file_exists($this->userSetting)) {
-            if($this->dbDefault(true)) return true;
+        // 1.setting_user.php、install.lock、数据库配置都存在，已安装；
+        // 2.setting_user.php、数据库配置存在，install.lock不存在，重置管理员密码
+        if(@file_exists($this->userSetting)) {
+            if($this->dbDefault(true)) {
+                if(@file_exists($this->installLock)) return true;
+                @touch($this->installFastLock);
+            }
         }
         if(!@file_exists($this->userSetting)) del_file($this->installLock);
         return false;
@@ -126,14 +131,12 @@ class installIndex extends Controller {
 
     // 获取数据库默认配置信息
     public function dbDefault($return=false){
-        Cache::remove($this->dbWasSet);
         $data = array();
         // 1.获取文件数据
         if(!$dbConfig = $this->config['database']) return $data;
         if(!$dbConfig['DB_TYPE']) return $data;
         if($return) return $dbConfig;
 
-        Cache::set($this->dbWasSet, 1);
         // 2.解析为form表单数据
         $database = array();
         unset($dbConfig['DB_SQL_LOG'],$dbConfig['DB_FIELDS_CACHE'],$dbConfig['DB_SQL_BUILD_CACHE']);
@@ -178,15 +181,16 @@ class installIndex extends Controller {
         $env = array(
             'path_writable'     => array(),
             'php_version'       => phpversion(),
-            'allow_url_fopen'   => ini_get('allow_url_fopen') || false,
+            'allow_url_fopen'   => ini_get('allow_url_fopen'),
             'php_bit'           => phpBuild64() ? 64 : 32,
-            'iconv'             => function_exists('iconv') || false,
-            'mb_string'         => function_exists('mb_convert_encoding') || false,
-            'json'              => function_exists('json_encode') || false,
-            'curl'              => function_exists('curl_init') || false,
-            'shell_exec'        => (function_exists('shell_exec') && function_exists('exec')) || false,
+            'iconv'             => function_exists('iconv'),
+            'mb_string'         => function_exists('mb_convert_encoding'),
+            'json'              => function_exists('json_encode'),
+            'curl'              => function_exists('curl_init'),
+			'xml'               => function_exists('xml_parser_create'),
+            'shell_exec'        => (function_exists('shell_exec') && function_exists('exec')),
             'gd'                => true,
-            'path_list'         => check_list_dir() || false,
+            'path_list'         => check_list_dir(),
         );
         if( !function_exists('imagecreatefromjpeg')||
             !function_exists('imagecreatefromgif')||
@@ -222,7 +226,6 @@ class installIndex extends Controller {
      * 1. 数据库配置
      */
     private function saveDb(){
-        if(Cache::get($this->dbWasSet)) show_json(LNG('explorer.success'));
         // 1.1 获取db配置信息
         $data = $this->dbConfig();
         $dbName = $data['DB_NAME'];
@@ -236,9 +239,7 @@ class installIndex extends Controller {
         // $GLOBALS['config']['cache']['cacheType'] = $cacheType;
         think_config($GLOBALS['config']['databaseDefault']);
         think_config($GLOBALS['config']['database']);
-        CacheLock::initReset();
-        Cache::initReset();
-        Cache::remove($this->dbWasSet);
+
         if($this->dbType == 'mysql'){
             // mysql连接，先不指定数据库，配置错误时会报错
             $GLOBALS['config']['database']['DB_NAME'] = '';
@@ -458,10 +459,10 @@ class installIndex extends Controller {
         think_config($GLOBALS['config']['database']);
 
         $userID = 1;
-        // if(Cache::get($this->dbWasSet) && Model('User')->find($userID)) {
         if(Model('User')->find($userID)) {
-            if(!Model('User')->userEdit($userID, $data)) show_json(LNG('user.bindUpdateError'), false);
-            Cache::remove($this->dbWasSet);
+            if(!Model('User')->userEdit($userID, $data)) {
+                show_json(LNG('user.bindUpdateError'), false);
+            }
             @touch($this->installLock);
             del_file($this->installFastLock);
             show_json(LNG('admin.install.updateSuccess'), true, $userID);

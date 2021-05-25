@@ -44,6 +44,7 @@ class filterLimit extends Controller{
      */
     private function checkShareCopy(){
         $list  = json_decode($this->in['dataArr'],true);
+		$list  = is_array($list) ? $list : array();
 		$storeMax = intval($this->config['settings']['storeFileNumberMax']);
 		if(!$storeMax) return;
 		

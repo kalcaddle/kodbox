@@ -53,7 +53,6 @@ class adminRepair extends Controller {
 					
 					$removeSource[] = $item['sourceID'];
 					$removeFiles[]  = $item['fileID'];
-					// $model->remove($item['sourceID'],false);
 				}
 				$task->update(1);
 			}
@@ -80,7 +79,6 @@ class adminRepair extends Controller {
 					write_log(array($taskType,$item),'sourceClear');$errorNum ++;
 					$removeSource[] = $item['sourceID'];
 					$removeFiles[]  = $item['fileID'];
-					// $model->remove($item['sourceID'],false);
 				}
 				$task->update(1);
 			}

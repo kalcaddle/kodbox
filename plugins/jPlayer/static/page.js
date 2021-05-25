@@ -109,7 +109,20 @@ define(function(require, exports) {
 		$playerBox.attr('id',UUID());
 		player.jPlayer("destroy");
 		player.find(".jPlayer-container").children().remove();
-		player.jPlayer(jPlayerConfigInit($playerBox,config));
+		
+		var playerConfig = jPlayerConfigInit($playerBox,config);
+		// 回调处理;
+		var dialog  = $playerBox.parents('.my-jPlayer').data('artDialog');
+		var isMovie = $playerBox.parents('.movie-player-dialog').length == 1;
+		if( dialog && isMovie){
+			var playLoaded = playerDialogResize($playerBox,dialog,false);
+			playerConfig.loadedmetadata = function(){
+				dialog.size('70%','80%');//
+				playLoaded();
+			};
+		}
+				
+		player.jPlayer(playerConfig);
 		if(player.find('object').length > 0){
 			$playerBox.addClass('flashPlayer');
 		}else{
@@ -125,15 +138,65 @@ define(function(require, exports) {
 
 		//移动端;微信,safari等屏蔽了自动播放;首次点击页面触发播放;
 		//$playerBox.find('.aui-content').one("touchstart mousedown",play);
-		setTimeout(function(){
-			var name = $playerBox.parents('.dialog-simple').find('.aui-title-bar').attr('id');
-			var dialog = $.dialog.list[name];
-			if(dialog){
-				dialog.title(media.title);
-			}
-		},100);
+		if(dialog){
+			setTimeout(function(){
+				var ext = pathTools.pathExt(media.title);
+				dialog.title(core.icon(ext) + media.title);
+			},100);
+		}
 	}
-
+	
+	/**
+	 * 根据视频尺寸,自动调整窗口尺寸及位置,确保视频能够完整显示
+	 * 
+	 * 1. 对话框全屏后才加载完成, 不处理尺寸;
+	 * 2. 对话框全屏后才加载完成,再次还原窗口时处理视频尺寸; 
+	 */
+	 var playerDialogResize = function($player,dialog,animate){
+		var isReset  = false;
+		if(!dialog) return;
+		
+		// 已经重置过尺寸的不再重置, 视频未加载完成不重置, 最大化时不重置;
+		var resetSize = function(fileLoad){
+			if(isReset && !fileLoad) return;
+			if(!dialog.$main || dialog.$main.hasClass('dialog-max')) return;
+			
+			isReset 	= true;
+			var $video  = $player.find('video');
+			var vWidth  = $video.width();
+			var vHeight = $video.height();
+			var wWidth  = $(window).width()  * 0.9;
+			var wHeight = $(window).height() * 0.9;
+			if(vHeight >= wHeight){
+				vWidth  = (wHeight * vWidth) / vHeight;
+				vHeight = wHeight;
+			}
+			if( vWidth >= wWidth ){
+				vHeight = (wWidth * vHeight) / vWidth;
+				vWidth  = wWidth;
+			}
+			var left = ($(window).width()  - vWidth) / 2;
+			var top  = ($(window).height() - vHeight) / 2;
+			if(animate){
+				var maxClass = 'dialog-change-max';
+				dialog.$main.removeClass(maxClass).addClass(maxClass);
+				setTimeout(function(){dialog.$main.removeClass(maxClass);},350);
+			}
+			dialog.size(vWidth,vHeight).position(left,top);
+			// console.error(202,[vWidth,vHeight],[left,top],dialog.$main.attr('class'));
+		}
+		
+		var clickMaxBefore = _.bind(dialog._clickMax,dialog);
+		dialog._clickMax = function(){
+			clickMaxBefore();
+			setTimeout(function(){
+				if(dialog.$main.hasClass('dialog-max')) return;
+				resetSize();
+			},350); //尺寸调整动画完成后处理;
+		}
+		return function(){resetSize(true);};
+	};
+	
 	var play = function(list){
 		playerLoad();
 		var ext = list[0]['ext'];

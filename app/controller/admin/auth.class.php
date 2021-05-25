@@ -30,7 +30,7 @@ class adminAuth extends Controller{
 			"name" 		=> array("check"=>"require"),
 			"display" 	=> array("check"=>"int","default"=>0),
 			"auth" 		=> array("check"=>"int"),
-			"label" 	=> array("check"=>"require"),
+			"label" 	=> array("check"=>"require","default"=>null),
 		));
 		$res = $this->model->add($data);
 		$msg = $res ? LNG('explorer.success') : LNG('explorer.error') . '! ' . LNG('explorer.pathExists');

@@ -45,20 +45,20 @@ class explorerShare extends Controller{
 		if(!$path || !$info = IO::info($path)) return;
 		$pass = Model('SystemOption')->get('systemPassword');
 		$hash = Mcrypt::encode($info['path'],$pass);
-		return app_host_get()."explorer/share/file&hash={$hash}&name=".rawurlencode($info['name']);
+		return urlApi('explorer/share/file',"hash={$hash}&name=".rawurlencode($info['name']));
 	}
 	public function linkFile($file){
 		$pass = Model('SystemOption')->get('systemPassword');
 		$hash = Mcrypt::encode($file,$pass,false,'kodcloud');
-		return app_host_get()."explorer/share/file&hash={$hash}";
+		return urlApi('explorer/share/file',"hash={$hash}");
 	}
 	
 	public function linkOut($path,$token=false){
 		$parse  = KodIO::parse($path);
 		if($parse['type'] == KodIO::KOD_SHARE_LINK){
-			$url = app_host_get() . "explorer/share/fileOut&path=".rawurlencode($path);
+			$url = urlApi('explorer/share/fileOut',"path=".rawurlencode($path));
 		}else{
-			$url = app_host_get() . "explorer/index/fileOut&path=".rawurlencode($path);
+			$url = urlApi('explorer/index/fileOut',"path=".rawurlencode($path));
 		}
 		if($token) $url .= '&accessToken='.Action('user.index')->accessToken();
 		return $url;
@@ -71,6 +71,11 @@ class explorerShare extends Controller{
 		if(!$path || !IO::info($path)){
 			show_json(LNG('common.pathNotExists'),false);
 		}
+		$fileInfo = IO::info($path);
+		if($fileInfo['isDelete'] == '1'){
+		    show_json(LNG('explorer.pathInRecycle'),false);
+		}
+		//pr(IO::info($path));exit;
 		$isDownload = isset($this->in['download']) && $this->in['download'] == 1;
 		$downFilename = !empty($this->in['downFilename']) ? $this->in['downFilename'] : false;
 		IO::fileOut($path,$isDownload,$downFilename);
@@ -258,7 +263,7 @@ class explorerShare extends Controller{
 			if($result[0]['type'] == 'file' &&  _get($this->share,'options.notDownload') != '1' ){
 				$param = "shareID=".$this->share['shareHash']."&path=".rawurlencode($result[0]['path']);
 				$param .= '&name=/'.rawurlencode($result[0]['name']);
-				$result[0]['downloadPath'] = app_host_get()."explorer/share/fileOut&".$param;
+				$result[0]['downloadPath'] = urlApi('explorer/share/fileOut',$param);
 			}
 			show_json($result[0]);
 		}

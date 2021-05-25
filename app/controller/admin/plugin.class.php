@@ -110,7 +110,7 @@ class adminPlugin extends Controller{
 
 	// download=>fileSize=>unzip=>remove
 	public function install(){
-		$app = KodIO::clear($this->in['app']);
+		$app = Input::get('app','key');
 		$appPath = PLUGIN_DIR.$app.'.zip';
 		$appPathTemp = $appPath.'.downloading';
 		switch($this->in['step']){
@@ -181,10 +181,10 @@ class adminPlugin extends Controller{
 	}
 
 	public function unInstall(){
+		$app = Input::get('app','key');
 		if( !$this->in['app']){
 			show_json(LNG('explorer.dataNotFull'),false);
 		}
-		$app = KodIO::clear($this->in['app']);
 		if(substr($app,0,3) == 'oem'){
 			show_json("专属定制插件不支持卸载,不需要您可以禁用!",false);
 		}		

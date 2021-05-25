@@ -70,11 +70,11 @@ ClassBase.define({
 			"help":{
 				"display":"<b>"+LNG['webdav.help.title']+"</b>","value":
 				"<div class='info-alert info-alert-green align-left can-select can-right-menu p-10 pl-30'>\
-				<h6><i class='ri-windows-fill font-icon ml--25 mr-5'></i>"+LNG['webdav.help.windows']+".\
+				<h6><i class='ri-windows-fill font-icon mr-5'></i>"+LNG['webdav.help.windows']+".\
 				<p class='info-alert info-alert-green align-left mt-10'>"+LNG['webdav.help.windowsTips']+
 				";  <a href='"+pluginApi+"' target='_blank' class='btn btn-sm btn-default' style='border-radius:3px;padding:2px 10px 1px 10px;'>"+LNG['common.download']+"</a></p></h6><hr/>\
-				<h6><i class='ri-apple-fill font-icon ml--25 mr-5'></i>"+LNG['webdav.help.mac']+"</h6>\
-				<h6><i class='ri-ubuntu-fill font-icon ml--25 mr-5'></i>"+LNG['webdav.help.others']+"</h6>\
+				<h6><i class='ri-apple-fill font-icon mr-5'></i>"+LNG['webdav.help.mac']+"</h6>\
+				<h6><i class='ri-ubuntu-fill font-icon mr-5'></i>"+LNG['webdav.help.others']+"</h6>\
 				</div>"
 			},
 			

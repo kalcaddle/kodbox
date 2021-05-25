@@ -95,7 +95,9 @@ class explorerFav extends Controller{
 			"name"	=> array("check"=>"require"),
 			"type"	=> array("check"=>"require","default"=>'folder'),
 		));
-		if( count($this->model->listData()) > $GLOBALS['config']['systemOption']['favNumberMax'] ){
+		$list = $this->model->listData();
+		$list = is_array($list) ? $list : array();
+		if( count($list) > $GLOBALS['config']['systemOption']['favNumberMax'] ){
 			show_json(LNG("common.numberLimit"),false);
 		}
 		

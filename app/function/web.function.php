@@ -34,6 +34,17 @@ function get_client_ip($b_ip = true){
 	}
 	return trim($client_ip);
 }
+function get_server_ip(){
+	static $ip = NULL;
+	if ($ip !== NULL) return $ip;
+	if (isset($_SERVER['SERVER_ADDR'])){
+		$ip = $_SERVER['SERVER_ADDR'];
+	}else{
+		$ip = getenv('SERVER_ADDR');
+	}
+	//$serverIP = gethostbyname(gethostname().'.');
+	return $ip;
+}
 
 function get_url_link($url){
 	if(!$url) return "";
@@ -92,10 +103,8 @@ function webroot_path($basicPath){
 	
 	// 兼容 index.php/explorer/list/path; 路径模式;
 	if($uri){//DOCUMENT_URI存在的情况;
-		$uriPath = substr($uri,0,strpos($uri,'/index.php'));
-		$uri = $uriPath.'/index.php';
+		$uri = dirname($uri).'/index.php';
 	}
-
 	if( substr($index,- strlen($uri) ) == $uri){
 		$path = substr($index,0,strlen($index)-strlen($uri));
 		return rtrim($path,'/').'/';
@@ -241,7 +250,8 @@ function curl_progress_end($curl,$curlResult=false){
 }
 function curl_progress(){
 	$args = func_get_args();
-	if (is_resource($args[0])) { // php5.5+ 第一个为$curl; <5.5则只有4个参数;
+	if (is_resource($args[0]) || (is_object($args[0]) && get_class($args[0])=== 'CurlHandle')  ) { 
+		// php5.5+ 第一个为$curl; <5.5则只有4个参数; php8兼容
 		array_shift($args);
 	}
 	$downloadSize 	= $args[0];
@@ -260,8 +270,10 @@ function curl_progress(){
 // http://blog.csdn.net/havedream_one/article/details/52585331 
 // php7.1 curl上传中文路径文件失败问题？【暂时通过重命名方式解决】
 function url_request($url,$method='GET',$data=false,$headers=false,$options=false,$json=false,$timeout=3600){
-	if(!$url || !request_url_safe($url) ){
-		return array('data'=> 'url error! url='.$url,'code'=> 0);
+	$header = url_header($url);// 跳转同时检测;
+	if(!$url || !$header['url'] ){
+		$theUrl = isset($header['urlBefore']) ? $header['urlBefore']:$url;
+		return array('data'=> 'URL not allow! '.htmlentities($theUrl),'code'=> 0);
 	}
 	ignore_timeout();
 	$ch = curl_init();
@@ -389,7 +401,7 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 	if($response_info['http_code'] == 0){
 		$error_message = curl_error($ch);
 		if (! empty($error_message)) {
-			$error_message = "API call to $url failed;$error_message";
+			$error_message = "API call to $url failed; \n$error_message";
 		} else {
 			$error_message = "API call to $url failed;maybe network error!";
 		}
@@ -426,8 +438,8 @@ function curl_get_contents($url,$timeout=60){
 
 function get_headers_curl($url,$timeout=10,$depth=0,&$headers=array()){
 	if(!function_exists('curl_init')) return false;
-	if(!request_url_safe($url)) return false;
-	if ($depth >= 10) return false;
+	if(!$url || !request_url_safe($url)) return false;
+	if($depth >= 10) return false;
 	$ch = curl_init(); 
 	curl_setopt($ch, CURLOPT_URL,$url);
 	curl_setopt($ch, CURLOPT_HEADER,true); 
@@ -481,37 +493,67 @@ function get_headers_curl($url,$timeout=10,$depth=0,&$headers=array()){
 	return count($headers)==0?false:$headers;
 } 
 
-// 防止SSRF 攻击;curl,file_get_contents前检测url;
-function request_url_safe($url){
-	$link = trim(strtolower($url));
-	$link = str_replace('\\','/',$link);
-	while (strstr($link,'../')) {
-		$link = str_replace('../', '/', $link);
-	}
-	if( substr($link,0,7) != "http://" &&
-		substr($link,0,8) != "https://" ){
-		return false;
-	}
+/**
+ * url安全监测; 防止SSRF 攻击;
+ * 监测处: curl_exec,file_get_contents,fsockopen
+ * 
+ * https://websec.readthedocs.io/zh/latest/vuln/ssrf.html 
+ * 仅保留http,https协议; 禁用内网及本机访问; 端口白名单; 
+ * 301跳转注意处理; 
+ */
+function request_url_safe($urlLink){
+	$url = preg_replace("/\/?(\.+\/+)+/",'/',str_replace('\\','/',$urlLink));
 	if(@file_exists($url)) return false;
+	
+	$urlInfo 	= parse_url($url);
+	$domain 	= isset($urlInfo['host']) ? $urlInfo['host']:'';
+    $port 		= isset($urlInfo['port']) ? intval($urlInfo['port']):80;
+	$allowPort 	= array( // 端口白名单;
+		80,81,82,83,84,85,86,87,88,89,443,
+		8000,8001,8002,8003,8004,8005,8006,8007,8008,8009,8010,8080,8100
+	);
+	
+	// 暂不屏蔽内网请求(会误伤,没有太好的办法; web应用做登陆鉴权是基本认知,即便是内网)  
+	// serverDownload, urlTitle, zip内文件预览, onlyoffice保存获取 等业务;
+	$disableHost= array( 
+		'*.xip.io',
+		// 'localhost','127.*',
+		// '192.168.*','10.*','172.*',
+	);	
+	// if(!in_array($port, $allowPort)) return false; //端口白名单; 误伤;
+	
+	if(!in_array($urlInfo['scheme'],array('http','https'))) return false;
+	foreach ($disableHost as $host) {
+		$preg = '/^'.str_replace('.','\\.',$host).'$/';
+		$preg = str_replace('*','.*',$preg);
+		if(preg_match($preg,$domain)) return false;
+	}
 	return true;
 }
 
 // url header data
 function url_header($url){
+	if(!request_url_safe($url)) return false;
 	$header = get_headers_curl($url);//curl优先
-	$header = false;
 	if(is_array($header)){
 		$header['ACTION_BY'] = 'get_headers_curl';
 	}else{
+		stream_context_set_default(array(
+            'ssl' => array(
+                'verify_host'       => false,
+                'verify_peer'       => false,
+                'verify_peer_name'  => false,
+            ),
+        ));
 		$header = @get_headers($url,true);
 		if($header){
 			$header['http_code'] = intval(match_text($header[0],'HTTP\/1\.1\s+(\d+)\s+'));
 		}
 	}
+	if (!$header) return false; 
 	foreach ($header as $key => $value) {
 		$header[strtolower($key)] = $value;
 	}
-	if (!$header) return false; 
 
 	//加入小写header值;兼容各种不统一的情况
 	$header['———'] = '————————————';//分隔
@@ -568,11 +610,9 @@ function url_header($url){
 
 	$name = str_replace(array('/','\\'),'-',rawurldecode($name));//safe;
 	$supportRange = isset($header["accept-ranges"])?true:false;
-	if(!request_url_safe($fileUrl)){
-		$fileUrl = "";
-	}
 	$result = array(
-		'url' 		=> $fileUrl,
+		'url' 		=> request_url_safe($fileUrl) ? $fileUrl: '',
+		'urlBefore' => $fileUrl,
 		'length' 	=> $length,
 		'name' 		=> trim($name,'"'),
 		'supportRange' => $supportRange && ($length!=0),
@@ -590,7 +630,16 @@ function url_header($url){
 
 // check url if can use
 function check_url($url){
-	$array = get_headers($url,true);
+	stream_context_set_default(array(
+		'ssl' => array(
+			'verify_host'       => false,
+			'verify_peer'       => false,
+			'verify_peer_name'  => false,
+		),
+	));
+	$array = @get_headers($url,true);
+	if(!$array) return false;
+
 	$error = array('/404/','/403/','/500/');
 	foreach ($error as $value) {
 		if (preg_match($value, $array[0])) {
@@ -711,7 +760,7 @@ function parse_incoming(){
 	}
 	
 	$router = isset($remote[0]) ? trim($remote[0],'/') : '';
-	preg_match_all('/[0-9a-zA-Z\/_]*/',$router,$arr);
+	preg_match_all('/[0-9a-zA-Z\/_-]*/',$router,$arr);
     $router = join('',$arr[0]);
     $router = str_replace('/','.',$router);
 	$remote = explode('.',$router);
@@ -960,7 +1009,7 @@ function get_os (){
 
 function get_broswer(){
     $agent = $_SERVER['HTTP_USER_AGENT']; //获取用户代理字符串
-    $preg_find = array(
+    $pregFind = array(
         "Firefox" => array("/Firefox\/([^;)]+)+/i"),
         "Maxthon" => array("/Maxthon\/([\d\.]+)/", "傲游"),
         "MSIE" => array("/MSIE\s+([^;)]+)+/i", "IE"),
@@ -970,7 +1019,7 @@ function get_broswer(){
         "rv:" => array("/rv:([\d\.]+)/", "IE", 'Gecko'),
     );
     $broswer = '';
-    foreach ($preg_find as $key => $value) {
+    foreach ($pregFind as $key => $value) {
         if (stripos($agent, $key)) {
             if (count($value) == 3) {
                 if (!stripos($agent, $value[2])) {
@@ -1030,25 +1079,6 @@ function get_file_ext_by_mime($contentType){
 //根据扩展名获取mime
 function get_file_mime($ext){
 	$mimetypes = mime_array();
-	//代码 或文本浏览器输出
-	$text = array('oexe','inc','inf','csv','log','asc','tsv');
-	$code = array("abap","abc","as","ada","adb","htgroups","htpasswd","conf","htaccess","htgroups",
-				"htpasswd","asciidoc","asm","ahk","bat","cmd","c9search_results","cpp","c","cc","cxx","h","hh","hpp",
-				"cirru","cr","clj","cljs","CBL","COB","coffee","cf","cson","Cakefile","cfm","cs","css","curly","d",
-				"di","dart","diff","patch","Dockerfile","dot","dummy","dummy","e","ejs","ex","exs","elm","erl",
-				"hrl","frt","fs","ldr","ftl","gcode","feature",".gitignore","glsl","frag","vert","go","groovy",
-				"haml","hbs","handlebars","tpl","mustache","hs","hx","html","htm","xhtml","erb","rhtml","ini",
-				"cfg","prefs","io","jack","jade","java","js","jsm","json","jq","jsp","jsx","jl","tex","latex",
-				"ltx","bib","lean","hlean","less","liquid","lisp","ls","logic","lql","lsl","lua","lp","lucene",
-				"Makefile","GNUmakefile","makefile","OCamlMakefile","make","md","markdown","mask","matlab",
-				"mel","mc","mush","mysql","nc","nix","m","mm","ml","mli","pas","p","pl","pm","pgsql","php","phtml",
-				"ps1","praat","praatscript","psc","proc","plg","prolog","properties","proto","py","r","Rd",
-				"Rhtml","rb","ru","gemspec","rake","Guardfile","Rakefile","Gemfile","rs","sass","scad","scala",
-				"scm","rkt","scss","sh","bash",".bashrc","sjs","smarty","tpl","snippets","soy","space","sql",
-				"styl","stylus","svg","tcl","tex","txt","textile","toml","twig","ts","typescript","str","vala",
-				"vbs","vb","vm","v","vh","sv","svh","vhd","vhdl","xml","rdf","rss","log",
-				"wsdl","xslt","atom","mathml","mml","xul","xbl","xaml","xq","yaml","yml","htm",
-				"xib","storyboard","plist","csproj");
 	if (array_key_exists($ext,$mimetypes)){
 		$result = $mimetypes[$ext];
 		if($result == 'text/html'){
@@ -1056,7 +1086,7 @@ function get_file_mime($ext){
 		}
 		return $result;
 	}else{
-		if(in_array($ext,$text) || in_array($ext,$code)){
+		if(is_text_file($ext)){
 			return "text/plain";
 		}
 		return 'application/octet-stream';

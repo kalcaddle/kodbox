@@ -356,6 +356,7 @@ class explorerIndex extends Controller{
 		}
 
 		$list = json_decode($list,true);
+		$list = is_array($list) ? $list : array();
 		if($copyType == 'copy'){
 			$list = $this->copyCheckShare($list);
 		}
@@ -506,6 +507,7 @@ class explorerIndex extends Controller{
 	}
 	
 	private function taskZip($list){
+		$list = is_array($list) ? $list : array();
 		$defaultID = 'zip-'.USER_ID.'-'.rand_string(8);
 		$taskID = $this->in['longTaskID'] ? $this->in['longTaskID']:$defaultID;
 		$task = new TaskZip($taskID,'zip');

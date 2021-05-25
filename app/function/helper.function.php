@@ -31,31 +31,31 @@ function checkExt($file){
 	return 1;
 }
 
-function app_host_get(){
-	// return rtrim(APP_HOST,'/').'/?';
-	static $_APP_HOST = false;
-	if($_APP_HOST) return $_APP_HOST;
+function urlApi($api='',$param=''){
+	$host = appHostGet(); $and = '';
+	if($param === null ) return $host.$api;
+	$and = !strstr($host,'?') ? '?' : '&';
+	return $host.$api.$and.$param;
+}
+function appHostGet(){
+	static $host = false;
+	if($host) return $host;
 
-	$map = array(
-		'full'		=> rtrim(APP_HOST,'/').'/index.php?',
-		'simple'	=> rtrim(APP_HOST,'/').'/?',
-		'rewrite'	=> rtrim(APP_HOST,'/').'/',
-	);
-	$resultFile  = DATA_PATH .'system/url_type.lock';
+	$appHost = rtrim(APP_HOST,'/').'/';
+	$resultFile  = DATA_PATH .'system/rewrite.lock';
 	if(file_exists($resultFile)){
-		$urlType = @file_get_contents($resultFile);
-		$_APP_HOST = isset($map[$urlType]) ? $map[$urlType] : $map['full'];
+		$split = @file_get_contents($resultFile);
 	}else{
-		$urlType = 'full';
-		$checkUrl = $map['simple'].'check_app_host_get=1';
+		//避免部分apache url该情况301跳转;
+		$split    = 'index.php?';// 默认:'index.php?'; 省略入口:'?'; 伪静态:''; 指定:'i';
+		$checkUrl = $appHost.'app/function/?sitemap/urlType&v=1';
 		$data = url_request($checkUrl,0,0,0,0,0,0.5);
-		if($data['data'] && trim($data['data']) == '[ok]'){
-			$urlType = 'simple';
+		if(is_array($data) && trim($data['data']) == '[ok]'){
+			$split = '?';
 		}
-		@file_put_contents($resultFile,$urlType);
-		$_APP_HOST = $map[$urlType];
+		@file_put_contents($resultFile,$split);
 	}
-	return $_APP_HOST;
+	return $appHost.$split;
 }
 
 //-----解压缩跨平台编码转换；自动识别编码-----
@@ -127,7 +127,7 @@ function unzip_pre_name($fileName){
 // 获取压缩文件内编码
 // $GLOBALS['unzipFileCharsetGet']
 function unzip_charset_get($list){
-	if(count($list) == 0) return 'utf-8';
+	if(!is_array($list) || count($list) == 0) return 'utf-8';
 	$charsetArr = array();
 	for ($i=0; $i < count($list); $i++) { 
 		$charset = get_charset($list[$i]['filename']);
@@ -277,49 +277,11 @@ function phpBuild64(){
 
 
 function check_list_dir(){
-	$url  = APP_HOST.'app/core/';
-	$find = "Application.class.php";
-	
+	$url  = APP_HOST.'app/controller/explorer/';
 	@ini_set('default_socket_timeout',1);
 	$context = stream_context_create(array('http'=>array('method'=>"GET",'timeout'=>1)));
 	$str = @file_get_contents($url,false,$context);
-	if(stripos($str,$find) === false){//not find;ok success
-		return true;
-	}else{
-		return false;
-	}
-}
-function php_env_check(){
-	$error = '';
-	if(!function_exists('iconv')) $error.= '<li>'.LNG('common.env.errorLib').' iconv</li>';
-	if(!function_exists('json_encode')) $error.= '<li>'.LNG('common.env.errorLib').' json</li>';
-	if(!function_exists('curl_init')) $error.= '<li>'.LNG('common.env.errorLib').' curl</li>';
-	if(!function_exists('mb_convert_encoding')) $error.= '<li>'.LNG('common.env.errorLib').' mb_string</li>';
-	if(!function_exists('file_get_contents')) $error.='<li>'.LNG('common.env.errorLib').' file_get_contents</li>';
-	if(!version_compare(PHP_VERSION,'5.0','>=')) $error.= '<li>'.LNG('common.env.errorVersion').'</li>';
-	if(!check_list_dir()) $error.='<li>'.LNG('common.env.errorListDir').'</li>';
-
-	$parent = get_path_father(BASIC_PATH);
-	$arr_check = array(
-		BASIC_PATH,
-		DATA_PATH,
-		DATA_PATH.'system',
-		DATA_PATH.'User',
-		DATA_PATH.'Group',
-		DATA_PATH.'session'
-	);
-	foreach ($arr_check as $value) {
-		if(!path_writeable($value)){
-			$error.= '<li>'.str_replace($parent,'',$value).'/	'.LNG('common.env.errorPath').'</li>';
-		}
-	}
-	if( !function_exists('imagecreatefromjpeg')||
-		!function_exists('imagecreatefromgif')||
-		!function_exists('imagecreatefrompng')||
-		!function_exists('imagecolorallocate')){
-		$error.= '<li>'.LNG('common.env.errorGd').'</li>';
-	}
-	return $error;
+	return stripos($str,"share.class.php") === false;//not find=>true; find=> false;
 }
 
 function check_enviroment(){

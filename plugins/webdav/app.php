@@ -7,7 +7,6 @@
 class webdavPlugin extends PluginBase{
 	protected $dav;
 	function __construct(){
-		$this->echoLog = 1;//开启关闭日志;
 		parent::__construct();
 	}
 	public function regist(){
@@ -143,7 +142,8 @@ class webdavPlugin extends PluginBase{
 	}
 	
 	public function log($data){
-		if(!$this->echoLog) return;
+		$config = $this->getConfig();
+		if(empty($config['echoLog'])) return;
 		if(is_array($data)){$data = json_encode_force($data);}
 		// if($_SERVER['REQUEST_METHOD'] == 'PROPFIND' ) return;
 		

@@ -28,6 +28,7 @@ class adminLog extends Controller{
 		}
         $fileList = array(
             array('id' => 'explorer.index.fileDownload', 'text' => LNG('admin.log.downFile')),
+            array('id' => 'explorer.index.zipDownload', 'text' => LNG('admin.log.downFolder')),
             array('id' => 'explorer.fav.add', 'text' => LNG('explorer.addFav')),
             array('id' => 'explorer.fav.del', 'text' => LNG('explorer.delFav')),
         );
@@ -125,7 +126,7 @@ class adminLog extends Controller{
             // 文件类的操作，此处只收集这3个
             if(MOD == 'explorer') {
                 $act = ST . '.' . ACT;
-                $func = array('fav.add', 'fav.del', 'index.fileDownload');
+                $func = array('fav.add', 'fav.del', 'index.fileDownload', 'index.zipDownload');
                 if(!in_array($act, $func)) return;
             }
             if(!is_array($data)) {
@@ -175,6 +176,7 @@ class adminLog extends Controller{
 		}
 		$add = array(
 			'explorer.index.fileDownload',
+			'explorer.index.zipDownload',
 			'explorer.fav.add',
 			'explorer.fav.del'
 		);

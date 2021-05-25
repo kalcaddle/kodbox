@@ -105,18 +105,18 @@ class commentTopic extends Controller {
 	
 	// 自己参与的讨论主题: 文档/分享;部门/用户/群聊;
 	// 主题只包含: 用户,部门,关注文档; 群聊; [数据自动构建;] 没有评论过也会有该主题;
-	private function chatTopic(){
-		// $field = 'targetType,targetID';
-		// $where = array("userID"=> USER_ID);
-		// $topic = $this->model->field($field)->where($where)->group($field)->select();
+	private function chatTopic(){return array();
+		$field = 'targetType,targetID';
+		$where = array("userID"=> USER_ID);
+		$topic = $this->model->field($field)->where($where)->group($field)->select();
 		
-		// $topicList = array();
-		// $topicRead = Cache::get("userChatReadLast_".USER_ID);
-		// foreach($topic as $item){
-		// 	$id = $item['targetType'].'_'.$item['targetID'];
-		// 	$item['readLast'] = isset($topicRead[$id]) ? $topicRead[$id]:0;
-		// 	$topicList[$id] = $item;
-		// }
-		// return $topicList;
+		$topicList = array();
+		$topicRead = Cache::get("userChatReadLast_".USER_ID);
+		foreach($topic as $item){
+			$id = $item['targetType'].'_'.$item['targetID'];
+			$item['readLast'] = isset($topicRead[$id]) ? $topicRead[$id]:0;
+			$topicList[$id] = $item;
+		}
+		return $topicList;
 	}
 }

@@ -488,24 +488,7 @@ function array_try($array, $callback){
 	} 
 	return false;
 } 
-// 求多个数组的并集
-function array_union(){
-	$argsCount = func_num_args();
-	if ($argsCount < 2) {
-		return false;
-	} else if (2 === $argsCount) {
-		list($arr1, $arr2) = func_get_args();
 
-		while ((list($k, $v) = each($arr2))) {
-			if (!in_array($v, $arr1)) $arr1[] = $v;
-		} 
-		return $arr1;
-	} else { // 三个以上的数组合并
-		$arg_list = func_get_args();
-		$all = call_user_func_array('array_union', $arg_list);
-		return array_union($arg_list[0], $all);
-	} 
-}
 // 取出数组中第n项
 function array_get_index($array,$index){
 	foreach($array as $k=>$v){
@@ -833,6 +816,7 @@ END;
 }
 
 function get_caller_trace($trace) {//return array();
+	$trace = is_array($trace) ? $trace : array();
 	$traceText = array(); //var_dump($trace);exit;
 	$maxLoad = 50; //数据过多自动丢失后面内容;
 	if(count($trace) > $maxLoad){

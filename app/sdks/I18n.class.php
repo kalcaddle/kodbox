@@ -63,10 +63,10 @@ class I18n{
 	}
 
 	public static function init(){
+		if(self::$loaded) return;
 		if(isset($GLOBALS['in']['language'])){
 			return self::setLanguage($GLOBALS['in']['language']);
 		}
-    	if(self::$loaded !== false) return;
 	    $cookieLang = 'kodUserLanguage';
 		if (isset($_COOKIE[$cookieLang])) {
 			$lang = $_COOKIE[$cookieLang];
@@ -115,8 +115,11 @@ class I18n{
 	 * 添加多语言;
 	 * @param [type] $args [description]
 	 */
-	public static function set($array){
+	public static function set($array,$value=''){
 		self::init();
+		if(is_string($array)){
+			return self::$lang[$array] = $value;
+		}
 		if(!is_array($array)) return;
 		foreach ($array as $key => $value) {
 			self::$lang[$key] = $value;

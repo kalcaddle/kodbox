@@ -40,17 +40,35 @@ define(function(require, exports) {
 		var player = new DPlayer(playerOption);
 		player.play();
 		$target.find('video').attr('autoplay','autoplay').removeAttr('muted');
-		resetSize(player,$target);
+		
+		var dialog = $target.parents('.dplayer-dialog').data('artDialog');
+		var playerResize = playerDialogResize($target,dialog,false);
+		player.on('loadeddata',playerResize);
 		$(player.container).trigger('click');// 自动焦点; 视频操作快捷键响应;
 		
 		//移动端;微信,safari等屏蔽了自动播放;首次点击页面触发播放;
 		// $target.find('.dplayer-video-wrap').one("touchstart mousedown",play);
 	}
-	
-	var resetSize = function(player,$player){
-		var reset = function(){
-			var vWidth  = $player.width();
-			var vHeight = $player.height();
+
+	/**
+	 * 根据视频尺寸,自动调整窗口尺寸及位置,确保视频能够完整显示
+	 * 
+	 * 1. 对话框全屏后才加载完成, 不处理尺寸;
+	 * 2. 对话框全屏后才加载完成,再次还原窗口时处理视频尺寸; 
+	 */
+	 var playerDialogResize = function($player,dialog,animate){
+		var isReset  = false;
+		if(!dialog) return;
+		
+		// 已经重置过尺寸的不再重置, 视频未加载完成不重置, 最大化时不重置;
+		var resetSize = function(fileLoad){
+			if(isReset && !fileLoad) return;
+			if(!dialog.$main || dialog.$main.hasClass('dialog-max')) return;
+			
+			isReset 	= true;
+			var $video  = $player.find('video');
+			var vWidth  = $video.width();
+			var vHeight = $video.height();
 			var wWidth  = $(window).width()  * 0.9;
 			var wHeight = $(window).height() * 0.9;
 			if(vHeight >= wHeight){
@@ -61,18 +79,27 @@ define(function(require, exports) {
 				vHeight = (wWidth * vHeight) / vWidth;
 				vWidth  = wWidth;
 			}
-			
-			var dialog = $player.parents('.dplayer-dialog').data('artDialog');
 			var left = ($(window).width()  - vWidth) / 2;
 			var top  = ($(window).height() - vHeight) / 2;
-			// console.log(22,[vWidth,vHeight],[left,top]);
-			if(!dialog) return;
+			if(animate){
+				var maxClass = 'dialog-change-max';
+				dialog.$main.removeClass(maxClass).addClass(maxClass);
+				setTimeout(function(){dialog.$main.removeClass(maxClass);},350);
+			}
 			dialog.size(vWidth,vHeight).position(left,top);
+			// console.error(202,[vWidth,vHeight],[left,top],dialog.$main.attr('class'));
 		}
-		// $player.css({position:'absolute'});
-		player.on('loadeddata',reset);
+
+		var clickMaxBefore = _.bind(dialog._clickMax,dialog);
+		dialog._clickMax = function(){
+			clickMaxBefore();
+			setTimeout(function(){
+				if(dialog.$main.hasClass('dialog-max')) return;
+				resetSize();
+			},350); //尺寸调整动画完成后处理;
+		}
+		return function(){resetSize(true);};
 	};
-	
 	
 	var loadSubtitle = function(playerOption,vedioInfo){
 		var pathModel = _.get(window,'kodApp.pathAction.pathModel');

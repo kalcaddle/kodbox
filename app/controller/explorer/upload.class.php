@@ -84,7 +84,7 @@ class explorerUpload extends Controller{
 		if($this->in['uploadType'] != 'fileInfo') return $path;
 		$info = IO::info($path);
 		$info = array_field_key($info,array("ext",'name','createTime','size'));
-		$info['link'] = Action('explorer.share')->link($path);
+		$info['downloadPath'] = Action('explorer.share')->link($path);
 		return $info;
 	}
 	

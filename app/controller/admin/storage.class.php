@@ -78,71 +78,68 @@ class adminStorage extends Controller {
 			http_close();
 			$res = $this->model->removeWithFile($data['id']);
 		}else{
-			// 没有文件直接删除
 			$res = $this->model->remove($data['id']);
 		}
 		$msg = $res ? LNG('explorer.success') : LNG('explorer.error');
 		show_json($msg,!!$res,true);
 	}
 	
-	
-	
-	// File 中不存在的文件进行清理；清空不存在的文件（被手动删除的）
-	public function fileListClear(){
-		$list = Model('File')->select();
-		$notExist = 0;
-		http_close();
-		$task = new Task("fileCheck",'',count($list));
-		foreach ($list as $item) {
-			if(!IO::exist($item['path'])){
-				$notExist ++;
-				$task->task['currentTitle'] = $notExist .'个不存在';
-				$this->removeByFileID($item['fileID']);
-			}
-			$task->update(1);
-		}
-	}
-	// source文件,落地file表中不存在的进行自动删除;
-	public function sourceListClear(){
-		$modelSource = Model("Source");
-		$modelFile   = Model("File");
-		$list = $modelSource->select();
-		$notExist = 0;
-		http_close();
-		$task = new Task("SourceCheck",'',count($list));
-		foreach ($list as $item) {
-			if($item['isFolder'] == '0' && !$modelFile->find($item['fileID'])){
-				$notExist ++;
-				$task->task['currentTitle'] = $notExist .'个不存在';
-				$modelSource->remove($item['sourceID'],false);
-			}
-			$task->update(1);
-		}
-	}
-	public function fileClearBySource(){
-		$source = Model("Source")->field('sourceID,fileID')->select();
-		$source = array_to_keyvalue($source,'','sourceID');
-		$list	= Model('File')->select();
+	// 系统回收站,自动清空;
+	public function systemRecycleClear(){
+		$options 	= Model('systemOption')->get();
+		$clearDay 	= intval($options['systemRecycleClear']);
+		$this->taskInit();
+		if($options['systemRecycleOpen'] != '1') return;
+		if($clearDay <= 0) return;
+
+		$pathRecycle = KodIO::sourceID(IO_PATH_SYSTEM_RECYCLE);
+		$whereEmpty  = array("parentID"	=> $pathRecycle,'size'=>0);
+		$this->removeSource($whereEmpty); //清除内容为空的文件夹;
+
+		$pathList 	 = Model('Source')->field('sourceID')->where(array("parentID"=> $pathRecycle))->select();
+		$pathList	 = array_to_keyvalue($pathList,'','sourceID');
+		if(!$pathList) return;
 		
-		$modelFile   = Model("File");
-		$notExist = 0;
-		http_close();
-		$task = new Task("fileClearCheck",'',count($list));
-		foreach ($list as $item) {
-			if(!$source[$item['fileID']]){
-				$notExist ++;
-				$task->task['currentTitle'] = $item['fileID'].';'.$notExist .'个不存在';
-				// usleep(5000);
-				$modelFile->remove($item['fileID']);
-			}
-			$task->update(1);
+		$timeEnd = time() - ($clearDay * 24 * 3600);
+		$whereChild = array('parentID'=>array('in',$pathList),'modifyTime' => array('<=',$timeEnd));
+		$this->removeSource($whereChild);
+		$this->removeSource($whereEmpty);
+	}
+	private function removeSource($where){
+		$model = Model('Source');
+		$pathList = $model->field('sourceID')->where($where)->select();
+		if(!$pathList) return;
+		foreach ($pathList as $item) {
+			$model->removeNow($item['sourceID'],false);
 		}
 	}
-	private function removeByFileID($fileID){
-		$source = Model("Source")->field('sourceID,fileID')->where(array('fileID'=>$fileID))->select();
-		$source = array_to_keyvalue($source,'','sourceID');
-		foreach ($source as $srouceID) {
-			Model('source')->remove($srouceID,false);
+	// 计划任务自动添加和移除;
+	private function taskInit(){
+		$options = Model('systemOption')->get();
+		$action  = 'admin.storage.systemRecycleClear';
+		$taskInitKey = 'systemRecycleTaskInit';
+		
+		if($options['systemRecycleOpen'] != '1'){
+			if($options[$taskInitKey] == 'ok'){
+				$task = Model('SystemTask')->findByKey('event',$action);
+				Model('SystemTask')->remove($task['id'],true);
+				Model('systemOption')->set($taskInitKey,'');
+			}
+			return;
 		}
+		
+		// 已开启;
+		if($options[$taskInitKey] == 'ok') return;
+		$data = array (
+			'name'	=> LNG('explorer.recycle.taskTitle'),
+			'type'	=> 'method',
+			'event' => $action,
+			'time'	=> '{"type":"day","day":"02:00"}',
+			'desc'	=> LNG('explorer.recycle.taskDesc'),
+			'enable' => '1',
+			'system' => '1',
+		);
+		Model('SystemTask')->add($data); 
+		Model('systemOption')->set($taskInitKey,'ok');
 	}
 }

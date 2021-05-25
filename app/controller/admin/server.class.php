@@ -153,7 +153,7 @@ class adminServer extends Controller {
 		$data['php_info']['version'] = $phpVersion;
 		$info = array('memory_limit', 'post_max_size', 'upload_max_filesize', 'max_execution_time', 'max_input_time');
 		foreach($info as $key) {
-			$data['php_info'][$key] = get_cfg_var($key);
+			$data['php_info'][$key] = ini_get($key);	// get_cfg_var获取的是配置文件的值，ini_get获取的是当前值
 		}
 		$data['php_info']['disable_functions'] = ini_get('disable_functions');
 		$exts = get_loaded_extensions();
@@ -210,7 +210,7 @@ class adminServer extends Controller {
 			// 数据库文件大小
 			$file = $database['db_name'];
 			if(!isset($database['db_name'])) {
-				$file = substr($str, strlen('sqlite:'));
+				$file = substr($database['db_dsn'], strlen('sqlite:'));
 			}
 			$size = @filesize($file);
 		}else{
@@ -317,16 +317,16 @@ class adminServer extends Controller {
 		// 2.删除导入失败的数据库
 		$key = 'db.new_config.' . date('Y-m-d');
 		if($option = Cache::get($key)) {
-			$type = $data['db_type'];
-			if(!empty($data['db_dsn'])) {
-				$tmp = explode(':', $data['db_dsn']);
+			$type = $option['db_type'];
+			if(!empty($option['db_dsn'])) {
+				$tmp = explode(':', $option['db_dsn']);
 				$type = $tmp[0];
 			}
 			if(in_array($type, array('sqlite', 'sqlite3'))) {
 				del_dir($tmp[1]);
 			}else{
-				$restore = new Restore($option, $type);
-				$restore->dropTable();
+				$manage = new DbManage($option, $type);
+				$manage->dropTable();
 			}
 			Cache::remove($key);
 		}
@@ -370,7 +370,7 @@ class adminServer extends Controller {
 		// 数据库类型
 		$data = Input::getArray(array(
 			'db_type' => array('check' => 'in', 'param' => array('sqlite', 'mysql', 'pdo')),
-			'db_dsn'  => array('default' => ''),
+			'db_dsn'  => array('default' => ''),	// mysql/sqlite
 		));
 		$dbType = !empty($data['db_dsn']) ? $data['db_dsn'] : $data['db_type'];
 		$pdo = !empty($data['db_dsn']) ? 'pdo' : '';
@@ -597,9 +597,9 @@ class adminServer extends Controller {
 	 */
     public function copyDb($type, $option, $database){
 		// 1.初始化db
-		$restoreNew = new Restore($option, $type);
-		$restoreOld = new Restore($database, $type);
-		$dbNew = $restoreNew->db(true);
+		$manageOld = new DbManage($database, $type);
+		$manageNew = new DbManage($option, $type);
+		$dbNew = $manageNew->db(true);
 
 		// 2.指定库存在数据表，提示重新指定；不存在则继续
 		$newTable = $dbNew->getTables();
@@ -618,7 +618,7 @@ class adminServer extends Controller {
 		// 3.表结构写入目标库
 		// TODO 这里其实应该从当前库导出表结构，并创建
         $file = CONTROLLER_DIR . "install/data/{$type}.sql";
-        $restoreNew->createTable($file, $dbCrtTask);
+        $manageNew->createTable($file, $dbCrtTask);
 
 		// 4.获取当前表数据，写入sql文件
 		$newTable = $dbNew->getTables();
@@ -627,13 +627,13 @@ class adminServer extends Controller {
 
 		$dbGetTask = new Task('db.old.table.select', $type, 0, LNG('admin.setting.dbSelect'));
 		$fileList = array();
-		$oldTable = $restoreOld->db()->getTables();
+		$oldTable = $manageOld->db()->getTables();
 		$oldTable = array_diff($oldTable, array('______', 'sqlite_sequence'));
         foreach($oldTable as $table) {
 			// 对比原始库，当前库如有新增表，直接跳过
 			if(!in_array($table, $newTable)) continue;
 			$file = $pathLoc . $table . '.sql';
-            $restoreOld->sqlFromDb($table, $file, $dbGetTask);
+            $manageOld->sqlFromDb($table, $file, $dbGetTask);
             $fileList[] = $file;
 		}
 		// 这里的task缺失id等参数，导致cache无法保存，原因未知
@@ -641,7 +641,7 @@ class adminServer extends Controller {
 
 		$dbAddTask = new Task('db.new.table.insert', $type, 0, LNG('admin.setting.dbInsert'));
 		// 5.读取sql文件，写入目标库
-        $restoreNew->insertTable($fileList, $dbAddTask);
+        $manageNew->insertTable($fileList, $dbAddTask);
 
 		// 6.删除临时sql文件
         del_dir($pathLoc);

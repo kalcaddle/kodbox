@@ -29,16 +29,18 @@ class Html{
 		
 		$config->set('Cache.SerializerPath', TEMP_PATH);// 缓存目录;
 		$config->set('Cache.DefinitionImpl', null);
-		$config->set('HTML.Allowed','img[src]');
+		$config->set('HTML.Allowed','img[src|alt]');
 		$cleanObj = new HTMLPurifier($config);
 		return $cleanObj->purify($data);
 	}
 	
 	
-	
+	public static function clearSVG($content){
+		return self::removeXXS($content);
+	}
 	
 	// 正则替换掉onload,等属性;  style无法保留
-	public static function _removeXXS($val){
+	public static function removeXXS($val){
 		// remove all non-printable characters. CR(0a) and LF(0b) and TAB(9) are allowed  
 		// this prevents some character re-spacing such as <java\0script>  
 		// note that you have to handle splits with \n, \r, and \t later since they *are* allowed in some inputs  
@@ -82,7 +84,7 @@ class Html{
 					$pattern .= $ra[$i][$j];
 				}
 				$pattern .= '/i';
-				$replacement = substr($ra[$i], 0, 2) . '<x>' . substr($ra[$i], 2); // add in <> to nerf the tag  
+				$replacement = substr($ra[$i], 0, 2) . '_' . substr($ra[$i], 2); // add in <> to nerf the tag  
 				$val = preg_replace($pattern, $replacement, $val); // filter out the hex tags  
 				if ($val_before == $val) {
 					// no replacements were made, so exit the loop  

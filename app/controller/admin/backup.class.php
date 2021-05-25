@@ -25,7 +25,7 @@ class adminBackup extends Controller{
 	}
 
 	/**
-	 * 根据所在部门获取用户列表
+	 * 获取备份列表
 	 */
 	public function get() {
 		$id		= Input::get('id',null,null);

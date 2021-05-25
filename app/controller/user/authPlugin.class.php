@@ -61,10 +61,12 @@ class userAuthPlugin extends Controller{
 		}
 		// pr($auth,Session::get('kodUser'));
 		if (isset($auth['all']) && $auth['all'] == '1') return true; // 全部则无需登录也可以访问;
-		if(!$user){
-			$user = Session::get('kodUser');
-		}
+		if (!$user){$user = Session::get('kodUser');}
 		if (!$auth || !$user || !is_array($auth)) return false;
+		
+		// all:代表任意登陆用户; root:代表系统管理员;
+		if ($auth['user'] == 'all')  return true;
+		if ($auth['user'] == 'admin' && $GLOBALS['isRoot'] == 1) return true;
 		
 		$groups  = array_to_keyvalue($user['groupInfo'],'','groupID');
 		$auth['user']  = $auth['user']  ? explode(',',$auth['user']) :  array();

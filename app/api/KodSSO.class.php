@@ -1,44 +1,48 @@
 <?php
-
 /**
  * 共享账号登录;支持限定账户,部门,权限组;
  * 
  * 1. 引入代码调用;(会引入整套kod的库; 侵入性; 函数名重名用命名空间处理)
- * include('../../../config/config.php');
- * Action('user.sso')->check('adminer');
+ * include('./config/config.php');
+ * $user = Action('user.sso')->check('adminer');
  * 
  * 2. 通用CAS模式单点登陆; (可跨站点跨服务器,不同服务之间调用); 可用其他语言实现类似逻辑;
- * include('../../../app/api/KodSSO.class.php');
- * KodSSO::check('adminer'); // 不同站需要传入kod站点的名称; 
+ * include('./app/api/KodSSO.class.php');
+ * $user = KodSSO::check('user:admin'); // 不同站需要传入kod站点的名称;
  * 
+ * 权限检测支持: 
+ * 	1. 指定插件名, 权限同该插件配置用户权限
+ * 	2. 指定用户: 空字符串或user:all 所有登陆用户; user:admin系统管理员
+ * 	3. 指定权限详情: {"user":"1,3","group":"1","role":"1,2"}; 同插件权限设置指定:用户,部门,角色
  * 
  * 流程:
  * 1. 有cookie kodTokenApi; 请求kod的认证接口; 返回[ok] 则继续;
  * 2. 没有cookie kodTokenApi则跳转到kod登陆界面; kod登陆成功则带上kodToken跳转到该应用url; 再次验证kodToken成功则完成;
  */ 
 class KodSSO{
-	public static function check($appName,$host=""){
+	public static function check($appName="",$host=""){
 		if(!$host){$host = self::appHost();}
-		$key = 'kodTokenApi';
-		$token = isset($_COOKIE[$key]) ? $_COOKIE[$key] : '';
-		$token = isset($_GET[$key]) ? $_GET[$key] : $token;
-		if($token && self::checkToken($appName,$host,$token)){
+		$urlInfo 	= parse_url(self::thisUrl());
+		$key 		= 'kodTokenApi';
+		$keyCookie 	= 'kodTokenApi-'.substr(md5($urlInfo['path']),0,5);
+		$token 		= isset($_COOKIE[$keyCookie]) ? $_COOKIE[$keyCookie] : '';
+		$token 		= isset($_GET[$key]) ? $_GET[$key] : $token;
+		$userInfo 	= self::checkToken($appName,$host,$token);
+		if( $token && $userInfo){
 			if(isset($_GET[$key])){ // 首次登陆成功跳转回来;
-				$path = str_replace(self::host(),'',self::appHost());
-				setcookie($key,$token, time()+3600*5,'/'.trim($path,'/'),false,false,true);
-
+				setcookie($keyCookie,$token, time()+3600*5,self::thisPathUrl(),false,false,true);
 				// 跳转到之前url; 去除url带入的token;
 				$linkBefore = self::urlRemoveKey(self::thisUrl(),$key);
 				header('Location: '.$linkBefore);exit;
 			}
-			return;
+			return $userInfo;
 		}
 
 		$link = rawurlencode(self::thisUrl());
 		$url  = $host.'?user/sso/apiLogin&appName='.$appName.'&callbackUrl='.$link;
 		header('Location: '.$url);exit;
 	}
-	public static function checkToken($appName,$host,$token){
+	private static function checkToken($appName,$host,$token){
 		if(!$token) return false;
 		$timeStart = microtime(true);
 		$uri = 'user/sso/apiCheckToken&accessToken='.$token.'&appName='.$appName;
@@ -58,8 +62,12 @@ class KodSSO{
 			));
 			$res = file_get_contents($host.'?'.$uri,false,$context);
 		}
-		// var_dump(microtime(true) - $timeStart,$res);exit;
-		if(trim($res) === '[ok]') return true;
+		// var_dump(microtime(true) - $timeStart,$host.'?'.$uri,$res);exit;
+		$userInfo = @json_decode($res,true);
+		if( $userInfo && is_array($userInfo) ){
+			if(isset($userInfo['code']) && $userInfo['code'] == '10001') return false;
+			return $userInfo;
+		}
 		if(!strstr($res,'[error]:')){echo $res;exit;}
 		return false;
 	}
@@ -100,6 +108,12 @@ class KodSSO{
 	public static function thisUrl(){
 		return rtrim(self::host(),'/').'/'.ltrim($_SERVER['REQUEST_URI'],'/');
 	}
+	public static function thisPathUrl(){
+		$uriInfo = parse_url(self::thisUrl());
+		$uriPath = dirname($uriInfo['path']);
+		if(substr($uriPath,-1) == '/'){$uriPath = $uriInfo['path'];}
+		return '/'.trim($uriPath,'/');
+	}
 	public static function appHost(){
 		$BASIC_PATH = str_replace('\\','/',dirname(dirname(dirname(__FILE__)))).'/';
 		$WEB_ROOT 	= self::webrootPath($BASIC_PATH);
@@ -110,11 +124,9 @@ class KodSSO{
 		$index = self::pathClear($basicPath.'index.php');
 		$uri   = self::pathClear($_SERVER["DOCUMENT_URI"]);
 		// 兼容 index.php/explorer/list/path; 路径模式;
-		if($uri){//DOCUMENT_URI存在的情况;
-			$uriPath = substr($uri,0,strpos($uri,'/index.php'));
-			$uri = $uriPath.'/index.php';
+		if($uri){//DOCUMENT_URI存在的情况; test.php ...统一化;
+			$uri = dirname($uri).'/index.php';
 		}
-
 		if( substr($index,- strlen($uri) ) == $uri){
 			$path = substr($index,0,strlen($index)-strlen($uri));
 			return rtrim($path,'/').'/';

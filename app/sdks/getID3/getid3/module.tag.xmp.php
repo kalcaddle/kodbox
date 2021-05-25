@@ -199,7 +199,8 @@ class Image_XMP
 	{
 		//Get JPEG header data
 		$jpeg_header_data = $this->_get_jpeg_header_data($filename);
-
+		if(!$jpeg_header_data) return false;//add by warlee; 数据为空时兼容php8
+		
 		//Cycle through the header segments
 		for ($i = 0; $i < count($jpeg_header_data); $i++)
 		{
@@ -235,7 +236,7 @@ class Image_XMP
 		{
 			return false;
 		}
-
+		if(!function_exists('xml_parser_create')) return false;
 		// Create an instance of a xml parser to parse the XML text
 		$xml_parser = xml_parser_create('UTF-8');
 

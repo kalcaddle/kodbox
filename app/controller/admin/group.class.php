@@ -43,7 +43,8 @@ class adminGroup extends Controller{
 					'children'		=> Action('explorer.userShareTarget')->get(10),
 					'icon' 			=> '<i class="font-icon ri-star-fill"></i>',
 				);
-				if(count($shareHistory['children']) > 0){
+				$children = $shareHistory['children'];
+				if(is_array($children) && count($children) > 0){
 				    $items['list'] = array($shareHistory,$items['list'][0]);
 				}
 			}

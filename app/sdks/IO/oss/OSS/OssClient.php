@@ -1748,7 +1748,8 @@ class OssClient
         $options[self::OSS_BUCKET] = $bucket;
         $options[self::OSS_OBJECT] = $object;
         if (!isset($options[self::OSS_CONTENT_LENGTH])) {
-            $options[self::OSS_CONTENT_LENGTH] = fstat($handle)[self::OSS_SIZE];
+            $fstate = fstat($handle);
+            $options[self::OSS_CONTENT_LENGTH] = $fstate[self::OSS_SIZE];
         }
         $response = $this->auth($options);
         $result = new PutSetDeleteResult($response);

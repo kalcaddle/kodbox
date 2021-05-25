@@ -153,7 +153,7 @@ ace.define("ace/ext/searchboxKod", ["require", "exports", "module", "ace/lib/dom
 		<button type="button" action="hide" class="ace_searchbtn_close"></button>\
 		<div class="ace_search_form">\
 			<div class="ace_search_input">\
-				<input class="ace_search_field" placeholder="Search for" spellcheck="false"></input>\
+				<textarea class="ace_search_field" placeholder="Search for" spellcheck="false"></textarea>\
 				<span class="search-info"></span>\
 				<div class="history-list dropup">\
 					<span class="dropmenu" data-toggle="dropdown" id="history_search" aria-haspopup="true" aria-expanded="false"><i class="font-icon ri-time-line"></i></span>\
@@ -168,7 +168,7 @@ ace.define("ace/ext/searchboxKod", ["require", "exports", "module", "ace/lib/dom
 		</div>\
 		<div class="ace_replace_form">\
 			<div class="ace_search_input">\
-				<input class="ace_search_field" placeholder="Replace with" spellcheck="false"></input>\
+				<textarea class="ace_search_field" placeholder="Replace with" spellcheck="false"></textarea>\
 				<div class="history-list dropup">\
 					<span class="dropmenu" data-toggle="dropdown" id="history_replace" aria-haspopup="true" aria-expanded="false"><i class="font-icon ri-time-line"></i></span>\
 					<ul class="dropdown-menu menu-top" aria-labelledby="history_replace"></ul>\

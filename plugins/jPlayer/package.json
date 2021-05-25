@@ -2,7 +2,7 @@
 	"id":"jPlayer",
 	"name":"jPlayer播放器",
 	"title":"jPlayer视频播放器",
-	"version":"1.50",
+	"version":"1.51",
 	"source":{
 		"icon":"{{pluginHost}}static/images/icon.png",
 		"screenshoot":[
