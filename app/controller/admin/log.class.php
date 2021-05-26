@@ -91,7 +91,7 @@ class adminLog extends Controller{
 	
 
 	/**
-     * 日志列表
+     * 后台管理-日志列表
      * @return void
      */
     public function get(){
@@ -163,7 +163,7 @@ class adminLog extends Controller{
     }
 
     /**
-     * 用户文档日志
+     * 个人中心-用户文档日志
      * @return void
      */
     public function userLog(){
@@ -198,7 +198,7 @@ class adminLog extends Controller{
 		show_json($res);
     }
     /**
-     * 用户登录日志
+     * 个人中心-用户登录日志
      * @return void
      */
     public function userLogLogin(){

@@ -226,7 +226,7 @@ class userSetting extends Controller {
 	 */
 	public function setHeadImage() {
 		$link = Input::get('link', 'require');
-		if(strpos($link, APP_HOST) != 0) {
+		if(strpos($link, APP_HOST) !== 0) {
 			show_json(LNG('common.illegalRequest'), false);
 		}
 		$userID = USER_ID;

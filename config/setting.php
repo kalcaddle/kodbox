@@ -258,6 +258,7 @@ $config['settingDefault'] = array(
 	'animateOpen'		=> "1",			// dialog动画
 	'soundOpen'			=> "0",			// 操作音效
 	'theme'				=> "auto",		// 'light','dark-mode','auto'
+	'themeImage' 		=> "",			// url/wallpage/css
 	'wall'				=> "8",			// wall picture
 	
 	"fileRepeat"		=> "replace",	// rename,replace,skip

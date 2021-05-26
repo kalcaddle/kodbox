@@ -77,7 +77,7 @@ class KodSSO{
 	private static function phpBin(){
 		if(defined('PHP_BINARY') && @file_exists(PHP_BINARY)){
 			$php = str_replace('-fpm','',PHP_BINARY);
-			if(file_exists($php)) return $php;
+			if(@file_exists($php)) return $php;
 		}
 		if(!defined('PHP_BINDIR')) return false; // PHP_BINDIR,PHP_BINARY
 		$includePath = get_include_path();// php_ini_loaded_file();//php.ini path;
@@ -91,7 +91,7 @@ class KodSSO{
 			dirname(dirname(dirname($includePath))).'/bin/',
 		);
 		foreach ($checkPath as $path) {
-			if(file_exists($path.$binFile)) return $path.$binFile;
+			if(@file_exists($path.$binFile)) return $path.$binFile;
 		}
 		return 'php';
     }
