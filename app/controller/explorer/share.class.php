@@ -338,7 +338,7 @@ class explorerShare extends Controller{
 		foreach($dataArr as $i => $item){
 			$dataArr[$i]['path'] = $this->parsePath($item['path']);
 		}
-		$this->in = array('dataArr'	=> json_encode($dataArr));
+		$this->in['dataArr'] = json_encode($dataArr);
 		Action('explorer.index')->zipDownload();
 	}
 	public function fileDownloadRemove(){
@@ -346,7 +346,7 @@ class explorerShare extends Controller{
 	}
 	public function unzipList(){
 		$this->zipSupportCheck();
-		$this->in['dataArr'] = $this->parsePath($this->in['path']);
+		$this->in['path'] = $this->parsePath($this->in['path']);
 		Action('explorer.index')->unzipList();
 	}
 	private function zipSupportCheck(){

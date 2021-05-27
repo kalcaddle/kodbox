@@ -23,7 +23,7 @@ class explorerSeo extends Controller{
 		$powerBy 	= LNG("common.copyright.powerBy");
 		$homePage	= str_replace('%s',APP_HOST,LNG('common.copyright.homepage'));
 
-		$isKeep   = _get($this->in,'keep') == '1' ? 'keep=1':'keep=0';
+		$isKeep   = _get($this->in,'keep') == '1' ? 'keep=1':null;
 		$siteMap  = urlApi('sitemap/',$isKeep);		
 		$link  = 'https://github.com/kalcaddle/kodbox';
 		$html  = "<div class='page-footer' style='display:none;'>\n\t";
@@ -96,9 +96,9 @@ class explorerSeo extends Controller{
 		$list = $model->where($where)->order("createTime desc")->selectPage();
 
 		$listHtml = '';
-		$isKeep   = _get($this->in,'keep') == '1' ? 'keep=1':'keep=0';
+		$isKeep   = _get($this->in,'keep') == '1' ? 'keep=1':null;
 		$siteMap  = urlApi('sitemap/',$isKeep);
-		$pageHtml = $this->makePage($list['pageInfo'],$siteMap,$this->in['pageNum']);
+		$pageHtml = $this->makePage($list['pageInfo'],$siteMap,5);
 		$list = Model('Share')->listDataApply($list['list']);
 		foreach ($list as $item){
 			$listHtml .= $this->shareMakeItem($item);

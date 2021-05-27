@@ -106,6 +106,7 @@ class userView extends Controller{
 	
 	// 计划任务触发;
 	public function call(){
+		header('Content-Type: application/javascript');
 		http_close();
 		Action('explorer.index')->clearCache();
 		Action('explorer.attachment')->clearCache();
