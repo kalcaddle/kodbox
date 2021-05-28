@@ -117,13 +117,17 @@ class adminNotice extends Controller{
 	}
 	// 用户通知详情
 	public function noticeInfo($id){
-		// 通知详情
-		$result = $this->model->listData($id);
-		if(!$result) show_json(array(), false);
 		// 用户通知
 		$notice = $this->model->userNoticeGet($id);
 		if(!$notice) show_json(array(), false);
-		$notice['content'] = $result['content'];
+		// 通知列表
+		$result = $this->model->listData();
+		if(!$result) show_json(array(), false);
+		$list = array_to_keyvalue($result,'id');
+
+		$noticeID = $notice['noticeID'];
+		if(!isset($list[$noticeID])) show_json(array(), false);
+		$notice['content'] = $list[$noticeID]['content'];
 
 		show_json($notice);
 	}
