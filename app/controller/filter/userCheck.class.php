@@ -1,10 +1,10 @@
 <?php
 
 /**
- * 用户登陆检测
+ * 用户登录检测
  * 
  * 密码错误次数处理;
- * 登陆ip白名单处理; 只检验拦截登陆接口;
+ * 登录ip白名单处理; 只检验拦截登录接口;
  */
 class filterUserCheck extends Controller {
 	private $lockErrorNum = 6;	//错误n次后锁定账号;
@@ -36,7 +36,7 @@ class filterUserCheck extends Controller {
 	 * strongMore: 高强度, 长度大于6; 必须同时包含数字,大写英文,小写英文;
 	 * 
 	 * 检测点: 用户注册;用户修改密码;管理员添加用户;管理员修改用户;导入用户;
-	 * 前端点: 登陆成功后:如果密码规则不匹配当前强度,则提示修改密码;[提示点:注册密码,修改密码,编辑用户设置密码,添加用户设置密码]
+	 * 前端点: 登录成功后:如果密码规则不匹配当前强度,则提示修改密码;[提示点:注册密码,修改密码,编辑用户设置密码,添加用户设置密码]
 	 */
 	public function password($password,$out=false){
 		$type = $this->options['passwordRule'];
@@ -96,7 +96,7 @@ class filterUserCheck extends Controller {
 	}
 		
 	/**
-	 * 用户登陆限制管控
+	 * 用户登录限制管控
 	 * 
 	 * 可以配置多个: 用户/部门/权限组 + 设备类型 + ip白名单; 组合的限制策略;
 	 * 根据规则列表顺序依次进行过滤; 所有都能通过才算放过;
@@ -112,7 +112,7 @@ class filterUserCheck extends Controller {
 		if(!$checkList) return true;
 		if($ip == 'unknown' || $ip == $serverIP || $ip == '127.0.0.1') return true;
 
-		$error = UserModel::ERROR_IP_NOT_ALLOW;// 您当前ip不在允许登陆的ip白名单里,请联系管理员!;
+		$error = UserModel::ERROR_IP_NOT_ALLOW;// 您当前ip不在允许登录的ip白名单里,请联系管理员!;
 		$rootIpAdd = "
 		10.0.0.0-10.255.255.255
 		192.168.0.0-192.168.255.255";
@@ -121,14 +121,14 @@ class filterUserCheck extends Controller {
 			$allowIp = true;
 			$allowDevice = $this->checkDevice($device,$item['device']);
 			if($item['loginIpCheck'] == '1'){
-				// 系统管理员允许内网登陆
+				// 系统管理员允许内网登录
 				$role = Model('SystemRole')->listData($user['roleID']);
 				if($role['administrator'] == '1'){
 					$item['loginIpAllow'] .= $rootIpAdd;
 				}
 				$allowIp = $this->checkIP($ip,$item['loginIpAllow']);
 			}else if($item['loginIpCheck'] == '2'){
-				// 限制ip黑名单, 当前ip符合时, 设备符合指定设备则不允许登陆;
+				// 限制ip黑名单, 当前ip符合时, 设备符合指定设备则不允许登录;
 				if( $this->checkIP($ip,$item['disableIp']) ){
 					return $allowDevice ? $error:true;
 				}
@@ -218,6 +218,7 @@ class filterUserCheck extends Controller {
 			$device['appVersion'] 	 = strtolower($platform['appVersion']);
 			$device['moreInfo'] 	 = $platform;
 		}
+		$device = Hook::filter('filter.getDevice',$device);
 		return $device;
 	}
 	

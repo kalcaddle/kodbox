@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" />
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title><?php echo $fileName;?></title>
+	<title><?php echo clear_html($fileName);?></title>
 	<?php $this->link('static/ofd/lib/jquery.min.js');?>
 	<?php $this->link('static/ofd/lib/jszip.min.js');?>
 	<?php $this->link('static/ofd/lib/jszip-utils.min.js');?>
@@ -22,7 +22,7 @@
 	<div id="root"></div>
 	<script>
 		var ofdReaderParams = {
-			file: "<?php echo $fileUrl;?>",
+			file: "<?php echo clear_quote($fileUrl);?>",
 			canDownload:"<?php echo intval($canDownload);?>"
 		};
 	</script>

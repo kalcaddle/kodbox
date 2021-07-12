@@ -14,7 +14,7 @@ class webodfPlugin extends PluginBase{
 	}
 	public function index(){
 		$fileUrl  = $this->filePathLink($this->in['path']);
-		$fileName = $this->in['name'] . ' - '.LNG('common.copyright.name').LNG('common.copyright.powerBy');
+		$fileName = $this->in['name'].' - '.LNG('common.copyright.name').LNG('common.copyright.powerBy');
 		include($this->pluginPath.'/php/template.php');
 	}
 }

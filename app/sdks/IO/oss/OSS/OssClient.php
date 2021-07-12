@@ -2168,10 +2168,11 @@ class OssClient
      * Gets the part size according to the preferred part size.
      * If the specified part size is too small or too big, it will return a min part or max part size instead.
      * Otherwise returns the specified part size.
+     * @param int $fileSize
      * @param int $partSize
      * @return int
      */
-    private function computePartSize($partSize)
+    private function computePartSize($fileSize, $partSize)
     {
         $partSize = (integer)$partSize;
         if ($partSize <= self::OSS_MIN_PART_SIZE) {
@@ -2179,6 +2180,11 @@ class OssClient
         } elseif ($partSize > self::OSS_MAX_PART_SIZE) {
             $partSize = self::OSS_MAX_PART_SIZE;
         }
+        // 文件大小>分片*1000时，动态计算分片大小（取整）
+        if ($fileSize / $partSize > self::OSS_MAX_OBJECT_GROUP_VALUE) {
+			$partSize = ($fileSize - $fileSize % (self::OSS_MAX_OBJECT_GROUP_VALUE - 1)) / (self::OSS_MAX_OBJECT_GROUP_VALUE - 1);
+			$partSize = ceil($partSize/1024/1024)*1024*1024;	// 取整
+		}
         return $partSize;
     }
 
@@ -2195,7 +2201,7 @@ class OssClient
         $i = 0;
         $size_count = $file_size;
         $values = array();
-        $partSize = $this->computePartSize($partSize);
+        $partSize = $this->computePartSize($file_size, $partSize);
         while ($size_count > 0) {
             $size_count -= $partSize;
             $values[] = array(
@@ -2472,7 +2478,7 @@ class OssClient
         }
         // Computes the part size and assign it to options.
         if (isset($options[self::OSS_PART_SIZE])) {
-            $options[self::OSS_PART_SIZE] = $this->computePartSize($options[self::OSS_PART_SIZE]);
+            $options[self::OSS_PART_SIZE] = $this->computePartSize($upload_file_size, $options[self::OSS_PART_SIZE]);
         } else {
             $options[self::OSS_PART_SIZE] = self::OSS_MID_PART_SIZE;
         }

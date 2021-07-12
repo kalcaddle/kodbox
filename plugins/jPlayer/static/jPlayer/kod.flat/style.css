@@ -285,8 +285,7 @@
 	cursor:pointer;
 	background:#3d3d3d;
 	background-color: rgba(150,150,150,0.5);
-	border-radius:6px;
-	-webkit-border-radius:6px;
+	border-radius:6px;-webkit-border-radius:6px;
 	vertical-align:middle;
 }
 .jPlayer-movie .controls .volumeblock .volume-control .volume-value {
@@ -294,9 +293,9 @@
 	width:20%;
 	height:100%;
 	background:#0082B2;
-	border-radius:6px;
+	border-radius:6px;-webkit-border-radius:6px;
 	position: relative;
-	-webkit-border-radius:6px;
+	transition: 0.3s all;	
 }
 .jPlayer-movie .controls .controlset {
 	display:block;

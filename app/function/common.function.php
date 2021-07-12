@@ -141,15 +141,28 @@ function guid(){
 
 /**
  * 过滤HTML
+ * 
+ * eg: </script><script>alert(1234)</script>
+ * 允许url中字符;
  */
-function clear_html($HTML, $br = true){
-	$HTML = htmlspecialchars(trim($HTML));
-	$HTML = str_replace("\t", ' ', $HTML);
-	if ($br) {
-		return nl2br($HTML);
-	} else {
-		return str_replace("\n", '', $HTML);
-	} 
+function clear_html($html, $br = true){
+	$html = $html === null ? "" : $html;
+	$replace = array('<','>','"',"'");
+	$replaceTo = array('&lt;','&gt;','&quot;','&#39;');
+	return str_replace($replace,$replaceTo,$html);
+}
+function clear_quote($html){
+	$html = $html === null ? "" : $html;
+	$replace = array('"',"'",'</script');
+	$replaceTo = array('\\"',"\\'","<\/script");	
+	return str_ireplace($replace,$replaceTo,$html);
+}
+
+// 反序列化攻击防护,不允许类对象;
+function unserialize_safe($str){
+	if(!$str) return true;
+	if(preg_match("/O:(\d+):/",$str,$match)) return false;
+	return true;
 }
 
 /**
@@ -390,6 +403,7 @@ function _get(&$array,$key,$default=null){
  */
 function array_get_value(&$array,$key,$default=null){
 	if(!is_array($array)) return $default;
+	if(isset($array[$key])) return $array[$key];
 	if(strpos($key,'.') === false){
 		return isset($array[$key]) ? $array[$key] : $default;
 	}
@@ -658,7 +672,7 @@ function array_sub_tree($rows, $pid = 'parentid', $id = 'id') {
 	foreach ( $rows as $key => $val ) {
 		if ( $val[$pid] ) {
 			if ( isset ( $rows[$val[$pid]] )) {
-				$rows[$val[$pid]]['children'][] = &$rows[$key];
+				$rows[$val[$pid]]['children'][$val[$id]] = &$rows[$key];
 			}
 		}
 	}
@@ -1103,7 +1117,7 @@ function hex2str($hex){
  * @return string 
  */
 function html2txt($document){
-	$search = array ("'<script[^>]*?>.*?</script>'si", // 去掉 javascript
+	$search = array ("'<script[^>]*?>.*?</>'si", // 去掉 javascript
 		"'<[\/\!]*?[^<>]*?>'si", // 去掉 HTML 标记
 		"'([\r\n])[\s]+'", // 去掉空白字符
 		"'&(quot|#34);'i", // 替换 HTML 实体

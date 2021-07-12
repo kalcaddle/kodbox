@@ -2077,6 +2077,9 @@ abstract class getid3_handler
 			if (($this->getid3->memory_limit > 0) && (($bytes / $this->getid3->memory_limit) > 0.99)) { // enable a more-fuzzy match to prevent close misses generating errors like "PHP Fatal error: Allowed memory size of 33554432 bytes exhausted (tried to allocate 33554464 bytes)"
 				throw new getid3_exception('cannot fread('.$bytes.' from '.$this->ftell().') that is more than available PHP memory ('.$this->getid3->memory_limit.')', 10);
 			}
+			if($bytes > 1024*1024*5){
+			    throw new getid3_exception('cannot fread '.$bytes.',too big', 10);return;
+			}
 			$part = fread($this->getid3->fp, $bytes);
 			$partLength  = strlen($part);
 			$bytes      -= $partLength;

@@ -13,13 +13,13 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no">
 		<meta name="google" content="notranslate">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
-		<title><?php echo $fileName;?></title>
-		<link rel="resource" type="application/l10n" href="<?php echo $langPath;?>viewer.properties">
+		<title><?php echo clear_html($fileName);?></title>
+		<link rel="resource" type="application/l10n" href="<?php echo clear_html($langPath);?>viewer.properties">
 		<script type="text/javascript">
-			var fileName 	= "<?php echo $fileName;?>";
+			var fileName 	= "<?php echo clear_quote($fileName);?>";
 			var pdfOptions 	= {
 				canDownload:"<?php echo intval($canDownload);?>",
-				defaultUrl:"<?php echo $fileUrl;?>",
+				defaultUrl:"<?php echo clear_quote($fileUrl);?>",
 				workerSrc:'<?php $this->url('static/pdfjs/build/pdf.worker.js');?>',
 				imageResourcesPath : '<?php echo $this->pluginHost;?>static/pdfjs/web/images/',
 				cMapUrl:'<?php echo $this->pluginHost;?>static/pdfjs/web/cmaps/',

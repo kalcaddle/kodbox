@@ -1,8 +1,8 @@
 kodReady.push(function(){
 	Events.bind('explorer.kodApp.before',function(appList){
 		appList.push({
-			name:"picasa",
-			title:"{{LNG['admin.plugin.defaultPicasa']}}",
+			name:'{{package.id}}',
+			title:'{{package.name}}',
 			ext:"{{config.fileExt}}",
 			sort:"{{config.fileSort}}",
 			icon:"x-item-icon x-png",

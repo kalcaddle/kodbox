@@ -67,15 +67,14 @@ class userBind extends Controller {
 		if ($sign !== $_sign) show_json(LNG('user.signError'), false);
 
 		// 解析data参数
-		$data = unserialize(base64_decode($input['data']));
+		$inputData = @base64_decode($input['data']);
+		if(!unserialize_safe($inputData)) show_json("Data error!", false);
+		$data = @unserialize($inputData);
 		// 服务端secret为空,直接返回
 		if (!$data && is_string($input['data'])) {
 			Model('SystemOption')->set('systemSecret', '');
-			// $secret = $this->apiSecret();	// TODO 获取不到原始请求数据，无法再次发动请求
 			return $this->bindHtml($type, $data, false, array('bind', 'sign_error'));
 		}
-
-		// 返回提示信息
 		return $this->bindDisplay($type, $data);
 	}
 
@@ -124,7 +123,7 @@ class userBind extends Controller {
 			'openid' 	=> array('check' => 'require'),
 			'unionid' 	=> array('check' => 'require'),
 			'nickName' 	=> array('check' => 'require'),
-			'sex' 		=> array('check' => 'require', 'default' => 0),
+			'sex' 		=> array('check' => 'require', 'default' => 1),
 			'avatar' 	=> array('check' => 'require', 'default' => ''),
 		));
 		$this->in['client'] = 0;
@@ -176,7 +175,7 @@ class userBind extends Controller {
 			'type'		=> $data['type'],
 			'nickName'	=> $data['name'],
 			'avatar'	=> $data['avatar'],
-			'sex'		=> isset($data['sex']) ? $data['sex'] : 0,
+			'sex'		=> isset($data['sex']) ? $data['sex'] : 1,
 			'openid'	=> $data['openid'],
 			'unionid'	=> $data['unionid'],
 		);

@@ -1,8 +1,8 @@
 kodReady.push(function(){
 	Events.bind('explorer.kodApp.before',function(appList){
 		appList.push({
-			name:"yzOffice",
-			title:"{{LNG['yzOffice.meta.name']}}",
+			name:'{{package.id}}',
+			title:'{{package.name}}',
 			ext:"{{config.fileExt}}",
 			sort:"{{config.fileSort}}",
 			icon:'{{pluginHost}}static/images/icon.png',

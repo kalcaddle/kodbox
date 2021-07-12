@@ -37,7 +37,6 @@ class S3 {
 	private static $__signingKeyResource = false;
 	public static $progressFunction = null;
 	public static $signVer = 'v4';
-	public static $chunkSize = 10485760; // 分片大小，默认10Mb
 
 	/**
 	 * Constructor - if you're not using the class statically.
@@ -89,14 +88,6 @@ class S3 {
 		}
 
 		return empty($region) ? 'us-east-1' : $region;
-	}
-
-	/**
-	 * set multiUpload/Copy chunk size
-	 * @return void
-	 */
-	public function setChunkSize($chunkSize){
-		self::$chunkSize = !$chunkSize ? self::MIN_PART_SIZE : $chunkSize;
 	}
 
 	/**
@@ -685,7 +676,7 @@ class S3 {
 		$fileSize = $info['size'];
 
 		$uploadPosition = 0;
-		$pieces = self::__generateParts($fileSize, self::$chunkSize);
+		$pieces = self::__generateParts($fileSize, self::MIN_PART_SIZE);
 		$partList = array();
 		foreach ($pieces as $i => $piece) {
 			$fromPos = $uploadPosition + (int) $piece[self::AMZ_SEEK_TO];
@@ -728,7 +719,7 @@ class S3 {
 		if (!$uploadId) return false;
 		$fileSize = filesize($file);
 
-		$pieces = self::__generateParts($fileSize, self::$chunkSize);
+		$pieces = self::__generateParts($fileSize, self::MIN_PART_SIZE);
 
 		$partList = array();
 		foreach ($pieces as $i => $piece) {
@@ -886,6 +877,7 @@ class S3 {
 		$values = array();
 		if ($file_size / $partSize > self::MAX_PART_NUM) {
 			$partSize = ($size_count - $size_count % (self::MAX_PART_NUM - 1)) / (self::MAX_PART_NUM - 1);
+			$partSize = ceil($partSize/1024/1024)*1024*1024;	// 取整
 		} else {
 			$partSize = self::__computePartSize($partSize);
 		}

@@ -22,7 +22,7 @@ class filterIndex extends Controller{
 		Action("filter.userCheck")->bind();
 		Action("filter.attachment")->bind();
 		Action("filter.html")->bind();
-		
+		Action("filter.template")->bind();
 	}
 
 	public function trigger(){

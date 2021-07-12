@@ -524,6 +524,7 @@ function copy_dir($source, $dest){
 }
 
 function move_file($source,$dest,$repeat_add,$repeat_type){
+	if($source == $dest) return true;
 	if ($dest[strlen($dest)-1] == '/') {
 		$dest = $dest . "/" . basename($source);
 	}
@@ -853,7 +854,7 @@ function is_text_file($ext){
 		'vtt','filters','cer','reg','config','pem','srt','ass','lrc','opf','ncx',
 		'classpath','mymetadata','jsdtscope','project','tern-project','tld','iml','sln',
 		'gitattributes','mf','name','container','lock','applescript','mvnw','apple-app-site-association',
-		'magnet','sample','example','http','puml','plantuml','plist',
+		'magnet','sample','example','http','puml','plantuml','plist','dockerignore','mod','sum','owners',
 	);
 	return in_array($ext,$extArray);
 }

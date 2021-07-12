@@ -163,7 +163,7 @@ class explorerList extends Controller{
 	private function pageParse(&$data){
 		if(isset($data['pageInfo'])) return;
 		$in = $this->in;
-		$pageNumMax = 1000;
+		$pageNumMax = 5000;
 		$pageNum = isset($in['pageNum'])?$in['pageNum']: $pageNumMax;
 		if($pageNum === -1){ // 不限分页情况; webdav列表处理;
 			unset($in['pageNum']);
@@ -317,7 +317,16 @@ class explorerList extends Controller{
 		if($infoFull){
 			$pathInfo = Action('explorer.listDriver')->parsePathIO($pathInfo,$current);
 			$pathInfo = Action('explorer.listDriver')->parsePathChildren($pathInfo,$current);
-		}
+			if($pathInfo['type'] == 'file'){
+				$pathInfo = $this->pathParseOexe($pathInfo);
+				$pathInfo = $this->pathInfoMore($pathInfo);
+			}
+		}else{
+			if($pathInfo['type'] == 'folder'){
+				$pathInfo['hasFolder'] = true;
+				$pathInfo['hasFile']   = true;
+			}
+		}		
 		$pathInfo['pathDisplay'] = _get($pathInfo,'pathDisplay',$pathInfo['path']);
 
 		// 下载权限处理;
@@ -336,11 +345,6 @@ class explorerList extends Controller{
 			if($lockUser && $lockUser != USER_ID){
 				$pathInfo['isWriteable'] = false;
 			}
-		}
-	
-		if($pathInfo['type'] == 'file' && $infoFull){
-			$pathInfo = $this->pathParseOexe($pathInfo);
-			$pathInfo = $this->pathInfoMore($pathInfo);
 		}
 		if($pathInfo['type'] == 'file' && !$pathInfo['ext']){
 			$pathInfo['ext'] = strtolower($pathInfo['name']);

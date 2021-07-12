@@ -30,7 +30,12 @@ function checkExt($file){
 	}
 	return 1;
 }
-
+function linkHref($src,$dev=false){
+	if($dev){echo STATIC_PATH.$src.'?v='.time(); return;}
+	$static  = STATIC_PATH;
+	$version = GLOBAL_DEBUG ? time() : KOD_VERSION.'.'.KOD_VERSION_BUILD;//debug;
+	echo $static . $src . '?v='.$version;
+}
 function urlApi($api='',$param=''){
 	$host = appHostGet(); $and = '';
 	if($param === null ) return $host.$api;
@@ -423,6 +428,40 @@ function getDatabaseType(){
 	$dbType = $dbType == 'mysqli'?  'mysql':$dbType;
 	$dbType = $dbType == 'sqlite3'? 'sqlite':$dbType;
 	return $dbType;
+}
+
+//兼容未安装Ctype扩展服务器;
+if(!function_exists('ctype_digit')){
+	// https://github.com/ntulip/piwik/blob/master/libs/upgradephp/upgrade.php
+	function ctypeCheck($text,$type){
+		$ctypePreg = array(
+			'ctype_alnum' 	=> "/^[A-Za-z0-9\300-\377]+$/",	// 是否全部为字母和(或)数字字符
+			'ctype_alpha' 	=> "/^[a-zA-Z\300-\377]+$/",	// 是否全为小写或全为大写;
+			'ctype_digit' 	=> "/^[\d]+$/",					// 检测字符串中的字符是否都是数字，负数和小数会检测不通过,
+			'ctype_xdigit' 	=> "/^[a-fA-F0-9]+$/",			// 是否为16进制字符传
+			'ctype_cntrl'	=> "/^[\x00-\x1f\x7f]+$/",		// 是否全为控制字符
+			'ctype_space' 	=> "/^[\s]+$/",					// 是否全为不可见字符
+			'ctype_upper' 	=> "/^[A-Z\300-\337]+$/",		// 是否全为小写字母
+			'ctype_lower' 	=> "/^[a-z\340-\377]+$/",		// 是否全为小写字母
+			
+			'ctype_graph'	=> "/^[\041-\176\241-\377]+$/",	// 
+			'ctype_punct'	=> "/^[^0-9A-Za-z\000-\040\177-\240\300-\377]+$/",
+		);
+		if(!is_string($text) || $text == '') return false;
+		return preg_match($ctypePreg[$type],$text,$match);
+	}
+	function ctype_alnum($text){return ctypeCheck($text,'ctype_alnum');}
+	function ctype_alpha($text){return ctypeCheck($text,'ctype_alpha');}
+	function ctype_digit($text){return ctypeCheck($text,'ctype_digit');}
+	function ctype_xdigit($text){return ctypeCheck($text,'ctype_xdigit');}
+	function ctype_cntrl($text){return ctypeCheck($text,'ctype_cntrl');}
+	function ctype_space($text){return ctypeCheck($text,'ctype_space');}
+	function ctype_upper($text){return ctypeCheck($text,'ctype_upper');}
+	function ctype_lower($text){return ctypeCheck($text,'ctype_lower');}
+
+	function ctype_graph($text){return ctypeCheck($text,'ctype_graph');}
+	function ctype_punct($text){return ctypeCheck($text,'ctype_punct');}
+	function ctype_print($text){return ctype_punct($text) && ctype_graph($text);}
 }
 
 // 拆分sql语句

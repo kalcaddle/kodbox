@@ -51,7 +51,7 @@ class explorerUpload extends Controller{
 		$repeat = isset($this->in['repeatType']) ? $this->in['repeatType'] : $repeat;
 		
 		// 文件保存; 必须已经先存在;
-		if($this->in['uploadType'] == 'fileSave'){
+		if($this->in['fileSave'] == '1'){
 			$repeat = REPEAT_REPLACE;
 			$info   = IO::info($this->in['path']);
 			if(!$info){
@@ -81,9 +81,9 @@ class explorerUpload extends Controller{
 		}
 	}
 	private function uploadInfo($path){
-		if($this->in['uploadType'] != 'fileInfo') return $path;
+		if($this->in['fileInfo'] != '1') return $path;
 		$info = IO::info($path);
-		$info = array_field_key($info,array("ext",'name','createTime','size'));
+		$info = array_field_key($info,array("ext",'name','createTime','size','path','pathDisplay'));
 		$info['downloadPath'] = Action('explorer.share')->link($path);
 		return $info;
 	}

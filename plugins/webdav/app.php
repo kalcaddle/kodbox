@@ -2,7 +2,7 @@
 
 /**
  * webdav服务端;
- * 独立模块,不需要登陆,权限内部自行处理;
+ * 独立模块,不需要登录,权限内部自行处理;
  */
 class webdavPlugin extends PluginBase{
 	protected $dav;

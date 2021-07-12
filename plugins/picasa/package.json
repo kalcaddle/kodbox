@@ -1,7 +1,7 @@
 {
 	"id":"picasa",
-	"name":"Picasa",
-	"title":"图片管理工具",
+	"name":"{{LNG['picasa.meta.name']}}",
+	"title":"{{LNG['picasa.meta.title']}}",
 	"version":"1.26",
 	"source":{
 		"className":"x-item-icon x-jpg",

@@ -40,11 +40,11 @@ class Html{
 	}
 	
 	// 正则替换掉onload,等属性;  style无法保留
-	public static function removeXXS($val){
+	public static function removeXXS($val){return $val;
 		// remove all non-printable characters. CR(0a) and LF(0b) and TAB(9) are allowed  
 		// this prevents some character re-spacing such as <java\0script>  
 		// note that you have to handle splits with \n, \r, and \t later since they *are* allowed in some inputs  
-		$val = preg_replace('/([\x00-\x08,\x0b-\x0c,\x0e-\x19])/', '', $val);
+		$val = preg_replace('/([\x00-\x08\x0b-\x0c\x0e-\x19])/', '', $val);// 去除逗号;
 
 		// straight replacements, the user should never need these since they're normal characters  
 		// this prevents like <IMG SRC=@avascript:alert('XSS')>  

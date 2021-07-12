@@ -87,14 +87,6 @@ class userIndex extends Controller {
 		$upload['chunkSize'] = $upload['chunkSize']*1024*1024;
 		$upload['chunkSize'] = $upload['chunkSize'] <= 1024*1024*0.1 ? 1024*1024*0.4:$upload['chunkSize'];
 		$upload['chunkSize'] = intval($upload['chunkSize']);
-		// 对象存储分片大小
-		$upload['osChunkSize'] = isset($upload['osChunkSize']) ? $upload['osChunkSize'] : 10;
-		if(isset($sysOption['osChunkSize'])) {
-			$upload['osChunkSize'] = floatval($sysOption['osChunkSize']);
-		}
-		$upload['osChunkSize'] = $upload['osChunkSize']*1024*1024;
-		$upload['osChunkSize'] = $upload['osChunkSize'] <= 1024*1024*0.1 ? 1024*1024*0.4 : $upload['osChunkSize'];
-		$upload['osChunkSize'] = intval($upload['osChunkSize']);
 	}
 
 	/**
@@ -165,13 +157,13 @@ class userIndex extends Controller {
 		show_json($this->accessToken(),true);
 	}
 	
-	// 登陆校验并自动跳转 (已登录则直接跳转,未登录则登陆成功后跳转)
+	// 登录校验并自动跳转 (已登录则直接跳转,未登录则登录成功后跳转)
 	public function autoLogin(){
 		$link = $this->in['link'];
 		if(!$link) return;
 
 		$errorTips = _get($this->in,'msg','');
-		$errorTips = $errorTips == '[API LOGIN]' ? '':$errorTips; // 未登录标记,不算做登陆错误;
+		$errorTips = $errorTips == '[API LOGIN]' ? '':$errorTips; // 未登录标记,不算做登录错误;
 		if(Session::get('kodUser') && !$errorTips){
 			$param = 'kodTokenApi='.$this->accessToken();
 			if($this->in['callbackToken'] == '1'){
@@ -248,7 +240,7 @@ class userIndex extends Controller {
 			show_json(LNG('user.userEnabled'), ERROR_CODE_USER_INVALID);
 		}
 		$this->loginSuccessUpdate($user);
-		//自动登陆跳转; http://xxx.com/?user/index/loginSubmit&name=guest&password=guest&auto=1
+		//自动登录跳转; http://xxx.com/?user/index/loginSubmit&name=guest&password=guest&auto=1
 		if($this->in['auto'] == '1'){
 			header("Location: ".APP_HOST);exit;
 		}

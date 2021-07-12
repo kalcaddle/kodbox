@@ -8,12 +8,6 @@
 class yzOfficePlugin extends PluginBase{
 	function __construct(){
 		parent::__construct();
-
-		//IE8自动切换为普通模式
-		if( strpos($_SERVER["HTTP_USER_AGENT"],"MSIE 8.0") ){
-			$this->getConfig();
-			$this->pluginConfig['preview'] = '0';
-		}
 	}
 	public function regist(){
 		$this->hookRegist(array(
@@ -78,6 +72,14 @@ class yzOfficePlugin extends PluginBase{
 		include('php/assign/footer.php');
 	}
 
+	// 预览模式
+	public function initViewMode(){
+		//IE8自动切换为普通模式
+		if( strpos($_SERVER["HTTP_USER_AGENT"],"MSIE 8.0") ){
+			$this->getConfig();
+			$this->pluginConfig['preview'] = '0';
+		}
+	}
 	public function task(){
 		$app = $this->getObj();
 		$app->runTask();

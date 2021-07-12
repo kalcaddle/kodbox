@@ -21,8 +21,8 @@ class kodWebDav extends webdavServer {
     }
 
 	/**
-	 * 用户登陆校验;权限判断;
-	 * 性能优化: 通过cookie处理为已登录; (避免ad域用户或用户集成每次进行登陆验证;)
+	 * 用户登录校验;权限判断;
+	 * 性能优化: 通过cookie处理为已登录; (避免ad域用户或用户集成每次进行登录验证;)
 	 */
 	public function checkUser(){
 		$userInfo = Session::get("kodUser");
@@ -34,7 +34,7 @@ class kodWebDav extends webdavServer {
     			return HttpAuth::error();
     		}
     		ActionCall('user.index.loginSuccess',$find);
-			// 登陆日志;
+			// 登录日志;
 			if(HttpHeader::method() == 'OPTIONS'){
 				Model('User')->userEdit($find['userID'],array("lastLogin"=>time()));
 				ActionCall('admin.log.loginLog');

@@ -1,8 +1,8 @@
 {
 	"id":"DPlayer",
-	"name":"DPlayer播放器",
-	"title":"DPlayer视频播放器",
-	"version":"1.20",
+	"name":"{{LNG['DPlayer.meta.name']}}",
+	"title":"{{LNG['DPlayer.meta.title']}}",
+	"version":"1.21",
 	"source":{
 		"icon":"{{pluginHost}}static/images/icon.png",
 	},

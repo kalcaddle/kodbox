@@ -52,11 +52,10 @@ kodReady.push(function(){
 
 	Events.bind('explorer.kodApp.before',function(appList){
 		appList.push({
-			name:"jPlayer",
-			title:LNG['admin.plugin.defaultJPlayer'],
-			ext:playerSupport(),
-			//ext:"{{config.fileExt}}",
+			name:'{{package.id}}',
+			title:'{{package.name}}',
 			sort:"{{config.fileSort}}",
+			ext:playerSupport(),
 			icon:'{{pluginHost}}static/images/icon.png',
 			callback:function(path,ext,name){
 				var music = ['mp3','wav','aac','m4a','oga','ogg','webma','m3u8a','m3ua','flac'];

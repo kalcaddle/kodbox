@@ -64,9 +64,10 @@ class userAuthPlugin extends Controller{
 		if (!$user){$user = Session::get('kodUser');}
 		if (!$auth || !$user || !is_array($auth)) return false;
 		
-		// all:代表任意登陆用户; root:代表系统管理员;
+		// all:代表任意登录用户; root:代表系统管理员;
 		if ($auth['user'] == 'all')  return true;
 		if ($auth['user'] == 'admin' && $GLOBALS['isRoot'] == 1) return true;
+		if ($auth['role'] === '1' && $GLOBALS['isRoot'] == 1) return true;
 		
 		$groups  = array_to_keyvalue($user['groupInfo'],'','groupID');
 		$auth['user']  = $auth['user']  ? explode(',',$auth['user']) :  array();

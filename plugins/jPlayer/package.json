@@ -1,8 +1,8 @@
 {
 	"id":"jPlayer",
-	"name":"jPlayer播放器",
-	"title":"jPlayer视频播放器",
-	"version":"1.51",
+	"name":"{{LNG['jPlayer.meta.name']}}",
+	"title":"{{LNG['jPlayer.meta.title']}}",
+	"version":"1.52",
 	"source":{
 		"icon":"{{pluginHost}}static/images/icon.png",
 		"screenshoot":[
@@ -35,7 +35,7 @@
 			"type":"number",
 			"display":"{{LNG['admin.plugin.fileSort']}}",
 			"desc":"{{LNG['admin.plugin.fileSortDesc']}}",
-			"value":10,
+			"value":10
 		}
 	}
 }

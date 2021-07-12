@@ -1,6 +1,6 @@
 <?php
 
-// 登陆认证;
+// 登录认证;
 include('../../../app/api/KodSSO.class.php');
 KodSSO::check('adminer');
 

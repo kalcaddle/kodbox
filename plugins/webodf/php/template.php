@@ -3,7 +3,7 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/> 
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-	<title><?php echo $fileName;?></title>
+	<title><?php echo clear_html($fileName);?></title>
 </head>
 
 <?php if(get_path_ext($path) == 'odt'){ ?>
@@ -24,7 +24,7 @@
 	<div id="odf"></div>
 	<?php $this->link('static/webodf.js');?>
 	<script type="text/javascript">
-    	var fileURL = "<?php echo $fileUrl;?>";
+    	var fileURL = "<?php echo clear_quote($fileUrl);?>";
 		var odfelement = document.getElementById("odf"),
 		odfcanvas = new odf.OdfCanvas(odfelement);
 		odfcanvas.load(fileURL);

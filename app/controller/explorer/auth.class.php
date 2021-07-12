@@ -118,6 +118,11 @@ class explorerAuth extends Controller {
 	public function spaceAllow($path){
 		$parse  = KodIO::parse($path);
 		$info 	= IO::infoAuth($parse['pathBase']);//目标存储;
+		
+		// 目标在回收站中: 不支持保存/上传/远程下载/粘贴/移动到此/新建文件/新建文件夹;
+		if($info['isDelete'] == '1'){
+			show_json(LNG("explorer.pathInRecycle"),false);
+		}								
 		$space  = Action("explorer.list")->targetSpace($info);
 		if(!$space || $space['sizeMax']==0 ) return true; // 没有大小信息,或上限为0则放过;
 		return $space['sizeMax'] > $space['sizeUse'];

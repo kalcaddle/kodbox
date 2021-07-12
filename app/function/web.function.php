@@ -30,7 +30,8 @@ function get_client_ip($b_ip = true){
 		}
 	}
 	if ($pos = strpos($client_ip,',')){
-		$client_ip = substr($client_ip,$pos+1);
+		// $client_ip = substr($client_ip,$pos+1);
+		$client_ip = substr($client_ip,0,$pos);
 	}
 	return trim($client_ip);
 }
@@ -349,6 +350,11 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 	curl_setopt($ch, CURLOPT_NOPROGRESS, false);
 	curl_setopt($ch, CURLOPT_PROGRESSFUNCTION,'curl_progress');curl_progress_start($ch);
 	curl_setopt($ch, CURLOPT_USERAGENT,'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36');
+	
+	if($options && isset($options['cookie'])){
+		curl_setopt($ch, CURLOPT_COOKIE, $options['cookie']);
+		unset($options['cookie']);
+	}
 	if($headers){
 		if(is_string($headers)){
 			$headers = array($headers);
@@ -513,7 +519,7 @@ function request_url_safe($urlLink){
 		8000,8001,8002,8003,8004,8005,8006,8007,8008,8009,8010,8080,8100
 	);
 	
-	// 暂不屏蔽内网请求(会误伤,没有太好的办法; web应用做登陆鉴权是基本认知,即便是内网)  
+	// 暂不屏蔽内网请求(会误伤,没有太好的办法; web应用做登录鉴权是基本认知,即便是内网)  
 	// serverDownload, urlTitle, zip内文件预览, onlyoffice保存获取 等业务;
 	$disableHost= array( 
 		'*.xip.io',

@@ -6,8 +6,8 @@
 * @license http://kodcloud.com/tools/license/license.txt
 */
 
-// header('Access-Control-Allow-Origin:*');    		// 允许的域名来源;
-// header('Access-Control-Allow-Methods:GET'); 		// 允许请求的类型
+// header('Access-Control-Allow-Origin:*');    			// 允许的域名来源;
+// header('Access-Control-Allow-Methods:GET'); 			// 允许请求的类型
 // header('Access-Control-Allow-Credentials: true'); 	// 设置是否允许发送 cookies
 // header('Access-Control-Allow-Headers: Content-Type,Content-Length,Accept-Encoding,X-Requested-with, Origin');
 
@@ -28,10 +28,10 @@ $config['settings'] = array(
 		'sendAsBinary'		=> 0,			// 以二进制方式上传;后端服务器以php://input接收;0则为传统方式上传 $_FILE;
 		'httpSendFile'		=> false,		// 调用webserver下载 /https://www.lovelucy.info/x-sendfile-in-nginx.html
 		
-		'ignoreExt'			=> '',          // 限制的扩展名; 扩展名在该说明中则自动不上传;
+		'ignoreExt'			=> '',          // 限制的扩展名; 扩展名在该说明中则自动不上传;逗号隔开
+		'allowExt'			=> '',			// 只允许扩展名列表; 设置值时不在设置中的文件自动不上传; 逗号隔开
 		'downloadSpeed'		=> 0,			// 下载限速;MB/s*1024*1024; 0代表不限制		
 		'ignoreFileSize'	=> 0,			// 允许单个文件上传最大值,0则不限制; 单位GB(float)
-		'osChunkSize'		=> 10,			// 对象存储分片大小(七牛固定为4Mb)
 		
 		// 图片上传压缩参数compress,默认配置不压缩,上传原图;
 		// 可以配置参考: http://fex.baidu.com/webuploader/doc/index.html#WebUploader_Uploader_options
@@ -45,7 +45,7 @@ $config['settings'] = array(
 	'zipFileSizeMax'  		=> 0,			// 文件(夹)压缩大小限制;   0-不限制; 单位GB(float)
 	
 	'staticPath'		=> APP_HOST."static/",	//静态文件目录,可以配置到cdn;
-	'kodApiServer'		=> "https://api.kodcloud.com/?", //QQ微信登陆/邮件发送/插件-列表等 
+	'kodApiServer'		=> "https://api.kodcloud.com/?", //QQ微信登录/邮件发送/插件-列表等 
 );
 $config['settings']['searchContent'] 	= 1;		// 搜索:允许文件内容搜索
 $config['settings']['searchMutil'] 		= 1;		// 搜索:开启批量搜索
@@ -215,9 +215,9 @@ $config['settingSystemDefault'] = array(
 	'orderSort'         => 'desc',      // sort字段排序方式;默认从大到小
 
 	'fileEncryption'	=> 'keepName',	// all-全加密;keepExt-加密文件名保留扩展名;keepName-不加密;
-	'passwordErrorLock'	=> '1',			// 密码连续错误锁定账号; 某账号连续输入5次后锁定30s后才能登陆;
+	'passwordErrorLock'	=> '1',			// 密码连续错误锁定账号; 某账号连续输入5次后锁定30s后才能登录;
 	'passwordRule'		=> 'none',		// 限制密码强度;none-不限制;strong-中等强度;strongMore-高强度
-	'loginCheckAllow'	=> '',			// 登陆限制
+	'loginCheckAllow'	=> '',			// 登录限制
 	'csrfProtect'		=> '1',		 	// 开启csrf保护	
 	'shareLinkZip'		=> '1',			// 外链分享,开启关闭文件夹打包下载; 默认开启
 	'systemRecycleOpen' => '0',			// 系统回收站开启关闭;
@@ -511,8 +511,8 @@ $config['authRoleAction']= array(
 		'admin.member' 	=> 'get,getByID,search',
 		'admin.group' 	=> 'get,getByID,search'
 	),
-	'admin.member.userEdit'	=> array('admin.member'=>'add,edit,remove,status,addGroup,removeGroup'),
-	'admin.member.groupEdit'=> array('admin.group'=>'add,edit,remove'),
+	'admin.member.userEdit'	=> array('admin.member'=>'add,edit,remove,status,addGroup,removeGroup,switchGroup'),
+	'admin.member.groupEdit'=> array('admin.group'=>'add,edit,status,remove'),
 	
 	'admin.auth.list'		=> array('admin.auth'=>'get'),
 	'admin.auth.edit'		=> array('admin.auth'=>'add,edit,remove,sort'),

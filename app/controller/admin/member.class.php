@@ -184,7 +184,14 @@ class adminMember extends Controller{
 			!ActionCall('filter.userCheck.password',$data['password']) ){
 			return ActionCall('filter.userCheck.passwordTips');
 		}
-		
+		// 不支持修改自己的权限角色;避免误操作;
+		if($data['userID'] == USER_ID){
+			$user = Session::get('kodUser');
+			if($user['roleID'] != $data['roleID']){
+				return show_json("not support change self role!",false);
+			}
+		}
+
 		$res = $this->model->userEdit($data['userID'],$data);
 		$groupInfo = json_decode($this->in['groupInfo'],true);
 		if($res > 0 && isset($this->in['groupInfo'])){ 
@@ -195,17 +202,21 @@ class adminMember extends Controller{
 		$msg = $res > 0 ? LNG('explorer.success') : $this->model->errorLang($res);
 		return show_json($msg,($res>0),$data['userID']);
 	}
-	
+	/**
+	 * 添加到部门
+	 */
 	public function addGroup() {
 		$data = Input::getArray(array(
 			"userID" 	=> array("check"=>"int"),
-			"groupID"	=> array("check"=>"int"),
-			"authID"	=> array("check"=>"int"),
+			"groupInfo"	=> array("check"=>"json"),
 		));
-		$res = $this->model->userGroupAdd($data['userID'],$data['groupID'],$data['authID']);
+		$res = $this->model->userGroupAdd($data['userID'],$data['groupInfo']);
 		$msg = $res ? LNG('explorer.success') : LNG('explorer.error');
 		show_json($msg,!!$res);
 	}
+	/**
+	 * 从部门删除
+	 */
 	public function removeGroup() {
 		$data = Input::getArray(array(
 			"userID" 	=> array("check"=>"int"),
@@ -215,7 +226,36 @@ class adminMember extends Controller{
 		$msg = $res ? LNG('explorer.success') : LNG('explorer.error');
 		show_json($msg,!!$res);
 	}
-
+	/**
+	 * 部门迁移 
+	 */
+	public function switchGroup(){
+		$data = Input::getArray(array(
+			"userID" 	=> array("check"=>"int"),
+			"from"		=> array("check"=>"int"),
+			"to"		=> array("check"=>"int"),
+		));
+		$userInfo = $this->model->getInfo($data['userID']);
+		if(!$userInfo) show_json(LNG('ERROR_USER_NOT_EXISTS'), false);
+		$authID = 2;
+		// 删除来源部门，新增到新部门
+		$groupInfo = !empty($userInfo['groupInfo']) ? $userInfo['groupInfo'] : array();
+		foreach($groupInfo as $item) {
+			if($item['groupID'] != $data['from']) continue;
+			if(isset($item['auth']['id'])) {
+				$authID = $item['auth']['id'];
+			}
+			$this->model->userGroupRemove($data['userID'],$item['groupID']);
+			break;
+		}
+		$groupInfo = array($data['to'] => $authID);
+		$res = $this->model->userGroupAdd($data['userID'],$groupInfo);
+		$msg = $res ? LNG('explorer.success') : LNG('explorer.error');
+		show_json($msg,!!$res);
+	}
+	/**
+	 * 更新用户状态
+	 */
 	public function status(){
 		$data = Input::getArray(array(
 			"userID" 	=> array("check"=>"int"),
@@ -300,7 +340,7 @@ class adminMember extends Controller{
         // 2.获取列表数据
         unset($dataList[0]);
         $list = array();
-        $keys = array('name','nickName','sex','phone','email','password');
+        $keys = array('name','nickName','password','sex','phone','email');
 		$sex  = array('女' => 0, '男' => 1);
 		$total= $valid = 0;
         foreach($dataList as $value) {
@@ -309,7 +349,8 @@ class adminMember extends Controller{
             foreach($keys as $i => $key) {
 				if($key == 'name' && empty($value[$i])) break;
 				if($key == 'password' && empty($value[$i])) break;
-                $val = iconv('gbk', 'utf-8', $value[$i]);
+                // $val = iconv('gbk', 'utf-8', $value[$i]);
+				$val = $value[$i];
                 switch($key) {
                     case 'sex':
                         $val = isset($sex[$val]) ? $sex[$val] : 1;

@@ -22,7 +22,7 @@ class adminGroup extends Controller{
 		if(isset($_REQUEST['rootParam']) ){
 			$groupCurrent = $this->model->getInfo($data['parentID']);
 			$items = array("list"=>array($groupCurrent));
-			if($data['rootParam'] == 'appendRootGroup'){
+			if(strstr($data['rootParam'],'appendRootGroup')){
 				$items['list'][] = array(
 					"groupID" 		=> "1",
 					"parentID" 		=> "0",
@@ -32,7 +32,7 @@ class adminGroup extends Controller{
 					"nodeAddClass" 	=> 'node-append-group',
 				);
 			}
-			if($data['rootParam'] == 'appendShareHistory'){
+			if(strstr($data['rootParam'],'appendShareHistory')){
 				$shareHistory = array(
 					"groupID" 		=> "-",
 					"parentID" 		=> "0",
@@ -45,7 +45,8 @@ class adminGroup extends Controller{
 				);
 				$children = $shareHistory['children'];
 				if(is_array($children) && count($children) > 0){
-				    $items['list'] = array($shareHistory,$items['list'][0]);
+				    // $items['list'] = array($shareHistory,$items['list'][0]);
+					$items['list'] = array_merge(array($shareHistory),$items['list']);
 				}
 			}
 		}else{
@@ -85,6 +86,7 @@ class adminGroup extends Controller{
 			"name" 		=> array("check"=>"require","default"=>""),
 			"sizeMax" 	=> array("check"=>"float","default"=>1024*1024*100),
 			"parentID"	=> array("check"=>"int"),
+			"sort"		=> array("default"=>null),
 		));
 		$groupID = $this->model->groupAdd($data);
 		
@@ -119,6 +121,7 @@ class adminGroup extends Controller{
 			"sizeMax" 	=> array("check"=>"float","default"=>null),
 			"groupID" 	=> array("check"=>"int"),
 			"parentID"	=> array("default"=>null),
+			"sort"		=> array("default"=>null),
 		));
 		// if($data['groupID'] != '1' && !$data['parentID']){
 		// 	show_json(LNG('admin.group.parentNullError'), false);
@@ -126,6 +129,20 @@ class adminGroup extends Controller{
 		$res = $this->model->groupEdit($data['groupID'],$data);
 		$msg = $res ? LNG('explorer.success') : LNG('explorer.error');
 		return show_json($msg,!!$res,$data['groupID']);
+	}
+
+	/**
+	 * 禁/启用
+	 * @return void
+	 */
+	public function status(){
+		$data = Input::getArray(array(
+			"groupID" 	=> array("check"=>"int"),
+			"status"	=> array("check"=>"in", "param" => array(0, 1)),
+		));
+		$res = $this->model->groupStatus($data['groupID'], $data['status']);
+		$msg = $res ? LNG('explorer.success') : LNG('explorer.error');
+		show_json($msg,!!$res);
 	}
 
 	/**

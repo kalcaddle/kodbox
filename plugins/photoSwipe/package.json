@@ -1,8 +1,8 @@
 {
 	"id":"photoSwipe",
-	"name":"PhotoSwipe",
-	"title":"图片浏览器",
-	"version":"1.44",
+	"name":"{{LNG['photoSwipe.meta.name']}}",
+	"title":"{{LNG['photoSwipe.meta.title']}}",
+	"version":"1.45",
 	"source":{
 		"className":"x-item-icon x-png",
 		"screenshoot":[
@@ -11,7 +11,7 @@
 		]
 	},
 	"category":"media,file",
-	"description":"PhotoSwipe Image",
+	"description":"PhotoSwipe 图片浏览",
 	"keywords":"",
 	"auther":{
 		"copyright":"kodcloud.",

@@ -6,18 +6,18 @@
  * include('./config/config.php');
  * $user = Action('user.sso')->check('adminer');
  * 
- * 2. 通用CAS模式单点登陆; (可跨站点跨服务器,不同服务之间调用); 可用其他语言实现类似逻辑;
+ * 2. 通用CAS模式单点登录; (可跨站点跨服务器,不同服务之间调用); 可用其他语言实现类似逻辑;
  * include('./app/api/KodSSO.class.php');
  * $user = KodSSO::check('user:admin'); // 不同站需要传入kod站点的名称;
  * 
  * 权限检测支持: 
  * 	1. 指定插件名, 权限同该插件配置用户权限
- * 	2. 指定用户: 空字符串或user:all 所有登陆用户; user:admin系统管理员
+ * 	2. 指定用户: 空字符串或user:all 所有登录用户; user:admin系统管理员
  * 	3. 指定权限详情: {"user":"1,3","group":"1","role":"1,2"}; 同插件权限设置指定:用户,部门,角色
  * 
  * 流程:
  * 1. 有cookie kodTokenApi; 请求kod的认证接口; 返回[ok] 则继续;
- * 2. 没有cookie kodTokenApi则跳转到kod登陆界面; kod登陆成功则带上kodToken跳转到该应用url; 再次验证kodToken成功则完成;
+ * 2. 没有cookie kodTokenApi则跳转到kod登录界面; kod登录成功则带上kodToken跳转到该应用url; 再次验证kodToken成功则完成;
  */ 
 class KodSSO{
 	public static function check($appName="",$host=""){
@@ -29,7 +29,7 @@ class KodSSO{
 		$token 		= isset($_GET[$key]) ? $_GET[$key] : $token;
 		$userInfo 	= self::checkToken($appName,$host,$token);
 		if( $token && $userInfo){
-			if(isset($_GET[$key])){ // 首次登陆成功跳转回来;
+			if(isset($_GET[$key])){ // 首次登录成功跳转回来;
 				setcookie($keyCookie,$token, time()+3600*5,self::thisPathUrl(),false,false,true);
 				// 跳转到之前url; 去除url带入的token;
 				$linkBefore = self::urlRemoveKey(self::thisUrl(),$key);

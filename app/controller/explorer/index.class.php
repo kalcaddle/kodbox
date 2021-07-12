@@ -191,6 +191,11 @@ class explorerIndex extends Controller{
 	
 	public function mkfile(){
 		$this->pathAllowCheck($this->in['path'],true);
+		$info = IO::info($this->in['path']);
+		if($info && $info['type'] == 'file'){ //父目录为文件;
+			show_json(LNG('explorer.success'),true,IO::pathFather($info['path']));
+		}
+		
 		$tplPath = BASIC_PATH.'static/others/newfile-tpl/';
 		$ext     = get_path_ext($this->in['path']);
 		$tplFile = $tplPath.'newfile.'.$ext;
@@ -210,6 +215,11 @@ class explorerIndex extends Controller{
 	public function mkdir(){
 		$this->pathAllowCheck($this->in['path']);
 		$repeat = !empty($this->in['fileRepeat']) ? $this->in['fileRepeat']:REPEAT_SKIP;
+		$info = IO::info($this->in['path']);
+		if($info && $info['type'] == 'file'){ //父目录为文件;
+			show_json(LNG('explorer.success'),true,IO::pathFather($info['path']));
+		}
+				
 		$result = IO::mkdir($this->in['path'],$repeat);
 		$msg = !!$result ? LNG('explorer.success') : LNG('explorer.error');
 		show_json($msg,!!$result,$result);

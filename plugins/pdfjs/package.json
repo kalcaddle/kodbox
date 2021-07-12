@@ -2,7 +2,7 @@
 	"id":"pdfjs",
 	"name":"PDFjs",
 	"title":"PDF文件阅读器",
-	"version":"1.36",
+	"version":"1.38",
 	"source":{
 		"icon":"{{pluginHost}}static/app/images/icon.png",
 		"screenshoot":[
@@ -29,7 +29,7 @@
 			"type":"tags",
 			"display":"{{LNG['admin.plugin.fileExt']}}",
 			"desc":"{{LNG['admin.plugin.fileExtDesc']}}",
-			"value":"pdf,djvu,ofd",
+			"value":"pdf,djvu,ofd,ai",
 		},
 		"fileSort":{
 			"type":"number",

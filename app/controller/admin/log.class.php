@@ -53,7 +53,7 @@ class adminLog extends Controller{
 			),
 			'admin' => array(
 				'admin.group.add,admin.group.edit,admin.group.remove' => LNG('log.group.edit'),
-				'admin.member.add,admin.member.edit,admin.member.remove,admin.member.addGroup,admin.member.removeGroup,admin.member.status' => LNG('log.member.edit'),
+				'admin.member.add,admin.member.edit,admin.member.remove,admin.member.addGroup,admin.member.removeGroup,admin.member.switchGroup,admin.member.status' => LNG('log.member.edit'),
 				'admin.role.add,admin.role.edit,admin.role.remove' => LNG('log.role.edit'),
 				'admin.auth.add,admin.auth.edit,admin.auth.remove' => LNG('log.auth.edit'),
 			),

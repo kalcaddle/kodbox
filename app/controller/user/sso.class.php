@@ -22,7 +22,7 @@ class userSso extends Controller{
 		$result = $this->checkAuth($appName);
 		$theUrl = $this->urlRemoveKey(this_url(),'kodTokenApi');
 		if($result === true){
-			if(isset($this->in['kodTokenApi'])){// 登陆成功处理;	
+			if(isset($this->in['kodTokenApi'])){// 登录成功处理;	
 				header('Location:'.$theUrl);exit;
 			}
 			return $this->userInfo();

@@ -25,8 +25,6 @@ class yzoffice{
 			'convert'	=> "http://dcs.yozosoft.com/convert",
 		);
 
-		// $config = $plugin->getConfig();
-		// $mode = $config['preview'];
 		$this->cachePath = $this->plugin->cachePath;
 		$this->cacheTask = md5($this->cachePath . $this->filePath);
 
@@ -118,6 +116,7 @@ class yzoffice{
 	}
 
 	private function convertMode(){
+		$this->plugin->initViewMode();
 		$config = $this->plugin->getConfig();
 		$ext = get_path_ext($this->plugin->fileInfo['name']);
 		$mode = $config['preview'];
