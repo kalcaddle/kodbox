@@ -11,6 +11,7 @@ class installIndex extends Controller {
     public $installLock; 
     public $installFastLock; 
     public $dbType;
+    public $engine;
 	public function __construct() {
         parent::__construct();
         $this->userSetting      = BASIC_PATH  . 'config/setting_user.php';
@@ -355,7 +356,13 @@ class installIndex extends Controller {
 		if (!@file_exists($dbFile)) {
 			show_json(LNG('admin.install.dbFileError'), false);
 		}
-		$sqlArr = sqlSplit(file_get_contents($dbFile));
+		$content = file_get_contents($dbFile);
+		if($this->dbType == 'mysql') {
+		    if(!empty($this->engine) && $this->engine == 'innodb') {
+		        $content = str_ireplace('MyISAM', 'InnoDB', $content);
+		    }
+		}
+		$sqlArr = sqlSplit($content);
 		foreach($sqlArr as $sql){
 			$db->execute($sql);
 		}
@@ -379,6 +386,7 @@ class installIndex extends Controller {
             ));
             $this->execPort($data);
             $dbType = in_array('mysqli', $dbList) ? 'mysqli' : 'mysql';
+            $this->engine = Input::get('dbEngine', null, 'myisam');
         }else if($dbType == 'pdo'){
             $this->dbType = $pdoType = Input::get('pdoType', 'in', null, array('sqlite', 'mysql'));
             if($pdoType == 'mysql'){
@@ -392,6 +400,7 @@ class installIndex extends Controller {
                 ));
                 $this->execPort($data);
                 $data['db_dsn'] = "mysql:host={$data['db_host']}";
+                $this->engine = Input::get('pdoDbEngine', null, 'myisam');
             }else{
                 $data['db_dsn'] = "sqlite:" . $this->sqliteDbFile();
             }

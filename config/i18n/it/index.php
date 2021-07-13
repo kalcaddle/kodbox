@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "Nome del database",
     "admin.install.userName"         => "nome utente",
     "admin.install.dbPort"           => "Numero di porta",
+    "admin.install.dbEngine"         => "Motore di archiviazione",
     "admin.install.sqliteDesc"       => "PHP ha un database leggero verde incorporato (adatto per test o uso su piccola scala).",
     "admin.install.mysqlDesc"        => "Supporta la distribuzione di cluster, la separazione di database master e slave.",
     "admin.install.pdoDesc"          => "Un driver generale di database più sicuro richiede che PHP abbia installato l&#39;estensione PDO.",

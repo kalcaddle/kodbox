@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "اسم قاعدة البيانات",
     "admin.install.userName"         => "اسم المستخدم",
     "admin.install.dbPort"           => "رقم المنفذ",
+    "admin.install.dbEngine"         => "محرك التخزين",
     "admin.install.sqliteDesc"       => "PHP لديه قاعدة بيانات خضراء مدمجة في الوزن (مناسبة للاختبار أو الاستخدام على نطاق صغير).",
     "admin.install.mysqlDesc"        => "يدعم نشر الكتلة ، وفصل قواعد البيانات الرئيسية والرقيق.",
     "admin.install.pdoDesc"          => "يتطلب برنامج التشغيل العام الأكثر أمانًا لقاعدة البيانات PHP تثبيت ملحق PDO.",

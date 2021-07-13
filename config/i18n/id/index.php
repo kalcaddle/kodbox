@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "Nama basis data",
     "admin.install.userName"         => "Nama pengguna",
     "admin.install.dbPort"           => "Nomor port",
+    "admin.install.dbEngine"         => "Mesin penyimpanan",
     "admin.install.sqliteDesc"       => "basis data ringan hijau php bawaan (cocok untuk pengujian atau penggunaan skala kecil)",
     "admin.install.mysqlDesc"        => "Mendukung penyebaran cluster, pemisahan database master dan slave.",
     "admin.install.pdoDesc"          => "Pengandar umum basis data yang lebih aman membutuhkan PHP untuk memasang ekstensi PDO.",

@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "डेटाबेस का नाम",
     "admin.install.userName"         => "प्रयोक्ता नाम",
     "admin.install.dbPort"           => "पोर्ट नंबर",
+    "admin.install.dbEngine"         => "भंडारण इंजन",
     "admin.install.sqliteDesc"       => "PHP में एक अंतर्निहित ग्रीन लाइटवेट डेटाबेस (परीक्षण या छोटे पैमाने पर उपयोग के लिए उपयुक्त) है।",
     "admin.install.mysqlDesc"        => "क्लस्टर तैनाती, मास्टर और दास डेटाबेस के अलगाव का समर्थन करता है।",
     "admin.install.pdoDesc"          => "एक अधिक सुरक्षित डेटाबेस सामान्य चालक को पीडीओ एक्सटेंशन स्थापित करने के लिए PHP की आवश्यकता होती है।",

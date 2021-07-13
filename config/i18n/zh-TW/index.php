@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "數據庫名",
     "admin.install.userName"         => "用戶名",
     "admin.install.dbPort"           => "端口號",
+    "admin.install.dbEngine"         => "存儲引擎",
     "admin.install.sqliteDesc"       => "php內置綠色輕量數據庫(適用於測試或小規模使用).",
     "admin.install.mysqlDesc"        => "支持集群部署,主從多數據庫分離.",
     "admin.install.pdoDesc"          => "更安全的數據庫通用驅動,需要php已安裝PDO擴展.",

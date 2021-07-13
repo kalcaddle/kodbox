@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "Nazwa bazy danych",
     "admin.install.userName"         => "Nazwa użytkownika",
     "admin.install.dbPort"           => "Numer portu",
+    "admin.install.dbEngine"         => "Silnik pamięci masowej",
     "admin.install.sqliteDesc"       => "PHP ma wbudowaną zieloną lekką bazę danych (odpowiednią do testowania lub użycia na małą skalę).",
     "admin.install.mysqlDesc"        => "Obsługuje wdrażanie klastra, separację baz danych master i slave.",
     "admin.install.pdoDesc"          => "Bardziej bezpieczny ogólny sterownik bazy danych wymaga PHP, aby mieć zainstalowane rozszerzenie PDO.",

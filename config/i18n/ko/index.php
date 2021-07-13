@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "데이터베이스 이름",
     "admin.install.userName"         => "아이디",
     "admin.install.dbPort"           => "포트 번호",
+    "admin.install.dbEngine"         => "스토리지 엔진",
     "admin.install.sqliteDesc"       => "PHP에는 녹색 경량 데이터베이스가 내장되어 있습니다 (테스트 또는 소규모 사용에 적합).",
     "admin.install.mysqlDesc"        => "클러스터 배포, 마스터 및 슬레이브 데이터베이스 분리를 지원합니다.",
     "admin.install.pdoDesc"          => "보다 안전한 데이터베이스 일반 드라이버를 사용하려면 PHP에 PDO 확장이 설치되어 있어야합니다.",

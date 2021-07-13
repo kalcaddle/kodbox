@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "Veritabanı adı",
     "admin.install.userName"         => "Kullanıcı adı",
     "admin.install.dbPort"           => "Port numarası",
+    "admin.install.dbEngine"         => "Depolama motoru",
     "admin.install.sqliteDesc"       => "PHP yerleşik yeşil bir hafif veritabanına sahiptir (test veya küçük ölçekli kullanım için uygundur).",
     "admin.install.mysqlDesc"        => "Küme dağıtımını, ana ve ikincil veritabanlarının ayrılmasını destekler.",
     "admin.install.pdoDesc"          => "Daha güvenli bir veritabanı genel sürücüsü, PHP&#39;nin PDO uzantısının kurulu olmasını gerektirir.",

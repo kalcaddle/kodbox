@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "Имя базы данных",
     "admin.install.userName"         => "имя пользователя",
     "admin.install.dbPort"           => "Номер порта",
+    "admin.install.dbEngine"         => "Механизм хранения",
     "admin.install.sqliteDesc"       => "В PHP есть встроенная зеленая облегченная база данных (подходит для тестирования или небольшого использования).",
     "admin.install.mysqlDesc"        => "Поддерживает развертывание кластера, разделение баз данных master и slave.",
     "admin.install.pdoDesc"          => "Более безопасный драйвер базы данных требует, чтобы PHP установил расширение PDO.",

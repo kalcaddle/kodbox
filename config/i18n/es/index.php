@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "Nombre de la base de datos",
     "admin.install.userName"         => "Nombre de usuario",
     "admin.install.dbPort"           => "Número de puerto",
+    "admin.install.dbEngine"         => "Motor de almacenamiento",
     "admin.install.sqliteDesc"       => "PHP tiene una base de datos verde liviana incorporada (adecuada para pruebas o uso a pequeña escala).",
     "admin.install.mysqlDesc"        => "Admite la implementación de clústeres, la separación de bases de datos maestras y esclavas.",
     "admin.install.pdoDesc"          => "Un controlador general de base de datos más seguro requiere que PHP tenga instalada la extensión PDO.",

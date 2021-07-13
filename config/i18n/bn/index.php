@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "ডাটাবেস নাম",
     "admin.install.userName"         => "ব্যবহারকারীর নাম",
     "admin.install.dbPort"           => "বন্দর নম্বর",
+    "admin.install.dbEngine"         => "স্টোরেজ ইঞ্জিন",
     "admin.install.sqliteDesc"       => "পিএইচপি-র একটি বিল্ট-ইন গ্রিন লাইটওয়েট ডাটাবেস রয়েছে (টেস্টিং বা ছোট-স্কেল ব্যবহারের জন্য উপযুক্ত)।",
     "admin.install.mysqlDesc"        => "ক্লাস্টার মোতায়েন, মাস্টার এবং স্লেভ ডাটাবেসগুলির পৃথককরণ সমর্থন করে।",
     "admin.install.pdoDesc"          => "আরও সুরক্ষিত ডাটাবেস জেনারেল ড্রাইভারের পিডিওপিডি পিডিও এক্সটেনশন ইনস্টল করা দরকার have",

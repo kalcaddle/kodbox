@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "数据库名",
     "admin.install.userName"         => "用户名",
     "admin.install.dbPort"           => "端口号",
+    "admin.install.dbEngine"         => "存储引擎",
     "admin.install.sqliteDesc"       => "php内置绿色轻量数据库(适用于测试或小规模使用).",
     "admin.install.mysqlDesc"        => "支持集群部署,主从多数据库分离.",
     "admin.install.pdoDesc"          => "更安全的数据库通用驱动,需要php已安装PDO扩展.",

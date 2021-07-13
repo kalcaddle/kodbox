@@ -10,7 +10,7 @@
 		},
 		"switchItem": {
 			"sqlite": "dbDescSqlite",
-			"mysql": "dbDescMysql,dbHost,dbUser,dbPwd,dbName",
+			"mysql": "dbDescMysql,dbHost,dbUser,dbPwd,dbName,dbEngine",
 			"pdo": "dbDescPDO,pdoType"
 		}
 	},
@@ -38,7 +38,7 @@
 		},
 		"switchItem": {
 			"sqlite": "",
-			"mysql": "pdoDbHost,pdoDbUser,pdoDbPwd,pdoDbName"
+			"mysql": "pdoDbHost,pdoDbUser,pdoDbPwd,pdoDbName,pdoDbEngine"
 		}
 	},
 
@@ -75,6 +75,13 @@
 		"desc": "",
 		"require": "1"
 	},
+	
+	"dbEngine": {
+		"type":"select",
+		"value":"myisam",
+		"display":LNG['admin.install.dbEngine'],
+		"info":{"myisam":"MyISAM","innodb":"InnoDB"},
+	},
 
 	"pdoDbHost": {
 		"type": "input",
@@ -107,6 +114,13 @@
 		"value": "kodbox",
 		"display": LNG['admin.install.dbName'],
 		"require": "1"
+	},
+	
+	"pdoDbEngine": {
+		"type":"select",
+		"value":"myisam",
+		"display":LNG['admin.install.dbEngine'],
+		"info":{"myisam":"MyISAM","innodb":"InnoDB"},
 	},
 	
 	"step0": "<hr/>",

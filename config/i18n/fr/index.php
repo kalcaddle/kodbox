@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "Nom de la base de données",
     "admin.install.userName"         => "Nom d&#39;utilisateur",
     "admin.install.dbPort"           => "Numéro de port",
+    "admin.install.dbEngine"         => "Moteur de stockage",
     "admin.install.sqliteDesc"       => "PHP possède une base de données intégrée légère et verte (adaptée aux tests ou à une utilisation à petite échelle).",
     "admin.install.mysqlDesc"        => "Prend en charge le déploiement de clusters, la séparation des bases de données maîtres et esclaves.",
     "admin.install.pdoDesc"          => "Un pilote général de base de données plus sécurisé nécessite que PHP ait l’extension PDO installée.",

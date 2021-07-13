@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "ชื่อฐานข้อมูล",
     "admin.install.userName"         => "ชื่อผู้ใช้",
     "admin.install.dbPort"           => "หมายเลขพอร์ต",
+    "admin.install.dbEngine"         => "เครื่องยนต์จัดเก็บ",
     "admin.install.sqliteDesc"       => "PHP มีฐานข้อมูลสีเขียวน้ำหนักเบาในตัว (เหมาะสำหรับการทดสอบหรือการใช้งานขนาดเล็ก)",
     "admin.install.mysqlDesc"        => "รองรับการปรับใช้คลัสเตอร์การแยกฐานข้อมูลต้นแบบและทาส",
     "admin.install.pdoDesc"          => "ไดรเวอร์ทั่วไปของฐานข้อมูลที่ปลอดภัยยิ่งขึ้นนั้นต้องการ PHP เพื่อติดตั้ง PDO extension",

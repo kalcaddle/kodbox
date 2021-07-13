@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "Назва бази даних",
     "admin.install.userName"         => "Ім&#39;я користувача",
     "admin.install.dbPort"           => "Номер порту",
+    "admin.install.dbEngine"         => "Двигун зберігання",
     "admin.install.sqliteDesc"       => "PHP має вбудовану зелену легку базу даних (підходить для тестування або невеликого використання).",
     "admin.install.mysqlDesc"        => "Підтримує розгортання кластерів, розділення базових та ведених баз даних.",
     "admin.install.pdoDesc"          => "Більш безпечний загальний драйвер бази даних вимагає, щоб PHP встановив розширення PDO.",

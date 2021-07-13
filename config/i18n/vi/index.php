@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "Tên cơ sở dữ liệu",
     "admin.install.userName"         => "Tên đăng nhập",
     "admin.install.dbPort"           => "Số cổng",
+    "admin.install.dbEngine"         => "Công cụ lưu trữ",
     "admin.install.sqliteDesc"       => "Cơ sở dữ liệu nhẹ màu xanh lá cây tích hợp php (thích hợp để thử nghiệm hoặc sử dụng quy mô nhỏ)",
     "admin.install.mysqlDesc"        => "Hỗ trợ triển khai cụm, tách cơ sở dữ liệu chủ và nô lệ.",
     "admin.install.pdoDesc"          => "Trình điều khiển chung cơ sở dữ liệu an toàn hơn yêu cầu PHP phải cài đặt tiện ích mở rộng PDO.",

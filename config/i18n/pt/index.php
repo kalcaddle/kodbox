@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "Nome do banco de dados",
     "admin.install.userName"         => "Nome de usuário",
     "admin.install.dbPort"           => "Número da porta",
+    "admin.install.dbEngine"         => "Mecanismo de armazenamento",
     "admin.install.sqliteDesc"       => "O PHP possui um banco de dados leve verde embutido (adequado para teste ou uso em pequena escala).",
     "admin.install.mysqlDesc"        => "Oferece suporte à implantação de cluster, separação de bancos de dados mestre e escravo.",
     "admin.install.pdoDesc"          => "Um driver geral de banco de dados mais seguro requer que o PHP tenha a extensão PDO instalada.",

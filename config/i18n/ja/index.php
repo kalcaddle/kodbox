@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "データベース名",
     "admin.install.userName"         => "ユーザー名",
     "admin.install.dbPort"           => "ポート番号",
+    "admin.install.dbEngine"         => "ストレージエンジン",
     "admin.install.sqliteDesc"       => "PHPには、緑色の軽量データベースが組み込まれています（テストまたは小規模な使用に適しています）。",
     "admin.install.mysqlDesc"        => "クラスターの展開、マスターデータベースとスレーブデータベースの分離をサポートします。",
     "admin.install.pdoDesc"          => "より安全なデータベース汎用ドライバーを使用するには、PHPにPDO拡張機能をインストールする必要があります。",

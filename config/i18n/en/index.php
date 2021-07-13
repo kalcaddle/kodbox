@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "Database name",
     "admin.install.userName"         => "Username",
     "admin.install.dbPort"           => "Port Number",
+    "admin.install.dbEngine"         => "Storage engine",
     "admin.install.sqliteDesc"       => "PHP has a built-in green lightweight database (suitable for testing or small scale use).",
     "admin.install.mysqlDesc"        => "Supports cluster deployment, separation of master and slave databases.",
     "admin.install.pdoDesc"          => "A more secure database general driver requires PHP to have the PDO extension installed.",

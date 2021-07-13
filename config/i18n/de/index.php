@@ -679,6 +679,7 @@ return array(
     "admin.install.dbName"           => "Datenbankname",
     "admin.install.userName"         => "Benutzername",
     "admin.install.dbPort"           => "Portnummer",
+    "admin.install.dbEngine"         => "Speicher-Engine",
     "admin.install.sqliteDesc"       => "PHP verfügt über eine integrierte Green-Lightweight-Datenbank (geeignet für Tests oder kleine Anwendungen).",
     "admin.install.mysqlDesc"        => "Unterstützt die Clusterbereitstellung und die Trennung von Master- und Slave-Datenbanken.",
     "admin.install.pdoDesc"          => "Ein sichererer allgemeiner Datenbanktreiber erfordert, dass PHP die PDO-Erweiterung installiert hat.",
