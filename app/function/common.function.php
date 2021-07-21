@@ -160,9 +160,9 @@ function clear_quote($html){
 
 // 反序列化攻击防护,不允许类对象;
 function unserialize_safe($str){
-	if(!$str) return true;
+	if(!$str) return false;
 	if(preg_match("/O:(\d+):/",$str,$match)) return false;
-	return true;
+	return unserialize($str);
 }
 
 /**

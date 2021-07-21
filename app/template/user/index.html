@@ -15,8 +15,7 @@
 	<meta name="author" content="<?php echo LNG('common.copyright.name');?>" />
 	<meta name="copyright" content="<?php echo LNG('common.copyright.name');?>" />
 	<title><?php echo LNG('title').LNG('common.copyright.name')." - ".LNG('common.copyright.powerBy');?></title>
-	<link href="<?php linkHref('style/lib/main.css');?>" rel="stylesheet" />
-	<link href="<?php linkHref('style/dist/main.css');?>" rel='stylesheet' />
+	
 	<link href="<?php echo APP_HOST;?>index.php?user/view/manifest" rel="manifest" />
 	<meta itemprop="image" content="<?php linkHref('images/icon/icon_512.png');?>" />
 	<link head-type='kod' href="<?php linkHref('images/icon/icon_512.png');?>" rel="apple-touch-icon"/>
@@ -28,7 +27,6 @@
 	<meta name="apple-mobile-web-app-capable" content="yes" />
 	<meta name="apple-mobile-web-app-status-bar-style" content="default" />
 	<meta name="apple-mobile-web-app-title" content="<?php echo LNG('common.copyright.metaName');?>" />
-	
 	<meta name="browsermode" content="application" />
 	<meta name="full-screen" content="yes" />
 	<meta name="x5-page-mode" content="app" />
@@ -36,7 +34,6 @@
 	<?php Hook::trigger('templateCommonHeader');?>
 	<style>.bg-black{background:#333;}</style>
 </head>
-
 
 <body>
 	<?php Hook::trigger('templateCommonContent');?>
@@ -52,7 +49,6 @@
         if(navigator.serviceWorker){
 			navigator.serviceWorker.register('<?php echo APP_HOST;?>?user/view/manifestJS');
 		}
-		
 		var isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
 		var theTheme = "<?php echo Model('userOption')->get('theme');?>";
 		var darkMode = theTheme == 'dark-mode' ? true: (theTheme == 'auto' && isDark); 
@@ -61,6 +57,8 @@
 			body.setAttribute("class","bg-black");
 		}
 	</script>
+	<link href="<?php linkHref('style/lib/main.css');?>" rel="stylesheet" />
+	<link href="<?php linkHref('style/dist/main.css');?>" rel='stylesheet' />
 	<script src="<?php linkHref('app/vender/es3-profill.js');?>"></script>
 	<script src="<?php linkHref('app/dist/vendor.js');?>"></script>
 	<script src="<?php linkHref('app/dist/main.js');?>"></script>

@@ -55,6 +55,9 @@ $config['settings']['systemBackup'] 	= 1; 		// 系统备份;
 $config["ADMIN_ALLOW_IO"] 				= 1;		// 其他部门or用户目录操作开关，仅限管理员
 $config["ADMIN_ALLOW_SOURCE"] 			= 1;		// 物理路径操作开关，仅限管理员
 $config['APP_HOST_LINK'] 				= APP_HOST;	// 分享链接站点url; 可在setting_user中覆盖;
+$config['PLUGIN_HOST'] 					= APP_HOST.str_replace(BASIC_PATH,'',PLUGIN_DIR);//插件url目录;
+$config['PLUGIN_HOST_CDN_APP'] 			= '';//支持配置到cdn的插件; 插件名,逗号隔开;
+$config['PLUGIN_HOST_CDN'] 				= $config['PLUGIN_HOST'];//在上面的配置插件中才使用此作为插件静态资源url;
 
 // 存储类型名对应列表
 $config['settings']['ioClassList'] = array(
@@ -179,8 +182,8 @@ $config['settings']['appType'] = array(
 	array('type' => 'others','name' => 'common.others','class' => 'ri-more-fill'),
 );
 $config['defaultPlugins'] = array(
-	'adminer','DPlayer','imageExif','jPlayer','officeLive','photoSwipe','picasa','pdfjs',
-	'simpleClock','toolsCommon','VLCPlayer','webodf','yzOffice','webdav',
+	'adminer','DPlayer','imageExif','jPlayer','officeReader','photoSwipe','picasa','pdfjs',
+	'simpleClock','toolsCommon','VLCPlayer','webodf','webdav',
 );
 
 //初始化系统配置

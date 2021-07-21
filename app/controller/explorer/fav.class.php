@@ -47,6 +47,7 @@ class explorerFav extends Controller{
 				$item['path']   = KodIO::make($item['path']);
 			}else{
 				$info = Action('explorer.list')->pathCurrent($item['path'],false);
+				if($item['type'] == 'file'){$info['type'] = 'file';}
 				unset($info['name']);
 				$item = array_merge($item,$info);
 				if($item['type'] == 'file'){

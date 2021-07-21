@@ -182,6 +182,26 @@ class explorerAuth extends Controller {
 		$this->isShowError = true;
 		return $result;
 	}
+	
+	// 权限角色判断;
+	private function canCheckRole($action){
+		$userRoleMap = array(
+			// 'show'		=> true, //不判断查看;
+			'view'		=> 'explorer.view',
+			'download'	=> 'explorer.download',
+			'upload'	=> 'explorer.upload',
+			'edit' 		=> 'explorer.edit',
+			'remove'	=> 'explorer.remove',
+			'share'		=> 'explorer.share',
+			'comment'	=> 'explorer.edit',
+			'event'		=> 'explorer.edit',
+			'root'		=> 'explorer.edit',
+		);
+		if(isset($userRoleMap[$action])){
+			return Action("user.authRole")->authCan($userRoleMap[$action]);
+		}
+		return true;
+	}
 
 	/**
 	 * 检测文档权限，是否支持$action动作
@@ -198,12 +218,16 @@ class explorerAuth extends Controller {
 	 * 操作屏蔽：remove不支持根目录：用户根目录，部门根目录，分享根目录；
 	 */
 	public function can($path,$action){
+		$isRoot = _get($GLOBALS,'isRoot');
+		if(!$isRoot && !$this->canCheckRole($action)){
+			return $this->errorMsg(LNG('explorer.noPermissionAction'),1021);
+		}
 		$parse  = KodIO::parse($path);
 		$ioType = $parse['type'];
 		// 物理路径 io路径拦截；只有管理员且开启了访问才能做相关操作;
 		if( $ioType == KodIO::KOD_IO || $ioType == false ){
 			if( request_url_safe($path) ) return $action == 'view';
-			if(_get($GLOBALS,'isRoot') && $this->config["ADMIN_ALLOW_IO"]) return true;
+			if($isRoot && $this->config["ADMIN_ALLOW_IO"]) return true;
 			return $this->errorMsg(LNG('explorer.pathNotSupport'),1001);
 		}
 		
@@ -241,7 +265,7 @@ class explorerAuth extends Controller {
 		Hook::trigger("explorer.auth.can",$pathInfo,$action);
 		// source 类型; 新建文件夹 {source:10}/新建文件夹; 去除
 		//文档类型检测：屏蔽用户和部门之外的类型；
-		if(_get($GLOBALS,'isRoot') && $this->config["ADMIN_ALLOW_SOURCE"]) return true;
+		if($isRoot && $this->config["ADMIN_ALLOW_SOURCE"]) return true;
 		$targetType = $pathInfo['targetType'];
 		// if(!$pathInfo) return true; 
 		if(!$pathInfo){//不存在,不判断文档权限;

@@ -33,8 +33,9 @@ class explorerListGroup extends Controller{
 	
 	// 根据多个部门信息,构造部门item;
 	private function groupArray($groupArray){
-		$groupArray 	= array_to_keyvalue($groupArray,'groupID');//自己所在的组
-		$group 		= array_remove_value(array_keys($groupArray),1);
+		$groupArray	= array_to_keyvalue($groupArray,'groupID');//自己所在的组
+		$this->_filterDisGroup($groupArray);	// 过滤已禁用部门
+		$group = array_remove_value(array_keys($groupArray),1);
 		if(!$group) return array();
 
 		$groupSource = $this->model->sourceRootGroup($group);
@@ -68,6 +69,19 @@ class explorerListGroup extends Controller{
 		}
 		// pr($result,$groupInfo,$groupSource);exit;
 		return $result;
+	}
+	// 过滤已禁用部门
+	private function _filterDisGroup(&$list){
+		if(empty($list)) return array();
+		$where = array(
+			'groupID'	=> array('in', array_keys($list)),
+			'key'		=> 'status', 
+			'value'		=> 0
+		);
+		$data = Model('group_meta')->where($where)->field('groupID')->select();
+		foreach($data as $value) {
+			unset($list[$value['groupID']]);
+		}
 	}
 	
 	/**

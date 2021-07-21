@@ -154,6 +154,7 @@ define(function(require, exports) {
 	}
 
 	var playReady = function(appStatic,vedioInfo){
+		var tips = Tips.loadingMask();
 		requireAsync([
 			appStatic+'DPlayer/lib/flv.min.js',
 			appStatic+'DPlayer/lib/hls.min.js',
@@ -162,6 +163,7 @@ define(function(require, exports) {
 			appStatic+'DPlayer/DPlayer.min.css',
 			appStatic+'DPlayer/DPlayer.min.js',
 		],function(){
+			tips.close();
 			playVedioStart(vedioInfo);
 		});
 	}

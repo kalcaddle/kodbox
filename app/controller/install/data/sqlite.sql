@@ -167,6 +167,7 @@ CREATE TABLE "io_source" (
 );
 -- index io_source:
 CREATE INDEX 'idx_io_source_primary_key' ON 'io_source' ("sourceID");
+CREATE UNIQUE INDEX 'idx_io_source_targetType_targetID_sourceID' ON 'io_source' ("targetType","targetID","sourceID");
 CREATE INDEX 'idx_io_source_targetType' ON 'io_source' ("targetType");
 CREATE INDEX 'idx_io_source_targetID' ON 'io_source' ("targetID");
 CREATE INDEX 'idx_io_source_createUser' ON 'io_source' ("createUser");

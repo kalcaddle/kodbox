@@ -94,7 +94,6 @@ if (strtoupper(substr(PHP_OS, 0,3)) === 'WIN') {
 if(!defined('HOST')){		define('HOST',rtrim(get_host(),'/').'/');}
 if(!defined('WEB_ROOT')){	define('WEB_ROOT',webroot_path(BASIC_PATH) );}
 if(!defined('APP_HOST')){	define('APP_HOST',HOST.str_replace(WEB_ROOT,'',BASIC_PATH));} //程序根目录
-define('PLUGIN_HOST',APP_HOST.str_replace(BASIC_PATH,'',PLUGIN_DIR));//插件目录
 
 include(BASIC_PATH.'config/setting.php');
 init_common();

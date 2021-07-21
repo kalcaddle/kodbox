@@ -67,10 +67,7 @@ class userBind extends Controller {
 		if ($sign !== $_sign) show_json(LNG('user.signError'), false);
 
 		// 解析data参数
-		$inputData = @base64_decode($input['data']);
-		if(!unserialize_safe($inputData)) show_json("Data error!", false);
-		$data = @unserialize($inputData);
-		// 服务端secret为空,直接返回
+		$data = unserialize_safe(@base64_decode($input['data']));
 		if (!$data && is_string($input['data'])) {
 			Model('SystemOption')->set('systemSecret', '');
 			return $this->bindHtml($type, $data, false, array('bind', 'sign_error'));

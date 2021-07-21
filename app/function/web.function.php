@@ -71,6 +71,7 @@ function get_url_scheme($url){
 }
 function is_domain($host){
 	if(!$host) return false;
+	if($host == 'localhost') return false;
 	return !filter_var($host, FILTER_VALIDATE_IP);
 }
 

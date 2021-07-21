@@ -44,7 +44,6 @@ class explorerUpload extends Controller{
 			$fullPath = get_path_father($fullPath);
 			$savePath = IO::mkdir(rtrim($savePath,'/').'/'.$fullPath);
 		}
-		
 		$uploader->fileName = $this->pathAllowReplace($uploader->fileName);
 		$savePath = rtrim($savePath,'/').'/'.$uploader->fileName;
 		$repeat = Model('UserOption')->get('fileRepeat');

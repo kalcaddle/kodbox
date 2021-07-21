@@ -45,9 +45,9 @@ class explorerSeo extends Controller{
 			return show_tips("Not allow robots!");
 		}
 		switch(ST){
-			case 'index': $this->shareList();break;
-			case 'share': $this->shareView(ACT);break;
-			case 'file' : $this->shareFileOut();break;
+			case 'index': $this->shareList();exit;break;
+			case 'share': $this->shareView(ACT);exit;break;
+			case 'file' : $this->shareFileOut();exit;break;
 			default: break;
 		}
 	}

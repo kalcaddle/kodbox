@@ -154,6 +154,7 @@ CREATE TABLE `io_source` (
   `modifyTime` int(11) unsigned NOT NULL COMMENT '最后修改时间',
   `viewTime` int(11) unsigned NOT NULL COMMENT '最后访问时间',
   PRIMARY KEY (`sourceID`),
+  UNIQUE KEY `targetType_targetID_sourceID` (`targetType`,`targetID`,`sourceID`),
   KEY `targetType` (`targetType`),
   KEY `targetID` (`targetID`),
   KEY `createUser` (`createUser`),

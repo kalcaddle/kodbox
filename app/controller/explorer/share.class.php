@@ -25,7 +25,7 @@ class explorerShare extends Controller{
 
 	// 自动解析分享id; 通过path或多选时dataArr;
 	private function parseShareID(){
-		// if(!defined('USER_ID')){define('USER_ID','');}		
+		if(!defined('USER_ID')){define('USER_ID',0);}
 		$shareID = $this->in['shareID'];
 		if($shareID) return $shareID;
 		$thePath = $this->in['path'];
