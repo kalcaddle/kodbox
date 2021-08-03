@@ -181,9 +181,9 @@ $config['settings']['appType'] = array(
 	array('type' => 'life','name' => 'explorer.app.groupLife','class' => 'ri-map-pin-fill-2'),
 	array('type' => 'others','name' => 'common.others','class' => 'ri-more-fill'),
 );
-$config['defaultPlugins'] = array(
-	'adminer','DPlayer','imageExif','jPlayer','officeReader','photoSwipe','picasa','pdfjs',
-	'simpleClock','toolsCommon','VLCPlayer','webodf','webdav',
+$config['defaultPlugins'] = array(//'officeReader',
+	'adminer','DPlayer','imageExif','jPlayer','photoSwipe','picasa','pdfjs',
+	'simpleClock','toolsCommon','webodf','webdav',
 );
 
 //初始化系统配置
