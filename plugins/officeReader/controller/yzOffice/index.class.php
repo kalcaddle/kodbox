@@ -9,6 +9,10 @@ class officeReaderYzOfficeIndex extends Controller {
     }
 
     public function index(){
+        // 改地址需和yzOffice.class.php保持一致
+        if(!check_url('https://www.yozodcs.com/')) {
+            show_tips(LNG('officeReader.main.notNetwork'), '', '', LNG('officeReader.yzOffice.name'));
+        }
         $app = $this->getObj();
 		if(!$app->task['success'] ){
             if($link = $this->fileLink()) {
@@ -39,7 +43,9 @@ class officeReaderYzOfficeIndex extends Controller {
      * @return void
      */
     private function fileLink($link = false, $del = false){
-        $file = $this->_dir . 'data/viewurls.txt';
+        $path = $this->_dir . 'data/';
+		if(!is_dir($path)) mk_dir($path);
+        $file = $path . 'viewurls.txt';
         if(@!file_exists($file) && !$link) return false;
         $data = file_get_contents($file);
         $data = json_decode($data, true);

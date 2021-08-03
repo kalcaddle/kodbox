@@ -188,7 +188,7 @@ class adminServer extends Controller {
 		return $data;
 	}
 	private function phpExtNeed($exts){
-		$init = 'cURL,date,Exif,Fileinfo,Ftp,GD,gettext,intl,Iconv,imagick,json,ldap,Mbstring,Mcrypt,Memcache,Memcached,MySQLi,SQLite3,OpenSSL,PDO,pdo_mysql,pdo_sqlite,Redis,session,Sockets,Swoole,dom,xml,SimpleXML,libxml,bz2,zip,zlib';
+		$init = 'cURL,date,Exif,Fileinfo,Ftp,GD,gettext,intl,Iconv,imagick,json,ldap,Mbstring,Mcrypt,Memcached,MySQLi,SQLite3,OpenSSL,PDO,pdo_mysql,pdo_sqlite,Redis,session,Sockets,Swoole,dom,xml,SimpleXML,libxml,bz2,zip,zlib';
 		$init = explode(',', $init);
 		$data = array();
 		foreach($init as $ext) {

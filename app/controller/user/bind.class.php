@@ -225,9 +225,10 @@ class userBind extends Controller {
 		$data['nickName'] = $this->nickNameAuto($data['nickName']);
 		// 1.写入用户主信息
 		$param = array(
-			'name'		 => $typeList[$type] . substr(guid(), 0, 10),
-			'nickName'	 => $data['nickName'],
-			'password'	 => 'K0d' . rand_string(5)
+			'name'		=> $typeList[$type] . substr(guid(), 0, 10),
+			'nickName'	=> $data['nickName'],
+			'password'	=> 'K0d' . rand_string(5),
+			'sex'		=> isset($data['sex']) ? $data['sex'] : 1
 		);
 		$res = Action("user.regist")->addUser($param);
 		if (!$res['code']) return $res;

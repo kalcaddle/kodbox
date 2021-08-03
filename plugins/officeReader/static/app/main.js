@@ -12,6 +12,7 @@ kodReady.push(function(){
 		});
 		_.delay(function(){
 			kodApp.remove('officeLive');
+			kodApp.remove('googleDocs');
 			kodApp.remove('yzOffice');
 		},100);
 	});

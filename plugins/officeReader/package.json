@@ -2,7 +2,7 @@
 	"id":"officeReader",
 	"name":"{{LNG['officeReader.meta.name']}}",
 	"title":"{{LNG['officeReader.meta.title']}}",
-	"version":"1.02",
+	"version":"1.04",
 	"category":"file",
 	"source":{
 		"icon":"{{pluginHost}}static/images/icon.png"
@@ -21,7 +21,7 @@
 			"className":"form-box-title-left",
 			"tabs":{
 				"{{LNG['admin.setting.base']}}":"pluginAuth,sep001,openWith,fileSort,fileExt",
-				"{{LNG['officeReader.meta.service']}}":"openType,openTypeDesc,sep002,jsOpen,jsFileExt,olApiServer,olFileExt,yzFileExt"
+				"{{LNG['officeReader.meta.service']}}":"openType,openTypeDesc,sep002,jsOpen,jsFileExt,olApiServer,olFileExt,ggDesc,ggApiServer,ggFileExt,yzFileExt"
 			}
 		},
 		"pluginAuth":{
@@ -45,7 +45,7 @@
 			"type":"number",
 			"display":"{{LNG['admin.plugin.fileSort']}}",
 			"desc":"{{LNG['admin.plugin.fileSortDesc']}}",
-			"value":50
+			"value":999
 		},
 		"fileExt":{
 			"type":"tags",
@@ -62,12 +62,14 @@
 			"info":{
 				"js":"{{LNG['officeReader.meta.auto']}}",
 				"ol":"OfficeLive",
+				"gg":"{{LNG['officeReader.googleDocs.name']}}",
 				"yz":"{{LNG['officeReader.yzOffice.name']}}"
 			},
 			"switchItem":{
 				"js":"openTypeDesc,jsOpen,jsFileExt",
 				"ol":"olApiServer,olFileExt",
-				"yz":"yzCacheFile,yzPreview,yzFileExt"
+				"gg":"ggDesc,ggApiServer,ggFileExt",
+				"yz":"yzFileExt"
 			}
 		},
 		"openTypeDesc":{
@@ -89,7 +91,7 @@
 			"type":"tags",
 			"display":"{{LNG['admin.plugin.fileExt']}}",
 			"desc":"{{LNG['admin.plugin.fileExtDesc']}}",
-			"value":"docx,xls,xlsx"
+			"value":"docx,xls,xlsx,pptx"
 		},
 
 		"olApiServer":{
@@ -104,6 +106,25 @@
 			"display":"{{LNG['admin.plugin.fileExt']}}",
 			"desc":"{{LNG['admin.plugin.fileExtDesc']}}",
 			"value":"doc,docx,docm,dot,dotx,dotm,rtf,xls,xlsx,xlt,xlsb,xlsm,csv,ppt,pptx,pps,ppsx,pptm,potm,ppam,potx,ppsm,odt,ods,odp,ott,ots,otp,wps,wpt",
+		},
+
+		"ggDesc":{
+			"type":"html",
+			"display":"{{LNG['officeReader.meta.instruction']}}",
+			"desc":"{{LNG['officeReader.googleDocs.desc']}}"
+		},
+		"ggApiServer":{
+			"type":"input",
+			"value":"https://docs.google.com/viewer?url=",
+			"display":"",
+			"className": "hidden",
+			"require":1
+		},
+		"ggFileExt":{
+			"type":"tags",
+			"display":"{{LNG['admin.plugin.fileExt']}}",
+			"desc":"{{LNG['admin.plugin.fileExtDesc']}}",
+			"value":"doc,docx,rtf,xls,xlsx,wps,ppt,pptx,pps,.odt,ods,odp,ott,ots,otp,dxf,ps,eps,xps,psd,tif,tiff,bmp,svg,pages,ai,ttf"
 		},
 
 		"yzFileExt":{

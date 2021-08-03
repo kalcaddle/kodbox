@@ -54,8 +54,16 @@ function appHostGet(){
 		//避免部分apache url该情况301跳转;
 		$split    = 'index.php?';// 默认:'index.php?'; 省略入口:'?'; 伪静态:''; 指定:'i';
 		$checkUrl = $appHost.'app/function/?sitemap/urlType&v=1';
-		$data = url_request($checkUrl,0,0,0,0,0,0.5);
-		if(is_array($data) && trim($data['data']) == '[ok]'){
+		// 安装调用时，扩展可能还未安装
+		if(ini_get('allow_url_fopen')) {
+			$opts = array('http'=>array('method'=>'GET','timeout'=>0.5));
+			$context = stream_context_create($opts);
+			$data = file_get_contents($checkUrl, false, $context);
+		}else if(function_exists('curl_init')) {
+			$data = url_request($checkUrl,0,0,0,0,0,0.5);
+			$data = !empty($data['data']) ? $data['data'] : '';
+		}
+		if(trim($data) == '[ok]') {
 			$split = '?';
 		}
 		@file_put_contents($resultFile,$split);

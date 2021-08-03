@@ -45,7 +45,7 @@ class explorerShare extends Controller{
 		if(!$path || !$info = IO::info($path)) return;
 		$pass = Model('SystemOption')->get('systemPassword');
 		$hash = Mcrypt::encode($info['path'],$pass);
-		return urlApi('explorer/share/file',"hash={$hash}&name=".rawurlencode($info['name']));
+		return urlApi('explorer/share/file',"hash={$hash}&name=/".rawurlencode($info['name']));
 	}
 	public function linkFile($file){
 		$pass = Model('SystemOption')->get('systemPassword');
@@ -55,11 +55,18 @@ class explorerShare extends Controller{
 	
 	public function linkOut($path,$token=false){
 		$parse  = KodIO::parse($path);
+		$info   = IO::info($path);
+		$apiKey = 'explorer/index/fileOut';
 		if($parse['type'] == KodIO::KOD_SHARE_LINK){
-			$url = urlApi('explorer/share/fileOut',"path=".rawurlencode($path));
-		}else{
-			$url = urlApi('explorer/index/fileOut',"path=".rawurlencode($path));
+			$apiKey = 'explorer/share/fileOut';
 		}
+		$etag = substr(md5($path),0,5);
+		$name = isset($this->in['name']) ? rawurlencode($this->in['name']):'';
+		if($info){
+			$name = rawurlencode($info['name']);
+			$etag = substr(md5($info['modifyTime'].$info['size']),0,5);
+		}
+		$url = urlApi($apiKey,"path=".rawurlencode($path).'&et='.$etag.'&name=/'.$name);
 		if($token) $url .= '&accessToken='.Action('user.index')->accessToken();
 		return $url;
 	}

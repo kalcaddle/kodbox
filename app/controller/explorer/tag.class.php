@@ -175,9 +175,7 @@ class explorerTag extends Controller{
 		if(!$files){
 			show_json(LNG('explorer.error'),false);
 		}
-		foreach ($files as $file) {
-			$res = $this->modelSource->removeFromTag($file,$data['tagID']);
-		}
+		$res = $this->modelSource->removeFromTag($files,$data['tagID']);
 		$msg = $res ? LNG('explorer.success') : LNG('explorer.error');
 		show_json($msg,!!$res);
 	}
