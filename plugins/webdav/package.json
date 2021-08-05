@@ -35,7 +35,6 @@
 		"echoLog":{
 			"type":"switch",
 			"value":"0",
-			"className":"row-inline",
 			"display":"执行日志",
 			"desc":"WebDAV执行请求日志，./data/temp/log/webdav/"
 		},

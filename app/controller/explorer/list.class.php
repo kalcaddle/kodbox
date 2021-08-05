@@ -272,6 +272,11 @@ class explorerList extends Controller{
 				$current = IO::info($path);
 				$current = Model('SourceAuth')->authOwnerApply($current);
 			}
+			if($driver && !$loadInfo && $driver->getType() == 'local'){
+				$currentInfo = IO::info($path);
+				if($currentInfo){$current=$currentInfo;}
+				if(!$currentInfo){$current['exists'] = false;}
+			}
 			return $current;
 		}
 

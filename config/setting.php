@@ -267,7 +267,7 @@ $config['settingDefault'] = array(
 	"fileRepeat"		=> "replace",	// rename,replace,skip
 	"recycleOpen"		=> "1",			// 1 | 0 代表是否开启
 	'kodAppDefault'		=> '',			// 
-	"fileIconSizeDesktop"=> '80',		// 桌面图标大小
+	"fileIconSizeDesktop"=> '70',		// 桌面图标大小
 	'resizeConfig'		=> 
 		'{"filename":250,"filetype":80,"filesize":80,"filetime":215,"editorTreeWidth":200,"explorerTreeWidth":200}',
 	'imageThumb'		=> '1',

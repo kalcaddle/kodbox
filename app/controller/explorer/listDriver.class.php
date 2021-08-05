@@ -145,6 +145,8 @@ class explorerListDriver extends Controller{
 			"path"			=> $path,
 			"size"			=> $total - @disk_free_space($path),
 			"driverSpace"	=> $total,
+			"ioType" 		=> LNG("admin.storage.driver"),
+			"ioDriver"		=> "Local",			
 			"icon" 			=> 'io-driver',
 			'isParent'		=> true,
 		);

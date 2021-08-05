@@ -15,7 +15,7 @@ ClassBase.define({
 		var tpl = '{{each dataList item}}\
 		<div class="row-item mb-10">\
 			<span class="title" style="display:inline-block;width:100px;">{{item.title}}:</span>\
-			<input type="text" value="{{item.value}}" readonly="" style="width:45%;">\
+			<input type="text" value="{{item.value}}" readonly="" style="width:45%;" class="span-title-right">\
 			<span class="input-title input-title-right kui-btn" action="copy">\
 				<i class="font-icon ri-file-copy-line-2"></i>{{LNG["explorer.copy"]}}</span>\
 		</div>\
@@ -47,7 +47,7 @@ ClassBase.define({
 			"detailAddress":{
 				"type":"html",
 				"display":"<b>webdav "+LNG['common.address']+"</b>",
-				"value":"<input type='text' value='"+this.webdavPath+"' readonly style='width:70%;' />\
+				"value":"<input type='text' value='"+this.webdavPath+"' readonly style='width:70%;' class='span-title-right'/>\
 				<span class='input-title input-title-right kui-btn' action='copy'><i class='font-icon ri-file-copy-line-2'></i>"+LNG['explorer.copy']+"</span>"
 			},
 			"openMore":{
