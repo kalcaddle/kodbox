@@ -151,23 +151,44 @@ class explorerIndex extends Controller{
 		));
 
 		$result = false;
-		$info   = IO::infoSimple($data['path']);
-		if( $info && $info['sourceID'] && 
-			$info['targetType'] == SourceModel::TYPE_GROUP){//只能设置部门文档;
+		$info   = IO::info($data['path']);
+		if( $info && $info['sourceID'] && $info['targetType'] == 'group'){//只能设置部门文档;
 			if($data['action'] == 'getData'){
 				$result = Model('SourceAuth')->getAuth($info['sourceID']);
 				show_json($result);
 			}
-			
+
 			//清空所有子文件(夹)的权限；
 			if($data['action'] == 'clearChildren'){
 				$result = Model('SourceAuth')->authClear($info['sourceID']);
 			}else{
-				$result = Model('SourceAuth')->setAuth($info['sourceID'],$data['auth']);
+				$setAuth = $this->setAuthSelf($info,$data['auth']);
+				$result = Model('SourceAuth')->setAuth($info['sourceID'],$setAuth);
 			}
 		}
 		$msg = !!$result ? LNG('explorer.success') : LNG('explorer.error');
 		show_json($msg,!!$result);
+	}
+	
+	// 设置权限.默认设置自己为之前管理权限; 如果只有自己则清空;
+	private function setAuthSelf($pathInfo,$auth){
+		if(!$auth) return $auth;
+		$selfAuth = _get($pathInfo,'auth.authInfo.id','1');
+		$authList = array();
+		foreach($auth as $item){
+			if( $item['targetID'] == USER_ID && 
+				$item['targetType'] == SourceModel::TYPE_USER){
+				continue;
+			}
+			$authList[] = $item;
+		}
+		if(!$authList) return $authList;
+		$authList[] = array(
+			'targetID' 	=> USER_ID, 
+			'targetType'=> SourceModel::TYPE_USER,
+			'authID' 	=> $selfAuth
+		);
+		return $authList;
 	}
 	
 	public function pathAllowCheck($path){
