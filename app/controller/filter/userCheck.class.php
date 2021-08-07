@@ -89,7 +89,7 @@ class filterUserCheck extends Controller {
 			$allowDevice = $this->checkDevice($device,$item['device']);
 			if( $allowDevice && $this->checkIP($ip,$item['disableIp']) ){
 				$error = UserModel::errorLang(UserModel::ERROR_IP_NOT_ALLOW);
-				show_tips($error);exit;
+				show_tips($error."<br>IP: ".$ip);exit;
 			}
 		}
 		return true;
@@ -141,7 +141,7 @@ class filterUserCheck extends Controller {
 	}
 	
 	/**
-	 * ip检测支持规则
+	 * ip检测支持规则; 逗号或换行隔开多个规则;
 	 * 
 	 * 单行为ip: 相等则匹配
 	 * 单行为ip前缀: ip以前缀为开头则匹配;
@@ -150,7 +150,7 @@ class filterUserCheck extends Controller {
 	private function checkIP($ip,$check){
 		$ipLong  = ip2long($ip);
 		if(!$ip || !$ipLong) return false;
-		
+		$check   = str_replace(array(',',"\r",'|'),"\n",$check);
 		$allowIp = explode("\n",trim($check));
 		foreach ($allowIp as $line) {
 			$line = trim($line);
