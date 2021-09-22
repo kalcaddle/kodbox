@@ -92,6 +92,7 @@ class adminPlugin extends Controller{
 		$app  = $this->in['app'];
 		if($json == 'reset'){
 			//重置为默认配置
+			$this->model->setConfig($app,false);
 			$json = $this->model->getConfigDefault($app);
 		}else{
 			if(!is_array($json) && !$json = json_decode($json, true)){

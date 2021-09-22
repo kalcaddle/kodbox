@@ -82,6 +82,11 @@ class explorerEditor extends Controller{
 			'pageInfo' 		=> $contentInfo['pageInfo'],
 			'content'		=> $content,
 		));
+		
+		// 避免截取后乱码情况; 去掉不完整的字符(一个汉字3字节,最后剩余1,2字节都会导致乱码)
+		if(is_text_file($pathInfo['ext']) && $data['pageInfo']['pageTotal'] > 1){
+			$data['content'] = utf8Repair($data['content'],chr(1));
+		}
 		if($data['base64']=='1'){
 			$data['content'] = strrev(base64_encode($data['content']));
 		}

@@ -385,8 +385,8 @@ ace.define("ace/ext/searchboxKod", ["require", "exports", "module", "ace/lib/dom
 		});
 
 		//搜索历史记录
-		this.historySearch  = new DataQueen(10,'historySearch');
-		this.historyReplace = new DataQueen(10,'historyReplace');
+		this.historySearch  = new DataQueen(30,'historySearch');
+		this.historyReplace = new DataQueen(30,'historyReplace');
 		this.$searchBarKb.addCommands([{
 				name: "toggleRegexpMode",
 				bindKey: {
@@ -477,7 +477,7 @@ ace.define("ace/ext/searchboxKod", ["require", "exports", "module", "ace/lib/dom
 	    };
 
 		this.find = function(skipCurrent, backwards, preventScroll,ignoreHistory) {
-			//console.log(2233,skipCurrent, backwards, preventScroll);
+			// console.log(2233,skipCurrent, backwards, preventScroll,this.wholeWordOption);
 			var range = this.editor.find(this.searchInput.value, {
 				skipCurrent: skipCurrent,
 				backwards: backwards,
@@ -489,9 +489,7 @@ ace.define("ace/ext/searchboxKod", ["require", "exports", "module", "ace/lib/dom
 			});
 			var noMatch = !range && this.searchInput.value;
 			dom.setCssClass(this.searchBox, "ace_nomatch", noMatch);
-			this.editor._emit("findSearchBox", {
-				match: !noMatch
-			});
+			this.editor._emit("findSearchBox", {match: !noMatch});
 			this.highlight();
 
 			//搜索个数及当前匹配位置信息展示
@@ -539,9 +537,7 @@ ace.define("ace/ext/searchboxKod", ["require", "exports", "module", "ace/lib/dom
 			});
 			var noMatch = !range && this.searchInput.value;
 			dom.setCssClass(this.searchBox, "ace_nomatch", noMatch);
-			this.editor._emit("findSearchBox", {
-				match: !noMatch
-			});
+			this.editor._emit("findSearchBox", {match: !noMatch});
 			this.highlight();
 			this.hide();
 
@@ -571,6 +567,7 @@ ace.define("ace/ext/searchboxKod", ["require", "exports", "module", "ace/lib/dom
 			this.element.style.display = "none";
 			this.editor.focus();
 			this.resetEditorHeight(false);
+			this.editor._emit('kodSearchEnd');
 		};
 		this.show = function(appSpace,editor,value, isReplace) {
 			this.searchConfig();
@@ -587,10 +584,10 @@ ace.define("ace/ext/searchboxKod", ["require", "exports", "module", "ace/lib/dom
 				value = last;
 			}
 			this.searchInput.value = value;
-			this.find(false, false, true);
+			// this.find(false, false, true);
 			this.searchInput.focus();
 			this.searchInput.select();
-			this.find(false, false);
+			this.find(false, false, true);
 			this.resetEditorHeight(true);
 
 			//搜索框保持焦点
@@ -615,7 +612,8 @@ ace.define("ace/ext/searchboxKod", ["require", "exports", "module", "ace/lib/dom
 	exports.SearchBox = SearchBox;
 	exports.Search = function(appSpace,editor, isReplace) {
 		var sb = appSpace.searchBox || new SearchBox(appSpace,editor);
-		sb.show(appSpace,editor,editor.session.getTextRange(), isReplace);
+		editor.searchBox = sb;editor._emit('kodSearchStart');
+		sb.show(appSpace,editor,editor.getSelectedText(), isReplace);
 	};
 });
 (function() {

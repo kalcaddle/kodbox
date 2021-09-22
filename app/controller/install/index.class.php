@@ -264,6 +264,7 @@ class installIndex extends Controller {
                     $conn = $handle->connect($host, $port, 1);
                 }else{
                     $conn = $handle->addServer($host, $port);
+                    if($conn && !$handle->getStats()) $conn = false;
                 }
                 if(!$conn) show_json(sprintf(LNG('admin.install.cacheError'),"[{$cacheType}]"), false);
             }catch(Exception $e){
@@ -469,11 +470,11 @@ class installIndex extends Controller {
 
         $userID = 1;
         if(Model('User')->find($userID)) {
+            del_file($this->installFastLock);
             if(!Model('User')->userEdit($userID, $data)) {
                 show_json(LNG('user.bindUpdateError'), false);
             }
             @touch($this->installLock);
-            del_file($this->installFastLock);
             show_json(LNG('admin.install.updateSuccess'), true, $userID);
         }
         $this->admin = $data;

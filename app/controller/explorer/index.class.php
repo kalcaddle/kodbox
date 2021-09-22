@@ -632,7 +632,7 @@ class explorerIndex extends Controller{
 		}
 
 		$dist = $info['path'];
-		ActionCall('explorer.auth.canView',$dist);
+		ActionCall('explorer.auth.canView',$dist);// 再次判断新路径权限;
 		$this->updateLastOpen($dist);
 		IO::fileOut($dist,false);
 	}

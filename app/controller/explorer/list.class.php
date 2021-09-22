@@ -56,7 +56,7 @@ class explorerList extends Controller{
 	}
 	public function parseData(&$data,$path,$pathParse){
 		$this->parseAuth($data,$path,$pathParse);
-		$this->pageParse($data,$pathParse);
+		$this->pageParse($data);
 		$this->parseDataHidden($data,$pathParse);
 		
 		//回收站追加物理/io回收站;
@@ -160,7 +160,7 @@ class explorerList extends Controller{
 		$result = array_to_keyvalue($result,'sourceID');
 	}
 
-	private function pageParse(&$data){
+	public function pageParse(&$data){
 		if(isset($data['pageInfo'])) return;
 		$in = $this->in;
 		$pageNumMax = 5000;
@@ -284,7 +284,7 @@ class explorerList extends Controller{
 		if($pathParse['type'] == KodIO::KOD_BLOCK){
 			$list = $this->blockItems();
 			$current['name'] = _get($list[$pathParse['id']],'name','root');
-			$current['icon'] = 'block-item';
+			$current['icon'] = 'block-'.$pathParse['id'];
 		}else if($pathParse['type'] == KodIO::KOD_USER_FILE_TYPE){
 			$list = $this->blockFileType();
 			$current = $list[$pathParse['id']];
@@ -505,6 +505,9 @@ class explorerList extends Controller{
 		if( $pathInfo['oexeContent']['type'] == 'path' && 
 			isset($pathInfo['oexeContent']['value']) ){
 			$linkPath = $pathInfo['oexeContent']['value'];
+			$parse = KodIO::parse($pathInfo['path']);
+			if($parse['type'] == KodIO::KOD_SHARE_LINK) return $pathInfo;
+			
 			if(Action('explorer.auth')->fileCan($linkPath,'show')){
 				if(substr($linkPath,0,4) == '{io:'){ //io路径不处理;
 					$infoTarget = array('path'=>$linkPath);
@@ -531,7 +534,7 @@ class explorerList extends Controller{
 				"name"		=> $item['name'],
 				"path"		=> '{block:'.$type.'}/',
 				"open"		=> $item['open'],
-				"icon"		=> 'block-item',
+				"icon"		=> 'block-'.$type,
 				"isParent"	=> true,
 				"children"	=> $this->blockChildren($type),
 			);

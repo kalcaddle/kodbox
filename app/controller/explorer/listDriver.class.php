@@ -129,11 +129,15 @@ class explorerListDriver extends Controller{
 		}
 		$rows = explode("\n", shell_exec('df -l'));
 		array_shift($rows);array_pop($rows);
+		$disable = array(//虚拟内存等;
+			'/private/var/vm','/System/Volumes/Data',
+			'/Volumes/Update','/Volumes/Recovery'
+		);
 		foreach ($rows as $row) {
 			$item = preg_split("/[\s]+/", $row);
 			$path = $item[count($item)-1];
 			if(!strstr($item[0],'/dev/')) continue;
-			if($path == '/private/var/vm') continue; //虚拟内存;
+			if(in_array($path,$disable)) continue;
 			$this->driverMake($list,$path);
 		}
 	}

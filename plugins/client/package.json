@@ -1,0 +1,26 @@
+{
+	"id":"client",
+	"name":"{{LNG['client.meta.name']}}",
+	"title":"{{LNG['client.meta.title']}}",
+	"version":"1.0",
+	"source":{
+		"icon":"{{pluginHost}}static/images/icon.png"
+	},
+	"category":"tools,others,safe",
+	"description":"{{LNG['client.meta.desc']}}",
+	"auther":{
+		"copyright":"kodcloud.",
+		"homePage":"https://www.kodcloud.com",
+	},
+	"configItem":{
+		"pluginAuth":{
+			"type":"userSelect",
+			"value":{"all":1},
+			"className":"hidden",
+			"display":"{{LNG['admin.plugin.auth']}}",
+			"desc":"{{LNG['admin.plugin.authDesc']}}",
+			"require":1
+		},
+        "sep001":"<div class='info-alert'>{{LNG['client.meta.desc']}}</div>"
+	}
+}

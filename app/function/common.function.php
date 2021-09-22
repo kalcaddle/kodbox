@@ -809,7 +809,7 @@ function show_tips($message,$url= '', $time = 3,$title = ''){
 	#msgbox{box-shadow: 0px 10px 40px rgba(0, 0, 0, 0.1);border-radius: 5px;border-radius: 5px;background: #fff;
     font-family: "Lantinghei SC","Hiragino Sans GB","Microsoft Yahei",Helvetica,arial,sans-serif;line-height: 1.5em;
 	color:888;margin:0 auto;margin-top:-20%;width:500px;font-size:13px;color:#666;word-wrap: break-word;word-break: break-all;max-width: 90%;box-sizing: border-box;max-height: 90%;overflow: auto;padding:30px 30px;}
-	#msgbox #info{margin-top: 10px;color:#aaa;2}
+	#msgbox #info{margin-top: 10px;color:#aaa;}
 	#msgbox #title{color: #333;border-bottom: 1px solid #eee;padding: 10px 0;margin:0 0 15px;font-size:22px;font-weight:200;}
 	#msgbox #info a{color: #64b8fb;text-decoration: none;padding: 2px 0px;border-bottom: 1px solid;}
 	#msgbox a{text-decoration:none;color:#2196F3;}
@@ -1048,7 +1048,8 @@ function show_json($data=false,$code = true,$info=''){
 	ob_get_clean();
 	if(!headers_sent()){
 		header("X-Powered-By: kodbox.");
-		header('Content-Type: application/json; charset=utf-8'); 
+		header('Content-Type: application/json; charset=utf-8');
+		if(!$code){header("X-Request-Error: 1");}
 	}
 	$json = json_encode_force($result);
 	if( isset($_GET['callback']) && $GLOBALS['config']['jsonpAllow'] ){
@@ -1175,6 +1176,54 @@ if(!function_exists('mb_strlen')){
         preg_match_all("/./u", $str, $ar); 
         return count($ar[0]); 
     }
+}
+
+/**
+ * 字符串截取自动修复;(仅utf8 字符串); 去除前后不足一个字符的字节
+ * 截取多余部分用replace替换;
+ * 
+ * $str = substr("我的中国心",1,-2); 
+ * $str = utf8Repair($str);
+ * 
+ * 1 1-128
+ * 2 192-223, 128-191
+ * 3 224-239, 128-191, 128-191
+ * 4 240-247, 128-191, 128-191, 128-191
+ */
+function utf8Repair($str,$replace=''){
+	$length   = strlen($str);
+	$charByte = 0;$start = 0;$end = $length;
+	$char = ord($str[$start]);
+	while($char >= 128 && $char <= 191 && $start <= 5){
+		$start ++;
+		$char = ord($str[$start]);
+	}
+	
+	for($i = $start; $i < $length; $i++){
+		$char = ord($str[$i]);
+		if($char <= 128) continue;
+		if($char > 247){return $str;}
+		else if ($char > 239) {$charByte = 4;}
+		else if ($char > 223) {$charByte = 3;}
+		else if ($char > 191) {$charByte = 2;}
+		else {return $str;}
+		if (($i + $charByte) > $length){
+			$end = $i;break;
+		}
+		while ($charByte > 1) {
+			$i++;$char = ord($str[$i]);
+			if ($char < 128 || $char > 191){return $str;}
+			$charByte--;
+		}
+	}
+	
+	$charStart = '';$charEnd = '';
+	if($start == 0 && $end == $length) return $str;
+	if($replace && $start){$charStart = str_repeat($replace,$start);}
+	if($replace && $end != $length){$charEnd = str_repeat($replace,$length - $end);}
+	
+	// pr($start,$end,$length,$charStart,$charEnd);exit;
+	return $charStart.substr($str,$start,$end - $start).$charEnd;
 }
 
 /**

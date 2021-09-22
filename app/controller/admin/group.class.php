@@ -20,6 +20,7 @@ class adminGroup extends Controller{
 		));
 
 		if(isset($_REQUEST['rootParam']) ){
+			Model('Group')->cacheFunctionClear('getInfo',$data['parentID']);// 有缓存未更新是否有子部门及用户的问题;
 			$groupCurrent = $this->model->getInfo($data['parentID']);
 			$items = array("list"=>array($groupCurrent));
 			if(strstr($data['rootParam'],'appendRootGroup')){

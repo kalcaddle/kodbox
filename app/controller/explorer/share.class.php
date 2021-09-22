@@ -92,7 +92,7 @@ class explorerShare extends Controller{
 	 * 其他业务通过分享路径获取文档真实路径; 文件打开构造的路径 hash/xxx/xxx; 
 	 * 解析路径,检测分享存在,过期时间,下载次数,密码检测;
 	 */
-	public function sharePathInfo($path,$encode=false){
+	public function sharePathInfo($path,$encode=false,$infoChildren=false){
 		$parse = KodIO::parse($path);
 		if(!$parse || $parse['type'] != KodIO::KOD_SHARE_LINK){
 			return false;
@@ -103,7 +103,11 @@ class explorerShare extends Controller{
 			return false; // 不存在,时间过期,下载次数超出,需要登录,需要密码;
 		}
 		$truePath = $this->parsePath($path);
-		$result = IO::infoWithChildren($truePath);
+		if($infoChildren){
+			$result = IO::infoWithChildren($truePath);
+		}else{
+			$result = IO::info($truePath);
+		}
 		
 		// 仅文件,判断预览;
 		if(	$result['type'] == 'file' && 
@@ -323,6 +327,7 @@ class explorerShare extends Controller{
 			$searchParam = Action('explorer.listSearch')->parseSearch($pathParse['param']);
 			$this->parsePath($searchParam['parentPath']); //校验path;
 			$data = Action('explorer.listSearch')->listSearchPath($pathParse);
+			Action('explorer.list')->pageParse($data);
 			$data['current']  = Action('explorer.list')->pathCurrent($path);
 			$data['thisPath'] = $path;
 		}else{

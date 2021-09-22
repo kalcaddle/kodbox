@@ -59,14 +59,13 @@ class explorerLightApp extends Controller{
 	
 	public function getUrlTitle(){
 		$html = curl_get_contents($this->in['url']);
+		$charset = get_charset($html);
+		if ($charset !='' && $charset !='utf-8' && function_exists("mb_convert_encoding")){
+			$html = @mb_convert_encoding($html,'utf-8',$charset);
+		}
 		$result = match_text($html,"<title>(.*)<\/title>");
-		if (strlen($result)>50) {
-			$result = mb_substr($result,0,50,'utf-8');
-		}
-		if (!$result || strlen($result) == 0) {
-			$result = $this->in['url'];
-			$result = str_replace(array('http://','&','/'),array('','@','-'), $result);
-		}
+		if (!$result || strlen($result) == 0) {$result = $this->in['url'];}
+		$result = str_replace(array('http://',':','&','/','?'),array('','_','@','-','_'), $result);
 		show_json($result);
 	}
 	private function input(){

@@ -242,13 +242,12 @@ class userIndex extends Controller {
 		$this->loginSuccessUpdate($user);
 		//自动登录跳转; http://xxx.com/?user/index/loginSubmit&name=guest&password=guest&auto=1
 		if($this->in['auto'] == '1'){
-			header("Location: ".APP_HOST);exit;
+			header('Location: '.APP_HOST);exit;
 		}
 		show_json('ok',true,$this->accessToken());
 	}
 	private function loginWithToken(){
 		if (!isset($this->in['loginToken'])) return false;
-		// 兼容旧版错误拼写
 		$apiToken = $this->config['settings']['apiLoginToken'];
 		$param = explode('|', $this->in['loginToken']);
 		if (strlen($apiToken) < 5 ||

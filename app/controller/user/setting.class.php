@@ -376,10 +376,8 @@ class userSetting extends Controller {
 	public function taskKillAll(){ActionCall('admin.task.taskKillAll',USER_ID);}
 	public function taskAction(){
 		$result = ActionCall('admin.task.taskActionRun',false);
-		if( !is_array($result['taskInfo']) || 
-			$result['taskInfo']['userID'] != USER_ID){
-			show_json(LNG('common.notExists'),false);
-		}
+		if( !is_array($result['taskInfo'])){show_json(LNG('common.notExists'),false,'taskEmpty');}
+		if( $result['taskInfo']['userID'] != USER_ID){show_json('User error',false);}
 		show_json($result['result'],true);
 	}
 	public function notice(){

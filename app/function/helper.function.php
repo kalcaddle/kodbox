@@ -216,8 +216,7 @@ function get_charset(&$str) {
 		$check = array(
 			'utf-8'       => $charset,
 			'utf-16'      => 'gbk',
-			'cp1251'      => 'utf-8',
-			'cp1252'      => 'utf-8'			
+			'iso-8859-1'  => 'utf-8',
 		);
 		foreach($check as $key => $val){
 			if(charset_check($str,$key,$val)){
@@ -228,8 +227,10 @@ function get_charset(&$str) {
 				break;
 			}
 		}
+	}else if ($charset == 'sjis-win'){
+		if(charset_check($str,'iso-8859-1')){$charset = 'iso-8859-1';}
 	}
-	//show_json($charset,false,$charsetGet);
+	// pr(charset_check($str,'utf-8'),charset_check($str,'iso-8859-1'),$charset,$charsetGet);exit;
 	return $charset;
 }
 

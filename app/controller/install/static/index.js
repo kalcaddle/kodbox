@@ -228,7 +228,7 @@
         var auto = $(".step-box.user input[name='auto-install']").val().split('|');
         var FormData = {
             "name":{
-                "type":"text",
+                "type":"input",
                 "value":auto[0] || 'admin',
                 "display":lng.text_account,
                 "attr":{"placeholder":lng.input_name},

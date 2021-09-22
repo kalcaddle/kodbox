@@ -349,11 +349,14 @@ class adminMember extends Controller{
             foreach($keys as $i => $key) {
 				if($key == 'name' && empty($value[$i])) break;
 				if($key == 'password' && empty($value[$i])) break;
-                // $val = iconv('gbk', 'utf-8', $value[$i]);
 				$val = $value[$i];
                 switch($key) {
-                    case 'sex':
-                        $val = isset($sex[$val]) ? $sex[$val] : 1;
+					case 'nickName':
+						$val = $this->iconvValue($val);
+						break;
+					case 'sex':
+						$val = $this->iconvValue($val);
+						$val = isset($sex[$val]) ? $sex[$val] : 1;
                         break;
                     case 'phone':
                     case 'email':
@@ -374,5 +377,12 @@ class adminMember extends Controller{
 			'total' => $total, 
 			'valid' => $valid
 		);
+	}
+	private function iconvValue($value){
+		$charset = get_charset($value);
+		if(!in_array($charset,array('utf-8','ascii'))){
+			$value = iconv_to($value, $charset, 'utf-8');
+		}
+		return $value;
 	}
 }

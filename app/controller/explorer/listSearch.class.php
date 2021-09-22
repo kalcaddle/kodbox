@@ -154,7 +154,7 @@ class explorerListSearch extends Controller{
 		}
 
 		$result = array('folderList'=> array(),'fileList'=> array());
-		$matchMax = 2000; $findNum = 0;
+		$matchMax = 1000; $findNum = 0;
 		foreach($list as $item){
 			check_abort();
 			$isFolder = $item['folder'];

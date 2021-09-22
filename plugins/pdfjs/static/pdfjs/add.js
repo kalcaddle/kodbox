@@ -1,3 +1,13 @@
+/**
+ * kod处理;
+ * https://github.com/mozilla/pdf.js
+ *  
+ * 版本更新(当前v2.10.377): web/viewer.js 中加入配置合并;   搜索"warlee"
+ * AppOptions.setAll(window.pdfOptions || {});//add by warlee;
+ * 
+ * 
+ * 问题修复:https://github.com/mozilla/pdf.js/pull/13698/files
+ */
 (function(){
 	var ua 	= navigator.userAgent;
 	$.browserIS = {
@@ -55,7 +65,6 @@ $(document).ready(function (){
 		clearInterval(checkTimer);
 		pdfLoaded();
 		enablePinchZoom();
-		
 		setTimeout(function(){
 			if(pdfOptions.canDownload == '1'){
 				$('.print,.download').show();
@@ -67,8 +76,24 @@ $(document).ready(function (){
 			PDFViewerApplication.supportsPrinting = false;
 			window.print = function(){}
 			$('.print,.download').remove();
-		},200);
+		},500);
 	},50);
+	
+	var changeFullscreen = function(change){
+		var doc = document.documentElement;
+		var isFullScreen = document.fullScreen || document.mozFullScreen || document.webkitIsFullScreen || document.msFullscreenElement;
+		var exitFullscreen = document.exitFullscreen || document.msExitFullscreen || document.mozCancelFullScreen || document.webkitCancelFullScreen;
+		var startFullscreen = doc.requestFullscreen || doc.mozRequestFullScreen || doc.webkitRequestFullscreen || doc.msRequestFullscreen;
+		if(!exitFullscreen) return;
+		if(change === true){!isFullScreen && startFullscreen.apply(doc,[]);}else{isFullScreen && exitFullscreen.apply(document,[]);}
+	}
+	$('<div class="exit-fullscreen">Esc</div>').appendTo('#viewerContainer');
+	$('.exit-fullscreen').bind('click', function(){
+		changeFullscreen(false);
+	});
+	$(document).bind('keyup',function(e){
+		if(e.key == "Escape"){changeFullscreen(false);}
+	});
 });
 
 // / Pinch Zoom
@@ -85,6 +110,8 @@ function enablePinchZoom(){
 		pinchScale = 1; 
 	};
 	$viewer.bind('touchstart',function(e){
+		var e = e.originalEvent || e;
+		if(!e.touches) return;
 		if (e.touches.length > 1) {
 			startX = (e.touches[0].pageX + e.touches[1].pageX) / 2;
 			startY = (e.touches[0].pageY + e.touches[1].pageY) / 2;
@@ -93,7 +120,8 @@ function enablePinchZoom(){
 			pinchOffset = 0;
 		}
 	}).bind('touchmove',function(e){
-		if(e.touches.length < 2) return;
+		var e = e.originalEvent || e;
+		if(!e.touches || e.touches.length < 2) return;
 		if (pinchOffset <= 0 || e.touches.length < 2) return;
 		var pinchDistance = Math.hypot((e.touches[1].pageX - e.touches[0].pageX), (e.touches[1].pageY - e.touches[0].pageY));
 		var originX = startX + $container[0].scrollLeft;
@@ -120,9 +148,7 @@ function enablePinchZoom(){
 		$container[0].scrollTop += dy * (pinchScale - 1);
 		
 		$container.hide();//避免缩放后闪烁;
-		setTimeout(function(){
-			$container.show();
-		},10);
+		setTimeout(function(){$container.show();},10);
 		reset();
 	}).bind('dblclick',function(e){
 		if( $.isWindowTouch() ){

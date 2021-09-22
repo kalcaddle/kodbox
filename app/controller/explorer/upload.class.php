@@ -12,7 +12,7 @@ class explorerUpload extends Controller{
 		$this->model = Model("Source");
 	}
 	public function pathAllowReplace($path){
-		$notAllow = array('\\', ':', '*', '?', '"', '<', '>', '|');//去除/;
+		$notAllow = array('\\', ':', '*', '?', '"', '<', '>', '|',"\r","\n");//不允许字符
 		return str_replace($notAllow,'_',$path);
 	}
 	
@@ -56,8 +56,9 @@ class explorerUpload extends Controller{
 			if(!$info){
 				show_json(LNG("common.pathNotExists"),false);
 			}
-			// 重新构造路径 父目录+文件名;
-			$savePath = rtrim(IO::pathFather($info['path']),'/').'/'.$info['name'];
+			$parent = IO::pathFather($info['path']);
+			if(!$parent){show_json(LNG("common.pathNotExists"),false);}
+			$savePath = rtrim($parent,'/').'/'.$info['name'];// 重新构造路径 父目录+文件名;
 		}
 		
 		// 第三方存储上传完成

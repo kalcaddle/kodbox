@@ -39,10 +39,10 @@ class filterPost extends Controller{
 			'explorer.fileview'	=> 'index',
 			'explorer.history'	=> 'fileOut',
 			'explorer.index'	=> 'fileOut,fileDownload,fileOutBy,fileDownloadRemove',
-			'explorer.share'	=> 'file,fileOut,fileDownload,zipDownload',
+			'explorer.share'	=> 'file,fileOut,fileDownload,zipDownload,fileDownloadRemove',
 			
 			'install.index'	 	=> '*',
-			'user.index' 		=> 'index,loginSubmit,logout',//accessTokenGet logout
+			'user.index' 		=> 'index,autoLogin,loginSubmit,logout',//accessTokenGet logout
 			'user.view'	 		=> '*',
 			'user.sso'			=> '*',
 			'test.debug'		=> '*',
@@ -71,7 +71,7 @@ class filterPost extends Controller{
 	// csrfToken检测; 允许UA为APP,PC客户端的情况;
 	private function checkCsrfToken(){
 		if(isset($_REQUEST['accessToken'])) return;
-		if( isset($this->in['CSRF_TOKEN']) && $this->in['CSRF_TOKEN'] != Cookie::get('CSRF_TOKEN')){
+		if($this->in['CSRF_TOKEN'] != Cookie::get('CSRF_TOKEN')){
 			return show_json('CSRF_TOKEN error!',false);
 		}
 	}

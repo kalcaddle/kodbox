@@ -78,17 +78,15 @@ class userAuthRole extends Controller {
 		
 		$user = Session::get('kodUser');
 		if(!$user || !$user['roleID']) return false;
-		$roleInfo = Model('SystemRole')->listData($user['roleID']);
 		
-		$userRoleAllow 	= explode(',',trim($roleInfo['auth'],','));	
+		$roleInfo = Model('SystemRole')->listData($user['roleID']);		
+		$userRoleAllow  = $this->authCheckAlias($roleInfo['auth']);
 		$authRoleList 	= array();
 		$allowAction 	= array();
 		foreach ($roleAction as $role => $modelActions) {
 			$enable = intval(in_array($role,$userRoleAllow));
 			$authRoleList[$role] = $enable;
-			if(!$modelActions || !is_array($modelActions)){
-				continue;
-			}
+			if(!$modelActions || !is_array($modelActions)) continue;
 			$actionArray = array();
 			foreach ($modelActions as $controller => $stActions) {
 				if(!$stActions) continue;
@@ -124,5 +122,65 @@ class userAuthRole extends Controller {
 			'roleList'		=> $authRoleList
 		);
 		return self::$authRole;
+	}
+	
+	// 处理权限前置依赖;
+	private function authCheckAlias($auth){
+		$authList = explode(',',trim($auth,','));
+		$alias = array(
+			'explorer.add'			=> 'explorer.view',
+			'explorer.download'		=> 'explorer.view',
+			'explorer.share'		=> 'explorer.download,explorer.remove',
+			'explorer.upload'		=> 'explorer.add',
+			'explorer.edit'			=> 'explorer.view,explorer.upload,explorer.download',
+			'explorer.remove'		=> 'explorer.edit',
+			'explorer.move'			=> 'explorer.edit',
+			'explorer.unzip'		=> 'explorer.move',
+			'explorer.zip'			=> 'explorer.move',
+			'explorer.serverDownload'	=> 'explorer.move',
+			'admin.role.edit'		=> 'admin.role.list',
+			'admin.job.edit'		=> 'admin.job.list',
+			'admin.member.userEdit'	=> 'admin.member.list',
+			'admin.member.groupEdit'=> 'admin.member.list',
+			'admin.auth.edit'		=> 'admin.auth.list',
+			'admin.plugin.edit'		=> 'admin.plugin.list',
+			'admin.storage.edit'	=> 'admin.storage.list',
+			'admin.autoTask.edit'	=> 'admin.autoTask.list',
+			
+			// 'a'=>'a','c'=>'d','d'=>'c', // 循环依赖处理;
+			// 'x1'=>'x2,x3','x3'=>'x1,x2',
+		);
+		foreach ($alias as $theKey => $aliasAction){
+			$alias[$theKey] = explode(',', $aliasAction);
+		}
+		$aliasAll = array();//key以来的所有上层key;
+		foreach ($alias as $theKey => $aliasAction){
+			$aliasAll[$theKey] = $this->authCheckAliasParent($theKey,$alias);
+		}
+
+		$userRoleAllow = array();
+		for ($i=0; $i < count($authList); $i++){
+			$authAction = $authList[$i];
+			if(!isset($aliasAll[$authAction])){
+				$userRoleAllow[] = $authList[$i];continue;
+			}
+			// 所有依赖都在当前权限中,才算拥有该权限;
+			$needAuth = $aliasAll[$authAction];$allHave  = true;
+			for ($j=0; $j < count($needAuth); $j++) { 
+				if(!in_array($needAuth[$j],$authList)) {$allHave = false;break;}
+			}
+			if($allHave){$userRoleAllow[] = $authList[$i];}
+		}
+		return $userRoleAllow;
+	}
+	private function authCheckAliasParent($theKey,&$alias,&$result=array()){
+		$parents = $alias[$theKey];
+		if(!$parents) return false;
+		for ($i=0; $i < count($parents); $i++) {
+			if(isset($result[$parents[$i]])) continue;
+			$result[$parents[$i]] = true;
+			$this->authCheckAliasParent($parents[$i],$alias,$result);
+		}
+		return array_keys($result);
 	}
 }
