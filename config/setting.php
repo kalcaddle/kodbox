@@ -183,7 +183,7 @@ $config['settings']['appType'] = array(
 );
 $config['defaultPlugins'] = array(//'officeReader',
 	'adminer','DPlayer','imageExif','jPlayer','photoSwipe','picasa','pdfjs',
-	'simpleClock','client','webodf','webdav',
+	'simpleClock','client','webodf','webdav','toolsCommon'
 );
 
 //初始化系统配置

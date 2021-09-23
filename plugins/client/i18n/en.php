@@ -3,6 +3,7 @@ return array(
 	'client.meta.name'					=> "Client·System",
 	'client.meta.title'					=> "System Settings",
 	'client.meta.desc'					=> "PC Client",
+	'client.menu'						=> "PC Client",
 	
 	'client.option.openTips'			=> "Not support open with client",
 	'client.option.backupOpen'			=> "Turn on the synchronization function",

@@ -3,7 +3,7 @@ kodReady.push(function(){
 	LNG.set(jsonDecode(urlDecode("{{LNG}}")));
 	Events.bind("admin.leftMenu.before",function(menuList){
 		menuList.push({
-			title:LNG['explorer.sync.configClient'],
+			title:LNG['client.menu'],
 			icon:"ri-computer-line",
 			link:"admin/storage/client",
 			after:'admin/storage/share',//after/before; 插入菜单所在位置;

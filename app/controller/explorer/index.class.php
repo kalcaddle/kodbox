@@ -295,6 +295,7 @@ class explorerIndex extends Controller{
 		Action('explorer.recycleDriver')->remove($pathArr);
 
 		// 清空回收站时,重新计算大小; 一小时内不再处理;
+		Model('Source')->targetSpaceUpdate(SourceModel::TYPE_USER,USER_ID);
 		$cacheKey = 'autoReset_'.USER_ID;
 		if(isset($this->in['all']) && time() - intval(Cache::get($cacheKey)) > 3600 * 10 ){
 			Cache::set($cacheKey,time());
