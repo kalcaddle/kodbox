@@ -2,7 +2,7 @@
 	"id":"adminer",
 	"name":"Adminer",
 	"title":"{{LNG['Adminer.meta.title']}}",
-	"version":"5.01",
+	"version":"5.02",
 	"source":{
 		"thumb":"",
 		"className":"font-icon ri-database-fill-2 bg-blue-7",

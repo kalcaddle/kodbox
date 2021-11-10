@@ -320,13 +320,17 @@ class explorerIndex extends Controller{
 			$pathArr = $this->parseSource($dataArr);
 		}
 
-		Model('SourceRecycle')->restore($pathArr);
 		Action('explorer.recycleDriver')->restore($pathArr);
+		Model('SourceRecycle')->restore($pathArr);
 		show_json(LNG('explorer.success')); 
 	}
 	private function parseSource($list){
 		$result = array();
 		foreach ($list as $value) {
+			$parse = KodIO::parse($value['path']);
+			if($parse['type'] == KodIO::KOD_SHARE_ITEM){
+				$result[] = $value['path'];continue;//处理成类物理路径回收站;
+			}
 			$result[] = IO::getPath($value['path']);
 		}
 		return $result;
@@ -366,11 +370,34 @@ class explorerIndex extends Controller{
 		show_json($clipboard,true,Session::get('pathCopyType'));
 	}
 	public function pathLog(){
-		$info = IO::infoSimple($this->in['path']);
+		$info = IO::info($this->in['path']);
 		if(!$info['sourceID']){
 			show_json('path error',false);
 		}
 		$data = Model('SourceEvent')->listBySource($info['sourceID']);
+		
+		// 协作分享;路径数据处理;
+		if($info['shareID']){
+			$shareInfo	= Model('Share')->getInfo($info['shareID']);
+			$userActon  = Action('explorer.userShare');
+			foreach($data['list'] as $i=>$item){
+				if($item['sourceInfo']){
+					$data['list'][$i]['sourceInfo'] = $userActon->_shareItemeParse($item['sourceInfo'],$shareInfo);
+				}
+				if($item['parentInfo']){
+					$data['list'][$i]['parentInfo'] = $userActon->_shareItemeParse($item['parentInfo'],$shareInfo);
+				}
+				if(is_array($item['desc']['from'])){
+					$data['list'][$i]['desc']['from'] = $userActon->_shareItemeParse($item['desc']['from'],$shareInfo);
+				}
+				if(is_array($item['desc']['to'])){
+					$data['list'][$i]['desc']['to'] = $userActon->_shareItemeParse($item['desc']['to'],$shareInfo);
+				}
+				if(is_array($item['desc']['sourceID'])){
+					$data['list'][$i]['desc']['sourceID'] = $userActon->_shareItemeParse($item['desc']['sourceID'],$shareInfo);
+				}
+			}
+		}
 		show_json($data);
 	}
 

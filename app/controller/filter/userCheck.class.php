@@ -15,6 +15,7 @@ class filterUserCheck extends Controller {
 	public function bind(){
 		$this->options = Model('systemOption')->get();
 		$this->ipCheck();
+		$this->setAppLang();
 		Hook::bind('user.index.loginBefore',array($this,'loginBefore'));
 		Hook::bind('user.index.loginAfter',array($this,'loginAfter'));
 	}
@@ -93,6 +94,18 @@ class filterUserCheck extends Controller {
 			}
 		}
 		return true;
+	}
+	
+	
+	// app多语言自动识别处理;
+	private function setAppLang(){
+		$ua = $_SERVER['HTTP_USER_AGENT'].';';
+		if(!strstr($ua,'kodCloud-System:iOS')) return;
+
+		$lang = match_text($ua,"Language:(.*);");
+		$langMap = array('zh-Hans'=>'zh-CN','zh-Hant'=>'zh-TW');
+		$setLang = $langMap[$lang] ? $langMap[$lang] : $lang;
+		$GLOBALS['config']['settings']['language'] = $setLang;
 	}
 		
 	/**
@@ -191,9 +204,10 @@ class filterUserCheck extends Controller {
 	 * app: okhttp/3.10.0; HTTP_X_PLATFORM:
 	 * 	android:{"brand":"OPPO","deviceId":"sm6150","bundleID":"com.kodcloud.kodbox","menufacturer":"OPPO","system":"Android"...
 	 *	ios:{"brand":"Apple","deviceId":"iPhone9,4","bundleID":"com.kodcloud.kodbox","menufacturer":"Apple","system":"iOS"...
+		iosApp:'kodCloud-System:iOS;Device:iPhone 7 Plus;softwareVerison:15.0.2;AppVersion:2.0.0;Language:zh-Hans'
 	 */
 	public function getDevice(){
-		$ua = $_SERVER['HTTP_USER_AGENT'];
+		$ua = $_SERVER['HTTP_USER_AGENT'].';';
 		$platform 	= isset($this->in['HTTP_X_PLATFORM']) ? json_decode($this->in['HTTP_X_PLATFORM'],1):false;
 		$device 	= array(
 			'type' 			=> 'web',	//平台类型: pc/app/others; 默认为web:浏览器端
@@ -208,6 +222,13 @@ class filterUserCheck extends Controller {
 			$device['system'] = stristr($ua,'Mac OS') ? 'mac':'';
 			$device['system'] = stristr($ua,'Windows') ? 'windows':$device['system'];
 			$device['appVersion'] = match_text($ua,"kodcloud\/([\d.]+) ");
+		}
+		// ios APP 原生;
+		if(strstr($ua,'kodCloud-System:iOS')){
+			$device['type'] = 'app';
+			$device['system'] = 'iOS';
+			$device['systemVersion'] = match_text($ua,"softwareVerison:(.*);");
+			$device['appVersion'] 	 = match_text($ua,"AppVersion:(.*);");
 		}
 
 		// app:ios,android;

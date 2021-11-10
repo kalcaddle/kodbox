@@ -93,6 +93,7 @@ class adminServer extends Controller {
 			'minute'	=> 0,
 			'second'	=> 0,
 		);
+		$str = '';
 		$filePath = '/proc/uptime';
 		if (@is_file($filePath)) {
 			$str	= file_get_contents($filePath);
@@ -107,14 +108,13 @@ class adminServer extends Controller {
 			foreach($time as $k => $v) {
 				$time[$k] = $$k;
 			}
+			// $isCn = stristr(I18n::getType(),'zh') ? true : false;
+			foreach($time as $key => $val) {
+				// $ext = $isCn ? LNG('common.'.$key) : strtoupper(substr($key, 0, 1));
+				$str .= ' ' . $val . ' ' . LNG('common.'.$key);
+			}
 		}
-		$str = '';
-		// $isCn = stristr(I18n::getType(),'zh') ? true : false;
-		foreach($time as $key => $val) {
-			// $ext = $isCn ? LNG('common.'.$key) : strtoupper(substr($key, 0, 1));
-			$str .= ' ' . $val . ' ' . LNG('common.'.$key);
-		}
-		return trim($str);
+		return !$str ? LNG('common.unavailable') : trim($str);
 	}
 
 	// 服务器基本信息
@@ -227,7 +227,12 @@ class adminServer extends Controller {
 		$backup = Model('systemOption')->get('backup');
 		if($backup) {
 			$backup = json_decode($backup, true);
-			$path = KodIO::makePath('{io}', $backup['io']);
+			$driver = Model('Storage')->driverInfo($backup['io']);
+			if (!$driver) {
+				$path = KodIO::defaultIO();
+			} else {
+				$path = KodIO::makePath('{io}', $backup['io']);
+			}
 		}else{
 			$path = KodIO::defaultIO();
 		}
@@ -632,6 +637,12 @@ class adminServer extends Controller {
 		}
 		// 检测结果直接返回
 		if(Input::get('check', null, false)) {
+			$dbname = 'kod_rebuild_test';
+			// 如果没有权限，这里会直接报错
+		    $res = Model()->db()->execute("create database `{$dbname}`");
+		    if ($res) {
+		        Model()->db()->execute("drop database if exists `{$dbname}`");
+		    }
 			show_json(LNG('admin.setting.checkPassed'));
 		}
 		echo json_encode(array('code'=>true,'data'=>'OK', 'info'=>1));

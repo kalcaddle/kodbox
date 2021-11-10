@@ -515,7 +515,7 @@ $config['authRoleAction']= array(
 		'admin.group' 	=> 'get,getByID,search'
 	),
 	'admin.member.userEdit'	=> array('admin.member'=>'add,edit,remove,status,addGroup,removeGroup,switchGroup'),
-	'admin.member.groupEdit'=> array('admin.group'=>'add,edit,status,remove'),
+	'admin.member.groupEdit'=> array('admin.group'=>'add,edit,status,sort,remove'),
 	
 	'admin.auth.list'		=> array('admin.auth'=>'get'),
 	'admin.auth.edit'		=> array('admin.auth'=>'add,edit,remove,sort'),

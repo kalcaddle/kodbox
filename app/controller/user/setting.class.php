@@ -70,7 +70,6 @@ class userSetting extends Controller {
 			$msg = $this->model->errorLang($res);
 			show_json(($msg ? $msg : LNG('explorer.error')), false);
 		}
-		Model('User')->cacheFunctionClear('getInfo',$userID);
 		$userInfo = Model('User')->getInfo($userID);
 		Cache::set('kodUser', $userInfo);
 		show_json(LNG('explorer.success'), true, $userInfo);

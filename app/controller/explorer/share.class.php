@@ -41,11 +41,16 @@ class explorerShare extends Controller{
 	}
 
 	// 通用生成外链
-	public function link($path){
+	public function link($path,$downFilename=''){
 		if(!$path || !$info = IO::info($path)) return;
 		$pass = Model('SystemOption')->get('systemPassword');
 		$hash = Mcrypt::encode($info['path'],$pass);
-		return urlApi('explorer/share/file',"hash={$hash}&name=/".rawurlencode($info['name']));
+
+		$addParam = '&name=/'.rawurlencode($info['name']);
+		if($downFilename){
+		    $addParam = '&downFilename='.rawurlencode($downFilename);
+		}
+		return urlApi('explorer/share/file',"hash={$hash}".$addParam);
 	}
 	public function linkFile($file){
 		$pass = Model('SystemOption')->get('systemPassword');

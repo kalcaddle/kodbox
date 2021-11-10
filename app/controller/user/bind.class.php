@@ -59,15 +59,18 @@ class userBind extends Controller {
 		));
 		$type = $input['type'];
 		if (!isset($this->typeList[$type])) {
-			show_json(LNG('common.invalidRequest'), false);
+			$this->bindHtml($type, array(), false, array('bind', LNG('common.invalidRequest')));
 		}
 		// 验证签名
 		$sign = Input::get('sign','require');
 		$_sign = $this->makeSign($input['kodid'], $input);
-		if ($sign !== $_sign) show_json(LNG('user.signError'), false);
+		if ($sign !== $_sign) {
+			$this->bindHtml($type, array(), false, array('bind', LNG('user.signError')));
+		}
 
 		// 解析data参数
-		$data = unserialize_safe(@base64_decode($input['data']));
+		$data = json_decode(@base64_decode($input['data']), true);
+		// $data = unserialize_safe(@base64_decode($input['data']));
 		if (!$data && is_string($input['data'])) {
 			Model('SystemOption')->set('systemSecret', '');
 			return $this->bindHtml($type, $data, false, array('bind', 'sign_error'));
@@ -501,7 +504,8 @@ class userBind extends Controller {
 			'timestamp'	 => time(),
 			"data"		 => json_encode(array(
 				'action' => $data['type'] . '_' . $data['action'],
-				'link'	 => $link . $client
+				'link'	 => $link . $client,
+				'isJson' => 1,	// 返回数据不使用序列化，此参数为兼容旧版
 			))
 		);
 		$post['sign'] = $this->makeSign($post['kodid'], $post);

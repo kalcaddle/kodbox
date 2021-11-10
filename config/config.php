@@ -21,11 +21,11 @@ define('GLOBAL_DEBUG',0);//0 or 1
 if(GLOBAL_DEBUG){
 	// php8 array的key未定义从notice更改为了warning;
 	@ini_set("display_errors","on");
-	@error_reporting(E_ALL^E_NOTICE^E_WARNING^E_DEPRECATED);
+	@error_reporting(E_ALL^E_NOTICE^E_WARNING^E_DEPRECATED^E_STRICT);
 	define("STATIC_DEV",0);
 }else{
 	@ini_set("display_errors","on");//on off;
-	@error_reporting(E_ALL^E_NOTICE^E_WARNING^E_DEPRECATED);//0
+	@error_reporting(E_ALL^E_NOTICE^E_WARNING^E_DEPRECATED^E_STRICT);//0
 	define("STATIC_DEV",0);
 }
 
