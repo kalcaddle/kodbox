@@ -6,17 +6,13 @@ return array(
 	'yzOffice.meta.netwrokDesc'			=> "<h4>说明:</h4>该应用在运行过程中，将请求外网接口（Yozo），通过接口对office文件进行上传和转换，实现文件的在线预览。",
 	'yzOffice.meta.netwrokUrl'			=> "接口地址",
 
-	'yzOffice.config.cacheFile'			=> "开启缓存",
-	'yzOffice.config.cacheFileDesc'		=> "开启后,office解析生成的图片等文件存储于本服务器;",
-	'yzOffice.config.preview'			=> "预览模式",
-	'yzOffice.config.previewDesc'		=> "普通模式,复杂排版的内容会转为图片;",
-	'yzOffice.config.previewNormal'		=> "普通模式",
-	'yzOffice.config.previewHight'		=> "高清模式",
-
-
 	'yzOffice.Main.transfer' 			=> "1.数据传输中,请稍后...",
 	'yzOffice.Main.converting'			=> '2.文件转换中,请稍后...',
 	'yzOffice.Main.uploadError' 		=> "上传失败,请检查php执行超时时间!",
 	'yzOffice.Main.convert' 			=> "正在转换,请稍后...",
-	'yzOffice.Main.transferAgain'		=> "重新转换"
+	'yzOffice.Main.transferAgain'		=> "重新转换",
+
+	'yzOffice.Main.invalidUrl'			=> "无效的请求地址",
+	'yzOffice.Main.tryAgain'			=> "，请尝试重新打开！",
+	'yzOffice.Main.linkExpired'			=> "链接已失效"
 );

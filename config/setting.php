@@ -181,9 +181,10 @@ $config['settings']['appType'] = array(
 	array('type' => 'life','name' => 'explorer.app.groupLife','class' => 'ri-map-pin-fill-2'),
 	array('type' => 'others','name' => 'common.others','class' => 'ri-more-fill'),
 );
-$config['defaultPlugins'] = array(//'officeReader',
+$config['defaultPlugins'] = array(
 	'adminer','DPlayer','imageExif','jPlayer','photoSwipe','picasa','pdfjs',
-	'simpleClock','client','webodf','webdav','toolsCommon'
+	'simpleClock','client','webodf','webdav','toolsCommon',
+	'yzOffice','officeViewer',
 );
 
 //初始化系统配置

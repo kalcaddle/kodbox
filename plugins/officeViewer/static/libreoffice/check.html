@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+	<meta name="renderer" content="webkit">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+	<title>LibreOffice软件检测</title>
+	<link rel="icon" type="image/x-png" href="<?php echo $this->pluginHost.'static/images/icons/text.png';?>">
+	<?php $this->link();?>
+	<style type="text/css">
+		body{background-color:#f0f2f5;}
+		html,body{position: inherit;width: inherit;height:inherit;overflow: inherit;}
+		body a,body a:hover{color: #1890ff;}
+		.body-panel{
+			width:70%;margin:5% auto 5% auto;
+			font-size: 13px;color:#666;
+			background:#fff;border-radius:4px;
+			padding-top:50px;padding-bottom: 50px;
+			box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+		}
+		.body-panel .check-result{text-align: center;color:#000;}
+		.body-panel .check-result .icon{width:70px;height:70px;line-height:70px;font-size:30px;}
+		.check-result-title{font-size: 24px;line-height: 32px;margin:20px 0;}
+		.check-result-desc{color:#aaa;margin:0 0 20px 0;}
+
+		.body-panel .check-list{padding:20px 40px;border-radius: 2px;background: #fafafa;}
+		.body-panel .check-list .list-title{
+			color:#000;font-size:18px;margin-bottom:30px;
+			border-left: 5px solid #2196F3;padding-left: 15px;
+		}
+		.body-panel .check-list .check-list-item{margin-bottom:15px;}
+		.body-panel .check-list .check-list-item .icon{margin-right:8px;}
+		.check-list-item .error-info {
+			color: #f5222d;
+			padding-left: 5px;
+			padding: 2px 5px;
+			border-radius: 2px;
+		}	
+		.icon{
+		    display: inline-block;
+		    width: 20px;height: 20px;
+		    background: rgba(0, 0, 0, 0.02);
+		    text-align: center;
+		    color: #666;
+		    border-radius: 50%;
+		    line-height: 20px;
+		    font-size: 12px;
+		}
+	</style>
+</head>
+
+
+<body>
+	<div class="body-panel">
+		<div class="check-result">
+			<div class="icon icon-loading"></div> 
+			<div class="check-result-title">环境检测中...</div>
+			<div class="check-result-desc">&nbsp;<span class="error-info hidden">请核对服务器信息，配置正确后再试！</span></div>
+		</div>
+		<!--<div class="check-list">-->
+		<!--	<h3 class="list-title">检测详细结果如下:</h3>-->
+		<!--</div>-->
+		
+		<script type="text/javascript">
+		var updateStatus = function(success,msg){
+			var $result = $('.check-result');
+			if(success){
+				$result.find('.icon').removeClass('icon-loading').addClass('icon-success');
+				$result.find('.check-result-title').html("恭喜，一切正常");
+			}else{
+				$result.find('.icon').removeClass('icon-loading').addClass('icon-error');
+				$result.find('.check-result-title').html("运行环境异常");
+				$result.find('.error-info').html(msg);
+				$result.find('.error-info').removeClass('hidden');
+			}
+		}
+		$(document).ready(function(){
+			$.ajax({
+				url:"<?php echo $this->pluginApi.'libreOffice/index/check&check=1';?>",
+				timeout:5000,
+				error:function(){
+				    updateStatus(false);
+				},
+				success: function(data){
+				    updateStatus(data.code,data.data);
+				}
+			});
+		});
+	</script>
+	</div>
+</body>
+</html>

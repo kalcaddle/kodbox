@@ -1,0 +1,22 @@
+body {background: #fff;}
+table, table tr th, table tr td {
+    border: 1px solid #ddd;
+    padding: 0px 8px;
+}
+table {
+    min-height: 25px;
+    line-height: 25px;
+    /* text-align: center; */
+    border-collapse: collapse;
+    font-size: 15px;
+}
+table tr {height: 25px;text-align: center;}
+table tr:not(:first-child) {text-align: left; color: #333;}
+table tr td {min-width: 20px;}
+table tr td:not(:first-child) {
+    min-width: 80px;
+    max-width: 120px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}

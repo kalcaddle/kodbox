@@ -83,11 +83,12 @@
 		var cacheFile= '<?php echo $config["cacheFile"];?>';
 		var apiUrl = {
 			task:apiBase+'task&path='+urlEncode(path),
+			restart:apiBase+'restart&path='+urlEncode(path),
 			getFile:apiBase+'getFile&path='+urlEncode(path)+'&file='
 		}
 		var request = function(){
 			$('.load-content').fadeIn(100);
-			$('.progress-text').removeClass('alert-danger').html(LNG['gstarCAD.Main.transfer']);
+			$('.progress-text').removeClass('alert-danger').html(LNG['yzOffice.Main.transfer']);
 			$('.progress-bar').css('width',"0%");
 			var repeatTimer;
 			var taskStatus = function(){
@@ -104,9 +105,11 @@
 				if(!data.code){
 					var error = data.data;
 					if(!_.isString(error)){
-						error = LNG['explorer.error'];
+						error = LNG['error'];
 					}
 					clearInterval(repeatTimer);
+					error += '&nbsp;&nbsp;<a class="load_repeat" href="javascript:void(0);">'
+                			     + LNG['yzOffice.Main.transferAgain']+'</a>';
 					$('.progress-text').addClass('alert-danger').html(error);
 					$('.progress-slider,.progress-loading').hide();
 					return;
@@ -116,7 +119,8 @@
 				if(data.data.success == 1){
 					clearInterval(repeatTimer);
 					var item = data.data.steps[data.data.steps.length-1];
-					$('.progress-text').html(LNG['success']+LNG['yzOffice.Main.convert']);
+					// $('.progress-text').html(LNG['success']+LNG['yzOffice.Main.convert']);
+					$('.progress-text').html(LNG['yzOffice.Main.convert']);
 					loadSuccess(data);
 				}else{
 					var step = data.data.steps[data.data.currentStep];
@@ -141,7 +145,7 @@
 						$('.progress-bar').css('width',(stepInfo.taskPercent*100)+"%");
 					}else if(step.name == 'convertProcess'){
 						$('.progress-slider').addClass('hidden');
-						$('.progress-text').html(LNG['gstarCAD.Main.conver']);
+						$('.progress-text').html(LNG['yzOffice.Main.convert']);
 					}
 				}
 			}
@@ -152,8 +156,25 @@
 		var loadSuccess = function(data){
 			window.location.reload();
 		}
+		var loadError = function(error){
+			$('.progress-slider,.progress-loading').hide();
+			error += '&nbsp;&nbsp;<a class="load_repeat" href="javascript:void(0);">'+
+			LNG['yzOffice.Main.transferAgain']+'</a>';
+			$('.progress-text').addClass('alert-danger').html(error).css('text-align','left');
+		}
 		$(window).ready(function(){
 			request();
+			$('.load_repeat').live('click',function(){
+				$.ajax({
+					url:apiUrl.restart+"&time"+UUID(),
+					dataType:'json',
+					success:function(data){
+						if(data.code){
+							request();
+						}
+					}
+				});
+			});
 		});
 	</script>
 </head>

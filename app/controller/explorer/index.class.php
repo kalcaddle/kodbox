@@ -328,10 +328,11 @@ class explorerIndex extends Controller{
 		$result = array();
 		foreach ($list as $value) {
 			$parse = KodIO::parse($value['path']);
-			if($parse['type'] == KodIO::KOD_SHARE_ITEM){
-				$result[] = $value['path'];continue;//处理成类物理路径回收站;
+			$thePath = $value['path'];// io路径;物理路径;协作分享路径处理保持不变;
+			if($parse['type'] == KodIO::KOD_SOURCE){
+				$thePath = IO::getPath($value['path']);
 			}
-			$result[] = IO::getPath($value['path']);
+			$result[] = $thePath;
 		}
 		return $result;
 	}

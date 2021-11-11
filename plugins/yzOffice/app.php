@@ -17,69 +17,100 @@ class yzOfficePlugin extends PluginBase{
 	public function echoJs(){
 		$this->echoFile('static/main.js');
 	}
+
 	public function index(){
-		$app = $this->getObj();
-		$fileName = $this->fileInfo['name'] . ' - '.LNG('common.copyright.name').LNG('common.copyright.powerBy');
+        $app = $this->getObj();
 		if(!$app->task['success'] ){
+            if($link = $this->fileLink()) {
+                $this->fileOutLink($app, $link);
+            }
 			include($this->pluginPath.'php/template.php');
 			return;
 		}
-
-		//获取页面
+		//获取预览url
 		$step     = count($app->task['steps']) - 1;
 		$infoData = $app->task['steps'][$step]['result'];
-		if( !is_array($infoData['data']) ){
+		if($infoData['errorcode'] || !is_array($infoData['data']) ){
 			$app->clearCache();
 			show_tips($infoData['message']);
 		}
-		$link = $infoData['data'][0];
-		$name = md5($link).'.html.temp';
-		if($sourceID = IO::fileNameExist($this->cachePath, $name)){
-			$content = IO::getContent(KodIO::make($sourceID));
-		}else{
-			$result = url_request($link,'GET');
-			if($result['code'] == 200){
-				$title = '<title>永中文档转换服务</title>';
-				$content = str_replace($title,'<title>'.$fileName.'</title>',$result['data']);
-				$this->pluginCacheFileSet($this->cachePath . $name, $content);
-			}else{
-				$app->clearCache();
-				show_tips($result);
-			}
-		}
-		if(strstr($content,'location.href = ')){
-			$app->clearCache();
-			show_tips("请求转换异常，请重试！");
-		}
+        if(empty($infoData['data']['viewUrl'])) {
+            $app->clearCache();
+            show_tips(LNG('yzOffice.Main.invalidUrl'));
+        }
+		$link = $infoData['data']['viewUrl'];
+        $link = $this->fileLink($link);
+        $this->fileOutLink($app, $link);
+    }
+    /**
+     * viewUrl读取、更新和删除
+     * @param boolean $link
+     * @param boolean $del
+     * @return void
+     */
+    private function fileLink($link = false, $del = false){
+		$key = md5($this->pluginName . '.yzOffice.viewUrls');
+        $data = Cache::get($key);
+        if(!$data) $data = array();
+		$name = md5($this->realFilePath);
+        if(!$link) {
+            return isset($data[$name]) ? $data[$name] : false;
+        }
+        if($del) {
+            unset($data[$name]);
+        }else{
+            $data[$name] = $link;
+        }
+        Cache::set($key, $data);
+        return $link;
 
-		//替换内容
-		$config = $this->getConfig();
-		if(!$config['cacheFile']){ 
-			header("Location: ".$html);
-			exit;
-		}
-		$name  = str_replace(".html",'',get_path_this($link));
-		$urlReplaceFrom   = './'.$name.".files";
-		$urlReplaceTo     = $this->pluginApi.'getFile&path='.rawurlencode($this->in['path']).
-		$urlReplaceTo 	 .= '&file='.rawurlencode($urlReplaceFrom);
-		// show_json(array($result,$urlReplaceFrom,$urlReplaceTo),false);
-		
-		$content = str_replace($urlReplaceFrom,$urlReplaceTo,$content);
-		$content = str_replace('"'.$name.'.files','"'.$urlReplaceTo,$content);
-		$content = str_replace(array('<!DOCTYPE html>','<html>','<head>','</html>'),'',$content);
-		include('php/assign/header.php');
-		echo $content;
-		include('php/assign/footer.php');
-	}
+		$path = $this->pluginPath . 'data/';
+		if(!is_dir($path)) mk_dir($path);
+        $file = $path . 'viewurls.txt';
+        if(@!file_exists($file) && !$link) return false;
+        $data = file_get_contents($file);
+        $data = json_decode($data, true);
+        $name = md5($this->realFilePath);
+        if(!$link) {
+            return isset($data[$name]) ? $data[$name] : false;
+        }
+        if($del) {
+            unset($data[$name]);
+        }else{
+            $data[$name] = $link;
+        }
+        // 可能要加锁
+        file_put_contents($file, json_encode_force($data));
+        return $link;
+    }
+    // 链接可能已失效，输出前先判断
+    private function fileOutLink($app, $link){
+		$res = url_request($link);
+		$data = json_decode($res['data'], true);
+        // 没有错误(字符串decode结果为null)，且set-cookie不为空（正常为viewpath=xxx，过期的为空），直接输出
+        if(!$data && (!empty($res['header']['Set-Cookie']) || !empty($res['header']['set-cookie']))) {
+            header('Location:' . $link);
+        } else {
+            $app->clearCache();
+            $this->fileLink($link, true);
+            // $this->index();
+            $msg = isset($data['message']) ? $data['message'] : LNG('yzOffice.Main.linkExpired');
+			show_tips($msg . LNG('yzOffice.Main.tryAgain'));
+        }
+		exit;
 
-	// 预览模式
-	public function initViewMode(){
-		//IE8自动切换为普通模式
-		if( strpos($_SERVER["HTTP_USER_AGENT"],"MSIE 8.0") ){
-			$this->getConfig();
-			$this->pluginConfig['preview'] = '0';
-		}
-	}
+        $res = url_request($link);
+		$data = json_decode($res['data'], true);
+        // 没有错误，直接输出
+        if(!$data && !empty($res['header']['Set-Cookie'])) {
+            header('Location:' . $link);exit;
+        }
+        $app->clearCache();
+        $this->fileLink($link, true);
+		$msg = isset($data['message']) ? $data['message'] : LNG('explorer.error');
+        show_tips($msg . LNG('yzOffice.Main.tryAgain'));
+    }
+
 	public function task(){
 		$app = $this->getObj();
 		$app->runTask();
@@ -90,6 +121,7 @@ class yzOfficePlugin extends PluginBase{
 	}
 	private function getObj(){
 		$path = $this->filePath($this->in['path']);
+		$this->realFilePath = $path;
 		// if(filesize($path) > 1024*1024*2){
 		// 	//show_tips("由于永中官方接口限制,<br/>暂不支持大于2M的文件在线预览！");
 		// }
