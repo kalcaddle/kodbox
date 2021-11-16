@@ -965,7 +965,7 @@ return array(
     "common.upload"                  => "Upload",
     "common.download"                => "Download",
     "common.export"                  => "Esporta",
-    "common.cover"                   => "Sovrascrivvi",
+    "common.cover"                   => "Sovrascrivi",
     "common.retry"                   => "Riprova",
     "common.zip"                     => "Comprimi",
     "common.unzip"                   => "Estrai",
