@@ -1,44 +1,74 @@
 var utils = {
-    ab2str: function(ab,func) {
-        var blob    = new Blob([ab]);
-        var reader  = new FileReader();
-        reader.readAsText(blob, 'utf-8');
-        reader.onload = function (){
-            func.call(null,reader.result);
-        }
-    },
-    str2ab: function(str,func) {
-        var blob    = new Blob([str],{type:'text/plain'});
-        var reader  = new FileReader();
-        reader.readAsArrayBuffer(blob);
-        reader.onload = function (){
-            func.call(null,r.result);
-        }
-    },
-    // csv字符串转luckysheet.data
-    csvToLuckySheet: function(str){
-        var obj = [];
-        var arr = str.split("\r\n");
-        var rows = arr.length > 84 ? arr.length : 84;   // 行，数字
-        for(var i=0; i < rows; i++) {
-            var line = arr[i] ? arr[i].split(',') : [];
-            var cols = line.length > 26 ? line.length : 26;   // 列，字母
-            var row = [];
-            for(var j=0; j < cols; j++) {
-                var cell = null;
-                if(line[j]) {
-                    var value = line[j];
-                    cell = {
-                        m: value,
-                        ct: {fa: 'General', t: 'g'},
-                        v: value
-                    }
-                }
-                row.push(cell);
+    isUTF8: function (bytes) {
+        var i = 0;
+        while (i < bytes.length) {
+            if ((// ASCII
+                bytes[i] == 0x09 ||
+                bytes[i] == 0x0A ||
+                bytes[i] == 0x0D ||
+                (0x20 <= bytes[i] && bytes[i] <= 0x7E)
+            )
+            ) {
+                i += 1;
+                continue;
             }
-            obj.push(row);
+
+            if ((// non-overlong 2-byte
+                (0xC2 <= bytes[i] && bytes[i] <= 0xDF) &&
+                (0x80 <= bytes[i + 1] && bytes[i + 1] <= 0xBF)
+            )
+            ) {
+                i += 2;
+                continue;
+            }
+
+            if ((// excluding overlongs
+                bytes[i] == 0xE0 &&
+                (0xA0 <= bytes[i + 1] && bytes[i + 1] <= 0xBF) &&
+                (0x80 <= bytes[i + 2] && bytes[i + 2] <= 0xBF)
+            ) ||
+                (// straight 3-byte
+                    ((0xE1 <= bytes[i] && bytes[i] <= 0xEC) ||
+                        bytes[i] == 0xEE ||
+                        bytes[i] == 0xEF) &&
+                    (0x80 <= bytes[i + 1] && bytes[i + 1] <= 0xBF) &&
+                    (0x80 <= bytes[i + 2] && bytes[i + 2] <= 0xBF)
+                ) ||
+                (// excluding surrogates
+                    bytes[i] == 0xED &&
+                    (0x80 <= bytes[i + 1] && bytes[i + 1] <= 0x9F) &&
+                    (0x80 <= bytes[i + 2] && bytes[i + 2] <= 0xBF)
+                )
+            ) {
+                i += 3;
+                continue;
+            }
+
+            if ((// planes 1-3
+                bytes[i] == 0xF0 &&
+                (0x90 <= bytes[i + 1] && bytes[i + 1] <= 0xBF) &&
+                (0x80 <= bytes[i + 2] && bytes[i + 2] <= 0xBF) &&
+                (0x80 <= bytes[i + 3] && bytes[i + 3] <= 0xBF)
+            ) ||
+                (// planes 4-15
+                    (0xF1 <= bytes[i] && bytes[i] <= 0xF3) &&
+                    (0x80 <= bytes[i + 1] && bytes[i + 1] <= 0xBF) &&
+                    (0x80 <= bytes[i + 2] && bytes[i + 2] <= 0xBF) &&
+                    (0x80 <= bytes[i + 3] && bytes[i + 3] <= 0xBF)
+                ) ||
+                (// plane 16
+                    bytes[i] == 0xF4 &&
+                    (0x80 <= bytes[i + 1] && bytes[i + 1] <= 0x8F) &&
+                    (0x80 <= bytes[i + 2] && bytes[i + 2] <= 0xBF) &&
+                    (0x80 <= bytes[i + 3] && bytes[i + 3] <= 0xBF)
+                )
+            ) {
+                i += 4;
+                continue;
+            }
+            return false;
         }
-        return obj;
+        return true;
     },
 
     // 读取cell的数字或字母

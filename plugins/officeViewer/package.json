@@ -2,7 +2,7 @@
 	"id":"officeViewer",
 	"name":"{{LNG['officeViewer.meta.name']}}",
 	"title":"{{LNG['officeViewer.meta.title']}}",
-	"version":"1.06",
+	"version":"1.07",
 	"category":"file",
 	"source":{
 		"icon":"{{pluginHost}}static/images/icon.png"
