@@ -130,8 +130,7 @@ function webroot_path($basicPath){
 			return rtrim($path,'/').'/';
 		}
 	}
-	
-	return $_SERVER['DOCUMENT_ROOT'];
+	return str_replace('\\','/',$_SERVER['DOCUMENT_ROOT']);
 }
 
 function ua_has($str){

@@ -155,7 +155,7 @@ class KodSSO{
 				return rtrim($path,'/').'/';
 			}
 		}
-		return $_SERVER['DOCUMENT_ROOT'];
+		return str_replace('\\','/',$_SERVER['DOCUMENT_ROOT']);
 	}
 	public static function host(){
 		$protocol = "http://";
