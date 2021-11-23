@@ -150,10 +150,13 @@ class userIndex extends Controller {
 	public function accessToken(){
 		$pass = Model('SystemOption')->get('systemPassword');
 		$pass = substr(md5('kodbox_'.$pass),0,15);
-		$token = Mcrypt::encode(Session::sign(),$pass,3600*24);
+		$token = Mcrypt::encode(Session::sign(),$pass,3600*24*30);
 		return $token;
 	}
 	public function accessTokenGet(){
+		if(!Session::get('kodUser')){
+			show_json('user not login!',ERROR_CODE_LOGOUT);
+		}
 		show_json($this->accessToken(),true);
 	}
 	

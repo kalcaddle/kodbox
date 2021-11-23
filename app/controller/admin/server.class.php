@@ -96,8 +96,8 @@ class adminServer extends Controller {
 		$str = '';
 		$filePath = '/proc/uptime';
 		if (@is_file($filePath)) {
-			$str	= file_get_contents($filePath);
-			$num	= (float) $str;
+			$res	= file_get_contents($filePath);
+			$num	= (float) $res;
 			$sec	= (int) fmod($num, 60);
 			$num	= (int) ($num / 60);
 			$min	= (int) $num % 60;
@@ -111,7 +111,7 @@ class adminServer extends Controller {
 			// $isCn = stristr(I18n::getType(),'zh') ? true : false;
 			foreach($time as $key => $val) {
 				// $ext = $isCn ? LNG('common.'.$key) : strtoupper(substr($key, 0, 1));
-				$str .= ' ' . $val . ' ' . LNG('common.'.$key);
+				$str .= ' ' . ($val ? $val : 0) . ' ' . LNG('common.'.$key);
 			}
 		}
 		return !$str ? LNG('common.unavailable') : trim($str);

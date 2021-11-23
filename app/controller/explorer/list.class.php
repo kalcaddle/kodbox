@@ -570,13 +570,20 @@ class explorerList extends Controller{
 		return array_values($result);
 	}
 	
+	private function groupRoot(){
+		$groupSelf  = array_to_keyvalue(Session::get("kodUser.groupInfo"),'','groupID');
+		if(!$groupSelf) return false;
+		$groupCompany = $GLOBALS['config']['settings']['groupCompany'];
+		$groupAllowShow = Model('Group')->groupShowRoot($groupSelf[0],$groupCompany);
+		return Model('Group')->getInfo($groupAllowShow[0]);
+	}
+	
 	/**
 	 * 文件位置
 	 * 收藏夹、我的网盘、公共网盘、我所在的部门
 	 */
 	private function blockFiles(){
-		$groupRoot 	= '1';
-		$groupInfo 	= Model('Group')->getInfo($groupRoot);
+		$groupInfo 	= $this->groupRoot();
 		$list = array(
 			"fav"		=> array("path"	=> KodIO::KOD_USER_FAV),
 			"my"		=> array(
@@ -596,14 +603,14 @@ class explorerList extends Controller{
 		
 		if(!$this->pathEnable('myFav')){unset($list['fav']);}
 		if(!$this->pathEnable('my')){unset($list['my']);}
-		if(!$this->pathEnable('rootGroup')){unset($list['rootGroup']);}
+		if(!$this->pathEnable('rootGroup') || !$groupInfo){unset($list['rootGroup']);}
 		if(!$this->pathEnable('myGroup')){unset($list['myGroup']);}
 		
 		// 没有所在部门时不显示;
 		if(isset($list['myGroup'])){
 			$selfGroup 	= Session::get("kodUser.groupInfo");
 			$groupArray = array_to_keyvalue($selfGroup,'groupID');//自己所在的组
-			$group 		= array_remove_value(array_keys($groupArray),1);
+			$group 		= array_remove_value(array_keys($groupArray),$groupInfo['groupID']);
 			if(!$group){unset($list['myGroup']);}
 		}
 

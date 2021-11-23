@@ -102,6 +102,21 @@ class adminLog extends Controller{
             'type'      => array('default' => ''),
             'ip'        => array('default' => null),
         ));
+		
+		// 部门管理员, 只能查询自己为部门管理员部门下的成员操作日志;
+		if(!_get($GLOBALS,'isRoot')){
+			$filter = Action("filter.UserGroup");
+			if($data['userID'] && !$filter->allowChangeUser($data['userID'])){
+				show_json(LNG('explorer.noPermissionAction'),false);
+			}
+			$groupAdmin = $filter->userAdminGroup();
+			if(!$data['userID'] && !in_array('1',$groupAdmin)){
+				$groupAll = Model('Group')->groupChildrenAll($groupAdmin);
+				$userAll  = Model('User')->groupUserAll($groupAll);
+				$data['userID'] = array('in',$userAll);
+			}
+		}
+		
         $res = $this->model->get($data);
         if(empty($res)) show_json(array());
         show_json($res['list'], true, $res['pageInfo']);

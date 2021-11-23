@@ -43,6 +43,7 @@ $config['settings'] = array(
 	'shareLinkSizeMax'		=> 0,			// 分享文件/文件夹最大大小限制; 0不限制; 单位GB(float)
 	'unzipFileSizeMax'  	=> 0,			// 文件解压压缩包大小限制; 0-不限制; 单位GB(float)
 	'zipFileSizeMax'  		=> 0,			// 文件(夹)压缩大小限制;   0-不限制; 单位GB(float)
+	'groupCompany'			=> 0,			// 二级部门为子公司,独立部门;
 	
 	'staticPath'		=> APP_HOST."static/",	//静态文件目录,可以配置到cdn;
 	'kodApiServer'		=> "https://api.kodcloud.com/?", //QQ微信登录/邮件发送/插件-列表等 

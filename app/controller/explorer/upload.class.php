@@ -81,8 +81,13 @@ class explorerUpload extends Controller{
 		}
 	}
 	private function uploadInfo($path){
-		if($this->in['fileInfo'] != '1') return $path;
 		$info = IO::info($path);
+		// 记录文件本身最后修改时间;
+		if($info && $this->in['modifyTime']){
+			IO::setModifyTime($path,substr($this->in['modifyTime'],0,10));
+		}
+		
+		if($this->in['fileInfo'] != '1') return $path;
 		$info = array_field_key($info,array("ext",'name','createTime','size','path','pathDisplay'));
 		$info['downloadPath'] = Action('explorer.share')->link($path);
 		return $info;

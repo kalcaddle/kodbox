@@ -59,11 +59,21 @@ class userView extends Controller{
 			$api = $options['system']['settings']['kodApiServer'];
 			$options['system']['settings']['kodApiServer'] = str_replace('http://','https://',$api);
 		}
-
 		$options = Hook::filter('user.view.options.before',$options);
 		$options = Hook::filter('user.view.options.after',$options); 
 		$options = $this->parseMenu($options);
+		$this->companyInfo($options);
 		show_json($options);
+	}
+	
+	private function companyInfo(&$options){
+		$groupSelf  = array_to_keyvalue(Session::get("kodUser.groupInfo"),'','groupID');
+		$groupCompany = $GLOBALS['config']['settings']['groupCompany'];
+		if(!$groupCompany || !$groupSelf || $GLOBALS['isRoot']) return false;
+
+		$groupAllowShow = Model('Group')->groupShowRoot($groupSelf[0],$groupCompany);
+		$groupInfo = Model('Group')->getInfo($groupAllowShow[0]);
+		$options['kod']['companyInfo'] = array('name'=>$groupInfo['name'],'logoType'=>'text','logoText'=>$groupInfo['name']);
 	}
 
 	/**
