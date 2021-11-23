@@ -10,6 +10,8 @@ return array(
 	'webdav.config.pathAllowAll'	=> "全部",
 	'webdav.config.pathAllowSelf'	=> "个人网盘",
 	'webdav.user.morePath'			=> "挂载更多位置",
+	'webdav.config.logTitle'		=> "执行日志",
+	'webdav.config.logDesc'			=> "WebDAV执行请求日志",
 	
 	'webdav.tips.https'			=> "<b>https:</b> 推荐使用https, 加密传输更安全; (windows挂载webdav默认限制必须https,可以去除限制)",
 	'webdav.tips.upload'		=> "<b>上传下载限制:</b> 支持上传最大文件取决于服务器上传限制及超时时间,	

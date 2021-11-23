@@ -40,6 +40,7 @@ class filterPost extends Controller{
 			'explorer.history'	=> 'fileOut',
 			'explorer.index'	=> 'fileOut,fileDownload,fileOutBy,fileDownloadRemove',
 			'explorer.share'	=> 'file,fileOut,fileDownload,zipDownload,fileDownloadRemove',
+			'admin.setting'		=> 'get,set',
 			
 			'install.index'	 	=> '*',
 			'user.index' 		=> 'index,autoLogin,loginSubmit,logout',//accessTokenGet logout

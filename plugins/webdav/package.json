@@ -2,7 +2,7 @@
 	"id":"webdav",
 	"name":"{{LNG['webdav.meta.name']}}",
 	"title":"{{LNG['webdav.meta.title']}}",
-	"version":"1.26",
+	"version":"1.28",
 	"source":{
 		"className":" font-icon ri-hard-drive-fill-2 bg-yellow-6",
 		"icon":""
@@ -35,8 +35,8 @@
 		"echoLog":{
 			"type":"switch",
 			"value":"0",
-			"display":"执行日志",
-			"desc":"WebDAV执行请求日志，./data/temp/log/webdav/"
+			"display":"{{LNG['webdav.config.logTitle']}}",
+			"desc":"{{LNG['webdav.config.logDesc']}}:./data/temp/log/webdav/"
 		},
 		"pluginAuth":{
 			"type":"userSelect",

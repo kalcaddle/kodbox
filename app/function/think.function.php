@@ -88,7 +88,8 @@ function think_error_parse(&$error){
         'timed out'             => '连接超时，请检查服务器地址是否正确。',
         'connection refused'    => '连接被拒绝：配置信息有误，或服务未启动。',
         'getaddrinfo failed'    => '连接错误，请检查服务器地址是否正确。',
-        '_NOT_SUPPERT_'         => '不支持的数据库类型，请检查对应服务，或配置文件是否正常。'
+        '_NOT_SUPPERT_'         => '不支持的数据库类型，请检查对应服务，或配置文件是否正常。',
+        'Access denied'         => '拒绝访问：权限不足。'
     );
     foreach($errMsg as $key => $msg) {
         if(stripos($error, $key) !== false) {

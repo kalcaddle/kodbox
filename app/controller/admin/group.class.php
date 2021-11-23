@@ -155,4 +155,19 @@ class adminGroup extends Controller{
 		$msg = $res ? LNG('explorer.success') : LNG('explorer.error');
 		show_json($msg,!!$res);
 	}
+
+	/**
+	 * 排序
+	 */
+	public function sort() {
+		$ids = Input::get('groupID','require');
+		$ids = explode(',', $ids);
+		$res = false;
+		if (!empty($ids)) {
+			$this->model->groupSort($ids);
+			$res = true;
+		}
+		$msg = $res ? LNG('explorer.success') : LNG('explorer.error');
+		show_json($msg,!!$res);
+	}
 }

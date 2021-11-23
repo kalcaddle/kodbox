@@ -1,0 +1,19 @@
+/* 错误提示页 */
+#msgbox{box-shadow: 0px 10px 40px rgba(0, 0, 0, 0.1);border-radius: 5px;border-radius: 5px;background: #fff;
+        font-family: "Lantinghei SC","Hiragino Sans GB","Microsoft Yahei",Helvetica,arial,sans-serif;line-height: 1.5em;
+        color:888;margin:0 auto;margin-top: 10%; margin-bottom: 10%; width:500px;font-size:13px;color:#666;word-wrap: break-word;word-break: break-all;max-width: 90%;box-sizing: border-box;max-height: 90%;overflow: auto;padding:30px 30px;}
+#msgbox #info {margin-top: 10px; color: #aaa;}
+#msgbox #title {color: #333; border-bottom: 1px solid #eee; padding: 10px 0; margin: 0 0 15px; font-size: 20px; font-weight:200;}
+#msgbox #info a {color: #64b8fb; text-decoration: none; padding: 2px 0px; border-bottom: 1px solid;}
+#msgbox a {text-decoration: none; color: #2196F3;}
+#msgbox a:hover {color: #f60; border-bottom: 1px solid}
+#msgbox .desc {padding: 10px 0; color: #faad14; }
+#msgbox pre {word-break: break-all; word-wrap: break-word; white-space: pre-wrap; 
+    background: #002b36; padding: 1em; color: #839496; border-left: 6px solid #8e8e8e; border-radius: 3px;}
+
+/* 文档页 */
+body {background: #f6f6f6; margin: 8px 0px;}
+body .page-box{background: #fff;}
+.page-box.kod-pptxjs-box .slide:after{z-index: 1000000 !important;}
+
+.hidden {display: none;}

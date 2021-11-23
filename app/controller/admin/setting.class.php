@@ -22,6 +22,10 @@ class adminSetting extends Controller {
 		foreach ($removeKey as $key) {
 			unset($data[$key]);
 		}
+		
+		// 根部门名称;
+		$groupRoot = Model('Group')->where(array("parentID"=>0))->find();
+		if($groupRoot){$data['groupRootName'] = $groupRoot['name'];}
 		show_json($data);
 	}
 	//管理员  系统设置全局数据

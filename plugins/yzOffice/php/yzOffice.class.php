@@ -16,17 +16,17 @@ class yzoffice{
 
 	public $cachePath;	// 缓存文件目录
 	public $cacheTask;	// 任务信息缓存名称
-	public function __construct($plugin,$filePath,$oldVersion=true){
+	public function __construct($plugin,$filePath){
 		$this->plugin = $plugin;
 		$this->filePath = $filePath;
 
 		$this->api = array(
-			'upload'	=> "http://dcs.yozosoft.com/testUpload",
-			'convert'	=> "http://dcs.yozosoft.com/convert",
+			'upload'	=> "https://www.yozodcs.com/fcscloud/file/upload",
+			'convert'	=> "https://www.yozodcs.com/fcscloud/composite/convert",
 		);
 
 		$this->cachePath = $this->plugin->cachePath;
-		$this->cacheTask = md5($this->cachePath . $this->filePath);
+		$this->cacheTask = md5($this->cachePath . IO::hashSimple($this->filePath));
 
 		// 任务信息，如有缓存直接读取；否则读任务文件内容，存入缓存
 		$this->taskFile = $this->cachePath.'info.json';
@@ -115,24 +115,12 @@ class yzoffice{
 		return $lastStep['status'] == 2 ? $taskHas : false;
 	}
 
-	private function convertMode(){
-		$this->plugin->initViewMode();
-		$config = $this->plugin->getConfig();
-		$ext = get_path_ext($this->plugin->fileInfo['name']);
-		$mode = $config['preview'];
-		if(in_array($ext,array("xls","xlsb","xlsx","xlt","xlsm","csv",'ppt','pptx'))){
-			$mode = '1';//excle不支持高清模式，自动切换
-		}
-		return $mode;
-	}
-
 	//非高清预览【返回上传后直接转换过的文件】
 	public function upload(){
 		ignore_timeout();
 		$path = $this->plugin->pluginLocalFile($this->filePath);
 		$post = array(
 			"file"			=> "@".$path,
-			"convertType"	=> $this->convertMode(),
 		);
 		$task = new TaskHttp($this->task['taskUuid'],'plugin.yzOffice.upload',filesize($path));
 		$result = url_request($this->api['upload'],'POST',$post,false,false,true,3600);
@@ -140,14 +128,15 @@ class yzoffice{
 	}
 	public function convert($tempFile=false){
 		$headers = array("Content-Type: application/x-www-form-urlencoded; charset=UTF-8");
-		$tempFile = $tempFile?$tempFile:$this->task['steps'][0]['result']['data'];
+		$tempFile = $tempFile?$tempFile:$this->task['steps'][0]['result']['data']['data'];
 		$postArr = array(
-			"inputDir"		=> $tempFile,
-			"sourceFolder" 	=> rtrim(get_path_father($tempFile),'/'),
-			"convertType"	=> $this->convertMode(),
-			"isAsync"		=> 1,
-			"isDownload"	=> 0,
-			"isSignature"	=> 0,
+			'srcRelativePath'	=> $tempFile,
+			'convertType'		=> 61,
+			'isDccAsync'		=> 1,
+			'isCopy'			=> 1,
+			// 'time'				=> 1800
+			'isShowTitle'		=> 0,	// 显示文件名
+			'isDelSrc'			=> 1,	// 删除源文件
 		);
 		$post = http_build_query($postArr);//post默认用array发送;content-type为x-www-form-urlencoded时用key=1&key=2的形式
 		$result = url_request($this->api['convert'],'POST',$post,$headers,false,true,3600);
@@ -161,7 +150,6 @@ class yzoffice{
 		Cache::remove($this->cacheTask);
 		Task::kill($this->task['taskUuid']);
 		IO::remove($this->cachePath, false);
-		show_json('success');
 	}
 
 	public function uploadProcess(){

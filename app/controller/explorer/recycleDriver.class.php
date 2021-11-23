@@ -28,6 +28,7 @@ class explorerRecycleDriver extends Controller{
 			return $this->moveToRecycle($path,$recyclePath,$beforePath);
 		}
 		
+		// 协作分享内容: 某人删除时, 移动到自己的回收站(物理路径及io路径; db路径处理)
 		if($pathParse['type'] == KodIO::KOD_SHARE_ITEM){
 			$driver = IO::init($path);
 			if($driver->getType() == 'drivershareitem'){
@@ -41,6 +42,11 @@ class explorerRecycleDriver extends Controller{
 					$recyclePath = rtrim($pathParse['pathBase'],'/').'/'.$recycleName;
 					return $this->moveToRecycle($driver->path,$recyclePath,$beforePath);
 				}
+			}
+
+			// 个人或部门文件夹协作分享给其他人; 其他任何人删除后进入自己的回收站;
+			if($driver->getType() == 'dbshareitem' && $toRecycle){
+				$list = $this->listData();$list[$path] = $beforePath;$this->resetList($list);
 			}
 		}
 		return IO::remove($path,$toRecycle);
@@ -68,6 +74,7 @@ class explorerRecycleDriver extends Controller{
 				continue;
 			}
 			$info['path'] = rtrim($fromPath,'/').'/'.$info['name'];
+			if($parse['type'] == KodIO::KOD_SHARE_ITEM){$info['path'] = $toPath;}
 			if($info['type'] == 'folder'){
 				$data['folderList'][] = $info;
 			}else{
@@ -92,10 +99,8 @@ class explorerRecycleDriver extends Controller{
 				in_array($beforePath,$sourceArr) || 
 				in_array(trim($beforePath,'/').'/',$sourceArr)
 			){
-				$result = IO::remove($toPath);
-				if($result){
-					unset($listNew[$toPath]);
-				}
+				IO::remove($toPath);
+				unset($listNew[$toPath]);
 			}
 		}
 		if(count($listNew) != count($list)){
@@ -114,10 +119,8 @@ class explorerRecycleDriver extends Controller{
 				in_array($beforePath,$sourceArr) || 
 				in_array(trim($beforePath,'/').'/',$sourceArr)
 			){
-				$result = IO::move($toPath,$fromPath,REPEAT_RENAME_FOLDER);
-				if($result){
-					unset($listNew[$toPath]);
-				}
+				IO::move($toPath,$fromPath,REPEAT_RENAME_FOLDER);
+				unset($listNew[$toPath]);
 			}
 		}
 		if(count($listNew) != count($list)){

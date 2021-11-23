@@ -181,9 +181,10 @@ $config['settings']['appType'] = array(
 	array('type' => 'life','name' => 'explorer.app.groupLife','class' => 'ri-map-pin-fill-2'),
 	array('type' => 'others','name' => 'common.others','class' => 'ri-more-fill'),
 );
-$config['defaultPlugins'] = array(//'officeReader',
+$config['defaultPlugins'] = array(
 	'adminer','DPlayer','imageExif','jPlayer','photoSwipe','picasa','pdfjs',
-	'simpleClock','client','webodf','webdav','toolsCommon'
+	'simpleClock','client','webodf','webdav','toolsCommon',
+	'yzOffice','officeViewer',
 );
 
 //初始化系统配置
@@ -515,7 +516,7 @@ $config['authRoleAction']= array(
 		'admin.group' 	=> 'get,getByID,search'
 	),
 	'admin.member.userEdit'	=> array('admin.member'=>'add,edit,remove,status,addGroup,removeGroup,switchGroup'),
-	'admin.member.groupEdit'=> array('admin.group'=>'add,edit,status,remove'),
+	'admin.member.groupEdit'=> array('admin.group'=>'add,edit,status,sort,remove'),
 	
 	'admin.auth.list'		=> array('admin.auth'=>'get'),
 	'admin.auth.edit'		=> array('admin.auth'=>'add,edit,remove,sort'),

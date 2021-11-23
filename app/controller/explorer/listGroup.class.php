@@ -33,6 +33,7 @@ class explorerListGroup extends Controller{
 	
 	// 根据多个部门信息,构造部门item;
 	private function groupArray($groupArray){
+		$groupArray = array_sort_by($groupArray,'sort');// 排序处理;
 		$groupArray	= array_to_keyvalue($groupArray,'groupID');//自己所在的组
 		$this->_filterDisGroup($groupArray);	// 过滤已禁用部门
 		$group = array_remove_value(array_keys($groupArray),1);
@@ -67,7 +68,7 @@ class explorerListGroup extends Controller{
 			}
 			$result[] = $pathInfo;
 		}
-		// pr($result,$groupInfo,$groupSource);exit;
+		// pr($result,$groupInfo,$groupSource,$groupArray);exit;
 		return $result;
 	}
 	// 过滤已禁用部门

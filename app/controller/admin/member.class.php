@@ -351,6 +351,7 @@ class adminMember extends Controller{
 				if($key == 'password' && empty($value[$i])) break;
 				$val = $value[$i];
                 switch($key) {
+					case 'name':
 					case 'nickName':
 						$val = $this->iconvValue($val);
 						break;

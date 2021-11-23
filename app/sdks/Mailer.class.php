@@ -83,9 +83,10 @@ class Mailer {
 			'bccList'	=> isset($data['bcc']) ? explode(';', $data['bcc']) : array(),	// 暗抄送
 		);
 		if(!isset($data['email'])) {
-			if(!$data = Model('SystemOption')->get('email')){
+			if(!$email = Model('SystemOption')->get('email')){
 				return array('code' => false, 'data' => LNG('User.Regist.emailSetError'));
 			}
+			$data = array_merge($data, $email);
 		}
 		// 允许自定义端口
 		$parts = parse_url($data['host']);

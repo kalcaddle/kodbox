@@ -57,6 +57,8 @@ class adminBackup extends Controller{
 		$backup['content'] = 1;
 		$backup['enable'] = 1;
 		Model('SystemOption')->set('backup', $backup);
+		$data = array('enable' => 1);
+		Model('SystemTask')->update($data['id'], $data);
 	}
 
     // 备份——终止http请求，后台运行

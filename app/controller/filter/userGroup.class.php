@@ -27,8 +27,11 @@ class filterUserGroup extends Controller{
 		);
 		if(!in_array($action,$actions)) return;
 		if($this->enableGroup()) return;
+		if(!Session::get("kodUser")){
+			show_json(LNG('user.loginFirst'),ERROR_CODE_LOGOUT);
+		}
 		// return show_json(array(),true); //不处理数据;
-		
+
 		if($action == 'admin.member.getbyid') return;
 		if($action == 'admin.group.getbyid'){
 			return show_json(array(),true);

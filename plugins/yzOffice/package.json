@@ -2,7 +2,7 @@
 	"id":"yzOffice",
 	"name":"{{LNG['yzOffice.meta.name']}}",
 	"title":"{{LNG['yzOffice.meta.title']}}",
-	"version":"1.50",
+	"version":"1.54",
 	"category":"file",
 	"source":{
 		"icon":"{{pluginHost}}static/images/icon.png"
@@ -20,7 +20,7 @@
 		"formStyle":{
 			"className":"form-box-title-left",
 			"tabs":{
-				"{{LNG['admin.setting.base']}}":"sep001,pluginAuth,openWith,cacheFile,preview"
+				"{{LNG['admin.setting.base']}}":"sep001,pluginAuth,openWith"
 			}
 		},
 		"pluginAuth":{
@@ -51,22 +51,5 @@
 			"desc":"{{LNG['admin.plugin.fileSortDesc']}}",
 			"value":50,
 		},
-
-		"cacheFile":{
-			"type":"switch",
-			"value":"1",
-			"display":"{{LNG['yzOffice.config.cacheFile']}}",
-			"desc":"{{LNG['yzOffice.config.cacheFileDesc']}}"
-		},
-		"preview":{
-			"type":"radio",
-			"value":"0",
-			"display":"{{LNG['yzOffice.config.preview']}}",
-			"info":{
-				"1":"{{LNG['yzOffice.config.previewNormal']}}",
-				"0":"{{LNG['yzOffice.config.previewHight']}}",
-			},
-			"desc":"<br/>{{LNG['yzOffice.config.previewDesc']}}"
-		}
 	}
 }

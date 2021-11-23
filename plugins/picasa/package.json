@@ -2,7 +2,7 @@
 	"id":"picasa",
 	"name":"{{LNG['picasa.meta.name']}}",
 	"title":"{{LNG['picasa.meta.title']}}",
-	"version":"1.26",
+	"version":"1.27",
 	"source":{
 		"className":"x-item-icon x-jpg",
 		"screenshoot":[
@@ -11,7 +11,7 @@
 		]
 	},
 	"category":"media,file",
-	"description":"{{LNG['admin.plugin.defaultPicasa']}}",
+	"description":"{{LNG['admin.plugin.name']}}",
 	"keywords":"",
 	"auther":{
 		"copyright":"kodcloud.",

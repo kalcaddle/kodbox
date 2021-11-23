@@ -18,7 +18,10 @@
  * 流程:
  * 1. 有cookie kodTokenApi; 请求kod的认证接口; 返回[ok] 则继续;
  * 2. 没有cookie kodTokenApi则跳转到kod登录界面; kod登录成功则带上kodToken跳转到该应用url; 再次验证kodToken成功则完成;
- */ 
+ */
+
+@ini_set("display_errors","on");
+@error_reporting(E_ALL^E_NOTICE^E_WARNING^E_DEPRECATED^E_STRICT);
 class KodSSO{
 	public static function check($appName="",$host=""){
 		if(!$host){$host = self::appHost();}
@@ -121,8 +124,10 @@ class KodSSO{
 	}
 	//解决部分主机不兼容问题
 	public static function webrootPath($basicPath){
+		$DOCUMENT_URI = isset($_SERVER["DOCUMENT_URI"]) ? $_SERVER["DOCUMENT_URI"]:'';
+		$SCRIPT_FILENAME = isset($_SERVER["SCRIPT_FILENAME"]) ? $_SERVER["SCRIPT_FILENAME"]:'';		
 		$index = self::pathClear($basicPath.'index.php');
-		$uri   = self::pathClear($_SERVER["DOCUMENT_URI"]);
+		$uri   = self::pathClear($DOCUMENT_URI);
 		// 兼容 index.php/explorer/list/path; 路径模式;
 		if($uri){//DOCUMENT_URI存在的情况; test.php ...统一化;
 			$uri = dirname($uri).'/index.php';
@@ -138,9 +143,9 @@ class KodSSO{
 		}
 		
 		// 子目录sso调用情况兼容;
-		if($_SERVER['SCRIPT_FILENAME'] && $_SERVER["DOCUMENT_URI"]){
-			$index = self::pathClear($_SERVER['SCRIPT_FILENAME']);
-			$uri   = self::pathClear($_SERVER["DOCUMENT_URI"]);		
+		if($SCRIPT_FILENAME && $DOCUMENT_URI){
+			$index = self::pathClear($SCRIPT_FILENAME);
+			$uri   = self::pathClear($DOCUMENT_URI);		
 			// 兼容 index.php/test/todo 情况;
 			if( strstr($uri,'.php/')){
 				$uri = substr($uri,0,strpos($uri,'.php/')).'.php';
