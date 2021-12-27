@@ -53,6 +53,7 @@ class explorerTag extends Controller{
 				"icon"		=> 'tag-label label ' . $style,
 				'tagInfo' 	=> $item,
 				'tagHas' 	=> count($find),
+				'pathDesc'  => LNG('explorer.pathDesc.tagItem'),
 			);
 		}
 		return $list;
@@ -66,6 +67,43 @@ class explorerTag extends Controller{
 		}
 		Model('UserOption')->set('userTagInit','ok','flag');
 	}
+	
+	public function listSource($tags){
+		$groupPre = 'group-';
+		if(strstr($tags,$groupPre)){
+			$tags = explode('-',substr($tags,strlen($groupPre)));
+			return Action("explorer.tagGroup")->listSource($tags[0],array_slice($tags,1));
+		}
+		
+		$tags   = explode('-',$tags);
+		$tags   = $tags[0] ? $tags : false;
+		$result = Model("Source")->listUserTag($tags);
+		$tagInfo= $this->tagsInfo($tags);
+		$tagInfo['pathAddress'] = array(
+			array("name"=> LNG('common.tag'),"path"=>'{block:fileTag}/'),
+			array("name"=> $tagInfo['name'],"path"=>$this->in['path']),
+		);
+		$tagInfo['pathDesc'] = LNG('explorer.tag.pathDesc');
+		if(!$result){$result = array("fileList"=>array(),'folderList'=>array());}
+		$result['currentFieldAdd'] = $tagInfo;
+		return $result;
+	}
+	private function tagsInfo($tags){
+		$info = false;
+		$styleDefault = 'tag-label label label-blue-normal';
+		if(!$tags){return array('name'=>'--','icon'=>$styleDefault);}
+		
+		$tagList = $this->model->listData();
+		foreach ($tagList as $item) {
+			$icon = 'tag-label label '.$item['style'];
+			if(!in_array($item['id'],$tags)) continue;
+			if(!$info){$info = array('name'=>$item['name'],'icon'=>$icon);continue;}
+			$info['name'] .= ','.$item['name'];
+		}
+		if(count($tags) > 1){$info['icon'] = $info['icon'].' label-mutil';}
+		return $info;
+	}
+	
 
 	/**
 	 * tag添加
@@ -143,28 +181,7 @@ class explorerTag extends Controller{
 	}
 
 	
-	
 	//======== tag关联资源管理 =========
-	//重置某个文档所在的tag
-	public function filesResetTag(){
-		$data = Input::getArray(array(
-			"tags"	=> array("check"=>"require"),
-			"files"	=> array("check"=>"require"),
-		));
-		$tags  = explode(',',$data['tags']);
-		$files = explode(',',$data['files']);
-		if(!$tags || !$files){
-			show_json(LNG('explorer.error'),false);
-		}
-		foreach ($files as $file) {
-			$this->modelSource->removeBySource($file);
-			foreach($tags as $tag) {
-				$this->fileAddTag($file,$tag);
-			}
-		}
-		show_json(LNG('explorer.success'));
-	}
-	
 	//将文档从某个tag中移除
 	public function filesRemoveFromTag(){
 		$data = Input::getArray(array(

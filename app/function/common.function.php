@@ -393,7 +393,7 @@ function array_set_value(&$array,$key,$value){
 	return false;
 }
 
-function _get(&$array,$key,$default=null){
+function _get($array,$key,$default=null){
 	return array_get_value($array,$key,$default);
 }
 

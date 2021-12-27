@@ -11,8 +11,6 @@
  * ppt：https://github.com/SheetJS/js-ppt   // x
  * pptx：https://github.com/meshesha/PPTXjs
  * 
- * 在线转换：https://convertio.co/zh/xls-xlsx/
- * 文件转换：https://cloudconvert.com/api
  */
 class officeViewerJsOfficeIndex extends Controller {
     protected $pluginName;

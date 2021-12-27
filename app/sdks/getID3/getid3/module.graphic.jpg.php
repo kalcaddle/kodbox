@@ -36,9 +36,7 @@ class getid3_jpg extends getid3_handler
 
 		$imageinfo = array();
 		//list($width, $height, $type) = getid3_lib::GetDataImageSize($this->fread($info['filesize']), $imageinfo);
-		list($width, $height, $type) = getimagesize($info['filenamepath'], $imageinfo); // https://www.getid3.org/phpBB3/viewtopic.php?t=1474
-
-
+		list($width, $height, $type) = getimagesize_io($info['filenamepath'], $imageinfo); // https://www.getid3.org/phpBB3/viewtopic.php?t=1474
 		if (isset($imageinfo['APP13'])) {
 			// http://php.net/iptcparse
 			// http://www.sno.phy.queensu.ca/~phil/exiftool/TagNames/IPTC.html
@@ -79,12 +77,7 @@ class getid3_jpg extends getid3_handler
 								$this->warning('Error parsing EXIF data ('.$errstr.')');
 							});
 							
-							// change by warlee; exif_read_data 读取streamwrapper的文件会异常;
-							// 参考: https://github.com/avalanche123/Imagine/issues/728
-							$fileStr  = StreamWrapperIO::read($info['filenamepath'],0,1024*64);
-							$filePath = 'data://image/jpeg;base64,'.base64_encode($fileStr);
-							$info['jpg']['exif'] = exif_read_data($filePath, null, true, false);
-							// $info['jpg']['exif'] = exif_read_data($info['filenamepath'], null, true, false);
+							$info['jpg']['exif'] = exif_read_data_io($info['filenamepath'], null, true, false);// changed by warlee;
 							restore_error_handler();
 						} else {
 							$this->warning('exif_read_data() cannot parse non-EXIF data in APP1 (expected "Exif", found "'.substr($imageinfo['APP1'], 0, 4).'")');

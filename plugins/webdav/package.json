@@ -2,7 +2,7 @@
 	"id":"webdav",
 	"name":"{{LNG['webdav.meta.name']}}",
 	"title":"{{LNG['webdav.meta.title']}}",
-	"version":"1.28",
+	"version":"1.30",
 	"source":{
 		"className":" font-icon ri-hard-drive-fill-2 bg-yellow-6",
 		"icon":""

@@ -31,8 +31,8 @@ class explorerList extends Controller{
 		$this->checkExist($current,$path);
 		switch($pathParse['type']){
 			case KodIO::KOD_USER_FAV:			$data = Action('explorer.fav')->get();break;
+			case KodIO::KOD_USER_FILE_TAG:		$data = Action('explorer.tag')->listSource($id);break;
 			case KodIO::KOD_USER_RECYCLE:		$data = $this->model->listUserRecycle();break;
-			case KodIO::KOD_USER_FILE_TAG:		$data = $this->model->listUserTag($id);break;
 			case KodIO::KOD_USER_FILE_TYPE:		$data = $this->model->listPathType($id);break;
 			case KodIO::KOD_USER_RECENT:		$data = $this->listRecent();break;
 			case KodIO::KOD_GROUP_ROOT_SELF:	$data = Action('explorer.listGroup')->groupSelf($pathParse);break;
@@ -207,6 +207,12 @@ class explorerList extends Controller{
 		}
 	}
 	private function pageReset(&$data){
+		// 合并额外current数据;
+		if(isset($data['currentFieldAdd'])){
+			$data['current'] = array_merge($data['current'],$data['currentFieldAdd']);
+			unset($data['currentFieldAdd']);
+		}
+		
 		if(!isset($data['pageInfo'])) return;
 		$group = isset($data['groupList']) ? count($data['groupList']) : 0;
 		$total = count($data['fileList']) + count($data['folderList']) + $group;
@@ -283,7 +289,8 @@ class explorerList extends Controller{
 		$current = $this->ioInfo($pathParse['type']);
 		if($pathParse['type'] == KodIO::KOD_BLOCK){
 			$list = $this->blockItems();
-			$current['name'] = _get($list[$pathParse['id']],'name','root');
+			$current = $list[$pathParse['id']];
+			$current['name'] = _get($current,'name','root');
 			$current['icon'] = 'block-'.$pathParse['id'];
 		}else if($pathParse['type'] == KodIO::KOD_USER_FILE_TYPE){
 			$list = $this->blockFileType();
@@ -318,6 +325,7 @@ class explorerList extends Controller{
 		if(defined('USER_ID')){
 			$pathInfo = Action('explorer.fav')->favAppendItem($pathInfo);
 			$pathInfo = Action('explorer.userShare')->shareAppendItem($pathInfo);
+			$pathInfo = Action('explorer.tagGroup')->tagAppendItem($pathInfo);
 		}
 		if($infoFull){
 			$pathInfo = Action('explorer.listDriver')->parsePathIO($pathInfo,$current);
@@ -367,6 +375,7 @@ class explorerList extends Controller{
 			unset($pathInfo['fileInfo']['path']);
 		}
 		$pathInfo = Hook::filter('explorer.list.itemParse',$pathInfo);
+		// $this->pathDesc($pathInfo,$pathParse);
 		return $pathInfo;
 	}
 
@@ -464,8 +473,13 @@ class explorerList extends Controller{
 		//return $pathInfo;
 		$infoKey  = 'fileInfoMore';
 		$cacheKey = 'fileInfo.'.md5($pathInfo['path'].'@'.$pathInfo['size'].$pathInfo['modifyTime']);
-		// unset($pathInfo[$infoKey]);Cache::remove($cacheKey); //不使用缓存;
 
+		// 没有图片尺寸情况,再次计算获取;[更新]
+		$isImage  = in_array($pathInfo['ext'],array('jpg','jpeg','png','ico','bmp'));
+		if($isImage && !isset($pathInfo[$infoKey]['sizeWidth'])){
+			unset($pathInfo[$infoKey]);Cache::remove($cacheKey);//不使用缓存;
+		}
+				
 		if(isset($pathInfo[$infoKey])){
 		}else if(isset($pathInfo['sourceID'])){
 			$fileID = _get($pathInfo,'fileInfo.fileID');
@@ -530,14 +544,12 @@ class explorerList extends Controller{
 		if(!$this->pathEnable('fileTag')){unset($list['fileTag']);}
 		$result = array();
 		foreach ($list as $type => $item) {
-			$block = array(
-				"name"		=> $item['name'],
+			$block = array_merge($item,array(
 				"path"		=> '{block:'.$type.'}/',
-				"open"		=> $item['open'],
 				"icon"		=> 'block-'.$type,
 				"isParent"	=> true,
 				"children"	=> $this->blockChildren($type),
-			);
+			));
 			if($block['children'] === false) continue;
 			$result[] = $block;
 		}
@@ -547,9 +559,9 @@ class explorerList extends Controller{
 		$list = array(
 			'files'		=>	array('name'=>LNG('common.position'),'open'=>true),
 			'tools'		=>	array('name'=>LNG('common.tools'),'open'=>true,'children'=>true),
-			'fileType'	=>	array('name'=>LNG('common.fileType'),'open'=>false,'children'=>true),
-			'fileTag'	=>	array('name'=>LNG('common.tag'),'open'=>false,'children'=>true),
-			'driver'	=>	array('name'=>LNG('common.mount').' (admin)','open'=>false),
+			'fileType'	=>	array('name'=>LNG('common.fileType'),'open'=>false,'children'=>true,'pathDesc'=> LNG('explorer.pathDesc.fileType')),
+			'fileTag'	=>	array('name'=>LNG('common.tag'),'open'=>false,'children'=>true,'pathDesc'=> LNG('explorer.pathDesc.tag')),
+			'driver'	=>	array('name'=>LNG('common.mount').' (admin)','open'=>false,'pathDesc'=> LNG('explorer.pathDesc.mount')),
 		);
 		return $list;
 	}
@@ -571,11 +583,9 @@ class explorerList extends Controller{
 	}
 	
 	private function groupRoot(){
-		$groupSelf  = array_to_keyvalue(Session::get("kodUser.groupInfo"),'','groupID');
-		if(!$groupSelf) return false;
-		$groupCompany = $GLOBALS['config']['settings']['groupCompany'];
-		$groupAllowShow = Model('Group')->groupShowRoot($groupSelf[0],$groupCompany);
-		return Model('Group')->getInfo($groupAllowShow[0]);
+		$groupArray = Action('filter.userGroup')->userGroupRoot();
+	    if (empty($groupArray[0]) || count($groupArray) != 1) return false;
+	    return Model('Group')->getInfo($groupArray[0]);
 	}
 	
 	/**
@@ -585,19 +595,21 @@ class explorerList extends Controller{
 	private function blockFiles(){
 		$groupInfo 	= $this->groupRoot();
 		$list = array(
-			"fav"		=> array("path"	=> KodIO::KOD_USER_FAV),
+			"fav"		=> array("path"	=> KodIO::KOD_USER_FAV,'pathDesc'=>LNG('explorer.pathDesc.fav')),
 			"my"		=> array(
 				'name' 			=> LNG('explorer.toolbar.rootPath'),//我的网盘
 				'sourceRoot' 	=> 'userSelf',//文档根目录标记；前端icon识别时用：用户，部门
 				"path"			=> KodIO::make(Session::get('kodUser.sourceInfo.sourceID')),
 				'open'			=> true,
+				'pathDesc'		=> LNG('explorer.pathDesc.home')
 			),
 			"rootGroup"	=> array(
 				'name' 			=> $groupInfo['name'],
 				'sourceRoot' 	=> 'groupPublic',
 				"path"			=> KodIO::make($groupInfo['sourceInfo']['sourceID']),
+				'pathDesc'		=> LNG('explorer.pathDesc.groupRoot')
 			),
-			"myGroup"	=> array("path"	=> KodIO::KOD_GROUP_ROOT_SELF),
+			"myGroup"	=> array("path"	=> KodIO::KOD_GROUP_ROOT_SELF,'pathDesc'=>LNG('explorer.pathDesc.myGroup')),
 			'shareToMe'	=> array("path"	=> KodIO::KOD_USER_SHARE_TO_ME),
 		);
 		
@@ -609,8 +621,8 @@ class explorerList extends Controller{
 		// 没有所在部门时不显示;
 		if(isset($list['myGroup'])){
 			$selfGroup 	= Session::get("kodUser.groupInfo");
-			$groupArray = array_to_keyvalue($selfGroup,'groupID');//自己所在的组
-			$group 		= array_remove_value(array_keys($groupArray),$groupInfo['groupID']);
+			$groupArray = array_to_keyvalue($selfGroup,'','groupID');//自己所在的组
+			$group 		= array_remove_value($groupArray,$groupInfo['groupID']);
 			if(!$group){unset($list['myGroup']);}
 		}
 
@@ -699,21 +711,22 @@ class explorerList extends Controller{
 
 	private function ioInfo($pick){
 		$list = array(
-			KodIO::KOD_USER_FAV			=> LNG('explorer.toolbar.fav'),
-			KodIO::KOD_GROUP_ROOT_SELF	=> LNG('explorer.toolbar.myGroup'),
-			KodIO::KOD_USER_RECENT		=> LNG('explorer.toolbar.recentDoc'),
-			KodIO::KOD_USER_SHARE		=> LNG('explorer.toolbar.shareTo'),
-			KodIO::KOD_USER_SHARE_LINK	=> LNG('explorer.toolbar.shareLink'),
-			KodIO::KOD_USER_SHARE_TO_ME	=> LNG('explorer.toolbar.shareToMe'),
-			KodIO::KOD_USER_RECYCLE		=> LNG('explorer.toolbar.recycle'),
-			KodIO::KOD_SEARCH			=> LNG('common.search'),
+			KodIO::KOD_USER_FAV			=> array('name'=>LNG('explorer.toolbar.fav'),'pathDesc'=>LNG('explorer.pathDesc.fav')),
+			KodIO::KOD_GROUP_ROOT_SELF	=> array('name'=>LNG('explorer.toolbar.myGroup'),'pathDesc'=>LNG('explorer.pathDesc.myGroup')),
+			KodIO::KOD_USER_RECENT		=> array('name'=>LNG('explorer.toolbar.recentDoc'),'pathDesc'=>LNG('explorer.pathDesc.recentDoc')),
+			KodIO::KOD_USER_SHARE		=> array('name'=>LNG('explorer.toolbar.shareTo'),'pathDesc'=>LNG('explorer.pathDesc.shareTo')),
+			KodIO::KOD_USER_SHARE_LINK	=> array('name'=>LNG('explorer.toolbar.shareLink'),'pathDesc'=>LNG('explorer.pathDesc.shareLink')),
+			KodIO::KOD_USER_SHARE_TO_ME	=> array('name'=>LNG('explorer.toolbar.shareToMe')),
+			KodIO::KOD_USER_RECYCLE		=> array('name'=>LNG('explorer.toolbar.recycle'),'pathDesc'=>LNG('explorer.pathDesc.recycle')),
+			KodIO::KOD_SEARCH			=> array('name'=>LNG('common.search')),
 		);
 		$result = array();
-		foreach ($list as $key => $name){
+		foreach ($list as $key => $item){
 			$result[$key] = array(
-				"name"	=> $name, 
-				"path"	=> $key.'/',
-				"icon"	=> trim(trim($key,'{'),'}')
+				"name"		=> $item['name'], 
+				"path"		=> $key.'/',
+				"icon"		=> trim(trim($key,'{'),'}'),
+				"pathDesc"	=> $item['pathDesc'],
 			);
 		}
 		if(is_string($pick)){

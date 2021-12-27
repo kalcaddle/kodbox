@@ -51,6 +51,10 @@ class filterUserGroup extends Controller{
 			'admin.group.status' 	=> array('group'=>'groupID','error'=>'error'),
 			'admin.group.remove' 	=> array('group'=>'groupID','error'=>'error'),
 			'admin.group.sort' 		=> array('group'=>'groupID','error'=>'error'),
+			
+			// 部门公共标签: 获取,修改
+			'explorer.taggroup.get' => array('group'=>'groupID','read'=>'allow','error'=>'error'),
+			'explorer.taggroup.set' => array('group'=>'groupID','error'=>'error'),
 		);
 		$this->checkItem($paramMap);
 	}
@@ -92,6 +96,12 @@ class filterUserGroup extends Controller{
 		$groupList = Session::get("kodUser.groupInfo");
 		if(count($groupList) == 0){ // 不在任何部门则不支持用户及部门查询;
 			return $this->checkError(array('error' =>'error'));
+		}
+
+		// app 接口请求认为是前端请求
+		if( strstr($_SERVER['HTTP_USER_AGENT'],'kodCloud-System:iOS') || 
+			isset($this->in['HTTP_X_PLATFORM']) ){
+			$this->in['requestFrom'] = 'user';
 		}
 		
 		// 来自用户请求,false则来自后台管理员请求;
@@ -249,7 +259,6 @@ class filterUserGroup extends Controller{
 			$groupRoot = Model('Group')->groupShowRoot($group['groupID'],$groupCompany);
 			$groupArray = array_merge($groupArray,$groupRoot);
 		}
-		$groupArray = Model('Group')->groupMerge($groupArray);
-		return $groupArray;
+		return Model('Group')->groupMerge($groupArray);
 	}
 }

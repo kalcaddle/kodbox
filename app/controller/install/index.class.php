@@ -633,18 +633,27 @@ class installIndex extends Controller {
             'label' => 'label-green-deep',
             'sort' => 0,
         );
-
-        $default = array (
+		
+		$groupOwner = array (
+            'name' => LNG('admin.role.group'),
+            'display' => 1,
+            'system' => 1,
+            'auth' => 'explorer.add,explorer.upload,explorer.view,explorer.download,explorer.share,explorer.remove,explorer.edit,explorer.move,explorer.serverDownload,explorer.search,explorer.unzip,explorer.zip,user.edit,user.fav,admin.index.loginLog,admin.index.log,admin.member.list,admin.member.userEdit,admin.member.groupEdit,admin.auth.list',
+            'label' => 'label-yellow-normal',
+            'sort' => 1,
+        );
+        $defaultUser = array (
             'name' => LNG('admin.role.default'),
             'display' => 1,
             'system' => 1,
             'auth' => 'explorer.add,explorer.upload,explorer.view,explorer.download,explorer.share,explorer.remove,explorer.edit,explorer.move,explorer.serverDownload,explorer.search,explorer.unzip,explorer.zip,user.edit,user.fav',
             'label' => 'label-blue-normal',
-            'sort' => 1,
+            'sort' => 2,
         );
 
         $administrator = Model('SystemRole')->add($administrator);
-        Model('SystemRole')->add($default);
+		Model('SystemRole')->add($groupOwner);
+        Model('SystemRole')->add($defaultUser);
         return $administrator;
     }
 

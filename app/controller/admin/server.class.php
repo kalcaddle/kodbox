@@ -25,7 +25,6 @@ class adminServer extends Controller {
 		$database = $GLOBALS['config']['database'];
 		$data['db'] = array_change_key_case($database);
 		$data['db']['db_info'] = $this->getDbInfo($data['db']);
-		$data['recovery'] = $this->getBakInfo($data['db']);
 		show_json($data);
 	}
 
@@ -87,34 +86,42 @@ class adminServer extends Controller {
 	}
 	// 获取服务器持续运行时间
 	private function srvUptime(){
-		$time = array(
+		$list = array(
 			'day'		=> 0,
 			'hour'		=> 0,
 			'minute'	=> 0,
 			'second'	=> 0,
 		);
-		$str = '';
-		$filePath = '/proc/uptime';
-		if (@is_file($filePath)) {
-			$res	= file_get_contents($filePath);
-			$num	= (float) $res;
-			$sec	= (int) fmod($num, 60);
-			$num	= (int) ($num / 60);
-			$min	= (int) $num % 60;
-			$num	= (int) ($num / 60);
-			$hour	= (int) $num % 24;
-			$num	= (int) ($num / 24);
-			$day	= (int) $num;
-			foreach($time as $k => $v) {
-				$time[$k] = $$k;
+		$time = '';
+		if ($GLOBALS['config']['systemOS'] == 'windows') {
+			$res = shell_exec('WMIC OS Get LastBootUpTime');
+			$time = explode("\r\n", $res);
+			$time = isset($time[1]) ? intval($time[1]) : '';
+			if (!$time) return LNG('common.unavailable');
+			$time = time() - strtotime($time);
+		}else {
+			$filePath = '/proc/uptime';
+			if (@is_file($filePath)) {
+				$time = file_get_contents($filePath);
 			}
-			// $isCn = stristr(I18n::getType(),'zh') ? true : false;
-			foreach($time as $key => $val) {
-				// $ext = $isCn ? LNG('common.'.$key) : strtoupper(substr($key, 0, 1));
-				$str .= ' ' . ($val ? $val : 0) . ' ' . LNG('common.'.$key);
-			}
+			if (!$time) return LNG('common.unavailable');
 		}
-		return !$str ? LNG('common.unavailable') : trim($str);
+		$num	= (float) $time;
+		$second	= (int) fmod($num, 60);
+		$num	= (int) ($num / 60);
+		$minute	= (int) $num % 60;
+		$num	= (int) ($num / 60);
+		$hour	= (int) $num % 24;
+		$num	= (int) ($num / 24);
+		$day	= (int) $num;
+		foreach($list as $k => $v) {
+			$list[$k] = $$k;
+		}
+		$str = '';
+		foreach($list as $key => $val) {
+			$str .= ' ' . ($val ? $val : 0) . ' ' . LNG('common.'.$key);
+		}
+		return $str;
 	}
 
 	// 服务器基本信息
@@ -222,29 +229,8 @@ class adminServer extends Controller {
 		);
 	}
 
-	// 获取备份信息（路径）
-	public function getBakInfo($database){
-		$backup = Model('systemOption')->get('backup');
-		if($backup) {
-			$backup = json_decode($backup, true);
-			$driver = Model('Storage')->driverInfo($backup['io']);
-			if (!$driver) {
-				$path = KodIO::defaultIO();
-			} else {
-				$path = KodIO::makePath('{io}', $backup['io']);
-			}
-		}else{
-			$path = KodIO::defaultIO();
-		}
-		$path = IO::fileNameExist($path, 'database') ? $path . 'database' : $path;
-		return array(
-			'type' => $this->_dbType($database),
-			'path' => $path
-		);
-	}
-
 	// 数据库类型：sqlite、mysql
-	private function _dbType($database){
+	public function _dbType($database){
 		$type = $database['db_type'];
 		if($type == 'pdo') {
 			$dsn = explode(':', $database['db_dsn']);
@@ -649,6 +635,7 @@ class adminServer extends Controller {
 		http_close();
 
 		// 2.导入数据库
+		ActionCall('user.index.maintenance', true, 1);
 		// 2.1 下载备份文件到本地临时目录
 		$pathLoc = $this->tmpActPath('recovery');
 		$path = $this->recLocPath($type, $path, $pathLoc);
@@ -656,6 +643,7 @@ class adminServer extends Controller {
 		$fileList = array_to_keyvalue($list['fileList'], 'name', 'path');
 		$file = $fileList[$type . '.sql'];	// sqlite.sql、mysql.sql
 		if(!$file) {
+			ActionCall('user.index.maintenance', true, 0);
 			show_json(LNG('admin.setting.dbFileDownErr'), false);
 		}
 
@@ -682,6 +670,11 @@ class adminServer extends Controller {
 		$taskSet->update(1);
 		$this->taskToCache($taskSet);
 
+		ActionCall('user.index.maintenance', true, 0);
+		// $this->in['clear'] = 1;
+		// $this->in['success'] = 1;
+		// $this->taskClear('recovery');
+
 		show_json(LNG('explorer.success'));
 	}
 
@@ -704,6 +697,7 @@ class adminServer extends Controller {
 			if(!$name) {
 				$name = USER_SYSTEM . rand_string(12) . '.php';
 				if(!@touch($name)) {
+					ActionCall('user.index.maintenance', true, 0);
 					show_json(LNG('admin.setting.dbCreateError'), false);
 				}
 			}

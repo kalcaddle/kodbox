@@ -39,9 +39,9 @@ return array(
 	"officeViewer.libreOffice.execDisabled"		=> "[shell_exec]函数被禁用，请开启后重试",
 	"officeViewer.libreOffice.path"				=> "LibreOffice路径",
 	"officeViewer.libreOffice.pathDesc"			=> "<br/>
-		<span style='margin: 5px 0px;display: inline-block;'>通过服务器上的LibreOffice，将文件转换为pdf格式，以实现在线预览。</span><br/>
+		<span style='margin: 5px 0px;margin-bottom:0px;display: inline-block;'>通过服务器上的LibreOffice，将文件转换为pdf格式，以实现在线预览。</span><br/>
+    	<span style='margin-bottom: 5px;display: inline-block;'>此方式可与本地解析结合使用，实现多数格式的无外网预览。</span><br/>
 		<span>LibreOffice路径为安装目录下的soffice路径，请根据安装自行填写。</span> <br/>
-    	<span>部分格式转换后效果不甚理想，可结合本地解析方式一起使用。</span>
     	<span style='margin-bottom: 10px;display: inline-block;'>如果不需要该方式，清空路径即可。</span><br/>
 		<button class='btn btn-success check-libreoffice mr-5' style='padding: 5px 12px;border-radius: 3px;font-size: 13px;'>连接测试</button>
 		<a style='padding: 6px 12px; vertical-align: middle;' target='_blank' href='https://zh-cn.libreoffice.org/get-help/install-howto/'>安装指南</a>",

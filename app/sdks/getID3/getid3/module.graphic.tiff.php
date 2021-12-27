@@ -210,7 +210,7 @@ class getid3_tiff extends getid3_handler
 		}
 		
 		// add by warlee; 部分tif图片获取尺寸错误问题处理;
-		$imageInfo = getimagesize($info['filenamepath']);
+		$imageInfo = getimagesize_io($info['filenamepath']);
 		if($imageInfo){
 			$info['video']['resolution_x'] = $imageInfo[0];
 			$info['video']['resolution_y'] = $imageInfo[1];

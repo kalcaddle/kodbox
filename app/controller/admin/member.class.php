@@ -35,12 +35,13 @@ class adminMember extends Controller{
 	 */
 	public function get() {
 		$data = Input::getArray(array(
+			"groupID"	=> array("check"=>"require",'default'=>0),
 			"fields"	=> array("check"=>"require",'default'=>''),
 			"status"	=> array("default"=>null)
 		));
-		$id = Input::get('groupID','bigger',null,0);
-		if($id == 1) $id = 0;	// 根部门（id=1）获取全部用户
-		$result = $this->model->listByGroup($id, $data);
+		if(!$data['groupID']){show_json(array(),true);}
+		if($data['groupID'] == 1) $data['groupID'] = 0;	// 根部门（id=1）获取全部用户
+		$result = $this->model->listByGroup($data['groupID'], $data);
 		show_json($result,true);
 	}
 	

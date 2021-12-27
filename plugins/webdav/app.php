@@ -31,6 +31,7 @@ class webdavPlugin extends PluginBase{
 	}
 	
 	public function route(){
+		if(strtolower(MOD.'.'.ST) == 'plugin.index') exit;
 		$this->_checkConfig();
 		if(strtolower(MOD.'.'.ST) != 'plugin.webdav') return;
 		$action = ACT;//dav/download;

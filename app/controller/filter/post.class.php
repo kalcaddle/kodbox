@@ -48,6 +48,7 @@ class filterPost extends Controller{
 			'user.sso'			=> '*',
 			'test.debug'		=> '*',
 			'test.language'		=> '*',
+			'test.test'			=> '*',
 		);
 		$allowGet  = false;
 		$ST_MOD = strtolower(MOD.'.'.ST);

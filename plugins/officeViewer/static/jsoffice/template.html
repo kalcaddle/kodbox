@@ -3,7 +3,7 @@
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 	<meta name="apple-mobile-web-app-capable" content="yes"/>
-	<title>Office Reader</title>
+	<title><?php echo clear_html($fileName);?></title>
 	<link rel="icon" href="<?php $this->url('static/images/icon.png');?>">
 	<script>var kodSdkConfig = {api:'<?php echo APP_HOST;?>'};</script>
 	<?php if(clear_quote($fileApp) != 'pptxjs') $this->link('app/dist/sdk.js','static');?>
@@ -80,6 +80,7 @@
 			$this->link('static/jsoffice/pptxjs/js/filereader.js');
 			$this->link('static/jsoffice/pptxjs/js/d3.min.js');
 			$this->link('static/jsoffice/pptxjs/js/nv.d3.min.js');
+			$this->link('static/jsoffice/pptxjs/js/dingbat.js');
 			$this->link('static/jsoffice/pptxjs/js/pptxjs.kod.min.js');
 			// $this->link('static/jsoffice/pptxjs/js/pptxjs.kod--.js');
 			$this->link('static/jsoffice/pptxjs/js/divs2slides.min.js');
