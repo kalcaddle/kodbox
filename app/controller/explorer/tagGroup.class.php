@@ -221,7 +221,7 @@ class explorerTagGroup extends Controller{
 		foreach ($files as $file) {
 			$res = $this->model->addToTag($data['groupID'],$file,$data['tagID']);
 		}
-		show_json($res?LNG('explorer.success'): LNG('explorer.error'),!!$res);
+		show_json(LNG('explorer.success'),true);
 	}
 
 	// 前后顺序即为排序关系; 标签组包含子标签
