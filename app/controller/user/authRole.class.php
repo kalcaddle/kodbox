@@ -131,7 +131,7 @@ class userAuthRole extends Controller {
 			'explorer.add'			=> 'explorer.view',
 			'explorer.download'		=> 'explorer.view',
 			'explorer.share'		=> 'explorer.download,explorer.remove',
-			'explorer.upload'		=> 'explorer.add',
+			// 'explorer.upload'		=> 'explorer.add',
 			'explorer.edit'			=> 'explorer.view,explorer.upload,explorer.download',
 			'explorer.remove'		=> 'explorer.edit',
 			'explorer.move'			=> 'explorer.edit',
