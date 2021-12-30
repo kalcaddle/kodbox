@@ -817,6 +817,7 @@ return array(
     "admin.backup.timeTaken"         => "memakan waktu",
     "admin.backup.node"              => "simpul",
     "admin.backup.notYet"            => "Tidak",
+    "admin.backup.storeNotExist"     => "Penyimpanan cadangan tidak ada, harap setel ulang",
     "admin.backup.timeNote"          => "Catatan: Hanya data cadangan 7 hari terakhir dan tanggal 1 setiap bulan yang disimpan. Waktu cadangan:",
     "admin.backup.recover"           => "Silakan hubungi penyedia layanan untuk pemulihan data.",
     "admin.backup.optionTime"        => "Pencadangan membutuhkan waktu lama, coba pilih di luar jam kerja",

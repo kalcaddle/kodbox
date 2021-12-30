@@ -817,6 +817,7 @@ return array(
     "admin.backup.timeTaken"         => "zaman tükeniyor",
     "admin.backup.node"              => "düğüm",
     "admin.backup.notYet"            => "Hayır",
+    "admin.backup.storeNotExist"     => "Yedek depolama alanı mevcut değil, lütfen sıfırlayın",
     "admin.backup.timeNote"          => "Not: Yalnızca son 7 günün ve her ayın 1'in yedek verileri saklanır. Yedekleme süresi:",
     "admin.backup.recover"           => "Veri kurtarma için lütfen servis sağlayıcınıza başvurun.",
     "admin.backup.optionTime"        => "Yedekleme uzun sürüyor, lütfen mesai saatleri dışında seçmeyi deneyin",

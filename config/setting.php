@@ -71,10 +71,12 @@ $config['settings']['ioClassList'] = array(
 	'oos'				=> 'OOS',
 	'uss'				=> 'USS',
 	'minio'				=> 'MinIO',
+	'eos'				=> 'EOS',
 
-	'eos'				=> 'EOS',	// 这3个可以追加
 	'moss'				=> 'MOSS',
 	'nos'				=> 'NOS',
+	'baidu'				=> 'Baidu',
+	'onedrive'			=> 'OneDrive',
 
 	'base'				=> 'Base',
 	'bases3'			=> 'BaseS3',

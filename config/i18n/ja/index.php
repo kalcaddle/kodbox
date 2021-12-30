@@ -817,6 +817,7 @@ return array(
     "admin.backup.timeTaken"         => "時間がかかる",
     "admin.backup.node"              => "ノード",
     "admin.backup.notYet"            => "番号",
+    "admin.backup.storeNotExist"     => "バックアップストレージが存在しません。リセットしてください",
     "admin.backup.timeNote"          => "注：過去7日間と毎月1日のバックアップデータのみが保持されます。バックアップ時間：",
     "admin.backup.recover"           => "データ復旧については、サービスプロバイダーにお問い合わせください。",
     "admin.backup.optionTime"        => "バックアップには時間がかかります。非稼働時間中に選択してください。",

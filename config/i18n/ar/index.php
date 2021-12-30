@@ -817,6 +817,7 @@ return array(
     "admin.backup.timeTaken"         => "استهلاك الوقت",
     "admin.backup.node"              => "العقدة",
     "admin.backup.notYet"            => "لا",
+    "admin.backup.storeNotExist"     => "تخزين النسخ الاحتياطي غير موجود ، يرجى إعادة التعيين",
     "admin.backup.timeNote"          => "ملاحظة: يتم الاحتفاظ ببيانات النسخ الاحتياطي لآخر 7 أيام والأول من كل شهر فقط. وقت النسخ الاحتياطي:",
     "admin.backup.recover"           => "يرجى الاتصال بمزود الخدمة لاستعادة البيانات.",
     "admin.backup.optionTime"        => "يستغرق النسخ الاحتياطي وقتًا طويلاً ، يرجى محاولة اختياره في غير ساعات العمل",

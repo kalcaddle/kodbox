@@ -817,6 +817,7 @@ return array(
     "admin.backup.timeTaken"         => "pérdida de tiempo",
     "admin.backup.node"              => "nodo",
     "admin.backup.notYet"            => "No",
+    "admin.backup.storeNotExist"     => "El almacenamiento de respaldo no existe, reinicie",
     "admin.backup.timeNote"          => "Nota: Solo se conservan los datos de respaldo de los últimos 7 días y el 1 de cada mes. Tiempo de respaldo:",
     "admin.backup.recover"           => "Comuníquese con el proveedor de servicios para la recuperación de datos.",
     "admin.backup.optionTime"        => "La copia de seguridad lleva mucho tiempo, intente elegirla durante las horas no laborables",

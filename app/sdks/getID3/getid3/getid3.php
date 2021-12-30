@@ -2054,6 +2054,7 @@ abstract class getid3_handler
 	 * @throws getid3_exception
 	 */
 	protected function fread($bytes) {
+		if($bytes <= 0) return '';
 		if ($this->data_string_flag) {
 			$this->data_string_position += $bytes;
 			return substr($this->data_string, $this->data_string_position - $bytes, $bytes);

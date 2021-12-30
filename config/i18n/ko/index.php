@@ -817,6 +817,7 @@ return array(
     "admin.backup.timeTaken"         => "시간이 걸리는",
     "admin.backup.node"              => "마디",
     "admin.backup.notYet"            => "아니",
+    "admin.backup.storeNotExist"     => "백업 저장소가 없습니다. 재설정하십시오.",
     "admin.backup.timeNote"          => "참고 : 지난 7 일 및 매월 1 일의 백업 데이터 만 유지됩니다. 백업 시간 :",
     "admin.backup.recover"           => "데이터 복구는 서비스 제공 업체에 문의하십시오.",
     "admin.backup.optionTime"        => "백업에 시간이 오래 걸리므로 작업하지 않는 시간에 선택하십시오.",

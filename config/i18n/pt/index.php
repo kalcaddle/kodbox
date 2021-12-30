@@ -817,6 +817,7 @@ return array(
     "admin.backup.timeTaken"         => "demorado",
     "admin.backup.node"              => "nó",
     "admin.backup.notYet"            => "Não",
+    "admin.backup.storeNotExist"     => "O armazenamento de backup não existe, reinicie",
     "admin.backup.timeNote"          => "Nota: Apenas os dados de backup dos últimos 7 dias e do primeiro dia de cada mês são retidos. Tempo de backup:",
     "admin.backup.recover"           => "Entre em contato com o provedor de serviços para recuperação de dados.",
     "admin.backup.optionTime"        => "O backup leva muito tempo, por favor, tente escolhê-lo fora do horário de trabalho",

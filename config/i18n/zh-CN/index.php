@@ -817,6 +817,7 @@ return array(
     "admin.backup.timeTaken"         => "耗时",
     "admin.backup.node"              => "节点",
     "admin.backup.notYet"            => "暂无",
+    "admin.backup.storeNotExist"     => "备份存储不存在，请重新设置",
     "admin.backup.timeNote"          => "说明：仅保留最近7天，及每月1号的备份数据。备份时间：",
     "admin.backup.recover"           => "数据恢复请联系服务商。",
     "admin.backup.optionTime"        => "备份所需时间较长，请尽量选在非工作时间段进行",

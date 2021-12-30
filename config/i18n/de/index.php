@@ -817,6 +817,7 @@ return array(
     "admin.backup.timeTaken"         => "Zeitaufwendig",
     "admin.backup.node"              => "Knoten",
     "admin.backup.notYet"            => "Nein",
+    "admin.backup.storeNotExist"     => "Der Backup-Speicher existiert nicht, bitte zurücksetzen",
     "admin.backup.timeNote"          => "Hinweis: Es werden nur die Sicherungsdaten der letzten 7 Tage und des 1. eines jeden Monats gespeichert. Sicherungszeit:",
     "admin.backup.recover"           => "Bitte wenden Sie sich zur Datenwiederherstellung an den Dienstanbieter.",
     "admin.backup.optionTime"        => "Die Sicherung dauert lange. Bitte versuchen Sie, sie außerhalb der Arbeitszeit auszuwählen",

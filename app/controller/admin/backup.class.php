@@ -69,6 +69,7 @@ class adminBackup extends Controller{
 			show_json(LNG('admin.backup.notOpen'), false);
 		}
 		$data = Model('Storage')->listData($config['io']);
+		if (!$data) show_json(LNG('admin.backup.storeNotExist'), false);
 		Model('Storage')->checkConfig($data);
 		mk_dir(TEMP_FILES);
 		if(!path_writeable(TEMP_FILES)) {

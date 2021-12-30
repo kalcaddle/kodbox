@@ -817,6 +817,7 @@ return array(
     "admin.backup.timeTaken"         => "mất thời gian",
     "admin.backup.node"              => "nút",
     "admin.backup.notYet"            => "Không",
+    "admin.backup.storeNotExist"     => "Bộ nhớ sao lưu không tồn tại, vui lòng đặt lại",
     "admin.backup.timeNote"          => "Lưu ý: Chỉ dữ liệu sao lưu của 7 ngày cuối cùng và ngày 1 hàng tháng được giữ lại. Thời gian sao lưu:",
     "admin.backup.recover"           => "Vui lòng liên hệ với nhà cung cấp dịch vụ để khôi phục dữ liệu.",
     "admin.backup.optionTime"        => "Quá trình sao lưu mất nhiều thời gian, vui lòng cố gắng chọn nó trong giờ không làm việc",

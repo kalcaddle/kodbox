@@ -208,6 +208,7 @@ class adminLog extends Controller{
 				'title'			=> $item['title'],
 				'address'		=> $item['address']
 			);
+			$item['desc'] = is_array($item['desc']) ? $item['desc']:array();
 			$item = array_merge($value, $item['desc']);
 		}
 		show_json($res);

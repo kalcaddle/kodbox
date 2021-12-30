@@ -143,18 +143,6 @@
 		"simple": 0,
 		"resize": 1
 	},
-	"Web PhotoShop": {
-		"type": "url",
-		"content": "https:\/\/m.kantu.com\/",
-		"group": "tools",
-		"name": "Web PhotoShop",
-		"desc": "ps",
-		"icon": "ps.png",
-		"width": "800",
-		"height": "560",
-		"simple": 0,
-		"resize": 1
-	},
 	"icloud": {
 		"type": "url",
 		"content": "https:\/\/www.icloud.com\/",

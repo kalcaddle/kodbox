@@ -817,6 +817,7 @@ return array(
     "admin.backup.timeTaken"         => "long",
     "admin.backup.node"              => "nœud",
     "admin.backup.notYet"            => "Non",
+    "admin.backup.storeNotExist"     => "Le stockage de sauvegarde n'existe pas, veuillez réinitialiser",
     "admin.backup.timeNote"          => "Remarque: seules les données de sauvegarde des 7 derniers jours et du 1er de chaque mois sont conservées. Temps de sauvegarde:",
     "admin.backup.recover"           => "Veuillez contacter le fournisseur de services pour la récupération des données.",
     "admin.backup.optionTime"        => "La sauvegarde prend beaucoup de temps, veuillez essayer de la choisir pendant les heures creuses",

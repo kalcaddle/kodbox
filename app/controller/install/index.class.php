@@ -215,12 +215,9 @@ class installIndex extends Controller {
      * @return void
      */
     public function save(){
-        $action = Input::get('action','require', null);
-        switch($action){
-            case 'db':$this->saveDb();break;
-            case 'user':$this->saveUser();break;
-            default:break;
-        }
+        $action = Input::get('action', 'in', null, array('db', 'user'));
+        $func = 'save' . ucfirst($action);
+        $this->$func();
     }
 
     /**

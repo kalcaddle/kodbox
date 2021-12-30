@@ -1076,6 +1076,7 @@ function file_sub_str($file,$start=0,$len=0){
 		$start = $size + $start;
 		$len = $size - $start;
 	}
+	if($len <= 0) return '';
     $fp = fopen($file,'r');
     fseek($fp,$start);
     $res = fread($fp,$len);

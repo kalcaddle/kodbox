@@ -817,6 +817,7 @@ return array(
     "admin.backup.timeTaken"         => "ใช้เวลานาน",
     "admin.backup.node"              => "ปม",
     "admin.backup.notYet"            => "ไม่",
+    "admin.backup.storeNotExist"     => "ไม่มีที่เก็บข้อมูลสำรอง โปรดรีเซ็ต",
     "admin.backup.timeNote"          => "หมายเหตุ: เฉพาะข้อมูลสำรองของ 7 วันที่ผ่านมาและวันที่ 1 ของแต่ละเดือนจะถูกเก็บรักษาไว้ เวลาสำรอง:",
     "admin.backup.recover"           => "โปรดติดต่อผู้ให้บริการสำหรับการกู้คืนข้อมูล",
     "admin.backup.optionTime"        => "การสำรองข้อมูลใช้เวลานานโปรดลองเลือกในช่วงที่ไม่ได้ทำงาน",

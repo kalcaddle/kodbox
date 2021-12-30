@@ -817,6 +817,7 @@ return array(
     "admin.backup.timeTaken"         => "बहुत समय लगेगा",
     "admin.backup.node"              => "नोड",
     "admin.backup.notYet"            => "नहीं",
+    "admin.backup.storeNotExist"     => "बैकअप संग्रहण मौजूद नहीं है, कृपया रीसेट करें",
     "admin.backup.timeNote"          => "नोट: पिछले 7 दिनों के केवल बैकअप डेटा और प्रत्येक महीने के 1 को बरकरार रखा गया है। बैकअप समय:",
     "admin.backup.recover"           => "डेटा रिकवरी के लिए कृपया सेवा प्रदाता से संपर्क करें।",
     "admin.backup.optionTime"        => "बैकअप में लंबा समय लगता है, कृपया इसे गैर-काम के घंटों के दौरान चुनने का प्रयास करें",

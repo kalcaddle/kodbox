@@ -817,6 +817,7 @@ return array(
     "admin.backup.timeTaken"         => "czasochłonne",
     "admin.backup.node"              => "węzeł",
     "admin.backup.notYet"            => "Nie",
+    "admin.backup.storeNotExist"     => "Magazyn kopii zapasowych nie istnieje, zresetuj",
     "admin.backup.timeNote"          => "Uwaga: zachowywane są tylko dane kopii zapasowej z ostatnich 7 dni i pierwszego dnia każdego miesiąca. Czas podtrzymania:",
     "admin.backup.recover"           => "Skontaktuj się z usługodawcą w celu odzyskania danych.",
     "admin.backup.optionTime"        => "Kopia zapasowa zajmuje dużo czasu, spróbuj ją wybrać w godzinach poza godzinami pracy",
