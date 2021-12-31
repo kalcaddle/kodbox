@@ -315,9 +315,12 @@ class adminMember extends Controller{
 			$res = ActionCallHook('admin.member.add');
 			if($res['code']) $success++;
 		}
-		$info  = LNG('common.success') . ":{$success}; ";
-		$info .= LNG('common.valid') . ":{$fileData['valid']}; ";
-		$info .= LNG('common.inAll') . ":{$fileData['total']}";
+		$fail  = $fileData['total'] - $success;
+		$info  = LNG('common.inAll') . ":{$fileData['total']}; ";
+		$info .= LNG('common.success') . ":{$success}";
+		if ($fail > 0) {
+			$info .= "<br/>" . LNG('common.fail') . ":{$fail} (".LNG('admin.member.importFailDesc').")";
+		}
 		$code  = (boolean) $success;
 		$data  = $code ? LNG('admin.member.importSuccess') : LNG('admin.member.importFail');
 		show_json($data, $code, $info);
@@ -340,6 +343,7 @@ class adminMember extends Controller{
         fclose($handle);
         // 2.获取列表数据
         unset($dataList[0]);
+		$dataList = array_filter($dataList);
         $list = array();
         $keys = array('name','nickName','password','sex','phone','email');
 		$sex  = array('女' => 0, '男' => 1);

@@ -25,7 +25,7 @@
 		},
 		"openWith":{
 			"type":"segment",
-			"value":"dialog",
+			"value":"_blank",
 			"display":"{{LNG['admin.plugin.openWith']}}",
 			"info":{
 				"inline":"<i class='font-icon ri-layout-left-line-2'></i>{{LNG['explorer.app.openInline']}}",

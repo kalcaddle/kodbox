@@ -30,6 +30,17 @@ function checkExt($file){
 	}
 	return 1;
 }
+function checkExtSafe($file){
+	if($file == '.htaccess' || $file == '.user.ini') return false;
+	if(strstr($file,'<') || strstr($file,'>') || $file=='') return false;
+	$disable  = 'php|phtml|phtm|pwml|asp|aspx|ascx|jsp|pl|html|htm|svg|shtml|shtm';
+	$extArr = explode('|',$disable);
+	foreach ($extArr as $ext) {
+		if ($ext && stristr($file,'.'.$ext)) return false;
+	}
+	return true;
+}
+
 function linkHref($src,$dev=false){
 	if($dev){echo STATIC_PATH.$src.'?v='.time(); return;}
 	$static  = STATIC_PATH;
