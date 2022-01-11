@@ -151,9 +151,3 @@ chmod -Rf 777 ./*
     - Opera
     - IE9+
 > Tips: It can also run on a router, or your home NAS
-
-
-# License
-kodcloud is issued under GPLv3.   license.[License](http://kodcloud.com/tools/licenses/license.txt)  
-Contact: kalcaddle#qq.com  
-Copyright (C) 2013 kodcloud.com  

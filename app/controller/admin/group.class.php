@@ -15,18 +15,20 @@ class adminGroup extends Controller{
 
 	public function get() {
 		$data = Input::getArray(array(
-			"parentID"		=> array("check"=>"int",'default'=>0),
+			"parentID"		=> array("check"=>"require",'default'=>0),
 			"rootParam" 	=> array("check"=>"require",'default'=>''),
 		));
 
+		$data['parentID'] = $data['parentID'] ? $data['parentID']: '0';
+		$data['parentID'] = $data['parentID'] == 'root' ? '1' : $data['parentID'];
 		if(isset($_REQUEST['rootParam']) ){
 			Model('Group')->cacheFunctionClear('getInfo',$data['parentID']);// 有缓存未更新是否有子部门及用户的问题;
 			$groupCurrent = $this->model->getInfo($data['parentID']);
 			$items = array("list"=>array($groupCurrent));
 			if(strstr($data['rootParam'],'appendRootGroup')){
 				$items['list'][] = array(
-					"groupID" 		=> "1",
-					"parentID" 		=> "0",
+					"groupID" 		=> "",
+					"parentID" 		=> "root",
 					"name" 			=> LNG('explorer.auth.toOuter'),
 					"isParent"		=> true,
 					"disableSelect" => true,
@@ -88,6 +90,8 @@ class adminGroup extends Controller{
 			"sizeMax" 	=> array("check"=>"float","default"=>1024*1024*100),
 			"parentID"	=> array("check"=>"int"),
 			"sort"		=> array("default"=>null),
+			"authShowType" 	=> array("default"=>null),
+			"authShowGroup" => array("default"=>null),
 		));
 		$groupID = $this->model->groupAdd($data);
 		
@@ -123,6 +127,8 @@ class adminGroup extends Controller{
 			"groupID" 	=> array("check"=>"int"),
 			"parentID"	=> array("default"=>null),
 			"sort"		=> array("default"=>null),
+			"authShowType" 	=> array("default"=>null),
+			"authShowGroup" => array("default"=>null),
 		));
 		// if($data['groupID'] != '1' && !$data['parentID']){
 		// 	show_json(LNG('admin.group.parentNullError'), false);

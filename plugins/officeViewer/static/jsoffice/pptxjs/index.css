@@ -8,6 +8,9 @@
     padding: 40px 10px 10px;
 } */
 .output-loading{padding: 0px!important;}
+.page-box #output .slide .block.group{
+    border: none !important;
+}
 .page-box #output .slides-loadnig-msg{display: none!important;}
 .page-box #output #all_slides_warpper .slide{
     /* margin: 0px auto; */

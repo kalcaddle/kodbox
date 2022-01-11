@@ -121,8 +121,9 @@ class explorerAuth extends Controller {
 		
 		// 目标在回收站中: 不支持保存/上传/远程下载/粘贴/移动到此/新建文件/新建文件夹;
 		if($info['isDelete'] == '1'){
-			show_json(LNG("explorer.pathInRecycle"),false);
-		}								
+			$msg = $info['type'] == 'file' ? LNG('explorer.pathInRecycleFile') : LNG("explorer.pathInRecycle");
+			show_json($msg,false);
+		}
 		$space  = Action("explorer.list")->targetSpace($info);
 		if(!$space || $space['sizeMax']==0 ) return true; // 没有大小信息,或上限为0则放过;
 		return $space['sizeMax'] > $space['sizeUse'];
@@ -368,6 +369,12 @@ class explorerAuth extends Controller {
 			return $this->errorMsg("source share root can't remove !");
 		}
 
+		// 分享时间处理;
+		$timeout = intval(_get($shareInfo,'options.shareToTimeout',0));
+		if($timeout > 0 && $timeout < time()){
+			return $this->errorMsg(LNG('explorer.share.expiredTips'));
+		}
+		
 		// 物理路径,io路径;
 		if($shareInfo['sourceID'] == '0'){
 			$sharePath = KodIO::clear($shareInfo['sourcePath']);

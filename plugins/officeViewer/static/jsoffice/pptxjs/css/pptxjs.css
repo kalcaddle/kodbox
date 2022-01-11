@@ -1,17 +1,13 @@
 
 
 .slide {
-	width: 100%;
-	/*max-width: 920px;*/
-	height: 690px;
 	position: relative;
 	border: 1px solid #333;
-	/* background-color: #EFEFEF; */
-	text-align: center;
 	border-radius: 10px;
-	/* box-shadow: 1px 1px 3px #AAA; */
 	overflow: hidden;
-	/*transform: scale(0.85);*/
+	margin-bottom: 50px;
+	margin-left: auto;
+  	margin-right: auto;
 }
 
 .slide div.block {
@@ -19,17 +15,48 @@
 	top: 0px;
 	left: 0px;
 	width: 100%;
+	line-height: 1;
 }
 
 .slide div.content {
 	display: flex;
 	flex-direction: column;
-	/*
-	justify-content: center;
-	align-items: flex-end;
-	*/
+}
+.slide div.diagram-content{
+	display: flex;
+	flex-direction: column;
 }
 
+.slide div.content-rtl {
+	display: flex;
+	flex-direction: column;
+	direction: rtl; 
+}
+.slide .pregraph-rtl{
+	direction: rtl; 
+}
+.slide .pregraph-ltr{
+	direction: ltr; 
+}
+.slide .pregraph-inherit{
+	direction: inherit; 
+}
+.slide .slide-prgrph{
+	width: 100%;
+	/* overflow-wrap:break-word;
+  	word-wrap: break-word;  */
+  
+	/* word-break: break-word; */
+	/* unicode-bidi: bidi-override; */
+	/* hyphens: auto;
+	overflow-wrap: break-word; */
+	
+}
+
+.slide .line-break-br::before{
+  content: "\A";
+  white-space: pre;
+}
 .slide div.v-up {
 	justify-content: flex-start;
 }
@@ -41,17 +68,36 @@
 }
 
 .slide div.h-left {
+	justify-content: flex-start;
 	align-items: flex-start;
 	text-align: left;
 }
+.slide div.h-left-rtl {
+	justify-content: flex-end;
+	align-items: flex-end;
+	text-align: left;
+}
 .slide div.h-mid {
+	justify-content: center;
 	align-items: center;
 	text-align: center;
 }
 .slide div.h-right {
+	justify-content: flex-end;
 	align-items: flex-end;
 	text-align: right;
 }
+.slide div.h-right-rtl {
+	justify-content: flex-start;
+	align-items: flex-start;
+	text-align: right;
+}
+
+.slide div.h-just,
+.slide div.h-dist {
+	text-align: justify;
+}
+
 
 .slide div.up-left {
 	justify-content: flex-start;
@@ -99,16 +145,8 @@
 	font-size: 18px;
 }
 
-/* div.footer {
-	text-align: center;
-} */
-
 .slide table {
 	position: absolute;
-}
-
-.slide table, .slide th, .slide td {
-	border: 1px solid black;
 }
 
 .slide svg.drawing {

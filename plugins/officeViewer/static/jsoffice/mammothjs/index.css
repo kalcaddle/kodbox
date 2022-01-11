@@ -59,6 +59,9 @@
     transform: translate(-50%);
     height: inherit;
 }
+.page-box.is-in-wap {
+    width: 100%;
+}
 .fit-content{
     height: -moz-fit-content;
     height: -webkit-fit-content;

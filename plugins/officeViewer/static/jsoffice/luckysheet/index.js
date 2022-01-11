@@ -44,21 +44,17 @@ $(function(){
             return;
         }
         var sheet = utils.getLuckySheet();
-        // 2.csv字符串解析为data，只能读一个sheet
+        // 2.csv以字符串方式读取，区分编码
         if(file.ext == 'csv'){
-            utils.ab2str(file.content, function(str){
-                var _sheet = JSON.parse(JSON.stringify(sheet));
-                _sheet.name = 'Sheet1';
-                _sheet.index = _sheet.order = 0;
-                _sheet.data = utils.csvToLuckySheet(str);
-                setLuckySheet({sheets: [_sheet]}, function(exportJson){
-                    loadLuckySheet(exportJson);
-                });
-            });
-            return;
+            var data = new Uint8Array(file.content);
+            var code = utils.isUTF8(data) ? 'utf-8' : 'gbk';
+            var str = new TextDecoder(code).decode(data);
+            var wb = XLSX.read(str, { type: "string" });
         }
         // 3.xls通过SheetJs获取数据
-        var wb = XLSX.read(file.content, {type: 'buffer'});
+        if(_.isUndefined(wb)) {
+            var wb = XLSX.read(file.content, {type: 'buffer'});
+        }
         var sheets = [];
         for(var i in wb.SheetNames) {
             var name = wb.SheetNames[i];

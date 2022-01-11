@@ -74,6 +74,21 @@ function is_domain($host){
 	if($host == 'localhost') return false;
 	return !filter_var($host, FILTER_VALIDATE_IP);
 }
+function http_build_url($urlArr) {
+	if (empty($urlArr)) return '';
+	$url = $urlArr['scheme'] . "://".$urlArr['host'];
+	if(!empty($urlArr['port'])) {
+		$url .= ":" . $urlArr['port'];
+	}
+	$url .= $urlArr['path'];
+	if(!empty($urlArr['query'])) {
+		$url .= "?" . $urlArr['query'];
+	}
+	if(!empty($urlArr['fragment'])) {
+		$url .= "#" . $urlArr['fragment'];
+	}
+	return $url;
+}
 
 function http_type(){
 	if( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
@@ -130,8 +145,7 @@ function webroot_path($basicPath){
 			return rtrim($path,'/').'/';
 		}
 	}
-	
-	return $_SERVER['DOCUMENT_ROOT'];
+	return str_replace('\\','/',$_SERVER['DOCUMENT_ROOT']);
 }
 
 function ua_has($str){
@@ -822,7 +836,7 @@ function in($name,$default='',$filter=null) {
 		case 'session' :   $input =Session::get();   break;
 		case 'cookie'  :   $input =& $_COOKIE;    break;
 		case 'server'  :   $input =& $_SERVER;    break;
-		case 'globals' :   $input =& $GLOBALS;    break;
+		case 'globals' :   $input =  $GLOBALS; break;
 		default:return NULL;
 	}
 	$filters = isset($filter)?$filter:$default_filter;

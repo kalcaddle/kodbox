@@ -47,6 +47,7 @@ class userMsg extends Controller {
             'language'	 => i18n::getType(),
             // 'signature'	 => Model('SystemOption')->get('systemName')
 		);
+        Hook::trigger('send.sms.before', $data);
 		return Action('user.bind')->apiRequest('sms', $data);
     }
 

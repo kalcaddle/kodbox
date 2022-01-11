@@ -578,7 +578,9 @@ class RequestCore
             }
         }
 
-        $read = fread($this->read_stream, min($this->read_stream_size - $this->read_stream_read, $length)); // Remaining upload data or cURL's requested chunk size
+        $size = min($this->read_stream_size - $this->read_stream_read, $length);
+        if($size <= 0 ) return '';
+        $read = fread($this->read_stream,$size); // Remaining upload data or cURL's requested chunk size
         $this->read_stream_read += strlen($read);
 
         $out = $read === false ? '' : $read;

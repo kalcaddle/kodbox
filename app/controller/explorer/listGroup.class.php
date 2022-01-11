@@ -91,6 +91,7 @@ class explorerListGroup extends Controller{
 	public function appendChildren(&$data){
 		$pathInfo = $data['current'];
 		if(!$pathInfo || _get($pathInfo,'targetType') != 'group') return false;
+		if(isset($pathInfo['shareID'])) return false;
 		
 		// 第一页才罗列;
 		$page = intval($this->in['page']);
@@ -105,6 +106,11 @@ class explorerListGroup extends Controller{
 		$groupID = $pathInfo['targetID'];
 		$groupList  = $this->modelGroup->where(array('parentID'=>$groupID))->select();
 		$data['groupList'] = $this->groupArray($groupList);
+		$data['groupShow'] = array(
+			array('type'=>'childGroup','title'=>LNG('explorer.pathGroup.group'),"filter"=>array('sourceRoot'=>'groupPath')),
+			array('type'=>'childContent','title'=>LNG('explorer.pathGroup.groupContent'),"filter"=>array('sourceRoot'=>'!=groupPath')),
+		);
+		if(count($data['groupList']) == 0){unset($data['groupShow']);}
 	}
 
 	public function pathGroupAuthMake($groupID){

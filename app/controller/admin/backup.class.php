@@ -12,6 +12,8 @@ class adminBackup extends Controller{
 			$this->lastItem();
 		}
 		$data	= $this->model->config();
+		$database = array_change_key_case($GLOBALS['config']['database']);
+		$data['dbType'] = Action('admin.server')->_dbType($database);	// mysql/sqlite
 		$last	= $this->model->lastItem();
 		$process= $this->model->process();
 		$info	= array('last' => $last, 'info' => $process);
@@ -48,7 +50,6 @@ class adminBackup extends Controller{
 	public function initStart($status){
 		$data = $this->model->config();
 		if($data['enable'] == '1') return;
-
 		$backup = Model('SystemOption')->get('backup');
 		$backup = json_decode($backup, true);
 
@@ -57,8 +58,8 @@ class adminBackup extends Controller{
 		$backup['content'] = 1;
 		$backup['enable'] = 1;
 		Model('SystemOption')->set('backup', $backup);
-		$data = array('enable' => 1);
-		Model('SystemTask')->update($data['id'], $data);
+		$update = array('enable' => 1);
+		Model('SystemTask')->update($data['id'], $update);
 	}
 
     // 备份——终止http请求，后台运行
@@ -68,6 +69,7 @@ class adminBackup extends Controller{
 			show_json(LNG('admin.backup.notOpen'), false);
 		}
 		$data = Model('Storage')->listData($config['io']);
+		if (!$data) show_json(LNG('admin.backup.storeNotExist'), false);
 		Model('Storage')->checkConfig($data);
 		mk_dir(TEMP_FILES);
 		if(!path_writeable(TEMP_FILES)) {

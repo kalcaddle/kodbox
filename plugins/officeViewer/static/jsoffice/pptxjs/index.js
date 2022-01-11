@@ -1,4 +1,5 @@
 $(function(){
+    // node_modules/.bin/uglifyjs pptxjs.kod.js -c > pptxjs.kod.min.js
     var isWap = function(){
         return $(window.document).width() < 768;
     }
@@ -87,12 +88,16 @@ $(function(){
         // 2.主区域宽度、padding
         $('#all_slides_warpper').addClass('all-slides-warpper');
         // 没有获取到位置尺寸的图片，为避免覆盖整个页面，直接隐藏
-        $("#all_slides_warpper .slide img").each(function(){
-            var pStyle = $(this).parent()[0].style;
-            if (!pStyle.width && !pStyle.height) {
-                // $(this).attr('style', 'width: fit-content;');
-                $(this).addClass('hidden');
-            }
+        // $("#all_slides_warpper .slide img").each(function(){
+        //     var pStyle = $(this).parent()[0].style;
+        //     if (!pStyle.width && !pStyle.height) {
+        //         // $(this).attr('style', 'width: fit-content;');
+        //         $(this).addClass('hidden');
+        //     }
+        // });
+        // 隐藏<#>
+        $("#all_slides_warpper .slide .block.v-mid.content .text-block").each(function(){
+            if ($(this).text() == '‹#›') $(this).addClass('hidden');
         });
 
         // 3.各页复制到左侧栏，并显示——非移动端分栏显示

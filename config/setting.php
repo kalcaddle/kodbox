@@ -26,7 +26,7 @@ $config['settings'] = array(
 		'ignoreName'		=> '',			// 忽略的文件名,不区分大小写; 逗号隔开,例如: .DS_Store,Thumb.db
 		'chunkRetry'		=> 2,			// 分片上传失败,重传次数;针对每个分片;
 		'sendAsBinary'		=> 0,			// 以二进制方式上传;后端服务器以php://input接收;0则为传统方式上传 $_FILE;
-		'httpSendFile'		=> false,		// 调用webserver下载 /https://www.lovelucy.info/x-sendfile-in-nginx.html
+		'httpSendFile'		=> false,		// 调用webserver下载 https://doc.kodcloud.com/v2/#/help/options
 		
 		'ignoreExt'			=> '',          // 限制的扩展名; 扩展名在该说明中则自动不上传;逗号隔开
 		'allowExt'			=> '',			// 只允许扩展名列表; 设置值时不在设置中的文件自动不上传; 逗号隔开
@@ -43,6 +43,7 @@ $config['settings'] = array(
 	'shareLinkSizeMax'		=> 0,			// 分享文件/文件夹最大大小限制; 0不限制; 单位GB(float)
 	'unzipFileSizeMax'  	=> 0,			// 文件解压压缩包大小限制; 0-不限制; 单位GB(float)
 	'zipFileSizeMax'  		=> 0,			// 文件(夹)压缩大小限制;   0-不限制; 单位GB(float)
+	'groupCompany'			=> 0,			// 二级部门为子公司,独立部门;
 	
 	'staticPath'		=> APP_HOST."static/",	//静态文件目录,可以配置到cdn;
 	'kodApiServer'		=> "https://api.kodcloud.com/?", //QQ微信登录/邮件发送/插件-列表等 
@@ -70,10 +71,12 @@ $config['settings']['ioClassList'] = array(
 	'oos'				=> 'OOS',
 	'uss'				=> 'USS',
 	'minio'				=> 'MinIO',
+	'eos'				=> 'EOS',
 
-	'eos'				=> 'EOS',	// 这3个可以追加
 	'moss'				=> 'MOSS',
 	'nos'				=> 'NOS',
+	'baidu'				=> 'Baidu',
+	'onedrive'			=> 'OneDrive',
 
 	'base'				=> 'Base',
 	'bases3'			=> 'BaseS3',
@@ -227,6 +230,8 @@ $config['settingSystemDefault'] = array(
 	'systemRecycleOpen' => '0',			// 系统回收站开启关闭;
 	'systemRecycleClear'=> '10',		// 系统回收站自动清除,N天以前内容;
 	'systemBackup'		=> '1',			// 文档自动备份;
+	'shareToMeAllowTree'=> '1',			// 分享给我的内容支持按部门组织架构或用户进行分类
+	'groupTagAllow' 	=> '0',			// 是否启用部门公共标签
 	
 	'treeOpen'			=> 'my,myFav,myGroup,rootGroup,recentDoc,fileType,fileTag,driver',//树目录开启功能;
 	'wallpageDesktop'	=> "1,2,3,4,5,6,7,8,9,10,11,12,13",
@@ -275,6 +280,7 @@ $config['settingDefault'] = array(
 	'fileSelect'		=> '1',
 	'displayHideFile'	=> '0',
 	'filePanel'			=> '1',
+	'shareToMeShowType' => 'list',
 	'messageSendType'	=> 'enter', //enter,ctrlEnter
 	'loginDevice'		=> '',
 );
@@ -451,6 +457,9 @@ $config['authAllowAction'] = array(
 	'explorer.userShare.get',
 	'explorer.userShare.myShare',
 	'explorer.userShare.shareDisplay',
+	
+	'explorer.tagGroup.get','explorer.tagGroup.set',
+	'explorer.tagGroup.filesRemoveFromTag','explorer.tagGroup.filesAddToTag',
 
 	'user.setting.notice',
 	'user.setting.taskList','user.setting.taskKillAll','user.setting.taskAction',
@@ -469,22 +478,22 @@ $config['authAllowAction'] = array(
 $config['authRoleAction']= array(
 	'explorer.add'			=> array('explorer.index'=>'mkdir,mkfile'),
 	'explorer.upload'		=> array(
-		'explorer.upload'		=>'fileUpload',
-		'explorer.attachment'	=>'upload',
+		'explorer.upload'	=> 'fileUpload',
+		'explorer.attachment'=>'upload',
 	),
 	'explorer.view'			=> array(
-		'explorer.index'=>'fileOut,unzipList,fileOutBy,pathLog',
-		'explorer.editor'=>'fileGet',
-		'explorer.fileView'=>'index,open',
+		'explorer.index'	=> 'fileOut,unzipList,fileOutBy,pathLog',
+		'explorer.editor'	=> 'fileGet',
+		'explorer.fileView'	=> 'index,open',
 	),
 	'explorer.download'		=> array('explorer.index'=>'fileDownload,zipDownload,fileDownloadRemove'),
 	'explorer.share'		=> array('explorer.userShare'=>'add,edit,del'),
 	'explorer.remove'		=> array('explorer.index'=>'pathDelete,recycleDelete,recycleRestore'),
 	'explorer.edit'			=> array(
-		'explorer.index'	=>'setDesc,setMeta,setAuth,fileSave,pathRename,zip,unzip',
-		'explorer.editor'	=>'fileSave',
-		'explorer.history'	=>'get,remove,clear,rollback,setDetail,fileOut',
-		'comment.index'		=>'listData,add,remove,prasise,listByUser,listChildren'
+		'explorer.index'	=> 'setDesc,setMeta,setAuth,fileSave,pathRename,zip,unzip',
+		'explorer.editor'	=> 'fileSave',
+		'explorer.history'	=> 'get,remove,clear,rollback,setDetail,fileOut',
+		'comment.index'		=> 'listData,add,remove,prasise,listByUser,listChildren'
 	),
 	'explorer.move'			=> array('explorer.index'=>'pathCopy,pathCute,pathCopyTo,pathCuteTo,pathPast,clipboard'),
 	'explorer.serverDownload'=> array('explorer.upload'=>'serverDownload'),
@@ -493,15 +502,18 @@ $config['authRoleAction']= array(
 	'explorer.zip'			=> array('explorer.index'=>'zip,zipDownload'),
 
 	'user.edit'				=> array(
-		'user.setting'	=> 'setConfig,setUserInfo,setHeadImage,uploadHeadImage',
+		'user.setting'		=> 'setConfig,setUserInfo,setHeadImage,uploadHeadImage',
 	),
-	'user.fav' => array(
-		'explorer.fav'=>'add,rename,moveTop,moveBottom,del',
-		'explorer.tag'=>'add,edit,remove,moveTop,moveBottom,resetSort,filesAddToTag,filesResetTag,filesRemoveFromTag',
+	'user.fav' 				=> array(
+		'explorer.fav'		=> 'add,rename,moveTop,moveBottom,del',
+		'explorer.tag'		=> 'add,edit,remove,moveTop,moveBottom,resetSort,filesAddToTag,filesRemoveFromTag',
 	),
 	
 	'admin.index.dashboard'	=> array('admin.analysis'=>'option,table,chart,trend'),
-	'admin.index.setting'	=> array('admin.setting'=>'get,set,clearCache,phpInfo'),
+	'admin.index.setting'	=> array(
+		'admin.setting'		=> 'get,set,clearCache,phpInfo',
+		'admin.notice'		=> 'get,add,edit,remove,sort,enable',
+	),
 	'admin.index.loginLog'	=> array('admin.log'=>'loginLogList'),
 	'admin.index.log'		=> array('admin.log'=>'get,typelist'),
 	'admin.index.server'	=> array('admin.setting'=>'server'),
@@ -512,8 +524,8 @@ $config['authRoleAction']= array(
 	'admin.job.edit'		=> array('admin.job'=>'add,edit,remove,sort'),
 
 	'admin.member.list'		=> array(
-		'admin.member' 	=> 'get,getByID,search',
-		'admin.group' 	=> 'get,getByID,search'
+		'admin.member' 		=> 'get,getByID,search',
+		'admin.group' 		=> 'get,getByID,search'
 	),
 	'admin.member.userEdit'	=> array('admin.member'=>'add,edit,remove,status,addGroup,removeGroup,switchGroup'),
 	'admin.member.groupEdit'=> array('admin.group'=>'add,edit,status,sort,remove'),
@@ -524,14 +536,14 @@ $config['authRoleAction']= array(
 	//插件管理；轻应用归属到插件；
 	'admin.plugin.list'		=> array('admin.plugin'=>'appList'),
 	'admin.plugin.edit'		=> array(
-		'admin.plugin'		=>'getConfig,setConfig,changeStatus,install,unInstall',
-		'explorer.lightApp'	=>'add,edit,del'
+		'admin.plugin'		=> 'getConfig,setConfig,changeStatus,install,unInstall',
+		'explorer.lightApp'	=> 'add,edit,del'
 	),
 
 	'admin.storage.list'	=> array('admin.storage'=>'get'),
 	'admin.storage.edit'	=> array(
-		'admin.storage'	=> 'add,edit,remove',
-		'admin.backup'	=> 'config,get,remove'
+		'admin.storage'		=> 'add,edit,remove',
+		'admin.backup'		=> 'config,get,remove'
 	),
 
 	'admin.autoTask.list'	=> array('admin.autoTask'=>'get'),

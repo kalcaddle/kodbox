@@ -47,6 +47,7 @@ class explorerIndex extends Controller{
 			$result['downloadPath'] = Action('explorer.share')->link($path);
 		}
 		$result = Action('explorer.list')->pathInfoParse($result,0,1);
+		if($result['isDelete'] == '1'){unset($result['downloadPath']);}
 		return $result;
 	}
 

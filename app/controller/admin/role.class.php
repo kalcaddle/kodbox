@@ -18,7 +18,11 @@ class adminRole extends Controller{
 	 * 根据所在部门获取用户列表
 	 */
 	public function get() {
-		$result = $this->model->listData();
+		$roleList = $this->model->listData();$result = array();
+		$Action = Action('filter.UserGroup');
+		foreach($roleList as $item){//过滤比自己权限小的项;
+			if($Action->allowChangeUserRole($item['id'])){$result[] = $item;}
+		}
 		show_json($result,true);
 	}
 

@@ -393,7 +393,7 @@ function array_set_value(&$array,$key,$value){
 	return false;
 }
 
-function _get(&$array,$key,$default=null){
+function _get($array,$key,$default=null){
 	return array_get_value($array,$key,$default);
 }
 
@@ -1076,6 +1076,7 @@ function file_sub_str($file,$start=0,$len=0){
 		$start = $size + $start;
 		$len = $size - $start;
 	}
+	if($len <= 0) return '';
     $fp = fopen($file,'r');
     fseek($fp,$start);
     $res = fread($fp,$len);

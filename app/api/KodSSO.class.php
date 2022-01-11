@@ -8,7 +8,7 @@
  * 
  * 2. 通用CAS模式单点登录; (可跨站点跨服务器,不同服务之间调用); 可用其他语言实现类似逻辑;
  * include('./app/api/KodSSO.class.php');
- * $user = KodSSO::check('user:admin'); // 不同站需要传入kod站点的名称;
+ * $user = KodSSO::check('user:admin',$host=''); // 不同站需要传入kod站点的名称; 不传默认认为和当前kod在同一站点下;
  * 
  * 权限检测支持: 
  * 	1. 指定插件名, 权限同该插件配置用户权限
@@ -120,7 +120,18 @@ class KodSSO{
 	public static function appHost(){
 		$BASIC_PATH = str_replace('\\','/',dirname(dirname(dirname(__FILE__)))).'/';
 		$WEB_ROOT 	= self::webrootPath($BASIC_PATH);
-		return self::host().str_replace($WEB_ROOT,'',$BASIC_PATH); //程序根目录
+		$WEB_URI    = str_replace($WEB_ROOT,'',$BASIC_PATH);
+		
+		// 有软连接情况处理;
+		if(substr($WEB_ROOT,0,strlen($BASIC_PATH)) != $WEB_ROOT){
+			$WEB_URI = '';
+			$DOCUMENT_URI = isset($_SERVER["DOCUMENT_URI"]) ? $_SERVER["DOCUMENT_URI"]:'';
+			$pose = strpos($DOCUMENT_URI,'/plugins/');
+			if($pose >= 0){
+				$WEB_URI = substr($DOCUMENT_URI,1,$pose);
+			}
+		}
+		return self::host().$WEB_URI; //程序根目录
 	}
 	//解决部分主机不兼容问题
 	public static function webrootPath($basicPath){
@@ -155,7 +166,7 @@ class KodSSO{
 				return rtrim($path,'/').'/';
 			}
 		}
-		return $_SERVER['DOCUMENT_ROOT'];
+		return str_replace('\\','/',$_SERVER['DOCUMENT_ROOT']);
 	}
 	public static function host(){
 		$protocol = "http://";

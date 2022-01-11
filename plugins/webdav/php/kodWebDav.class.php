@@ -71,10 +71,14 @@ class kodWebDav extends webdavServer {
 		$info = IO::infoFull($newPath);
 
 		// 已存在回收站中处理;
-		if($info && $info['type'] == 'file' && $info['isDelete'] == '1'){
-			$ext = '.'.get_path_ext($info['name']);
-			$theName  = substr($info['name'],0,strlen($info['name']) - strlen($ext)); 
-			IO::rename($info['path'],$theName .date('(H:i:s)').$ext);
+		if($info && $info['isDelete'] == '1'){
+			$resetName = $info['name'] .date('(H:i:s)');
+			if($info['type'] == 'file'){
+				$ext = '.'.get_path_ext($info['name']);
+				$theName   = substr($info['name'],0,strlen($info['name']) - strlen($ext));
+				$resetName = $theName.date('(H:i:s)').$ext;
+			}
+			IO::rename($info['path'],$resetName);
 			$info = IO::infoFull($newPath);
 		}
 		// pr($newPath,$item,$pathArr,$info,count($parent['folderList']));

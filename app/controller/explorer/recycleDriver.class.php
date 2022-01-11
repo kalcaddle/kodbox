@@ -117,7 +117,8 @@ class explorerRecycleDriver extends Controller{
 			$beforePath = rtrim($fromPath,'/').'/'.get_path_this($toPath);
 			if(!$sourceArr || 
 				in_array($beforePath,$sourceArr) || 
-				in_array(trim($beforePath,'/').'/',$sourceArr)
+				in_array(rtrim($beforePath,'/'),$sourceArr) ||
+				in_array(rtrim($beforePath,'/').'/',$sourceArr)
 			){
 				IO::move($toPath,$fromPath,REPEAT_RENAME_FOLDER);
 				unset($listNew[$toPath]);

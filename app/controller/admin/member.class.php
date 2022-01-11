@@ -35,12 +35,13 @@ class adminMember extends Controller{
 	 */
 	public function get() {
 		$data = Input::getArray(array(
+			"groupID"	=> array("check"=>"require",'default'=>0),
 			"fields"	=> array("check"=>"require",'default'=>''),
 			"status"	=> array("default"=>null)
 		));
-		$id = Input::get('groupID','bigger',null,0);
-		if($id == 1) $id = 0;	// 根部门（id=1）获取全部用户
-		$result = $this->model->listByGroup($id, $data);
+		if(!$data['groupID']){show_json(array(),true);}
+		if($data['groupID'] == 1) $data['groupID'] = 0;	// 根部门（id=1）获取全部用户
+		$result = $this->model->listByGroup($data['groupID'], $data);
 		show_json($result,true);
 	}
 	
@@ -314,9 +315,12 @@ class adminMember extends Controller{
 			$res = ActionCallHook('admin.member.add');
 			if($res['code']) $success++;
 		}
-		$info  = LNG('common.success') . ":{$success}; ";
-		$info .= LNG('common.valid') . ":{$fileData['valid']}; ";
-		$info .= LNG('common.inAll') . ":{$fileData['total']}";
+		$fail  = $fileData['total'] - $success;
+		$info  = LNG('common.inAll') . ":{$fileData['total']}; ";
+		$info .= LNG('common.success') . ":{$success}";
+		if ($fail > 0) {
+			$info .= "<br/>" . LNG('common.fail') . ":{$fail} (".LNG('admin.member.importFailDesc').")";
+		}
 		$code  = (boolean) $success;
 		$data  = $code ? LNG('admin.member.importSuccess') : LNG('admin.member.importFail');
 		show_json($data, $code, $info);
@@ -339,6 +343,7 @@ class adminMember extends Controller{
         fclose($handle);
         // 2.获取列表数据
         unset($dataList[0]);
+		$dataList = array_filter($dataList);
         $list = array();
         $keys = array('name','nickName','password','sex','phone','email');
 		$sex  = array('女' => 0, '男' => 1);
