@@ -34,7 +34,7 @@ class explorerList extends Controller{
 			case KodIO::KOD_USER_FILE_TAG:		$data = Action('explorer.tag')->listSource($id);break;
 			case KodIO::KOD_USER_RECYCLE:		$data = $this->model->listUserRecycle();break;
 			case KodIO::KOD_USER_FILE_TYPE:		$data = $this->model->listPathType($id);break;
-			case KodIO::KOD_USER_RECENT:		$data = $this->listRecent();break;
+			case KodIO::KOD_USER_RECENT:		$data = Action('explorer.listRecent')->listData();break;
 			case KodIO::KOD_GROUP_ROOT_SELF:	$data = Action('explorer.listGroup')->groupSelf($pathParse);break;
 			case KodIO::KOD_USER_SHARE:			$data = Action('explorer.userShare')->myShare('to');break;
 			case KodIO::KOD_USER_SHARE_LINK:	$data = Action('explorer.userShare')->myShare('link');break;
@@ -86,80 +86,6 @@ class explorerList extends Controller{
 		return KodIO::make($find);
 	}
 	
-	/**
-	 * 最近文档；
-	 * 仅限自己的文档；不分页；不支持排序；  最新修改时间 or 最新修改 or 最新打开 max top 100;
-	 * 
-	 * 最新自己创建的文件(上传or拷贝)
-	 * 最新修改的，自己创建的文件	
-	 * 最新打开的自己的文件 		
-	 * 
-	 * 资源去重；整体按时间排序【创建or上传  修改  打开】
-	 */
-	private function listRecent(){
-		$list = array();
-		$this->listRecentWith('createTime',$list);		//最近上传or创建
-		$this->listRecentWith('modifyTime',$list);		//最后修改
-		$this->listRecentWith('viewTime',$list);		//最后打开
-		
-		//合并重复出现的类型；
-		foreach ($list as &$value) {
-			$value['recentType'] = 'createTime';
-			$value['recentTime'] = $value['createTime'];
-			if($value['modifyTime'] > $value['recentTime']){
-				$value['recentType'] = 'modifyTime';
-				$value['recentTime'] = $value['modifyTime'];
-			}
-			if($value['viewTime'] > $value['recentTime']){
-				$value['recentType'] = 'viewTime';
-				$value['recentTime'] = $value['viewTime'];
-			}
-		}
-		
-		$list = array_sort_by($list,'recentTime',true);
-		$listRecent = array_to_keyvalue($list,'sourceID');
-		$result = array();
-		if(!empty($listRecent)){
-			$where  = array( 'sourceID'=>array('in',array_keys($listRecent)) );
-			$result = $this->model->listSource($where);
-		}
-		$fileList = array_to_keyvalue($result['fileList'],'sourceID');
-		// pr($fileList,$listRecent);exit;
-		
-		//保持排序，合并数据
-		foreach ($fileList as $sourceID => &$value) {
-			$item  = $listRecent[$sourceID];
-			if(!$item){
-				unset($fileList[$sourceID]);
-				continue;
-			}
-			$value = array_merge($value,$item);
-		}
-		$result['fileList'] = array_values($fileList);
-		$result['disableSort'] = 1;
-		$result['listTypeSet'] = 'list';
-		// unset($result['pageInfo']);
-		return $result;
-	}
-	private function listRecentWith($timeType,&$result){
-		$where = array(
-			'targetType'	=> SourceModel::TYPE_USER,
-			'targetID'		=> USER_ID,
-			'isFolder'		=> 0,
-			'isDelete'		=> 0,
-			'createTime'	=> array('>',time() - 3600*24*60),//2个月内;
-			'size'			=> array('>',0),
-		);
-
-		$maxNum = 50;	//最多150项
-		$field  = 'sourceID,name,createTime,modifyTime,viewTime';
-		$list   = $this->model->field($field)->where($where)
-					->limit($maxNum)->order($timeType.' desc')->select();
-		$list   = array_to_keyvalue($list,'sourceID');
-		$result = array_merge($result,$list);
-		$result = array_to_keyvalue($result,'sourceID');
-	}
-
 	public function pageParse(&$data){
 		if(isset($data['pageInfo'])) return;
 		$in = $this->in;
@@ -364,7 +290,8 @@ class explorerList extends Controller{
 		}
 		
 		// 没有下载权限,不显示fileInfo信息;
-		if(!$pathInfo['canDownload']){
+		$showMd5 = Model('SystemOption')->get('showFileMd5') != '0';
+		if(!$pathInfo['canDownload'] || !$showMd5){
 			unset($pathInfo['fileInfo']);
 			unset($pathInfo['hashMd5']);
 		}
@@ -404,11 +331,23 @@ class explorerList extends Controller{
 				$this->parseAuth($item['children'],$item['path'],$pathParseParent);
 			}
 			$item['type'] = isset($item['type']) ? $item['type'] : 'folder';
-		}
+		};unset($item);
 		if($pathParse['type'] == KodIO::KOD_SHARE_LINK) return;
 
 		$data['fileList']   = $this->dataFilterAuth($data['fileList']);
 		$data['folderList'] = $this->dataFilterAuth($data['folderList']);
+		
+		// 列表处理;
+		switch($pathParse['type']){
+			case KodIO::KOD_USER_FAV:
+			case KodIO::KOD_USER_RECENT:
+			case KodIO::KOD_GROUP_ROOT_SELF:
+			case KodIO::KOD_BLOCK:
+				$data['disableSort'] = 1;// 禁用客户端排序;
+				// $data['listTypeSet'] = 'list'; //强制显示模式;
+				break;
+			default:break;
+		}
 	}
 	
 	// 显示隐藏文件处理; 默认不显示隐藏文件;
@@ -705,6 +644,9 @@ class explorerList extends Controller{
 		}
 		if(Model('UserOption')->get('recycleOpen') == '0'){
 			unset($list[KodIO::KOD_USER_RECYCLE]);
+		}
+		if(Model('SystemOption')->get('shareLinkAllow') == '0'){
+			unset($list[KodIO::KOD_USER_SHARE_LINK]);
 		}
 		return array_values($list);
 	}

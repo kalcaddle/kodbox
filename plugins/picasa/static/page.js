@@ -44,35 +44,85 @@ define(function(require, exports) {
 			myPicasa.play(myPicasa.arrItems,index);
 		});
 	}
+	
+	
+	
+	var optionsList = function(storeKey,lengthMax){
+		LocalData.values = LocalData.values || {};
+		var values = LocalData.values[storeKey] || LocalData.getConfig(storeKey) || {};
+		LocalData.values[storeKey] = values;
+		var get = function(key,defaultValue){
+			return values[key] || defaultValue;
+		}
+		var set = function(key,value){
+			values[key] = value;
+			if(value == null){delete values[key];}
+			save();
+		}
+		var save = function(){
+			if(!lengthMax) return;
+			var keys = Object.keys(values);
+			if(keys.length > lengthMax){
+				var newValues = {};
+				keys = keys.slice(keys.length - lengthMax);
+				for(var i = 0; i < keys.length; i++) {
+					newValues[keys[i]] = values[keys[i]];
+				}
+				values = newValues;
+			}
+			LocalData.setConfig(storeKey,values);
+		};
+		var clear = function(){values = {};save();}
+		return {set:set,get:get,clear:clear};
+	}
+	var imageRotateList = new optionsList('imageRotate',500);
+	
 	var imageRotate = function(rotate){
 		var index = parseInt($('#PV_Control #PV_Items .current').attr('number'));
-		var path = myPicasa.arrItems[index][0][2];
-		ui.pathOperate.imageRotate(path,rotate,function(){
-			var imgSrc = function(img){
-				var str = '&picture='+UUID();
-				return img.indexOf('?') == -1 ? img+'?a=1'+str : img+str
-			}
-			var $img = $('[data-path='+pathHashEncode(path)+']').find('img');
-			var imageSmall = imgSrc(myPicasa.arrItems[index][0][0]);
-			var imgageBig = imgSrc(myPicasa.arrItems[index][0][1]);
-			
-			$("#PV_Items .current img").attr('src',imageSmall);
-			$img.attr('src',imageSmall);
-			$img.attr('data-original',imageSmall);
-			myPicasa.resetImage(imgageBig,imageSmall);
-		});
+		var image = myPicasa.arrItems[index][0];
+		// console.log(101,rotate,myPicasa.arrItems[index]);
+		var radius = parseInt(imageRotateItem(image[1],'get')) + 90;
+		imageRotateItem(image[1],radius,true);
 	}
+	var imageRotateItem = function(src,radius,isSave){
+		if(!src) return;
+		var $image = $('#PV_Picture');
+		var style  = $image.attr('style') || '';
+		var match  = style.match(/transform:\s*rotate\((\d+)deg\)/);
+		if(radius == 'get'){return match ? match[1]:0;}
+
+		var transform = radius ? 'rotate('+radius+'deg)' : '';
+		if(isSave){
+			$image.css('transition','all 0.3s');
+			setTimeout(function(){$image.css('transition','');},310);
+			if(radius % 360 == 0){radius = null;}
+			imageRotateList.set(src,radius);
+		}
+		$image.css('transform',transform);
+	};
+	
+	var timeoutHolder = false;
 	var loadImageBefore = function(){
 	    var index = parseInt($('#PV_Control #PV_Items .current').attr('number'));
-		var path = myPicasa.arrItems[index][0][2];
-		var $action = $("#PV_rotate_Left,#PV_rotate_Right,#PV_Btn_Remove");
-		if(path.substr(0,4) == 'http'){
+		var src   = myPicasa.arrItems[index][0][1];
+		var $action = $("#PV_rotate_Left,#PV_Btn_Remove");
+		if(src.substr(0,4) == 'http'){
 		    $action.addClass('hidden');
 		}else{
 		    $action.removeClass('hidden');
 		}
+
+		var radius = imageRotateList.get(src,0);
+		var image = myPicasa.arrItems[index][0];
+		imageRotateItem(src,radius);
+		
+		clearTimeout(timeoutHolder);
+		$('#PV_Picture_Temp').attr('src','');
+		timeoutHolder = setTimeout(function(){
+			$('#PV_Picture_Temp').attr('src',image[0]);
+		},500);//延迟处理;
 	};
-	
+		
 	return function(path,ext,name,appStatic){
 		requireAsync([
 			appStatic+'picasa/style/style.css',

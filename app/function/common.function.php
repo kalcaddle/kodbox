@@ -195,7 +195,7 @@ function obj2array($obj){
 	if (is_array($obj)) {
 		foreach($obj as &$value) {
 			$value = obj2array($value);
-		} 
+		};unset($value);
 		return $obj;
 	} elseif (is_object($obj)) {
 		$obj = get_object_vars($obj);
@@ -433,13 +433,14 @@ function array_get_value(&$array,$key,$default=null){
  * 		array('name'=>'手表','brand'=>'卡西欧','price'=>960)
  * );
  * $out = array_sort_by($array,'price');
+ * $out = array_sort_by($array,'info.count');
  */
 function array_sort_by($records, $field, $sortDesc=false){
 	if(!is_array($records) || !$records) return array();
 	$sortDesc = $sortDesc?SORT_DESC:SORT_ASC;
 	$recordsPicker = array();
 	foreach ($records as $item) {
-		$recordsPicker[] = isset($item[$field]) ? $item[$field]: 0;
+		$recordsPicker[] = isset($item[$field]) ? $item[$field]: _get($item,$field,0);
 	}
 	array_multisort($recordsPicker,$sortDesc,$records);
 	return $records;
@@ -566,6 +567,27 @@ function array_find_by_field($array,$field,$value){
 	return null;
 }
 
+function array_page_split($array,$page=false,$pageNum=false){
+	$page 		= intval($pageNum ? $pageNum : $GLOBALS['in']['page']);
+	$page		= $page <= 1 ? 1 : $page;
+	$pageMax    = 5000;
+	$pageNum 	= intval($pageNum ? $pageNum : $GLOBALS['in']['pageNum']);
+	$pageNum	= $pageNum <= 5 ? 5 : ($pageNum > $pageMax ? $pageMax: $pageNum);
+	
+	$array 		= is_array($array) ? $array :array();
+	$pageTotal	= ceil(count($array) / $pageNum);
+	$page		= $page <= 1 ? 1  : ($page >= $pageTotal ? $pageTotal : $page);
+	$result     = array(
+		'pageInfo' => array(
+			'totalNum'	=> count($array),
+			'pageNum'	=> $pageNum,
+			'page'		=> $page,
+			'pageTotal'	=> $pageTotal,
+		),
+		'list' => array_slice($array,($page-1) * $pageNum,$pageNum)
+	);
+	return $result;	
+}
 
 /**
  * 删除数组子项的特定key的数据
@@ -581,7 +603,7 @@ function array_remove_key(&$array, $keyArray){
 				unset($item[$key]);
 			}
 		}
-	}
+	};unset($item);
 	return $array;
 }
 
@@ -677,7 +699,7 @@ function array_sub_tree($rows, $pid = 'parentid', $id = 'id') {
 		}
 	}
 	foreach ( $rows as $key => $val ) {
-		if ( $val[$pid] ) unset ( $rows[$key] );
+		if ( $val[$pid] ) unset ( $rows[$key] );	// 根元素的parentid需为空
 	}
 	return $rows;
 }

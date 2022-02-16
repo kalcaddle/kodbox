@@ -214,7 +214,8 @@ class kodWebDav extends webdavServer {
 	
 	public function pathRemove($path){
 		if(!$this->can($path,'remove')) return false;
-		return IO::remove($path);
+		$toRecycle = Model('UserOption')->get('recycleOpen');
+		return IO::remove($path, $toRecycle);
 	}
 	public function pathMove($path,$dest){
 		$pathUrl = $this->pathGet();

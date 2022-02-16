@@ -16,7 +16,9 @@ class explorerFav extends Controller{
 	 * 获取收藏夹json
 	 */
 	public function get() {
+		$pageNum = $GLOBALS['in']['pageNum'];$GLOBALS['in']['pageNum'] = 2000;//分页处理;
 		$list = $this->model->listView();
+		$GLOBALS['in']['pageNum'] = $pageNum ? $pageNum:null;
 		$list = $this->_checkExists($list);
 		// pr($list);exit;
 		return $list;
@@ -54,7 +56,7 @@ class explorerFav extends Controller{
 					$item['ext'] = get_path_ext($item['name']);
 				}
 			}
-		}
+		};unset($item);
 		return $list;
 	}
 	public function favAppendItem($item){

@@ -47,7 +47,7 @@ class explorerUpload extends Controller{
 		$uploader->fileName = $this->pathAllowReplace($uploader->fileName);
 		$savePath = rtrim($savePath,'/').'/'.$uploader->fileName;
 		$repeat = Model('UserOption')->get('fileRepeat');
-		$repeat = isset($this->in['repeatType']) ? $this->in['repeatType'] : $repeat;
+		$repeat = isset($this->in['fileRepeat']) ? $this->in['fileRepeat'] : $repeat;
 		
 		// 文件保存; 必须已经先存在;
 		if($this->in['fileSave'] == '1'){

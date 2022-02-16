@@ -99,7 +99,7 @@ class adminSetting extends Controller {
 			}
 			// 一级目录最多5个;超出自动添加到子目录; 前端自适应处理
 			// if($menuNum >= 5){$theMenu['subMenu'] = 1;}
-		}
+		};unset($theMenu);
 		return $options;
 	}
 

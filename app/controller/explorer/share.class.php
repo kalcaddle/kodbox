@@ -165,7 +165,13 @@ class explorerShare extends Controller{
 		if($share['sourceInfo']['isDelete'] == '1'){
 			show_json(LNG('explorer.share.notExist'),30100);
 		}
-		
+		//外链分享有效性处理: 当分享者被禁用,没有分享权限,所在文件不再拥有分享权限时自动禁用外链分享;
+		if(!Action('explorer.authUser')->canShare($share)){
+			$userInfo = Model('User')->getInfoSimpleOuter($share['userID']);
+			$tips = '('.$userInfo['name'].' - '.LNG('common.noPermission').')';
+			show_json(LNG('explorer.share.notExist') .$tips,30100);
+		}
+
 		//检测是否过期
 		if($share['timeTo'] && $share['timeTo'] < time()){
 			show_json(LNG('explorer.share.expiredTips'),30101,$this->get(true));

@@ -150,12 +150,14 @@ class adminMember extends Controller{
     public function lightAppDefault($desktop){
         $list = Model('SystemLightApp')->listData();
         $appList = array_to_keyvalue($list, 'name');
+		$appListID = array_to_keyvalue($list, 'id');
 
         $defaultApp = Model('SystemOption')->get('newUserApp');
 		$defAppList = explode(',', $defaultApp);
         foreach($defAppList as $name){
-            if(!isset($appList[$name])) continue;
-			$app = $appList[$name];
+			$app = _get($appListID,$name,_get($appList,$name));
+			if(!$app) continue;
+			
 			// [user]/desktop/appName.oexe
             $path = "{source:{$desktop}}/" . $app['name'] . '.oexe';
             IO::mkfile($path, json_encode_force($app['content']));
@@ -309,14 +311,15 @@ class adminMember extends Controller{
 			'roleID'	=> array('check' => 'require'),
 			'groupInfo' => array('check' => 'require'),
 		));
+		$total	 = (int) $fileData['total'];
 		$success = 0;
 		foreach($fileData['list'] as $value) {
 			$this->in = array_merge($value, $data);
 			$res = ActionCallHook('admin.member.add');
 			if($res['code']) $success++;
 		}
-		$fail  = $fileData['total'] - $success;
-		$info  = LNG('common.inAll') . ":{$fileData['total']}; ";
+		$fail  = $total - $success;
+		$info  = LNG('common.inAll') . ":{$total}; ";
 		$info .= LNG('common.success') . ":{$success}";
 		if ($fail > 0) {
 			$info .= "<br/>" . LNG('common.fail') . ":{$fail} (".LNG('admin.member.importFailDesc').")";
@@ -347,9 +350,7 @@ class adminMember extends Controller{
         $list = array();
         $keys = array('name','nickName','password','sex','phone','email');
 		$sex  = array('女' => 0, '男' => 1);
-		$total= $valid = 0;
         foreach($dataList as $value) {
-			$total++;
             $tmp = array();
             foreach($keys as $i => $key) {
 				if($key == 'name' && empty($value[$i])) break;
@@ -374,14 +375,12 @@ class adminMember extends Controller{
                 $tmp[$key] = $val;
 			}
 			if(empty($tmp)) continue;
-			$valid++;
 			if(isset($list[$tmp['name']])) continue;
             $list[$tmp['name']] = $tmp;
         }
         return array(
 			'list'	=> array_values($list), 
-			'total' => $total, 
-			'valid' => $valid
+			'total' => count($dataList), 
 		);
 	}
 	private function iconvValue($value){

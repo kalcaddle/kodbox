@@ -1,5 +1,5 @@
 $(function(){
-    // node_modules/.bin/uglifyjs pptxjs.kod.js -c > pptxjs.kod.min.js
+    // get min.js: node_modules/.bin/uglifyjs pptxjs.kod.js -c > pptxjs.kod.min.js
     var isWap = function(){
         return $(window.document).width() < 768;
     }

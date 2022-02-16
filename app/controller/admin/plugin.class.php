@@ -75,7 +75,7 @@ class adminPlugin extends Controller{
 			if( is_array($item) && $item['type'] == 'userSelect' && !isset($item['info']) ){
 				$item['info'] = $userSelect;
 			}
-		}
+		};unset($item);
 		$result = ActionCall($app.'Plugin.onGetConfig',$formData);
 		if(is_array($result)){
 			$formData = $result;

@@ -92,13 +92,33 @@ class explorerUserShare extends Controller{
 			$info['shareInfo'] = $shareItem;
 			$key = $info['type'] == 'folder' ? 'folderList':'fileList';
 			$this->shareTarget($info,$shareItem);
+			
+			// 协作内容不再有分享权限时处理; 其他人内容--隐藏; 自己的内容-突出显示;
+			if(!Action('explorer.authUser')->canShare($shareItem)){
+				$shareType = $type == 'to' ? 'shareTo':'shareLink';
+				$this->removeShare($shareItem,$shareType);
+				continue;
+			}
 			$result[$key][] = $info;
 		}
-		// pr($result,$shareList,$sourceArray,$notExist);exit;
-		// 自动清除不存在的分享内容;
-		if($notExist){
-			// $this->model->remove($notExist);
-		}		
+		// if($notExist){$this->model->remove($notExist);}// 自动清除不存在的分享内容;
+		
+		// 对自己和部门内容进行分组;
+		$result['groupShow'] = array(
+			array(
+				'type' 	=> 'selfData',
+				'title' => LNG('explorer.pathGroup.shareSelf'),
+				"filter"=> array('groupParentLevel'=>'_null_')
+			),
+			array(
+				'type'	=> 'groupData',
+				'title'	=> LNG('explorer.pathGroup.shareGroup'),
+				"filter"=> array('groupParentLevel'=>'')
+			),
+		);
+		$length = count($result['folderList']) + count($result['fileList']);
+		if($length <= 15){unset($result['groupShow']);}
+		
 		return $result;
 	}
 	
@@ -118,13 +138,14 @@ class explorerUserShare extends Controller{
 		$shareHide = $shareHide ? json_decode($shareHide,true):array();
 		foreach ($shareList['list'] as $key=>$shareItem){
 			if(isset($shareHide[$shareItem['shareID'].''])){
-				$info['shareHide'] = 1;
-			}else{
-				$info['shareHide'] = 0;
+				$shareItem['shareHide'] = 1;
+			}else{ 
+				$shareItem['shareHide'] = 0;
 			}
+			$shareList['list'][$key] = $shareItem;
 			//$type:  '':显示内容; hide: 隐藏内容; all: 全部内容;
-			if($type == '' && $info['shareHide']){$shareList['list'][$key] = false;}
-			if($type == 'hide' && !$info['shareHide']){$shareList['list'][$key] = false;}
+			if($type == '' && $shareItem['shareHide']){$shareList['list'][$key] = false;}
+			if($type == 'hide' && !$shareItem['shareHide']){$shareList['list'][$key] = false;}
 		}
 		$result = $this->shareToMeListMake($shareList['list']);
 		$result['currentFieldAdd'] = array("pathDesc"=>'['.LNG('admin.setting.shareToMeList').'],'.LNG('explorer.pathDesc.shareToMe'));
@@ -158,6 +179,7 @@ class explorerUserShare extends Controller{
 				continue;
 			}
 			$info = $this->_shareItemeParse($info,$shareItem);
+			if(!$info) continue;
 			$key  = $info['type'] == 'folder' ? 'folderList':'fileList';
 			if(isset($shareItem['shareHide'])){$info['shareHide'] = $shareItem['shareHide'];}
 			$result[$key][] = $info;
@@ -253,8 +275,8 @@ class explorerUserShare extends Controller{
 			if($key != 'folderList' && $key != 'fileList' ) continue;
 			foreach ($keyList as &$source) {
 				$source = $this->_shareItemeParse($source,$shareInfo);
-			}
-		}
+			};unset($source);
+		};unset($keyList);
 
 		$list['current'] = $this->_shareItemeParse($sourceInfo,$shareInfo);
 		// pr($parseInfo,$truePath,$sourceInfo,$shareInfo,$list);exit;
@@ -323,6 +345,9 @@ class explorerUserShare extends Controller{
 			unset($source['sourceInfo']['tagInfo']);
 		}
 		$this->shareTarget($source,$share);
+		
+		// 协作内容不再有分享权限时处理; 其他人内容--隐藏; 自己的内容-突出显示;
+		if(!Action('explorer.authUser')->canShare($share)){return false;}
 		// pr($source,$sourceBefore,$share);exit;
 		return $source;
 	}
@@ -429,11 +454,25 @@ class explorerUserShare extends Controller{
 			$keys['shareID'] = array("check"=>"int");
 			foreach ($keys as $key => &$value) {
 				$value['default'] = null;
-			}
+			};unset($value);
 		}else{//添加时，目录值
 			$keys['path'] = array("check"=>"require");
 		}
 		$data = Input::getArray($keys);
+		
+		// 外链分享检测;
+		if($data['isLink'] == '1'){
+			$options = Model('SystemOption')->get();
+			if($options['shareLinkAllow'] == '0'){
+				show_json(LNG('admin.setting.shareLinkAllowTips'),false);
+			}
+			if($options['shareLinkPasswordAllowEmpty'] == '0' && !$data['password']){
+				show_json(LNG('explorer.notNull'),false);
+			}
+			if($options['shareLinkAllowGuest'] == '0'){
+				$data["options"]['onlyLogin'] = '1';
+			}
+		}
 		return $data;
 	}
 
@@ -449,24 +488,26 @@ class explorerUserShare extends Controller{
 			// 批量删除指定内部协作分享, or外链分享;
 			foreach ($list as $shareID) {
 				$shareInfo = $this->model->getInfo($shareID);
-				if($this->in['type'] == 'shareTo'){
-					$data = array('isShareTo'=>0,'authTo'=>array(),'options'=>$shareInfo['options']);
-					unset($data['options']['shareToTimeout']);
-				}else{
-					$data = array('isLink'=>0);
-				}
-
-				// 都为空时则删除数据, 再次分享shareID更新;
-				if( $data['isLink'] == 0 && $shareInfo['isShareTo'] == 0 ||
-					$data['isShareTo'] == 0 && $shareInfo['isLink'] == 0 ){
-					$res = $this->model->remove(array($shareID));
-					continue;
-				}
-								
-				$res = $this->model->shareEdit($shareID,$data);
+				$res = $this->removeShare($shareInfo,$this->in['type']);
 			}
 		}
 		$msg  = !!$res ? LNG('explorer.success'): LNG('explorer.error');
 		show_json($msg,!!$res);
+	}
+	
+	public function removeShare($shareInfo,$shareType){
+		$shareID = $shareInfo['shareID'];
+		if($shareType == 'shareTo'){
+			$data = array('isShareTo'=>0,'authTo'=>array(),'options'=>$shareInfo['options']);
+			unset($data['options']['shareToTimeout']);
+		}else{
+			$data = array('isLink'=>0);
+		}
+		// 都为空时则删除数据, 再次分享shareID更新;
+		if( $data['isLink'] == 0 && $shareInfo['isShareTo'] == 0 ||
+			$data['isShareTo'] == 0 && $shareInfo['isLink'] == 0 ){
+			return $this->model->remove(array($shareID));
+		}
+		return $this->model->shareEdit($shareID,$data);
 	}
 }

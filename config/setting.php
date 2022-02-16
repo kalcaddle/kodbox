@@ -220,18 +220,29 @@ $config['settingSystemDefault'] = array(
 	'groupAuthOuther'   => 1, 			// 子部门网盘文档可授权给外部部门或成员,
 	'currentVersion'	=> KOD_VERSION, // 当前版本
 	'orderSort'         => 'desc',      // sort字段排序方式;默认从大到小
+	'dateFormat'		=> 'Y-m-d',		// 默认 Y-m-d:YYYY-MM-DD; d/m/Y:DD/MM/YYYY; m/d/Y:MM/DD/YYYY; 
+										// https://en.wikipedia.org/wiki/Date_format_by_country
 
 	'fileEncryption'	=> 'keepName',	// all-全加密;keepExt-加密文件名保留扩展名;keepName-不加密;
 	'passwordErrorLock'	=> '1',			// 密码连续错误锁定账号; 某账号连续输入5次后锁定30s后才能登录;
 	'passwordRule'		=> 'none',		// 限制密码强度;none-不限制;strong-中等强度;strongMore-高强度
 	'loginCheckAllow'	=> '',			// 登录限制
 	'csrfProtect'		=> '1',		 	// 开启csrf保护	
-	'shareLinkZip'		=> '1',			// 外链分享,开启关闭文件夹打包下载; 默认开启
+	'downloadZipLimit'	=> '0',			// 文件夹打包下载限制,默认为0, 0为不限制; 为避免服务器性能消耗过大,文件夹过大时限制打包下载
+	'showFileLink'		=> '1',			// 文件外链展示开关;默认开启; (关闭后,文件属性不再显示外链连接)
+	'showFileMd5'		=> '1',			// 文件md5是否展示; 默认开启; (关闭后,文件属性不再显示文件md5)
 	'systemRecycleOpen' => '0',			// 系统回收站开启关闭;
 	'systemRecycleClear'=> '10',		// 系统回收站自动清除,N天以前内容;
 	'systemBackup'		=> '1',			// 文档自动备份;
-	'shareToMeAllowTree'=> '1',			// 分享给我的内容支持按部门组织架构或用户进行分类
 	'groupTagAllow' 	=> '0',			// 是否启用部门公共标签
+	
+	// 分享相关设置;
+	'shareToMeAllowTree'=> '1',			// 分享给我的内容支持按部门组织架构或用户进行分类
+	'shareLinkAllow'	=> '1',			// 启用/禁用外链分享;
+	'shareLinkZip'		=> '1',			// 外链分享,开启关闭文件夹打包下载; 默认开启
+	'shareLinkPasswordAllowEmpty'	=> '1',		// 外链分享允许密码为空,关闭后将强制设置密码;
+	'shareLinkAllowGuest'			=> '1',		// 外链分享允许未登录游客访问
+	
 	
 	'treeOpen'			=> 'my,myFav,myGroup,rootGroup,recentDoc,fileType,fileTag,driver',//树目录开启功能;
 	'wallpageDesktop'	=> "1,2,3,4,5,6,7,8,9,10,11,12,13",

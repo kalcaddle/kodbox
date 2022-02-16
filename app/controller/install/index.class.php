@@ -434,6 +434,8 @@ class installIndex extends Controller {
      * sqlite database文件
      */
     private function sqliteDbFile(){
+        @chmod(DATA_PATH, 0777);
+        del_file(DATA_PATH.'sqlite.lock');  // 旧文件偶尔导致flock异常
         $dbFile = USER_SYSTEM . rand_string(12) . '.php';
         @touch($dbFile);
         return $dbFile;

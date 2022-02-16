@@ -37,7 +37,7 @@ class userBind extends Controller {
 		$action = strtolower(ACTION);
 		foreach ($check as &$theAction){
 			$theAction = strtolower($theAction);
-		}
+		};unset($theAction);
 		if(!in_array($action,$check)) return;
 		if(!Action('user.authRole')->authCan('user.edit')){
 			show_json(LNG('explorer.noPermissionAction'),false);

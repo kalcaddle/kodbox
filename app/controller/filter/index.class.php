@@ -36,10 +36,10 @@ class filterIndex extends Controller{
 	}
 	public function eventAfter($data){
 		if(!$data['code']) return $data;
-		$returnData = Hook::trigger(strtolower(ACTION).'.after',$data);
-		if(is_array($returnData)){
-			$data = $returnData;
-		}
-		return $data;
-	}	
+		$action = strtolower(ACTION).'.after';
+		if($action == 'user.view.options.after') return $data;//手动调用过
+
+		$returnData = Hook::trigger($action,$data);
+		return is_array($returnData) ? $returnData:$data;
+	}
 }

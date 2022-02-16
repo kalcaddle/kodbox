@@ -29,7 +29,6 @@ font-size:35px;font-family: Arial, sans-serif;}
 			#PV_Items li {
 				float: left; width: 36px; padding: 0; margin: 0; 
 				list-style: none; cursor: pointer;position: relative;
-				transition: all 0.2s;
 			}
 			#PV_Items li.current {
 				box-shadow: 0 0 10px #fff;
@@ -37,7 +36,7 @@ font-size:35px;font-family: Arial, sans-serif;}
 				width: 35px;
 				transform: scale(1.4);
 			}
-			#PV_Items img {border: none; width: 35px; height: 35px;-webkit-box-reflect: below 1px -webkit-gradient(linear,left top,left bottom,from(transparent),color-stop(20%,transparent),color-stop(60%,rgba(255,255,255,0.1)),to(rgba(255,255,255,0.8)));}
+			#PV_Items .image {border: none; width: 35px; height: 35px;-webkit-box-reflect: below 1px -webkit-gradient(linear,left top,left bottom,from(transparent),color-stop(20%,transparent),color-stop(60%,rgba(255,255,255,0.1)),to(rgba(255,255,255,0.8)));}
 		#PV_Buttons {position: absolute; z-index: 6; margin: 20px auto 0 auto}
 			#PV_Buttons a {float: left; color: #808080; text-align: center; text-decoration: none}
 			#PV_Select {float: left; width: 78px; height: 30px; margin: 0 15px; background-image: url(Picasa_Button.gif); overflow: hidden}
@@ -119,7 +118,7 @@ font-size:35px;font-family: Arial, sans-serif;}
 	bottom: 65px;
 	z-index: 100;
 }
-#PV_Buttons a i{padding-left:2px;}
+#PV_Buttons a i{padding-left:0;}
 #PV_Buttons a#PV_Btn_Prev{display: inline-block;margin-left: -4px;}
 #PV_Buttons a#PV_Btn_Slide{
 	background: #888;
@@ -142,5 +141,15 @@ font-size:35px;font-family: Arial, sans-serif;}
     -pie-background: linear-gradient(to top,#bbb,#666);
 }
 
-#PV_Buttons a.seled#PV_Btn_Slide i:before{content: "\f04d";}
+#PV_Buttons a.seled#PV_Btn_Slide i:before{content: "\f1a0";}
 #PV_Buttons a:hover{background: #999;color:#fff;}
+#PV_Picture{-webkit-box-reflect:inherit;}
+#PicasaView.loading #PV_Picture{display:none !important;}
+#PicasaView.loading #PV_Picture_Temp{
+	display:block !important;opacity:1;
+	position:absolute;top:0;left:0;right:0;bottom:0;margin:auto;
+	height:70%;min-width:50%;
+}
+#PV_Items .image{background-size: cover;margin-right: 1px;background-color: #666;}
+
+/* #PicasaView #PV_Picture_Temp{display:block;opacity: 0;translate:opacity 0.2s;} */

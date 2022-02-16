@@ -1,5 +1,6 @@
 (function(){
-    // node_modules/.bin/uglifyjs mammoth.browser.kod.js -c > mammoth.browser.kod.min.js
+    // 1.get browser.js: run 'make setup' or read makefile;
+    // 2.get browser.min.js: node_modules/.bin/uglifyjs mammoth.browser.kod.js -c > mammoth.browser.kod.min.js
     // 给页面添加样式
     var pageStyle = function(value){
         $('.page-box').addClass($.isWap ? 'is-in-wap' : 'not-in-wap');
@@ -48,11 +49,10 @@
                 "image/svg+xml": true,
                 "image/tiff": true
             };
-            if (!imgTypeAll[image.contentType]) {
-                delete image.style;
-                return {src: BASE_URL + 'jsoffice/mammothjs/images/img-error.jpg'}
-            }
             return image.read("base64").then(function(imageBuffer) {
+                // if (!imgTypeAll[image.contentType]) {
+                //     return {src: BASE_URL + 'jsoffice/mammothjs/images/error2.png'}
+                // }
                 return {src: "data:" + image.contentType + ";base64," + imageBuffer};
             });
         })
