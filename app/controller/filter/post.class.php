@@ -46,9 +46,8 @@ class filterPost extends Controller{
 			'user.index' 		=> 'index,autoLogin,loginSubmit,logout',//accessTokenGet logout
 			'user.view'	 		=> '*',
 			'user.sso'			=> '*',
-			'test.debug'		=> '*',
-			'test.language'		=> '*',
-			'test.test'			=> '*',
+			'test'				=> '*',
+			'sitemap'			=> '*',
 		);
 		$allowGet  = false;
 		$ST_MOD = strtolower(MOD.'.'.ST);
@@ -59,6 +58,7 @@ class filterPost extends Controller{
 				$allowGet = true;
 			}
 		}
+		if(isset($allowGetArr[MOD])){$allowGet = true;}
 
 		//必须使用POST的请求:统一检测csrfToken;
 		if($allowGet) return;
