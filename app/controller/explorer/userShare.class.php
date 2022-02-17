@@ -499,7 +499,7 @@ class explorerUserShare extends Controller{
 		$shareID = $shareInfo['shareID'];
 		if($shareType == 'shareTo'){
 			$data = array('isShareTo'=>0,'authTo'=>array(),'options'=>$shareInfo['options']);
-			unset($data['options']['shareToTimeout']);
+			if (isset($data['options']['shareToTimeout'])) unset($data['options']['shareToTimeout']);
 		}else{
 			$data = array('isLink'=>0);
 		}

@@ -568,3 +568,14 @@ if (file_exists(BASIC_PATH.'config/setting_user_more.php')) {
 	include_once(BASIC_PATH.'config/setting_user_more.php');
 }
 if(!defined('INSTALL_CHANNEL')){define('INSTALL_CHANNEL','');}
+
+
+if(GLOBAL_DEBUG_LOG_ALL){
+	Hook::bind('beforeShutdown','writeLogAll');
+	Hook::bind('show_json','writeLogAll');
+}
+function writeLogAll($data=false){
+	$caller = get_caller_info();
+	$trace  = think_trace('[trace]');
+	write_log(array("in"=>$GLOBALS['in'],'out'=>$data,'call'=>$caller,'trace'=>$trace),'out');
+}

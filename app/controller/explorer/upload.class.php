@@ -48,6 +48,7 @@ class explorerUpload extends Controller{
 		$savePath = rtrim($savePath,'/').'/'.$uploader->fileName;
 		$repeat = Model('UserOption')->get('fileRepeat');
 		$repeat = isset($this->in['fileRepeat']) ? $this->in['fileRepeat'] : $repeat;
+		$repeat = isset($this->in['repeatType']) ? $this->in['repeatType'] : $repeat; // 向下兼容pc客户端
 		
 		// 文件保存; 必须已经先存在;
 		if($this->in['fileSave'] == '1'){
