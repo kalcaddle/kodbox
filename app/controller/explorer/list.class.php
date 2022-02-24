@@ -234,7 +234,7 @@ class explorerList extends Controller{
 	
 	public function pathListParse(&$data){
 		$timeNow = timeFloat();
-		$timeMax = 1.5;
+		$timeMax = 2.5;
 		$infoFull= true;
 		$data['current'] = $this->pathInfoParse($data['current'],$data['current']);
 		foreach ($data as $type =>$list) {
@@ -418,10 +418,10 @@ class explorerList extends Controller{
 		if($isImage && !isset($pathInfo[$infoKey]['sizeWidth'])){
 			unset($pathInfo[$infoKey]);Cache::remove($cacheKey);//不使用缓存;
 		}
-				
+		
 		if(isset($pathInfo[$infoKey])){
 		}else if(isset($pathInfo['sourceID'])){
-			$fileID = _get($pathInfo,'fileInfo.fileID');
+			$fileID = _get($pathInfo,'fileInfo.fileID',_get($pathInfo,'fileID'));
 			GetInfo::infoAdd($pathInfo);
 			if($fileID && is_array(_get($pathInfo,$infoKey) )){
 				$value = json_encode($pathInfo[$infoKey]);

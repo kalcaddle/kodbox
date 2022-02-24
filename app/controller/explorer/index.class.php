@@ -205,7 +205,7 @@ class explorerIndex extends Controller{
 	// 设置权限.默认设置自己为之前管理权限; 如果只有自己则清空;
 	private function setAuthSelf($pathInfo,$auth){
 		if(!$auth) return $auth;
-		$selfAuth = _get($pathInfo,'auth.authInfo.id','1');
+		$selfAuth = _get($pathInfo,'auth.authInfo.id');
 		$authList = array();
 		foreach($auth as $item){
 			if( $item['targetID'] == USER_ID && 
@@ -214,7 +214,7 @@ class explorerIndex extends Controller{
 			}
 			$authList[] = $item;
 		}
-		if(!$authList) return $authList;
+		if(!$authList || !$selfAuth) return $authList;
 		$authList[] = array(
 			'targetID' 	=> USER_ID, 
 			'targetType'=> SourceModel::TYPE_USER,

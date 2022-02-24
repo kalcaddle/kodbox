@@ -46,6 +46,9 @@ define(function(require, exports) {
 			fullscreenEl : true,
 			history:false,
 			preload:[1,5],
+			isClickableElement:function(e){
+				return true;
+			},
 			getThumbBoundsFn: function(index) {
 				var item = imageList.items[index];
 				if(!item || !item.$dom || item.$dom.length == 0){//目录切换后没有原图
@@ -110,18 +113,25 @@ define(function(require, exports) {
 			}
 		});
 		gallery.listen('close', function(){
-			$(gallery.container).removeClass('is-loaded');
 			setTimeout(function(){
 				$(gallery.container).find('.pswp__zoom-wrap').fadeOut(200);
 			},300);
 		});
 		gallery.init();
 		gallery.listen('bindEvents',imageRotateAuto);
-		// window.gallery = gallery;
-		setTimeout(function(){
-			$(gallery.container).addClass('is-loaded');
-		},600);
 		
+		
+		gallery.listen('onVerticalDrag',function(percent,panOffset){return;
+			var $current = $('.pswp__item.current');console.log(123,percent,panOffset,$current)
+			if(!$current.hasClass('loading')) return;
+	
+			var $content = $current.find('.pswp__zoom-wrap');
+			if(!panOffset){return $content.css('margin-top','');}
+			$content.css('margin-top',panOffset.y);
+			console.error(101,[percent]);
+		});
+		
+		// window.gallery = gallery;		
 		// 解决滚动穿透问题;(UC,内嵌网页等情况)
 		$(".pswp__bg").scrollTop($(".pswp__bg").scrollInnerHeight() / 2);
 	};

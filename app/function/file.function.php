@@ -129,6 +129,26 @@ function get_filesize($path){
 	return $result;
 }
 
+function filesize_64($file){
+	return get_filesize($file);
+}
+function ftell_64($fp){
+	return ftell($fp);
+}
+function fseek_64($fp,$pose=0,$first=0){
+	if(PHP_INT_SIZE >= 8){return fseek($fp,$pose,$first);}
+	if($first) fseek($fp,0,SEEK_SET);
+	$intMax = PHP_INT_MAX;
+	$pos = floatval($pose);
+	if($pos <= $intMax){
+		fseek($fp,$pos,SEEK_CUR);
+	}else {
+		fseek($fp,$intMax,SEEK_CUR);
+		$pos -= $intMax;
+		fseek_64($fp,$pos);
+	}
+}
+
 //文件是否存在，区分文件大小写
 function file_exists_case( $fileName ){
 	if(file_exists($fileName) === false){
