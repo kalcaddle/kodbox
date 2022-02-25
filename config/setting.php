@@ -52,6 +52,7 @@ $config['settings']['searchContent'] 	= 1;		// 搜索:允许文件内容搜索
 $config['settings']['searchMutil'] 		= 1;		// 搜索:开启批量搜索
 $config['settings']['allowSEO'] 		= 1; 		// 允许SEO收录外链分享;
 $config['settings']['systemBackup'] 	= 1; 		// 系统备份;
+$config['settings']['bigFileForce'] 	= 0; 		// 32位时强制允许大文件上传; https://demo.kodcloud.com/#s/735psg0g 
 
 $config["ADMIN_ALLOW_IO"] 				= 1;		// 其他部门or用户目录操作开关，仅限管理员
 $config["ADMIN_ALLOW_SOURCE"] 			= 1;		// 物理路径操作开关，仅限管理员

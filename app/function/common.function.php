@@ -827,10 +827,11 @@ function show_tips($message,$url= '', $time = 3,$title = ''){
 	<meta http-equiv='refresh' $goto charset="utf-8">
 
 	<style>
-	body{background: #f6f6f6;padding:0;margin:0; display:flex;align-items: center;justify-content: center;}
+	body{background: #f6f6f6;padding:0;margin:0; display:flex;align-items: center;justify-content: center;
+		position: absolute;left: 0;right: 0;bottom: 0;top: 0;}
 	#msgbox{box-shadow: 0px 10px 40px rgba(0, 0, 0, 0.1);border-radius: 5px;border-radius: 5px;background: #fff;
     font-family: "Lantinghei SC","Hiragino Sans GB","Microsoft Yahei",Helvetica,arial,sans-serif;line-height: 1.5em;
-	color:888;margin:0 auto;margin-top:-20%;width:500px;font-size:13px;color:#666;word-wrap: break-word;word-break: break-all;max-width: 90%;box-sizing: border-box;max-height: 90%;overflow: auto;padding:30px 30px;}
+	color:888;margin:0 auto;margin-top:10px;margin-bottom:10px;width:500px;font-size:13px;color:#666;word-wrap: break-word;word-break: break-all;max-width: 90%;box-sizing: border-box;max-height: 90%;overflow: auto;padding:30px 30px;}
 	#msgbox #info{margin-top: 10px;color:#aaa;}
 	#msgbox #title{color: #333;border-bottom: 1px solid #eee;padding: 10px 0;margin:0 0 15px;font-size:22px;font-weight:200;}
 	#msgbox #info a{color: #64b8fb;text-decoration: none;padding: 2px 0px;border-bottom: 1px solid;}

@@ -292,6 +292,7 @@ function get_post_max(){
 
 function phpBuild64(){
 	if(PHP_INT_SIZE === 8) return true;//部分版本,64位会返回4;
+	if($GLOBALS['config']['settings']['bigFileForce']) return true;
 	ob_clean();
 	ob_start();
 	var_dump(12345678900);
@@ -424,7 +425,7 @@ function hash_path($path,$addExt=false){
 	$result = $pre.md5($path);
 	if(file_exists($path)){
 		$result = $pre.md5($path.filemtime($path));
-		if(filesize_64($path) < 50*1024*1024){
+		if(filesize($path) < 50*1024*1024){
 			$fileMd5 = @md5_file($path);
 			if($fileMd5){
 				$result = $fileMd5;

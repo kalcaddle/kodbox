@@ -117,6 +117,10 @@ define(function(require, exports) {
 				$(gallery.container).find('.pswp__zoom-wrap').fadeOut(200);
 			},300);
 		});
+		
+		$('.pswp__container').addClass('init-first');
+		setTimeout(function(){$('.pswp__container').removeClass('init-first');},800);
+		
 		gallery.init();
 		gallery.listen('bindEvents',imageRotateAuto);
 		

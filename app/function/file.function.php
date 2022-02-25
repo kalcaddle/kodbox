@@ -78,11 +78,10 @@ function path_filter($path){
 
 //filesize 解决大于2G 大小问题
 //http://stackoverflow.com/questions/5501451/php-x86-how-to-get-filesize-of-2-gb-file-without-external-program
+//32位系统; 修改编译php实现兼容支持;  https://demo.kodcloud.com/#s/735psg0g
+//源码修改: zend_off_t(文件定位)修改为64位int64_t;  ftell返回值类型加宽; fseek传入值处理,校验类型处理; fstate处理;
 function get_filesize($path){
-	if(PHP_INT_SIZE >= 8 ){ //64bit
-		return (float)(abs(sprintf("%u",@filesize($path))));
-	}
-	
+	if(PHP_INT_SIZE >= 8 ) return @filesize($path);
 	$fp = fopen($path,"r");
 	if(!$fp) return 0;	
 	if (fseek($fp, 0, SEEK_END) === 0) {
@@ -135,7 +134,9 @@ function filesize_64($file){
 function ftell_64($fp){
 	return ftell($fp);
 }
-function fseek_64($fp,$pose=0,$first=0){
+function fseek_64($fp,$pose=0,$from=SEEK_SET,$first=true){
+    return fseek($fp,$pose,$from);// php 编译兼容支持;
+    
 	if(PHP_INT_SIZE >= 8){return fseek($fp,$pose,$first);}
 	if($first) fseek($fp,0,SEEK_SET);
 	$intMax = PHP_INT_MAX;
@@ -145,7 +146,7 @@ function fseek_64($fp,$pose=0,$first=0){
 	}else {
 		fseek($fp,$intMax,SEEK_CUR);
 		$pos -= $intMax;
-		fseek_64($fp,$pos);
+		fseek_64($fp,$pos,SEEK_CUR,false);
 	}
 }
 

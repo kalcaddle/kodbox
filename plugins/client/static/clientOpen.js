@@ -49,6 +49,7 @@ ClassBase.define({
 			display:LNG['client.option.fileOpen'],
 			desc:"<div class='info-alert mt-10 mb-10'>"+LNG['client.option.fileOpenDesc']+"<br/>\
 			eg: doc,docx,ppt,pptx,xls,xlsx,pdf,ofd  sort:100</div>",
+			value:'[{"ext":"doc,docx,ppt,pptx,xls,xlsx,dwg,dxf,dwf","sort":"10000"}]',
 			children:{
 				ext:{type:"textarea","display":LNG['client.option.fileOpenExt'],attr:{style:"width:100%;height:32px"}},
 				sort:{type:"number","display":LNG['client.option.fileOpenSort'],attr:{style:"width:100px;"},value:"500"},

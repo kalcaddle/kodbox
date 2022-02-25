@@ -189,6 +189,7 @@
 .pswp__item.loading .pswp__zoom-wrap{transform: none !important;}
 
 .pswp__item .pswp__zoom-wrap .pswp__img.pswp__img--placeholder{display:none;}
+.pswp__container.init-first .pswp__zoom-wrap .pswp__img.pswp__img--placeholder{display:block;}
 .pswp__item.loading .pswp__zoom-wrap .pswp__img.pswp__img--placeholder{display:block;}
 .pswp__item.loading .pswp__zoom-wrap .pswp__img {
     position: absolute;

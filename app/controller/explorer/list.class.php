@@ -557,6 +557,15 @@ class explorerList extends Controller{
 		if(!$this->pathEnable('rootGroup') || !$groupInfo){unset($list['rootGroup']);}
 		if(!$this->pathEnable('myGroup')){unset($list['myGroup']);}
 		
+		// 根部门没有权限,且没有子内容时不显示;
+		if(isset($list['rootGroup'])){
+			$rootChildren = $this->path($list['rootGroup']['path']);
+			$hasAuth = _get($rootChildren,'current.auth.authValue');
+			if(!$rootChildren['pageInfo']['totalNum'] && $hasAuth <= 0){
+				unset($list['rootGroup']);
+			}
+		}
+		
 		// 没有所在部门时不显示;
 		if(isset($list['myGroup'])){
 			$selfGroup 	= Session::get("kodUser.groupInfo");
