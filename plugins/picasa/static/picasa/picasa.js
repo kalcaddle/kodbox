@@ -291,14 +291,9 @@ Picasa.prototype = {
 	// 生成列表项
 	createItems : function() {
 		var itemStr = '';
-		// change by warlee 大于200则展示的时候再处理
 		for (var i=0; i<this.arrCount; i++){
-			if(i>=200){
-				itemStr += '<li number="'+i+'"><img data-original="'+ this.arrItems[i][0][0] +'" draggable="false"/></li>';
-			}else{
-				itemStr += '<li number="'+i+'"><img src="'+ this.arrItems[i][0][0] +'" draggable="false"/></li>';
-			}			
-		}		
+			itemStr += '<li number="'+i+'" class="image" data-image="'+ this.arrItems[i][0][0] +'"></li>';
+		}
 		this.fItems.innerHTML = itemStr;
 		this.fItems.style.width = (this.arrCount*36) +'px';
 	},
@@ -339,8 +334,8 @@ Picasa.prototype = {
 		this.fControl.style.top = (winSize[1]-this.fControl.offsetHeight) +'px';		
 		this.fButtons.style.left = ((winSize[2]-this.fButtons.offsetWidth)/2) +'px';
 		
-		this.itemDefaultX = Math.round((winSize[2]-this.itemWidth)/2);		
-		this.fItems.style.left = this.itemDefaultX +'px';		
+		this.itemDefaultX = Math.round((winSize[2]-this.itemWidth)/2);	
+		this.fItems.style.left = (this.itemDefaultX -this.currentNo*this.itemWidth) +'px';
 		this.initialCoord = [
 			Math.round(winSize[2]/2),
 			Math.round((winSize[1]-this.fControl.offsetHeight)/2)
@@ -487,17 +482,45 @@ Picasa.prototype = {
 		this.changeImage(this.currentNo+1);
 	},
 	
+	// 缩略图懒加载处理;
+	imageLazyLoadThumb:function(){
+		$("#PV_Items .image").each(function(){
+			var $img = $(this);
+			var src  = $img.attr('data-image');
+			if($img.hasClass("loaded")) return;
+			if($img.hasClass("loading")) return;
+			if(!$img.inScreen()) return;
+			
+			$img.addClass("loading");
+			var tempImage = new Image();
+			tempImage.onload = function(){
+				$img.css('background-image','url("'+src+'")');
+				$img.css({opacity:0}).animate({opacity:1.0},500);
+				$img.removeClass("loading").addClass('loaded');
+			};
+			tempImage.src = src;
+		});
+	},
+	
 	// 加载图片
 	loadImage : function() {
+		var self = this;
 		$("#PV_Number").html((parseInt(this.currentNo)+1) + "/" +this.arrCount);
 		$('#PV_Items .current').removeClass('current');
 		$('#PV_Items [number='+this.currentNo+']').addClass('current');
 		this.loadImageBefore();
+		
+		this.imageLazyLoadThumb();		
+		clearTimeout(this.imageLazyLoadTimer);
+		this.imageLazyLoadTimer = setTimeout(function(){
+			self.imageLazyLoadThumb();
+		},200);//延迟处理;
 
 		clearTimeout(this.doLoad);
 		var self = this;
 		this.isLoaded = false;
 		//this.Picture.style.display = 'none';
+		$('#PicasaView').addClass('loading');
 		this.Loading.style.display = '';
 		this.Error.style.display = 'none';
 		if(this.Loading.offsetLeft==0) {
@@ -508,13 +531,6 @@ Picasa.prototype = {
 		this.hint();
 		this.activeImage.src = this.arrItems[this.currentNo][0][1];
 		this.Picture.src = this.activeImage.src;
-
-		//缩略图 change by warlee
-		var $image = $('#PV_Items .current img');
-		if(!$image.attr('src')){
-			$image.attr('src',$image.attr('data-original'));
-		}
-
 		$('#PV_Picture').css('display','none').fadeIn(200);
 	},
 	loadedAction : function() {
@@ -545,6 +561,7 @@ Picasa.prototype = {
 		
 		this.Picture.style.display = '';
 		this.Loading.style.display = 'none';
+		$('#PicasaView').removeClass('loading');
 		this.Error.style.display = 'none';		
 		if(this.isAutoPlaying) this.autoPlay();
 	},
@@ -552,6 +569,7 @@ Picasa.prototype = {
 		if ($('#PicasaView').css("display")!="none") return;//动画方式退出。
 		this.Picture.style.display = 'none';
 		this.Loading.style.display = 'none';
+		$('#PicasaView').removeClass('loading');
 		this.Error.style.display = '';
 		this.Error.style.left = (this.initialCoord[0]-30) +'px';
 		this.Error.style.top = (this.initialCoord[1]-30) +'px';

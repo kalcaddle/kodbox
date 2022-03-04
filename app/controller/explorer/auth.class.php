@@ -95,7 +95,8 @@ class explorerAuth extends Controller {
 					}
 					$this->isShowError = true;
 					if($errorNum == count($authTypeArr)){
-						$this->errorMsg(LNG('explorer.noPermissionAction'),1005);
+						$msg = $this->lastError ? $this->lastError : LNG('explorer.noPermissionAction');
+						$this->errorMsg($msg,1005);
 					}
 				}
 				break;
@@ -220,11 +221,13 @@ class explorerAuth extends Controller {
 	 */
 	public function can($path,$action){
 		$isRoot = _get($GLOBALS,'isRoot');
+		$parse  = KodIO::parse($path);
+		$ioType = $parse['type'];
+		
+		if( $ioType == KodIO::KOD_SHARE_LINK && $action == 'view' ) return true;		
 		if(!$isRoot && !$this->canCheckRole($action)){
 			return $this->errorMsg(LNG('explorer.noPermissionAction'),1021);
 		}
-		$parse  = KodIO::parse($path);
-		$ioType = $parse['type'];
 		// 物理路径 io路径拦截；只有管理员且开启了访问才能做相关操作;
 		if( $ioType == KodIO::KOD_IO || $ioType == false ){
 			if( request_url_safe($path) ) return $action == 'view';
@@ -373,6 +376,13 @@ class explorerAuth extends Controller {
 		$timeout = intval(_get($shareInfo,'options.shareToTimeout',0));
 		if($timeout > 0 && $timeout < time()){
 			return $this->errorMsg(LNG('explorer.share.expiredTips'));
+		}
+
+		// 内部协作分享有效性处理: 当分享者被禁用,没有分享权限,所在文件不再拥有分享权限时自动禁用外链分享;
+		if(!Action('explorer.authUser')->canShare($shareInfo)){
+			$userInfo = Model('User')->getInfoSimpleOuter($shareInfo['userID']);
+			$tips = '('.$userInfo['name'].' - '.LNG('common.noPermission').')';
+			return $this->errorMsg(LNG('explorer.share.notExist').$tips);
 		}
 		
 		// 物理路径,io路径;

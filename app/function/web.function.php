@@ -720,7 +720,7 @@ function mb_parse_url($url, $component = -1) {
 			if (is_string($part)) {
 				$part = urldecode($part);
 			}
-		}
+		};unset($part);
 	} else if (is_string($components)) {
 		$components = urldecode($components);
 	}

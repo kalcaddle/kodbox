@@ -2,9 +2,9 @@
 return array(
 	'webdav.meta.name'			=> "WebDAV Mount",
 	'webdav.meta.title'			=> "WebDAV Mount to network drive",
-	'webdav.meta.desc'			=> "The kodcloud documents can be linked to the current computer or app, and the file management can be as convenient and fast as the local hard disk; at the same time, the files can be edited and saved in real time",
+	'webdav.meta.desc'			=> "The driver documents can be linked to the current computer or app, and the file management can be as convenient and fast as the local hard disk; at the same time, the files can be edited and saved in real time",
 	'webdav.config.isOpen'		=> "Open WebDAV",
-	'webdav.config.isOpenDesc'	=> "When enabled, users can mount the kodcloud service through WebDAV",
+	'webdav.config.isOpenDesc'	=> "When enabled, users can mount the driver service through WebDAV",
 	'webdav.config.pathAllow'	=> "Home Path",
 	'webdav.config.pathAllowDesc'	=> "Root path location after login and mount; all - including personal network disk and enterprise network disk favorites (favorites support any path of collection)",
 	'webdav.config.pathAllowAll'	=> "All",

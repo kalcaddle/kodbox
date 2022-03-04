@@ -55,6 +55,10 @@ class explorerListSearch extends Controller{
 				$list['folderList'] = array_merge($list['folderList'],$find['folderList']);
 			}
 		}
+		// 合并相同的结果;
+		$list['fileList']   = array_values(array_to_keyvalue($list['fileList'],'path'));
+		$list['folderList'] = array_values(array_to_keyvalue($list['folderList'],'path'));
+		
 		$list['pageInfo']['totalNum']  = count($list['fileList']) + count($list['folderList']);
 		$list['pageInfo']['pageTotal'] = 1;
 		$list['disableSort'] = 1;

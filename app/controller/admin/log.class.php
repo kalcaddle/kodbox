@@ -113,6 +113,9 @@ class adminLog extends Controller{
 			if(!$data['userID'] && !in_array('1',$groupAdmin)){
 				$groupAll = Model('Group')->groupChildrenAll($groupAdmin);
 				$userAll  = Model('User')->groupUserAll($groupAll);
+				if(!$userAll){
+					show_json(array());
+				}
 				$data['userID'] = array('in',$userAll);
 			}
 		}
@@ -152,6 +155,7 @@ class adminLog extends Controller{
         // 第三方绑定
         if(ACTION == 'user.bind.bindApi' && !$data['success']) return;
         if(ACTION == 'user.index.loginSubmit'){
+            if (!is_array($data)) return;
             return $this->loginLog();
         }		
         return $this->model->addLog(ACTION, $data);
@@ -210,7 +214,7 @@ class adminLog extends Controller{
 			);
 			$item['desc'] = is_array($item['desc']) ? $item['desc']:array();
 			$item = array_merge($value, $item['desc']);
-		}
+		};unset($item);
 		show_json($res);
     }
     /**

@@ -78,11 +78,10 @@ function path_filter($path){
 
 //filesize 解决大于2G 大小问题
 //http://stackoverflow.com/questions/5501451/php-x86-how-to-get-filesize-of-2-gb-file-without-external-program
+//32位系统; 修改编译php实现兼容支持;  https://demo.kodcloud.com/#s/735psg0g
+//源码修改: zend_off_t(文件定位)修改为64位int64_t;  ftell返回值类型加宽; fseek传入值处理,校验类型处理; fstate处理;
 function get_filesize($path){
-	if(PHP_INT_SIZE >= 8 ){ //64bit
-		return (float)(abs(sprintf("%u",@filesize($path))));
-	}
-	
+	if(PHP_INT_SIZE >= 8 ) return @filesize($path);
 	$fp = fopen($path,"r");
 	if(!$fp) return 0;	
 	if (fseek($fp, 0, SEEK_END) === 0) {
@@ -127,6 +126,28 @@ function get_filesize($path){
 	}
 	fclose($fp);
 	return $result;
+}
+
+function filesize_64($file){
+	return get_filesize($file);
+}
+function ftell_64($fp){
+	return ftell($fp);
+}
+function fseek_64($fp,$pose=0,$from=SEEK_SET,$first=true){
+    return fseek($fp,$pose,$from);// php 编译兼容支持;
+    
+	if(PHP_INT_SIZE >= 8){return fseek($fp,$pose,$first);}
+	if($first) fseek($fp,0,SEEK_SET);
+	$intMax = PHP_INT_MAX;
+	$pos = floatval($pose);
+	if($pos <= $intMax){
+		fseek($fp,$pos,SEEK_CUR);
+	}else {
+		fseek($fp,$intMax,SEEK_CUR);
+		$pos -= $intMax;
+		fseek_64($fp,$pos,SEEK_CUR,false);
+	}
 }
 
 //文件是否存在，区分文件大小写
@@ -846,7 +867,7 @@ function is_text_file($ext){
 	$extArray = array(
 		'3ds','4th','_adb','a','abap','abc','ac','acl','ada','adb','adoc','ahk','alda','am','apex','apl','app','apple-app-site-association','applescript','aql','arcconfig','arclint','as','asc','asciidoc','asl','asm','asn','asn1','asp','aspx','ass','astylerc','atom','authors','aw',
 		'b','babelrc','bak','bash','bash_history','bash_logout','bash_profile','bashrc','bat','bf','bib','brew_all_commands','bro','build','bzl',
-		'c','c9search_results','cabal','cakefile','cbl','cc','cer','cf','cfg','cfm','cgi','changelog','changes','cirru','cl','classpath','clj','cljc','cljs','cljx','cls','cmake','cmake.in','cmd','cnf','cob','coffee','commit_editmsg','compile','component','conf','config','configure','container','contributing','copying','coveragerc','cpp','cpy','cql','cr','credits','cs','csd','cshtml','cson','csproj','css','csv','ctp','curly','cxx','cyp','cypher',
+		'c','c9search_results','cabal','cakefile','cbl','cc','cer','cf','cfg','cfm','cgi','changelog','changes','cirru','cl','classpath','clj','cljc','cljs','cljx','cls','cmake','cmake.in','cmd','cnf','cob','coffee','commit_editmsg','compile','component','conf','config','configure','container','contributing','copying','coveragerc','cpp','cpy','cql','cr','credits','cs','csd','cshtml','cson','csproj','css','csv','ctp','curly','cxx','cyp','cypher','crt',
 		'd','dae','darglint','dart','def','depcomp','description','desktop','di','diff','dist','dockerfile','dockerfile-dist','dockerfile-master','dockerignore','dot','dox','drl','dsl','dtd','dummy','dxf','dxf-check','dxfb-check','dyalog','dyl','dylan',
 		'e','ecl','edi','editorconfig','edn','eex','ejs','el','elm','empty','epp','erb','erl','err','eslintignore','ex','example','exclude','exs',
 		'f','f77','f90','f95','factor','feature','fetch_head','filters','fingerprint','for','forth','frag','frt','fs','fsi','fsl','fsscript','fsx','fth','ftl','fun','fx',

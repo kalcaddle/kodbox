@@ -59,11 +59,15 @@ class adminAuth extends Controller{
 	 */
 	public function remove() {
 		$id = Input::get('id','int');
-		// 判断是否被使用
-		$cnt1 = Model('SourceAuth')->where(array('authID' => $id))->count();
-		$cnt2 = Model('user_group')->where(array('authID' => $id))->count();
-		$cnt = (int) $cnt1 + (int) $cnt2;
-		if($cnt) show_json(LNG('admin.auth.delErrTips'), false);
+		
+		// 是否强制删除;
+		if(!isset($this->in['force'])){
+			// 判断是否被使用
+			$cnt1 = Model('SourceAuth')->where(array('authID' => $id))->count();
+			$cnt2 = Model('user_group')->where(array('authID' => $id))->count();
+			$count = (int) $cnt1 + (int) $cnt2;
+			if($count) show_json(LNG('admin.auth.delErrTips').'('.$count.')', false,'in-user');
+		}
 		$res = $this->model->remove($id);
 		$msg = $res ? LNG('explorer.success') : LNG('explorer.error');
 		show_json($msg,!!$res);

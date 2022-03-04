@@ -15,6 +15,7 @@ div.tox .tox-sidebar-wrap{position: relative;}
 .toc-form-code-editor .form-box .form-row.form-codeEditor .ace_editor{padding:0px;}
 .toc-form-code-editor.dialog-form.target-form .form-box.config-box .panel-form-body{height:100%;}
 .toc-form-code-editor .toc-form-code-editor{height:100%;}
+.toc-form-code-editor .toc-form-code-editor .panel-form-body-main{height:100%;}
 .toc-form-code-editor .form-box .form-row.form-codeEditor{
     padding: 0 !important;margin: 0  !important;
     height: 100%;overflow: hidden;

@@ -180,6 +180,8 @@ class userView extends Controller{
 	public function manifest(){
 		$json   = file_get_contents(LIB_DIR.'template/user/manifest.json');
 		$name   = stristr(I18n::getType(),'zh') ? '可道云':'kodcloud';
+		$opt    = $GLOBALS['config']['settingSystemDefault'];
+		$name   = isset($opt['systemNameApp']) ? $opt['systemNameApp']: $name;
 		$static = STATIC_PATH == './static/' ? APP_HOST.'static/':STATIC_PATH;
 		$assign = array(
 			"{{name}}"		=> $name,
@@ -187,6 +189,14 @@ class userView extends Controller{
 			"{{static}}"	=> $static,
 		);
 		$json = str_replace(array_keys($assign),array_values($assign),$json);
+		if(isset($opt['systemIcon'])){
+			$jsonArr = json_decode($json,true);
+			$jsonArr['icons'] = array(array("src"=>$opt['systemIcon'],"sizes"=>"512x512","type"=>"image/png"));
+			if(isset($opt['systemThemeColor'])){$jsonArr['theme_color'] = $opt['systemThemeColor'];}
+			$json = json_encode_force($jsonArr);
+			$json = str_replace('\\','',$json);
+		}
+		
 		header("Content-Type: application/javascript; charset=utf-8");
 		echo $json;
 	}

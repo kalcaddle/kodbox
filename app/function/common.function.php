@@ -195,7 +195,7 @@ function obj2array($obj){
 	if (is_array($obj)) {
 		foreach($obj as &$value) {
 			$value = obj2array($value);
-		} 
+		};unset($value);
 		return $obj;
 	} elseif (is_object($obj)) {
 		$obj = get_object_vars($obj);
@@ -433,13 +433,14 @@ function array_get_value(&$array,$key,$default=null){
  * 		array('name'=>'手表','brand'=>'卡西欧','price'=>960)
  * );
  * $out = array_sort_by($array,'price');
+ * $out = array_sort_by($array,'info.count');
  */
 function array_sort_by($records, $field, $sortDesc=false){
 	if(!is_array($records) || !$records) return array();
 	$sortDesc = $sortDesc?SORT_DESC:SORT_ASC;
 	$recordsPicker = array();
 	foreach ($records as $item) {
-		$recordsPicker[] = isset($item[$field]) ? $item[$field]: 0;
+		$recordsPicker[] = isset($item[$field]) ? $item[$field]: _get($item,$field,0);
 	}
 	array_multisort($recordsPicker,$sortDesc,$records);
 	return $records;
@@ -566,6 +567,27 @@ function array_find_by_field($array,$field,$value){
 	return null;
 }
 
+function array_page_split($array,$page=false,$pageNum=false){
+	$page 		= intval($pageNum ? $pageNum : $GLOBALS['in']['page']);
+	$page		= $page <= 1 ? 1 : $page;
+	$pageMax    = 5000;
+	$pageNum 	= intval($pageNum ? $pageNum : $GLOBALS['in']['pageNum']);
+	$pageNum	= $pageNum <= 5 ? 5 : ($pageNum > $pageMax ? $pageMax: $pageNum);
+	
+	$array 		= is_array($array) ? $array :array();
+	$pageTotal	= ceil(count($array) / $pageNum);
+	$page		= $page <= 1 ? 1  : ($page >= $pageTotal ? $pageTotal : $page);
+	$result     = array(
+		'pageInfo' => array(
+			'totalNum'	=> count($array),
+			'pageNum'	=> $pageNum,
+			'page'		=> $page,
+			'pageTotal'	=> $pageTotal,
+		),
+		'list' => array_slice($array,($page-1) * $pageNum,$pageNum)
+	);
+	return $result;	
+}
 
 /**
  * 删除数组子项的特定key的数据
@@ -581,7 +603,7 @@ function array_remove_key(&$array, $keyArray){
 				unset($item[$key]);
 			}
 		}
-	}
+	};unset($item);
 	return $array;
 }
 
@@ -677,7 +699,7 @@ function array_sub_tree($rows, $pid = 'parentid', $id = 'id') {
 		}
 	}
 	foreach ( $rows as $key => $val ) {
-		if ( $val[$pid] ) unset ( $rows[$key] );
+		if ( $val[$pid] ) unset ( $rows[$key] );	// 根元素的parentid需为空
 	}
 	return $rows;
 }
@@ -805,10 +827,11 @@ function show_tips($message,$url= '', $time = 3,$title = ''){
 	<meta http-equiv='refresh' $goto charset="utf-8">
 
 	<style>
-	body{background: #f6f6f6;padding:0;margin:0; display:flex;align-items: center;justify-content: center;}
+	body{background: #f6f6f6;padding:0;margin:0; display:flex;align-items: center;justify-content: center;
+		position: absolute;left: 0;right: 0;bottom: 0;top: 0;}
 	#msgbox{box-shadow: 0px 10px 40px rgba(0, 0, 0, 0.1);border-radius: 5px;border-radius: 5px;background: #fff;
     font-family: "Lantinghei SC","Hiragino Sans GB","Microsoft Yahei",Helvetica,arial,sans-serif;line-height: 1.5em;
-	color:888;margin:0 auto;margin-top:-20%;width:500px;font-size:13px;color:#666;word-wrap: break-word;word-break: break-all;max-width: 90%;box-sizing: border-box;max-height: 90%;overflow: auto;padding:30px 30px;}
+	color:888;margin:0 auto;margin-top:10px;margin-bottom:10px;width:500px;font-size:13px;color:#666;word-wrap: break-word;word-break: break-all;max-width: 90%;box-sizing: border-box;max-height: 90%;overflow: auto;padding:30px 30px;}
 	#msgbox #info{margin-top: 10px;color:#aaa;}
 	#msgbox #title{color: #333;border-bottom: 1px solid #eee;padding: 10px 0;margin:0 0 15px;font-size:22px;font-weight:200;}
 	#msgbox #info a{color: #64b8fb;text-decoration: none;padding: 2px 0px;border-bottom: 1px solid;}
@@ -1071,14 +1094,14 @@ function show_trace(){
 }
 
 function file_sub_str($file,$start=0,$len=0){
-	$size = filesize($file);
+	$size = filesize_64($file);
 	if($start < 0 ){
 		$start = $size + $start;
 		$len = $size - $start;
 	}
 	if($len <= 0) return '';
     $fp = fopen($file,'r');
-    fseek($fp,$start);
+    fseek_64($fp,$start);
     $res = fread($fp,$len);
     fclose($fp);
     return $res;

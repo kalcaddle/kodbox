@@ -24,6 +24,7 @@ class explorerEditor extends Controller{
 		}
 		$pathInfo = IO::info($path);
 		$pathInfo = Action('explorer.list')->pathInfoParse($pathInfo);
+		Action('explorer.index')->updateLastOpen($path);
 		$this->fileGetMake($path,$pathInfo);
 	}
 	

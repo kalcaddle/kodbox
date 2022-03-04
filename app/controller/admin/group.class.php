@@ -32,6 +32,7 @@ class adminGroup extends Controller{
 					"name" 			=> LNG('explorer.auth.toOuter'),
 					"isParent"		=> true,
 					"disableSelect" => true,
+					"disableOpen" 	=> true,//禁用自动展开
 					"nodeAddClass" 	=> 'node-append-group',
 				);
 			}

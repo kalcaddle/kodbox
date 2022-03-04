@@ -434,6 +434,7 @@ class installIndex extends Controller {
      * sqlite database文件
      */
     private function sqliteDbFile(){
+        @chmod(DATA_PATH, 0777);
         $dbFile = USER_SYSTEM . rand_string(12) . '.php';
         @touch($dbFile);
         return $dbFile;
@@ -636,7 +637,7 @@ class installIndex extends Controller {
             'display' => 1,
             'system' => 1,
             'auth' => 'explorer.add,explorer.upload,explorer.view,explorer.download,explorer.share,explorer.remove,explorer.edit,explorer.move,explorer.serverDownload,explorer.search,explorer.unzip,explorer.zip,user.edit,user.fav,admin.index.loginLog,admin.index.log,admin.member.list,admin.member.userEdit,admin.member.groupEdit,admin.auth.list',
-            'label' => 'label-yellow-normal',
+            'label' => 'label-blue-deep',
             'sort' => 1,
         );
         $defaultUser = array (
@@ -647,10 +648,9 @@ class installIndex extends Controller {
             'label' => 'label-blue-normal',
             'sort' => 2,
         );
-
-        $administrator = Model('SystemRole')->add($administrator);
+		Model('SystemRole')->add($defaultUser);
 		Model('SystemRole')->add($groupOwner);
-        Model('SystemRole')->add($defaultUser);
+        $administrator = Model('SystemRole')->add($administrator);
         return $administrator;
     }
 

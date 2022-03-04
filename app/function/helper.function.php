@@ -292,6 +292,7 @@ function get_post_max(){
 
 function phpBuild64(){
 	if(PHP_INT_SIZE === 8) return true;//部分版本,64位会返回4;
+	if($GLOBALS['config']['settings']['bigFileForce']) return true;
 	ob_clean();
 	ob_start();
 	var_dump(12345678900);

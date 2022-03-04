@@ -89,7 +89,7 @@ class userSetting extends Controller {
 
 	/**
 	 * 手机、邮箱验证码存储、验证
-	 * @param type $type
+	 * @param type $type	email、phone
 	 * @param type $code
 	 * @param type $data	{type: [source], input: ''}
 	 * @param type $set	首次存储验证码(检测错误次数)

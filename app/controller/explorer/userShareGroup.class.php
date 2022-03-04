@@ -165,7 +165,7 @@ class explorerUserShareGroup extends Controller{
 		if(in_array($groupID,$this->userGroupRoot)) return true;
 		if(!$parentLevel){
 			$groupInfo = Model('Group')->getInfo($groupID);
-			$parentLevel = $groupInfo['parentLevel'].','.$groupInfo['groupID'];
+			$parentLevel = $groupInfo['parentLevel'].$groupInfo['groupID'].',';
 		}
 		foreach($this->userGroupRoot as $group){
 			if($this->groupChildrenMake($group,$parentLevel)){$allow = true;break;}
@@ -270,7 +270,7 @@ class explorerUserShareGroup extends Controller{
 			}
 
 			if(!$info) continue;
-			$groupNotAllowShare = false;
+			$groupNotAllowShare = false;// 部门内容分享,该部门对自己不可见则归类到该用户的分享;
 			if($info['targetType'] == 'group' && !$this->groupAllowShow($info['targetID'])){
 				$groupNotAllowShare = true;
 			}
@@ -280,6 +280,7 @@ class explorerUserShareGroup extends Controller{
 				$userList[$userID][] = $shareItem;//性能优化;
 			}else{
 				$info = Action('explorer.userShare')->_shareItemeParse($info,$shareItem);
+				if(!$info) continue;
 				$groupID = $info['targetID'];
 				if(!isset($groupList[$groupID])){$groupList[$groupID] = array();}
 				$groupList[$groupID][] = $info;

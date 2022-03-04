@@ -113,25 +113,31 @@ class explorerListGroup extends Controller{
 		if(count($data['groupList']) == 0){unset($data['groupShow']);}
 	}
 
-	public function pathGroupAuthMake($groupID){
+	public function pathGroupAuthMake($groupID,$userID=false){
+		$groupRoot  = '1';
 		$groupInfo  = $this->modelGroup->getInfoSimple($groupID);//101
-		$selfGroup 	= Session::get("kodUser.groupInfo");
-
+		if(!$userID){
+			$groupSelf 	= Session::get("kodUser.groupInfo");
+		}else{
+			$userInfo = Model('User')->getInfo($userID);
+			$groupSelf = $userInfo['groupInfo'];
+		}
+		
 		// 部门文件夹或子文件夹没有针对自己设置权限,向上级部门回溯;
-		$selfGroup 	= array_to_keyvalue($selfGroup,'groupID');//自己所在的组
+		$groupSelf 	= array_to_keyvalue($groupSelf,'groupID');//自己所在的组
 		$parents	= $this->model->parentLevelArray($groupInfo['parentLevel']);
 		$parents[]	= $groupID;
 		$parents 	= array_reverse($parents);
 		foreach ($parents as $id) {
-			if($id == '1') return false;// 根部门;
-			if(isset($selfGroup[$id])){
+			if($id == $groupRoot) return false;// 根部门;
+			if(isset($groupSelf[$id])){
 				return array(
-					'authValue' => intval($selfGroup[$id]['auth']['auth']),
-					'authInfo'  => $selfGroup[$id]['auth'],
+					'authValue' => intval($groupSelf[$id]['auth']['auth']),
+					'authInfo'  => $groupSelf[$id]['auth'],
 				);
 			}
 		}
-		return Model("SourceAuth")->authDeepCheck($groupInfo['sourceInfo']['sourceID']);
+		return Model("SourceAuth")->authDeepCheck($groupInfo['sourceInfo']['sourceID'],$userID);
 	}
 
 	/**

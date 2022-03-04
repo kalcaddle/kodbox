@@ -194,11 +194,6 @@ class userIndex extends Controller {
 				$user = $theUser? $theUser:false;
 			}
 		}
-		if(!is_array($user)) return $user;
-		
-		$result = Hook::trigger('user.index.loginBefore',$user);
-		if($result !== true) return $result;
-		Hook::trigger('user.index.loginAfter',$user);
 		return $user;
 	}
 	
@@ -325,6 +320,13 @@ class userIndex extends Controller {
 	}
 	
 	public function loginSuccess($user) {
+		// 登录管控
+		$result = Hook::trigger('user.index.loginBefore',$user);
+		if($result !== true) {
+			show_tips(userModel::errorLang($result), APP_HOST);exit;
+		}
+		Hook::trigger('user.index.loginAfter',$user);
+
 		Session::set('kodUser', $user);
 		Cookie::set('kodUserID', $user['userID']);
 		$kodToken = Cookie::get('kodToken');

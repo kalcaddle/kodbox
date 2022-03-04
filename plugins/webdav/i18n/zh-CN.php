@@ -2,9 +2,9 @@
 return array(
 	'webdav.meta.name'			=> "WebDAV 挂载",
 	'webdav.meta.title'			=> "WebDAV 挂载到网络驱动器",
-	'webdav.meta.desc'			=> "可道云文档可以通过挂在到当前电脑或APP,文件管理可以和本地硬盘一样方便快捷;同时可以实时编辑保存文件",
+	'webdav.meta.desc'			=> "网盘文档可以通过挂在到当前电脑或APP,文件管理可以和本地硬盘一样方便快捷;同时可以实时编辑保存文件",
 	'webdav.config.isOpen'		=> "开启WebDAV服务",
-	'webdav.config.isOpenDesc'	=> "开启后用户即可通过webdav挂载可道云服务",
+	'webdav.config.isOpenDesc'	=> "开启后用户即可通过webdav挂载网盘的目录",
 	'webdav.config.pathAllow'	=> "开放根目录位置",
 	'webdav.config.pathAllowDesc'	=> "登陆挂载后根路径位置; 全部---包含个人网盘企业网盘收藏夹等(收藏夹支持收藏任何路径)",
 	'webdav.config.pathAllowAll'	=> "全部",

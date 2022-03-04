@@ -38,6 +38,7 @@ body.mce-content-body{
     padding:0.2em 1em 0.2em 0.3em;
 }
 
+.mce-content-body ul{padding-left:2em;}
 .mce-content-body table th,
 .mce-content-body .mce-item-table table th,
 .article-content-body table th,

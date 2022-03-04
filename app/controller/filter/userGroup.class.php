@@ -52,8 +52,8 @@ class filterUserGroup extends Controller{
 			'admin.group.remove' 	=> array('group'=>'groupID','error'=>'error'),
 			'admin.group.sort' 		=> array('group'=>'groupID','error'=>'error'),
 			
-			// 部门公共标签: 获取,修改
-			'explorer.taggroup.get' => array('group'=>'groupID','read'=>'allow','error'=>'error'),
+			// 部门公共标签: 获取,修改;
+			// 'explorer.taggroup.get' => array('group'=>'groupID','read'=>'allow','error'=>'error','requestFrom'=>'user'),
 			'explorer.taggroup.set' => array('group'=>'groupID','error'=>'error'),
 		);
 		$this->checkItem($paramMap);
@@ -103,6 +103,7 @@ class filterUserGroup extends Controller{
 			isset($this->in['HTTP_X_PLATFORM']) ){
 			$this->in['requestFrom'] = 'user';
 		}
+		if($check['requestFrom'] == 'user'){$this->in['requestFrom'] = 'user';}
 		
 		// 来自用户请求,false则来自后台管理员请求;
 		$fromUser   = $this->in['requestFrom'] == 'user';
@@ -140,6 +141,7 @@ class filterUserGroup extends Controller{
 		if($this->allowViewGroup($groupArray,$groupID)) return;
 		$this->checkError(array('error' =>'error'));
 	}
+		
 	private function checkUserSearch(){
 		$words = Input::get('words','require');
 		$where = array(
@@ -194,25 +196,34 @@ class filterUserGroup extends Controller{
 	// 当前用户是否有操作该部门的权限;
 	public function allowChangeGroup($groupID){return $this->allowViewGroup($this->userAdminGroup(),$groupID);}
 	public function allowChangeUser($userID){return $this->allowViewUser($this->userAdminGroup(),$userID);}
-	public function allowViewUser($selfGroup,$userID){
+	public function allowViewUser($selfGroup,$users){
 		if(!$selfGroup || count($selfGroup) == 0) return false;
-		$userInfo  = Model('User')->getInfo($userID);
-		$groupList = $userInfo ? $userInfo['groupInfo']:array();
-		foreach ($groupList as $group){
-			$groupInfo  = Model('Group')->getInfo($group['groupID']);
-			$parents = Model('Group')->parentLevelArray($groupInfo['parentLevel']);$parents[] = $group['groupID'];
-			foreach ($parents as $groupID){
-				if(in_array($groupID.'',$selfGroup)) return true;
+
+		$userArray = explode(',',trim($users.'',','));//默认多个,逗号分隔;
+		foreach ($userArray as $userID){
+			$userInfo  = Model('User')->getInfo($userID);
+			$groupList = $userInfo ? $userInfo['groupInfo']:array();
+			foreach ($groupList as $group){
+				$groupInfo  = Model('Group')->getInfo($group['groupID']);
+				$parents = Model('Group')->parentLevelArray($groupInfo['parentLevel']);$parents[] = $group['groupID'];
+				foreach ($parents as $groupID){
+					if(in_array($groupID.'',$selfGroup)) return true;
+				}
 			}
 		}
 		return false;
 	}
-	public function allowViewGroup($selfGroup,$groupID){
+	public function allowViewGroup($selfGroup,$groups){
 		if(!$selfGroup || count($selfGroup) == 0) return false;
-		$groupInfo  = Model('Group')->getInfo($groupID);
-		$parents = Model('Group')->parentLevelArray($groupInfo['parentLevel']);$parents[] = $groupID;
-		foreach ($parents as $groupID){
-			if(in_array($groupID.'',$selfGroup)) return true;
+		
+		$groupArray = explode(',',trim($groups.'',','));//默认多个,逗号分隔;
+		foreach ($groupArray as $groupID){
+			$groupInfo  = Model('Group')->getInfo($groupID);
+			if(!$groupInfo) continue;
+			$parents = Model('Group')->parentLevelArray($groupInfo['parentLevel']);$parents[] = $groupID;
+			foreach ($parents as $groupID){
+				if(in_array($groupID.'',$selfGroup)) return true;
+			}
 		}
 		return false;
 	}

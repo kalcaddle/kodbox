@@ -66,7 +66,7 @@ class commentTopic extends Controller {
 			);
 			//该主题:未读消息数;
 			$item['newCount'] = $this->model->where($where)->count();
-		}
+		};unset($item);
 		$chatTopic = array_values($chatTopic);
 		show_json($chatTopic);
 	}

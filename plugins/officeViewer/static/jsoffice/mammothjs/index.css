@@ -4,12 +4,13 @@
 /* .page-box #output table tr td { border:1px solid #bbb; padding: 4px;} */
 .page-box #output table tr td { border:1px solid #747474; padding: 4px;}
 .page-box #output table { border-collapse: collapse;}
+.page-box #output table.docx-table {width: 100%;}
 /* .page-box #output table { min-height: 25px; line-height: 25px; border-collapse: collapse; padding:2px;}
 .page-box #output table p{text-indent: inherit; margin: 0px;} */
 
 .page-box #output img {max-width: 100%;}
 /* .page-box #output p img {float: left;} */
-.page-box #output a {word-wrap: break-word; word-break: normal;}
+.page-box #output a {word-wrap: break-word; word-break: normal;text-decoration: none;}
 
 
 /* 行占位符 */

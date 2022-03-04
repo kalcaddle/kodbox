@@ -52,8 +52,10 @@ class explorerIndex extends Controller{
 	}
 
 	private function itemInfoMore($item){
-		$result = Model('SourceAuth')->authOwnerApply($item);
+		$result  = Model('SourceAuth')->authOwnerApply($item);
+		$showMd5 = Model('SystemOption')->get('showFileMd5') != '0';
 		if($result['type'] != 'file') return $item;
+		if(!$showMd5) return $item;
 		
 		if( !_get($result,'fileInfo.hashMd5') && 
 			($result['size'] <= 200*1024*1024 || _get($this->in,'getMore') )  ){
@@ -74,7 +76,7 @@ class explorerIndex extends Controller{
 			if(!_get($GLOBALS,'isRoot') && $item['rootNeed']){
 				unset($desktopApps[$key]);
 			}
-		}
+		};unset($item);
 		show_json($desktopApps);
 	}
 
@@ -145,23 +147,52 @@ class explorerIndex extends Controller{
 	 * 设置权限
 	 */
 	public function setAuth(){
+		$actionAllow = array(
+			'getData','clearChildren','getAllChildren','getGroupUser',
+			'getAllChildrenByUser','setAllChildrenByUser'
+		);
 		$data = Input::getArray(array(
 			'path'	=> array('check'=>'require'),
 			'auth'	=> array('check'=>'json','default'=>''),
-			'action'=> array('check'=>'in','default'=>'','param'=>array('clearChildren','getData') ),
+			'action'=> array('check'=>'in','default'=>'','param'=>$actionAllow),
 		));
 
 		$result = false;
 		$info   = IO::info($data['path']);
 		if( $info && $info['sourceID'] && $info['targetType'] == 'group'){//只能设置部门文档;
+			$groupID = $info['targetID'];
 			if($data['action'] == 'getData'){
 				$result = Model('SourceAuth')->getAuth($info['sourceID']);
 				show_json($result);
-			}
-
-			//清空所有子文件(夹)的权限；
-			if($data['action'] == 'clearChildren'){
+			}else if($data['action'] == 'clearChildren'){
+				//清空所有子文件(夹)的权限；
 				$result = Model('SourceAuth')->authClear($info['sourceID']);
+			}else if($data['action'] == 'getAllChildren'){
+				//该文件夹下所有单独设置过权限的内容; 按层级深度排序-由浅到深(文件夹在前)
+				$result = Model('SourceAuth')->getAllChildren($info['sourceID']);
+				$result = array_page_split($result);
+				show_json($result,true);
+			}else if($data['action'] == 'getAllChildrenByUser'){
+				//该文件夹下所有针对某用户设置或权限的内容;
+				$result = Model('SourceAuth')->getAllChildrenByUser($info['sourceID'],$this->in['userID']);
+				$result = array_page_split($result);
+				show_json($result,true);
+			}else if($data['action'] == 'setAllChildrenByUser'){
+				//重置该文件夹下所有针对某用户设置权限的权限;
+				$result = Model('SourceAuth')->setAllChildrenByUser($info['sourceID'],$this->in['userID'],$this->in['authID']);
+				show_json($result ? LNG('explorer.success'): LNG('explorer.error'),true);
+			}else if($data['action'] == 'getGroupUser'){
+				//部门成员在该部门的初始权限; 按权限大小排序
+				$result = Model('User')->listByGroup($groupID);
+				foreach($result['list'] as $index=>$userInfo){
+					// $userInfo = Model('User')->getInfoSimpleOuter($userInfo['userID']);
+					$groupAuth = array_find_by_field($userInfo['groupInfo'],'groupID',$groupID);
+					$userInfo['groupAuth']  = $groupAuth ? $groupAuth['auth'] : false;
+					$result['list'][$index] = $userInfo;
+				}
+				// 按权限高低排序;
+				$result['list'] = array_sort_by($result['list'],'groupAuth.auth',true);
+				show_json($result,true);
 			}else{
 				$setAuth = $this->setAuthSelf($info,$data['auth']);
 				$result = Model('SourceAuth')->setAuth($info['sourceID'],$setAuth);
@@ -174,7 +205,7 @@ class explorerIndex extends Controller{
 	// 设置权限.默认设置自己为之前管理权限; 如果只有自己则清空;
 	private function setAuthSelf($pathInfo,$auth){
 		if(!$auth) return $auth;
-		$selfAuth = _get($pathInfo,'auth.authInfo.id','1');
+		$selfAuth = _get($pathInfo,'auth.authInfo.id');
 		$authList = array();
 		foreach($auth as $item){
 			if( $item['targetID'] == USER_ID && 
@@ -183,7 +214,7 @@ class explorerIndex extends Controller{
 			}
 			$authList[] = $item;
 		}
-		if(!$authList) return $authList;
+		if(!$authList || !$selfAuth) return $authList;
 		$authList[] = array(
 			'targetID' 	=> USER_ID, 
 			'targetType'=> SourceModel::TYPE_USER,
@@ -555,6 +586,19 @@ class explorerIndex extends Controller{
 	public function zip($zipPath=''){
 		ignore_timeout();
 		$dataArr  = json_decode($this->in['dataArr'],true);
+		$zipLimit = Model('SystemOption')->get('downloadZipLimit');
+		if($zipLimit && $zipLimit > 0){
+			$zipLimit  = floatval($zipLimit) * 1024 * 1024 * 1024;
+			$totalSize = 0.0;
+			foreach($dataArr as $item){
+				$pathInfo = IO::infoWithChildren($item['path']);
+				$totalSize += $pathInfo['size'];
+			}
+			if($totalSize > $zipLimit){
+				show_json(LNG('admin.setting.downloadZipLimitTips'),false);
+			}
+		}	
+		
 		$fileType = Input::get('type', 'require','zip');
 		$repeat   = Model('UserOption')->get('fileRepeat');
 		$repeat   = !empty($this->in['fileRepeat']) ? $this->in['fileRepeat'] :$repeat;
@@ -670,7 +714,7 @@ class explorerIndex extends Controller{
 	/**
 	 * 打开自己的文档；更新最后打开时间
 	 */
-	private function updateLastOpen($path){
+	public function updateLastOpen($path){
 		$driver = IO::init($path);
 		if($driver->pathParse['type'] != KodIO::KOD_SOURCE) return;
 

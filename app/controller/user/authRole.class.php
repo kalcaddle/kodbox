@@ -41,7 +41,7 @@ class userAuthRole extends Controller {
 		$authNotNeedLogin = $this->config['authNotNeedLogin'];
 		foreach ($authNotNeedLogin as &$val) {
 			$val = strtolower($val);
-		}
+		};unset($val);
 		if(in_array($theAction,$authNotNeedLogin)) return;
 		foreach ($authNotNeedLogin as $value) {
 			$item = explode('.',$value); //MOD,ST,ACT
@@ -71,15 +71,20 @@ class userAuthRole extends Controller {
 	}
 	
 	// 用户权限解析处理;处理成最终动作
-	public function userRoleAuth(){
-		if(self::$authRole) return self::$authRole;
+	public function userRoleAuth($roleID=false){
+		if(!$roleID){
+			$user = Session::get('kodUser');
+			if(!$user || !$user['roleID']) return false;
+			$roleID = $user['roleID'];
+		}
+		if(!self::$authRole){self::$authRole = array();}
+		if(isset(self::$authRole[$roleID])){
+			return self::$authRole[$roleID];
+		}
+		
 		$authAllowAction 	= $this->config['authAllowAction'];
-		$roleAction 		= $this->config['authRoleAction'];
-		
-		$user = Session::get('kodUser');
-		if(!$user || !$user['roleID']) return false;
-		
-		$roleInfo = Model('SystemRole')->listData($user['roleID']);		
+		$roleAction 		= $this->config['authRoleAction'];		
+		$roleInfo = Model('SystemRole')->listData($roleID);		
 		$userRoleAllow  = $this->authCheckAlias($roleInfo['auth']);
 		$authRoleList 	= array();
 		$allowAction 	= array();
@@ -116,12 +121,13 @@ class userAuthRole extends Controller {
 		foreach ($authAllowAction as $action) { 
 			$allowAction[strtolower($action)] = 1;
 		}
-		self::$authRole = array(
+		$result = array(
 			'info'			=> $roleInfo,
 			'allowAction'	=> $allowAction,
 			'roleList'		=> $authRoleList
 		);
-		return self::$authRole;
+		self::$authRole[$roleID] = $result;
+		return $result;
 	}
 	
 	// 处理权限前置依赖;
