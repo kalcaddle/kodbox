@@ -1176,7 +1176,7 @@ return array(
     "common.version.timeTo"          => "Tempo di scadenza dell'autorizzazione",
     "common.version.licenseAll"      => "Autorizzazione perpetua",
     "common.version.kodVersion"      => "Aggiornamenti",
-    "common.version.userLimitTitle"  => "Numero utente",
+    "common.version.userLimitTitle"  => "Utenti",
     "common.version.userUse"         => "Usati",
     "common.version.userAllow"       => "Supportati",
     "common.version.userTo"          => "Oggetto autorizzato",
