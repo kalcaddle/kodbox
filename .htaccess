@@ -1,0 +1,47 @@
+<IfModule mod_rewrite.c>
+RewriteEngine On
+RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteBase /
+RewriteRule ^index\.php$ - [L]
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule . /index.php [L]
+#Errors
+ErrorDocument 400 /err.php
+ErrorDocument 401 /err.php
+ErrorDocument 402 /err.php
+ErrorDocument 403 /err.php
+ErrorDocument 404 /err.php
+ErrorDocument 405 /err.php
+ErrorDocument 406 /err.php
+ErrorDocument 407 /err.php
+ErrorDocument 408 /err.php
+ErrorDocument 409 /err.php
+ErrorDocument 410 /err.php
+ErrorDocument 411 /err.php
+ErrorDocument 412 /err.php
+ErrorDocument 413 /err.php
+ErrorDocument 414 /err.php
+ErrorDocument 415 /err.php
+ErrorDocument 416 /err.php
+ErrorDocument 417 /err.php
+ErrorDocument 422 /err.php
+ErrorDocument 423 /err.php
+ErrorDocument 424 /err.php
+ErrorDocument 426 /err.php
+ErrorDocument 428 /err.php
+ErrorDocument 429 /err.php
+ErrorDocument 431 /err.php
+ErrorDocument 451 /err.php
+ErrorDocument 500 /err.php
+ErrorDocument 501 /err.php
+ErrorDocument 502 /err.php
+ErrorDocument 503 /err.php
+ErrorDocument 504 /err.php
+ErrorDocument 505 /err.php
+ErrorDocument 506 /err.php
+ErrorDocument 507 /err.php
+ErrorDocument 508 /err.php
+ErrorDocument 510 /err.php
+ErrorDocument 511 /err.php
+</IfModule>
