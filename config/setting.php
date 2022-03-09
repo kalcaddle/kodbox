@@ -54,8 +54,8 @@ $config['settings']['allowSEO'] 		= 1; 		// 允许SEO收录外链分享;
 $config['settings']['systemBackup'] 	= 1; 		// 系统备份;
 $config['settings']['bigFileForce'] 	= 0; 		// 32位时强制允许大文件上传; https://demo.kodcloud.com/#s/735psg0g 
 
-$config["ADMIN_ALLOW_IO"] 				= 1;		// 其他部门or用户目录操作开关，仅限管理员
-$config["ADMIN_ALLOW_SOURCE"] 			= 1;		// 物理路径操作开关，仅限管理员
+$config["ADMIN_ALLOW_IO"] 				= 1;		// 物理路径或io路径是否允许操作开关，仅限管理员(禁用后无法直接管理物理路径)
+$config["ADMIN_ALLOW_SOURCE"] 			= 1;		// 其他部门or用户目录操作开关，仅限管理员(是否能直接访问其他用户空间或部门空间)
 $config['APP_HOST_LINK'] 				= APP_HOST;	// 分享链接站点url; 可在setting_user中覆盖;
 $config['PLUGIN_HOST'] 					= APP_HOST.str_replace(BASIC_PATH,'',PLUGIN_DIR);//插件url目录;
 $config['PLUGIN_HOST_CDN_APP'] 			= '';//支持配置到cdn的插件; 插件名,逗号隔开;
@@ -106,7 +106,7 @@ $config['systemOption'] = array(
 	'tagContainMax'				=> 1000, 		// 标签中内容最大数
 
 	'fileNameLengthMax'			=> 256, 		// 文件名最大长度
-	'fileDescLengthMax'			=> 1000, 		// 文件描述最大长度
+	'fileDescLengthMax'			=> 5000, 		// 文件描述最大长度
 	'historyDescLengthMax'		=> 500, 		// 文件版本说明最大长度
 	
 	// 请求限制;

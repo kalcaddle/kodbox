@@ -27,6 +27,7 @@ class adminLog extends Controller{
             $list[$mod]['children'][] = array('id' => $type,'text' => $name);
 		}
         $fileList = array(
+            array('id' => 'explorer.index.fileOut', 'text' => LNG('admin.log.downFile')),
             array('id' => 'explorer.index.fileDownload', 'text' => LNG('admin.log.downFile')),
             array('id' => 'explorer.index.zipDownload', 'text' => LNG('admin.log.downFolder')),
             array('id' => 'explorer.fav.add', 'text' => LNG('explorer.addFav')),
@@ -144,8 +145,11 @@ class adminLog extends Controller{
             // 文件类的操作，此处只收集这3个
             if(MOD == 'explorer') {
                 $act = ST . '.' . ACT;
-                $func = array('fav.add', 'fav.del', 'index.fileDownload', 'index.zipDownload');
+                $func = array('fav.add', 'fav.del', 'index.fileOut', 'index.fileDownload', 'index.zipDownload');
                 if(!in_array($act, $func)) return;
+                if (ACT == 'fileOut') { // 客户端下载会多次请求，只记录第一次
+                    if (!isset($_SERVER['HTTP_RANGE']) || $_SERVER['HTTP_RANGE'] != 'bytes=0-1') return;
+                }
             }
             if(!is_array($data)) {
                 $data = $this->in;
@@ -194,6 +198,7 @@ class adminLog extends Controller{
 			if(strpos($key, 'file.') === 0) $types[] = $key;
 		}
 		$add = array(
+			'explorer.index.fileOut',
 			'explorer.index.fileDownload',
 			'explorer.index.zipDownload',
 			'explorer.fav.add',

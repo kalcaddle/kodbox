@@ -185,6 +185,13 @@
     color: #fff;font-size: 18px;
 }
 
+.pswp__button.pswp__button--remove{background-image: none !important;}
+.pswp__button.pswp__button--remove:before{
+	content:"\ec1e";
+	font-family: 'remixicon' !important;
+    color: #fff;font-size: 18px;
+}
+
 /* .pswp__container:not(.touch-start) .pswp__item.loading .pswp__zoom-wrap{transform: none !important;} */
 .pswp__item.loading .pswp__zoom-wrap{transform: none !important;}
 

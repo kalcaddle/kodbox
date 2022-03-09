@@ -81,7 +81,7 @@ class explorerUserShare extends Controller{
 			// 物理路径,io路径;
 			if($shareItem['sourceID'] == '0'){
 				// IO 对象存储等加速;
-				$info = IO::info($shareItem['sourcePath']);
+				$info = $this->_checkExists($shareItem['sourcePath']);
 			}else{
 				$info = $sourceArray[$shareItem['sourceID']];
 			}
@@ -120,6 +120,18 @@ class explorerUserShare extends Controller{
 		if($length <= 15){unset($result['groupShow']);}
 		
 		return $result;
+	}
+	
+	private function _checkExists($path){
+		$parse = KodIO::parse($path);
+		if ($parse['driverType'] == KodIO::KOD_IO) {
+			$driver = Model('Storage')->listData($parse['id']);
+			if (!$driver) return false;
+		}
+		try {
+			$info = IO::info($shareItem['sourcePath']);
+		} catch (Exception $e) {$info = false;}
+		return $info;
 	}
 	
 	public function shareToMe($type=''){
@@ -170,7 +182,7 @@ class explorerUserShare extends Controller{
 			$timeout = intval(_get($shareItem,'options.shareToTimeout',0));
 			if($timeout > 0 && $timeout < time()) continue;// 过期内容;
 			if($shareItem['sourceID'] == '0'){// 物理路径,io路径;
-				$info = IO::info($shareItem['sourcePath']);
+				$info = $this->_checkExists($shareItem['sourcePath']);
 			}else{
 				$info = $sourceArray[$shareItem['sourceID']];
 			}
@@ -262,7 +274,7 @@ class explorerUserShare extends Controller{
 		// 物理路径,io路径;
 		if($shareInfo['sourceID'] == '0'){
 			$truePath = KodIO::clear($shareInfo['sourcePath'].$parseInfo['param']);
-			$sourceInfo = IO::info($truePath);
+			$sourceInfo = $this->_checkExists($truePath);
 			if(!$sourceInfo) return false;
 			$list = IO::listPath($truePath);
 		}else{

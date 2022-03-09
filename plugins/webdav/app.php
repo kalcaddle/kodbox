@@ -139,17 +139,22 @@ class webdavPlugin extends PluginBase{
 				}
 			}
 		}
-		return $result ? "\n".json_encode($result):'';
+		return $result ? json_encode($result):'';
 	}
 	
 	public function log($data){
+		static $isOut = false;
 		$config = $this->getConfig();
 		if(empty($config['echoLog'])) return;
 		if(is_array($data)){$data = json_encode_force($data);}
 		// if($_SERVER['REQUEST_METHOD'] == 'PROPFIND' ) return;
 		
-		$data = $_SERVER['REQUEST_METHOD'].' '.$data;
-		$data = $data.$this->serverInfo('');
-		write_log($data,'webdav');
+		$prefix = '';
+		if(!$isOut){
+			$prefix =  "[".$_SERVER['REQUEST_METHOD'].']:'.$_SERVER['REQUEST_URI'].";".$this->serverInfo('');
+			if(substr($data,0,5) != 'end;['){$prefix .= "\n                ";}
+			$isOut  = true;
+		}
+		write_log($prefix."    ".$data,'webdav');
 	}
 }

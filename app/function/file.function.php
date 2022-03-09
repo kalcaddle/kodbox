@@ -150,6 +150,41 @@ function fseek_64($fp,$pose=0,$from=SEEK_SET,$first=true){
 	}
 }
 
+// 文件复制,支持32位系统复制大于4G文件; 命令行调用,比fopen/fwrite快;
+function copy_64($from,$dest){
+	if(!$from || !$dest || !file_exists($from)) return false;
+	if(!$GLOBALS['config']['settings']['bigFileForce']){
+		// 改php源代码后影响copy的逻辑(循环,暂未适配); 使用命令行获取;
+		$result = @copy($from,$dest);
+		if($result) return true;
+	}
+	
+	// 命令行调用复制;
+	if(function_exists("shell_exec")){
+		$command = 'cp ';
+		if($GLOBALS['config']['systemOS'] == 'windows'){
+			$command = 'COPY ';
+		}
+		$command .= escapeShell($from).' '.escapeShell($dest);
+		@shell_exec($command);
+	}else{
+		/*
+		$size   = filesize_64($from);
+		$fromFp = @fopen($from,'r');
+		$destFp = @fopen($dest,'w+');
+		$chunk  = 1024*1024*5;$start = 0;
+		while($start < $size && $size>= 0) {
+			$read = fread($fromFp,$chunk);
+			if(!strlen($read)){break;}
+			fwrite($destFp,$read);
+			$start += strlen($read);
+		}
+		fclose($fromFp);fclose($destFp);
+		*/
+	}
+	return @file_exists($dest);
+}
+
 //文件是否存在，区分文件大小写
 function file_exists_case( $fileName ){
 	if(file_exists($fileName) === false){
@@ -525,7 +560,7 @@ function copy_dir($source, $dest){
 		} else {
 			$__dest = $dest;
 		}
-		$result = @copy($source,$__dest);
+		$result = copy_64($source,$__dest);
 		@chmod($__dest, 0777);
 	}else if(is_dir($source)) {
 		if ($dest[strlen($dest)-1] == '/') {
@@ -554,7 +589,7 @@ function move_file($source,$dest,$repeat_add,$repeat_type){
 	}
 	$result = intval(@rename($source,$dest));
 	if (! $result) { // windows部分ing情况处理
-		$result = intval(@copy($source,$dest));
+		$result = intval(@copy_64($source,$dest));
 		if ($result) {
 			@unlink($source);
 		}

@@ -8,6 +8,18 @@ class adminStorage extends Controller {
 
     public function get() {
 		$result = $this->model->listData();
+		$ids = array_to_keyvalue($result, '', 'id');
+
+		// 获取各存储中文件数(io_file)
+		$res = array();
+		if ($ids) {
+			$sql = 'SELECT ioType as id, COUNT(ioType) as cnt FROM io_file WHERE ioType IN ('.implode(',',$ids).') GROUP BY ioType';
+			$res = Model('File')->query($sql);
+			$res = array_to_keyvalue($res, 'id', 'cnt');
+		}
+		foreach ($result as &$item) {
+			$item['fileNum'] = isset($res[$item['id']]) ? intval($res[$item['id']]) : 0;
+		}
 		show_json($result,true);
 	}
 
@@ -56,18 +68,19 @@ class adminStorage extends Controller {
 	}
 
 	/**
-	 * 删除
+	 * 删除、迁移
 	 */
 	public function remove() {
 		$data = Input::getArray(array(
 			'id'		=> array('check'=>'int'),
+			'action'	=> array('check'=>'in','default'=>'remove','param'=>array('remove','move')),
 			'progress'	=> array('default'=>null),
 		));
 		if(!isset($data['progress'])) {
 			$this->removeDone($data);
 		}
 		// 获取进度
-		$result = $this->model->progress($data['id']);
+		$result = $this->model->progress($data['id'], $data['action']);
 		show_json($result);
 	}
 	private function removeDone($data){
@@ -76,9 +89,9 @@ class adminStorage extends Controller {
 		if($cnt) {
 			echo json_encode(array('code'=>true,'data'=>'OK'));
 			http_close();
-			$res = $this->model->removeWithFile($data['id']);
+			$res = $this->model->removeWithFile($data['id'], $data['action']);
 		}else{
-			$res = $this->model->remove($data['id']);
+			$res = $data['action'] == 'remove' ? $this->model->remove($data['id']) : true;
 		}
 		$msg = $res ? LNG('explorer.success') : LNG('explorer.error');
 		show_json($msg,!!$res,true);

@@ -174,11 +174,12 @@ class kodWebDav extends webdavServer {
 	}
 	
 	public function pathPut($path,$localFile=''){
+		$pathBefore = $path;
 		$path = $this->pathCreateParent($path);
 		$info = IO::infoFull($path);
 		if($info){	// 文件已存在; 则使用文件父目录追加文件名;
 			$name 		= IO::pathThis($this->pathGet());
-			$uploadPath = rtrim(IO::pathFather($path),'/').'/'.$name; //构建上层目录追加文件名;
+			$uploadPath = rtrim(IO::pathFather($info['path']),'/').'/'.$name; //构建上层目录追加文件名;
 		}else{// 首次请求创建,文件不存在; 则使用{source:xx}/newfile.txt;
 			$uploadPath = $path;
 		}
@@ -198,7 +199,7 @@ class kodWebDav extends webdavServer {
 			}
 			$result = true;	
 		}
-		$this->plugin->log("upload=$uploadPath;path=$path;res=$result;local=$localFile;size=".$size);
+		$this->plugin->log("upload=$uploadPath;path=$path,$pathBefore;res=$result;local=$localFile;size=".$size);
 		return $result;
 	}
 	private function pathPutRemoveTemp($path){
@@ -242,14 +243,18 @@ class kodWebDav extends webdavServer {
 			 */
 			if( $this->isWindows() && $toExt == 'tmp' && in_array($fromExt,$officeExt) ){
 				$result =  IO::mkfile($destFile);
-			    $this->plugin->log("move mkfile=$path;$pathUrl;$destURL;res=".$result);
+			    $this->plugin->log("move mkfile=$path;$pathUrl;$destURL;result=".$result);
 			    return $result;
 			}
 			// 都存在则覆盖；
 			if( $this->pathExists($path) && $this->pathExists($destFile) ){
 				$destFileInfo = IO::infoFull($destFile);
-				$result = IO::saveFile($path,$destFileInfo['path']);
-				$this->plugin->log("move saveFile=$path;res=".$destFile.';res='.$result);
+
+				// $content = IO::getContent($path);
+				// IO::setContent($destFileInfo['path'],$content);
+				// IO::remove($path);$result = $destFileInfo['path'];
+				$result  = IO::saveFile($path,$destFileInfo['path']);//覆盖保存;
+				$this->plugin->log("move saveFile; to=$path;toFile=".$destFileInfo['path'].';result='.$result);
 				return $result;
 			}
 			return IO::rename($path,$io->pathThis($destURL));

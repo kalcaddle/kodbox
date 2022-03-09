@@ -41,7 +41,7 @@ class explorerAuth extends Controller {
 		
 		$this->actionCheckSpace = array(//空间大小检测
 			'explorer.upload'	=> 'fileUpload,serverDownload',
-			'explorer.index'	=> 'mkdir,mkfile,fileSave,pathPast,pathCopyTo,pathCuteTo',
+			'explorer.index'	=> 'mkdir,mkfile,fileSave,pathPast,pathCopyTo,pathCuteTo,unzip',
 			'explorer.editor' 	=> 'fileSave',
 			'explorer.share'	=> 'fileUpload',
 		);

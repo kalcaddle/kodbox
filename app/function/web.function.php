@@ -263,6 +263,18 @@ function curl_progress_end($curl,$curlResult=false){
 		// $GLOBALS['curlCacheResult'][$curlInfo['url']] = $curlResult;
 		// $GLOBALS['curlCache'][$curlInfo['url']] = curl_copy_handle($curl);
 	}
+	
+	
+	$httpCode = $curlInfo['http_code'];
+	if($curlResult && $httpCode < 200 || $httpCode >= 300){
+		$errorMessage = curl_error($curl);
+		$headerSize   = curl_getinfo($curl,CURLINFO_HEADER_SIZE);
+		$body   = substr($curlResult, $headerSize);
+		$errorMessage = "code: ".$httpCode.'; '.curl_error($curl).$body;		
+		$GLOBALS['curl_request_error'] = array('message'=>$errorMessage,'url'=> $curlInfo['url'],'code'=>$httpCode);
+		write_log("http:$httpCode;".$curlInfo['url'].";$errorMessage;");
+		// throw new Exception($errorMessage);
+	}
 }
 function curl_progress(){
 	$args = func_get_args();
@@ -409,7 +421,7 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 	if(!empty($options)){
 		curl_setopt_array($ch, $options);
 	}
-	$response = curl_exec($ch);curl_progress_end($ch);
+	$response = curl_exec($ch);curl_progress_end($ch,$response);
 	$header_size = curl_getinfo($ch,CURLINFO_HEADER_SIZE);
 	$response_info = curl_getinfo($ch);
 	$http_body   = substr($response, $header_size);

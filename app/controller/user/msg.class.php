@@ -46,6 +46,7 @@ class userMsg extends Controller {
 			'input'		 => $data['input'], // 邮箱or手机
             'language'	 => i18n::getType(),
             // 'signature'	 => Model('SystemOption')->get('systemName')
+            'config'     => isset($data['config']) ? $data['config'] : array()
 		);
         $res = Hook::trigger('send.sms.before', $data);
         if ($res) return $res;  // [data,code] || false

@@ -1058,6 +1058,7 @@ function show_json($data=false,$code = true,$info=''){
 	}
 
 	if(defined("GLOBAL_DEBUG") && GLOBAL_DEBUG==1){
+		// $result['in']   = $GLOBALS['in'];
 		$result['memory'] = sprintf("%.3fM",memory_get_usage()/(1024*1024));
 		$result['call']   = get_caller_info();
 		$result['trace']  = think_trace('[trace]');

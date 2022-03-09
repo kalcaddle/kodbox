@@ -10,12 +10,25 @@ class adminRepair extends Controller {
 	/**
 	 * 清空修复异常数据(php终止,断电,宕机等引起数据库表错误的进行处理;)
 	 * 5个小时执行一次; 凌晨2点才执行;
+	 * 
+	 * 手动执行：
+	 * /?admin/repair/autoReset&done=1/2，done=1为清理数据；done=2为实际删除不存在的文件记录
 	 */
 	public function autoReset(){
-		$cacheKey = 'autoReset';
-		if(date('H',time()) != '2' ) return;
-		if(time() - intval(Cache::get($cacheKey)) > 3600*5 ) return;
-		Cache::set($cacheKey,time());
+		$done = isset($this->in['done']) ? intval($this->in['done']) : 0;
+		if ($done == 0) {	// 计划任务执行
+			$cacheKey = 'autoReset';
+			if(date('H',time()) != '2' ) return;
+			if(time() - intval(Cache::get($cacheKey)) > 3600*5 ) return;
+			Cache::set($cacheKey,time());
+		} else {
+		    $text  = '<div style="font-size:14px;"><p>清理任务执行中，可在后台任务管理进行查看。</p>';
+    	    $text .= '<p>任务执行过程中将在<code>data/temp/log/souceclear/</code>目录下生成日志：</p>';
+    	    $text .= '<p>1.请求参数<code>done=1</code>时，不直接删除已缺失的物理文件，可在日志中搜索关键词“resetFileLink--已不存在的物理文件”查看相应文件，确认是否需要删除，再执行<code>done=2</code>进行删除；</p>';
+    	    $text .= '<p>2.任务执行完成后，将在日志文件生成一条记录“手动清理执行完成！”。</p></div>';
+			echo $text;
+		}
+		if ($done == 2) {return $this->clearErrorFile();}
 		http_close();
 
 		$this->resetSourceEmpty();		// source中表清理; sourceHash为空或所属关系错误的条目删除;
@@ -25,8 +38,19 @@ class adminRepair extends Controller {
 		$this->resetFileSource();		// file中存在,source中不存在的进行清理
 		$this->resetSourceHistory();	// 文件历史版本,fileID不存在的内容清理;
 		$this->resetFileLink();			// 重置fileID的linkCount引用计数(source,sourceHistory);
+		write_log('手动清理执行完成！', 'sourceClear');
 	}
 	
+	/**
+	 * 清除已不存在的物理文件记录
+	 * 需先执行autoReset方法，并查看sourceClear日志【resetFileLink--已不存在的物理文件】，确认是否需要清除
+	 * @return void
+	 */
+	public function clearErrorFile(){
+		$result = $this->resetFileLink(true);
+		echo '<p style="font-size:14px;">清除已不存在的物理文件记录共' . $result['file'] . '条，涉及source记录' . $result['source'] . '条！</p>';
+	}
+
 	/**
 	 * source表中异常数据处理: 
 	 * 1. parentID为0, 但 parentLevel不为0情况处理;
@@ -189,32 +213,38 @@ class adminRepair extends Controller {
 	
 	
 	// File表中,io不存在的文件进行处理;（被手动删除的）
-	public function resetFileLink(){
+	public function resetFileLink($done = false){
 		$taskType ='resetFileLink';
 		$model = Model('File');
 		$modelSource = Model("Source");$modelHistory = Model("SourceHistory");
 		$pageNum = 5000;$page = 1;$errorNum = 0;
 		$list = $model->selectPage($pageNum,$page);
 		
+		$rest = array('file' => 0, 'source' => 0);
 		$task = new Task($taskType,'',$list['pageInfo']['totalNum']);
-		while($list && $page < $list['pageInfo']['pageTotal']){
+		while($list && $page <= $list['pageInfo']['pageTotal']){
 			foreach ($list['list'] as $item) {
 				if( IO::exist($item['path']) ){
 					$model->resetFile($item);
 				}else{
 					$task->task['currentTitle'] = $errorNum .'个不存在';
-					write_log(array($taskType,$item),'sourceClear');$errorNum ++;
-					
-					// $model->remove($item['fileID']);
-					// $where = array("fileID"=>$item['fileID']);
-					// $modelSource->where($where)->delete();
-					// $modelHistory->where($where)->delete();
+					write_log(array($taskType.'--已不存在的物理文件',$item),'sourceClear');$errorNum ++;
+					if ($done) {
+						$files = array_pad(array(), intval($item['linkCount']), $item['fileID']);	// 引用清0然后删除
+						$cnt1  = $model->remove($files);
+						$where = array("fileID"=>$item['fileID']);
+						$cnt2  = $modelSource->where($where)->delete();
+						$modelHistory->where($where)->delete();
+						$rest['file'] += intval($cnt1);
+						$rest['source'] += intval($cnt2);
+					}
 				}
 				$task->update(1);
 			}
 			$page ++;$list = $model->selectPage($pageNum,$page);
 		}
 		$task->end();
+		return $rest;
 	}
 
 	public function resetSourceHistory(){		

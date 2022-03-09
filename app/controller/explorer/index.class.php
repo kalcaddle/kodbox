@@ -513,6 +513,7 @@ class explorerIndex extends Controller{
 		for ($i=0; $i < count($list); $i++) {
 			$task->addPath($list[$i]['path']);
 		}
+		$task->update(0,true);//立即保存
 	}
 	
 	/**
@@ -662,7 +663,6 @@ class explorerIndex extends Controller{
 
 	public function fileDownload(){
 		$this->in['download'] = 1;
-		Hook::trigger('explorer.fileDownload', $this->in['path']);
 		$this->fileOut();
 	}
 	//输出文件
@@ -672,6 +672,9 @@ class explorerIndex extends Controller{
 		$isDownload = isset($this->in['download']) && $this->in['download'] == 1;
 		if($isDownload && !Action('user.authRole')->authCanDownload()){
 			show_json(LNG('explorer.noPermissionAction'),false);
+		}
+		if ($isDownload) {
+			Hook::trigger('explorer.fileDownload', $this->in['path']);
 		}
 		if(isset($this->in['type']) && $this->in['type'] == 'image'){
 			$info = IO::info($path);

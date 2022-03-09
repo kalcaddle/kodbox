@@ -1,6 +1,8 @@
 define(function(require, exports) {
+	var imageRemoveCallback = false;
 	var getImageArr = function(filePath,name){
 		var imageList = kodApp.imageList;
+		imageRemoveCallback =  imageList.removeCallback || false;
 		kodApp.imageList = false;
 		if(!imageList) {
 			imageList = {items:[{
@@ -19,7 +21,8 @@ define(function(require, exports) {
 				$dom:item.$dom || false,
 				msrc:item.msrc || item.src,
 				title:htmlEncode(title),
-				w:item.width  || 0,h:item.height  || 0
+				w:item.width  || 0,h:item.height  || 0,
+				data:item,
 			});
 		});
 		return {items:items,index:imageList.index};
@@ -123,8 +126,6 @@ define(function(require, exports) {
 		
 		gallery.init();
 		gallery.listen('bindEvents',imageRotateAuto);
-		
-		
 		gallery.listen('onVerticalDrag',function(percent,panOffset){return;
 			var $current = $('.pswp__item.current');console.log(123,percent,panOffset,$current)
 			if(!$current.hasClass('loading')) return;
@@ -135,7 +136,49 @@ define(function(require, exports) {
 			console.error(101,[percent]);
 		});
 		
-		// window.gallery = gallery;		
+		// 最后一个处理;
+		if(imageList.items.length == imageList.index + 1){
+			setTimeout(function(){
+				gallery.next();gallery.prev();
+			},400);
+		}
+		
+		// 删除;
+		gallery.removeCurrent = function(){
+			if(!gallery.items || gallery.items.length <= 1){
+				return gallery.close();
+			}
+			var resetHolder = function(){
+				var index = gallery.getCurrentIndex();
+				for (var i = 0; i < gallery.itemHolders.length; i++) {
+					var holder = gallery.itemHolders[i];
+					gallery.setContent(holder,index-1+i);
+				}
+			}
+			var index = gallery.getCurrentIndex();
+			if(gallery.items.length == 2 && index == 0){
+				gallery.next();
+				gallery.items.splice(index,1);
+				resetHolder();gallery.prev();
+				return;
+			}
+			gallery.items.splice(index,1);resetHolder();
+			gallery.prev();gallery.goTo(index);
+		};
+		
+		gallery.removeImage = function(){
+			if(!imageRemoveCallback) return;
+			imageRemoveCallback(gallery.currItem.data,function(){
+				gallery.removeCurrent();
+			});
+		}
+		setTimeout(function(){
+			var $btnRemove = $('.pswp__button--remove');
+			$btnRemove.addClass('hidden');
+			if(imageRemoveCallback){$btnRemove.removeClass('hidden');}
+		},10);
+		window.photoSwipeView = gallery;
+		
 		// 解决滚动穿透问题;(UC,内嵌网页等情况)
 		$(".pswp__bg").scrollTop($(".pswp__bg").scrollInnerHeight() / 2);
 	};
@@ -219,7 +262,6 @@ define(function(require, exports) {
 	var imageRotateList = new optionsList('imageRotate',500);
 	var bindRotate = function(){
 		gallery.listen('afterChange',imageRotateAuto);
-		window.gallery = gallery;
 		if($('.pswp__button--rotate').length) return;
 		var html = '<button class="pswp__button pswp__button--rotate"></button>';
 		var $rotate = $(html).insertAfter('.pswp__button--close');
@@ -228,6 +270,16 @@ define(function(require, exports) {
 			imageRotateItem(gallery.currItem,radius,true);
 		});
 	};
+	var bindRemove = function(){
+		gallery.listen('afterChange',imageRotateAuto);
+		if($('.pswp__button--remove').length) return;
+		var html = '<button class="pswp__button pswp__button--remove"></button>';
+		var $rotate = $(html).insertAfter('.pswp__button--close');
+		$rotate.bind('click', function(e){
+			gallery.removeImage && gallery.removeImage();
+		});
+	};
+	
 	var imageRotateItem = function(currItem,radius,isSave){
 		if(!currItem || !currItem.container) return;
 		var $image = $(currItem.container).find('.pswp__img');
@@ -259,6 +311,7 @@ define(function(require, exports) {
 			initView(path,ext,name,photoSwipeTpl);
 			bindClose();
 			bindRotate();
+			bindRemove();
 		});
 	};
 });

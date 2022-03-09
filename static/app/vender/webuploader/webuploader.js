@@ -4941,8 +4941,9 @@
                 for ( i = 0, len = files.length; i < len; i++ ) {
                     file = files[ i ];
                     item = items && items[ i ];
-                    if ( canAccessFolder && item.webkitGetAsEntry().isDirectory ) {
-                        promises.push( this._traverseDirectoryTree(item.webkitGetAsEntry(), results,ruid) );
+					var entry = item.webkitGetAsEntry();
+                    if ( canAccessFolder && entry && entry.isDirectory ) {
+                        promises.push( this._traverseDirectoryTree(entry, results,ruid) );
                     } else {
 						this.addFile(file,results,ruid);
                     }

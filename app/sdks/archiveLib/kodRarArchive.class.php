@@ -59,7 +59,7 @@ class kodRarArchive {
 		$result = shell_exec($cmd);
 		//debug_out($cmd,$result);
 		if(!strstr($result,'Copyright')){
-			return array('code'=>false,'data'=>'[shell_exec error!] No Result!');
+			return array('code'=>false,'data'=>'[shell_exec error!] No Result,文件内容损坏或不支持该文件解析! ');
 		}
 		return array('code'=>true,'data'=>$result);
 	}
