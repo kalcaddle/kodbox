@@ -78,10 +78,11 @@ class explorerUserShare extends Controller{
 		}
 		$notExist = array();
 		foreach ($shareList['list'] as $shareItem) {
+			$shareItem = $this->shareItemParse($shareItem);
 			// 物理路径,io路径;
 			if($shareItem['sourceID'] == '0'){
 				// IO 对象存储等加速;
-				$info = $this->_checkExists($shareItem['sourcePath']);
+				$info = $this->sharePathInfoCheck($shareItem['sourcePath']);
 			}else{
 				$info = $sourceArray[$shareItem['sourceID']];
 			}
@@ -122,15 +123,22 @@ class explorerUserShare extends Controller{
 		return $result;
 	}
 	
-	private function _checkExists($path){
+	private function shareItemParse($shareItem){
+		// 兼容早期版本,该字段为空的情况;
+		if(!$shareItem['sourcePath'] && $shareItem['sourceID'] != '0'){
+			$shareItem['sourcePath'] = KodIO::make($shareItem['sourceID']);
+		}
+		return $shareItem;
+	}
+	private function sharePathInfoCheck($path){
 		$parse = KodIO::parse($path);
 		if ($parse['driverType'] == KodIO::KOD_IO) {
 			$driver = Model('Storage')->listData($parse['id']);
 			if (!$driver) return false;
 		}
 		try {
-			$info = IO::info($shareItem['sourcePath']);
-		} catch (Exception $e) {$info = false;}
+			$info = IO::info($path);
+		} catch (Exception $e){$info = false;}
 		return $info;
 	}
 	
@@ -182,7 +190,7 @@ class explorerUserShare extends Controller{
 			$timeout = intval(_get($shareItem,'options.shareToTimeout',0));
 			if($timeout > 0 && $timeout < time()) continue;// 过期内容;
 			if($shareItem['sourceID'] == '0'){// 物理路径,io路径;
-				$info = $this->_checkExists($shareItem['sourcePath']);
+				$info = $this->sharePathInfoCheck($shareItem['sourcePath']);
 			}else{
 				$info = $sourceArray[$shareItem['sourceID']];
 			}
@@ -274,7 +282,7 @@ class explorerUserShare extends Controller{
 		// 物理路径,io路径;
 		if($shareInfo['sourceID'] == '0'){
 			$truePath = KodIO::clear($shareInfo['sourcePath'].$parseInfo['param']);
-			$sourceInfo = $this->_checkExists($truePath);
+			$sourceInfo = $this->sharePathInfoCheck($truePath);
 			if(!$sourceInfo) return false;
 			$list = IO::listPath($truePath);
 		}else{
@@ -300,6 +308,7 @@ class explorerUserShare extends Controller{
 	 * 去除无关字段；处理parentLevel，pathDisplay
 	 */
 	public function _shareItemeParse($source,$share){
+		$share = $this->shareItemParse($share);
 		$sourceBefore = $source;
 		$user = Model('User')->getInfoSimpleOuter($share['userID']);
 		$source['auth']	= Model("SourceAuth")->authMake($share['authList']);//覆盖原来文档权限;每次进行计算

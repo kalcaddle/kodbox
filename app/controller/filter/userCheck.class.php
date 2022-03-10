@@ -7,26 +7,24 @@
  * 登录ip白名单处理; 只检验拦截登录接口;
  */
 class filterUserCheck extends Controller {
-	private $lockErrorNum = 6;	//错误n次后锁定账号;
-	private $lockTime = 60;		//锁定n秒;
 	function __construct() {
 		parent::__construct();
 	}
 	public function bind(){
 		$this->options = Model('systemOption')->get();
 		$this->ipCheck();
-		$this->setAppLang();
+		$this->setAppLang();		
+		Hook::bind('user.index.loginSubmitBefore',array($this,'loginSubmitBefore'));
 		Hook::bind('user.index.loginBefore',array($this,'loginBefore'));
-		Hook::bind('user.index.loginAfter',array($this,'loginAfter'));
 	}
 
 	public function loginBefore($user){
-		$result = $this->userLoginCheck($user);
-		if($result !== true) return $result;
-		return $this->userLockCheck($user);
+		return $this->userLoginCheck($user);
 	}
-	public function loginAfter($user){
-		$this->passwordErrorCheck($user);
+	
+	// 密码输入错误记录锁定;
+	public function loginSubmitBefore($name,$user){
+		return $this->userLoginLockCheck($name,$user);
 	}
 
 	/**
@@ -248,38 +246,34 @@ class filterUserCheck extends Controller {
 	 * 密码输入错误自动锁定该账号; =根据ip进行识别;不区分ip;
 	 * 连续错误5次; 则锁定30秒; [1分钟内最多校验10次,600次/h/账号]
 	 */
-	private function userLockCheck($user){
-		if($this->options['passwordErrorLock'] =='0') return true;
-		$key = 'user_login_lock_'.$user['userID'];
-		$arr = Cache::get($key);		
-
-		// $item = is_array($arr) && is_array($arr[$ip]) ? $arr[$ip]:array();
+	private function userLoginLockCheck($name,$user){
+		if($this->options['passwordErrorLock'] =='0') return $user;
+		$findUser = Model("User")->userLoginFind($name);
+		if(!$findUser) return $user;
+		
+		$lockErrorNum   = intval(_get($this->options,'passwordLockNumber',6));//错误n次后锁定账号;
+		$lockTime 		= intval(_get($this->options,'passwordLockTime',60)); //锁定n秒;
+		$key = 'user_login_lock_'.$findUser['userID'];
+		$arr = Cache::get($key);
 		$item = is_array($arr)?$arr:array(); //不区分ip;
-		if( count($item) >= $this->lockErrorNum && 
-			time() - $item[count($item)-1] <= $this->lockTime
+		// Cache::remove($key);return $user;//debug;
+		
+		if( count($item) >= $lockErrorNum && 
+			time() - $item[count($item)-1] <= $lockTime
 		){
 			return UserModel::ERROR_USER_LOGIN_LOCK;
 		}
-		return true;
-	}
-	
-	private function passwordErrorCheck($user){
-		if($this->options['passwordErrorLock'] == '0') return true;
-		$key = 'user_login_lock_'.$user['userID'];
-		$arr = Cache::get($key);
-		$arr = is_array($arr) ? $arr:array();
 		
-		// $item = is_array($arr) && is_array($arr[$ip]) ? $arr[$ip]:array();
-		$item = $arr; //不区分ip;get_client_ip();
 		if(is_array($user)){
 			Cache::remove($key);
-		}else{
-			if(count($item) >= $this->lockErrorNum){
-				$item = array();
-			}
-			$item[] = time();
-			$arr = $item;//不区分ip;			
-			Cache::set($key,$arr,600);
+			return $user;
 		}
+		
+		// 最后时间超出锁定时间;则从头计算;
+		if(time() - $item[count($item)-1] > $lockTime){$item = array();}
+		if(count($item) >= $lockErrorNum){array_shift($item);}
+		$item[] = time();
+		Cache::set($key,$item,600);write_log("set:$key;".json_encode($item),'lock');
+		return $user;
 	}
 }

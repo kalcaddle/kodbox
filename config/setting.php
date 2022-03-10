@@ -225,7 +225,10 @@ $config['settingSystemDefault'] = array(
 										// https://en.wikipedia.org/wiki/Date_format_by_country
 
 	'fileEncryption'	=> 'keepName',	// all-全加密;keepExt-加密文件名保留扩展名;keepName-不加密;
-	'passwordErrorLock'	=> '1',			// 密码连续错误锁定账号; 某账号连续输入5次后锁定30s后才能登录;
+	'passwordErrorLock'	=> '1',			// 密码连续错误锁定账号开关; 某账号连续输入5次后锁定30s后才能登录;
+	'passwordLockNumber'=> '5',			// 密码连续错误允许次数;
+	'passwordLockTime'	=> '30',		// 密码连续错误锁定时间;
+	
 	'passwordRule'		=> 'none',		// 限制密码强度;none-不限制;strong-中等强度;strongMore-高强度
 	'loginCheckAllow'	=> '',			// 登录限制
 	'csrfProtect'		=> '1',		 	// 开启csrf保护	
@@ -578,5 +581,5 @@ if(GLOBAL_DEBUG_LOG_ALL){
 function writeLogAll($data=false){
 	$caller = get_caller_info();
 	$trace  = think_trace('[trace]');
-	write_log(array("in"=>$GLOBALS['in'],'out'=>$data,'call'=>$caller,'trace'=>$trace),'out');
+	write_log(array("in"=>$GLOBALS['in'],'out'=>$data,'call'=>$caller,'trace'=>$trace),'debug');
 }

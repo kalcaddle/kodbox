@@ -189,12 +189,10 @@ class userIndex extends Controller {
 	public function userInfo($name, $password){
 		$user = Model("User")->userLoginCheck($name,$password);
 		if(!is_array($user)) {
-			$theUser = Hook::trigger("user.index.userInfo",$name, $password);
-			if(is_array($theUser)){
-				$user = $theUser? $theUser:false;
-			}
+			$userHook = Hook::trigger("user.index.userInfo",$name, $password);
+			if(is_array($userHook)) return $userHook;// 第三方登陆不做检测处理;
 		}
-		return $user;
+		return Hook::trigger('user.index.loginSubmitBefore',$name,$user);
 	}
 	
 	/**
