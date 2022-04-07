@@ -114,7 +114,7 @@ CREATE TABLE `io_file` (
 DROP TABLE IF EXISTS `io_file_contents`;
 CREATE TABLE `io_file_contents` (
   `fileID` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '文件ID',
-  `content` mediumtext NOT NULL COMMENT '文本文件内容',
+  `content` mediumtext NOT NULL COMMENT '文本文件内容,最大16M',
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`fileID`),
   KEY `createTime` (`createTime`)

@@ -6,7 +6,8 @@
 	<title><?php echo clear_html($fileName);?></title>
 	<link rel="icon" href="<?php $this->url('static/images/icon.png');?>">
 	<script>var kodSdkConfig = {api:'<?php echo APP_HOST;?>'};</script>
-	<?php if(clear_quote($fileApp) != 'pptxjs') $this->link('app/dist/sdk.js','static');?>
+	<?php // if(clear_quote($fileApp) != 'pptxjs') $this->link('app/dist/sdk.js','static');?>
+	<?php $this->link('app/dist/sdk.js','static');?>
 	<?php $this->link('style/lib/font-icon/style.css','static');?>
 	<?php $this->link('static/jsoffice/page.css');?>
 	<script>
@@ -23,7 +24,7 @@
 	</script>
 </head>
 
-<style>
+<!-- <style>
 	body:after{
 		position:absolute;top:0;right:0;bottom:0;left:0;z-index: 100;
 		background:url("<?php echo STATIC_PATH.'images/common/loading-page.gif';?>");
@@ -33,10 +34,10 @@
 		border-radius:8px;box-shadow: 0 5px 20px rgba(0,0,0,0.05);
 	}
 	body.page-loaded:after{visibility:hidden;opacity:0;}
-</style>
+</style> -->
 
 <body class="loading">
-	<div class="loading-content"></div>	
+	<!-- <div class="loading-content"></div>	 -->
 	<div class="page-box <?php echo 'kod-' . clear_quote($fileApp) . '-box';?>">
 		<div id="output"></div>
 	</div>

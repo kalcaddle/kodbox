@@ -62,7 +62,6 @@ class explorerIndex extends Controller{
 			$result['hashMd5'] = IO::hashMd5($result['path']);
 		}
 		$result = Action('explorer.list')->pathInfoMore($result);
-		// unset($result['fileInfoMore']);GetInfo::infoAdd($result);pr($result);exit;
 		return $result;
 	}
 	
@@ -147,17 +146,25 @@ class explorerIndex extends Controller{
 	 * 设置权限
 	 */
 	public function setAuth(){
+		$result = false;
 		$actionAllow = array(
 			'getData','clearChildren','getAllChildren','getGroupUser',
-			'getAllChildrenByUser','setAllChildrenByUser'
+			'getAllChildrenByUser','setAllChildrenByUser','chmod',
 		);
 		$data = Input::getArray(array(
 			'path'	=> array('check'=>'require'),
 			'auth'	=> array('check'=>'json','default'=>''),
 			'action'=> array('check'=>'in','default'=>'','param'=>$actionAllow),
 		));
-
-		$result = false;
+		
+		// local,chmod;
+		if($data['action'] == 'chmod'){
+			$mode = intval($this->in['auth'],8);
+			if($mode){$result = chmod_path($data['path'],$mode);}
+			$msg = !!$result ? LNG('explorer.success') : LNG('explorer.error');
+			show_json($msg,!!$result);
+		}
+		
 		$info   = IO::info($data['path']);
 		if( $info && $info['sourceID'] && $info['targetType'] == 'group'){//只能设置部门文档;
 			$groupID = $info['targetID'];
@@ -280,9 +287,7 @@ class explorerIndex extends Controller{
 	public function pathRename(){
 		$this->pathAllowCheck($this->in['newName']);
 		$path = $this->in['path'];
-		if(IO::isTypeObject($path)){
-			$this->taskCopyCheck(array(array("path"=>$path)));
-		}
+		$this->taskCopyCheck(array(array("path"=>$path)));
 		
 		$result = IO::rename($path,$this->in['newName']);
 		$msg = !!$result ? LNG('explorer.success') : LNG("explorer.pathExists");

@@ -112,7 +112,6 @@ define(function(require, exports) {
 				item.w = rect.w * 25;
 				item.h = rect.h * 25;
 				gallery.loadFinished = true;
-				// console.log(123123,item,rect);
 			}
 		});
 		gallery.listen('close', function(){
@@ -126,15 +125,6 @@ define(function(require, exports) {
 		
 		gallery.init();
 		gallery.listen('bindEvents',imageRotateAuto);
-		gallery.listen('onVerticalDrag',function(percent,panOffset){return;
-			var $current = $('.pswp__item.current');console.log(123,percent,panOffset,$current)
-			if(!$current.hasClass('loading')) return;
-	
-			var $content = $current.find('.pswp__zoom-wrap');
-			if(!panOffset){return $content.css('margin-top','');}
-			$content.css('margin-top',panOffset.y);
-			console.error(101,[percent]);
-		});
 		
 		// 最后一个处理;
 		if(imageList.items.length == imageList.index + 1){
@@ -257,6 +247,7 @@ define(function(require, exports) {
 			var style = $dom.attr('style').replace(/scale\((\d+)\)/,'scale(1)');
 			$dom.attr('style',style);
 		}
+		photoSwipeView.updateSize(true);
 	}
 	
 	var imageRotateList = new optionsList('imageRotate',500);
@@ -278,6 +269,14 @@ define(function(require, exports) {
 		$rotate.bind('click', function(e){
 			gallery.removeImage && gallery.removeImage();
 		});
+
+		// 快捷键删除;
+		$('.pswp').bind('keyup',function(e){
+			if(!$('.pswp').hasClass('pswp--open')) return;
+			if(e.key == 'Delete'){
+				$('.pswp .pswp__button--remove').trigger('click');
+			}
+		});
 	};
 	
 	var imageRotateItem = function(currItem,radius,isSave){
@@ -291,8 +290,13 @@ define(function(require, exports) {
 		if(isSave){
 			$image.css('transition','all 0.3s');
 			setTimeout(function(){$image.css('transition','');},310);
-			if(radius % 360 == 0){radius = null;}
+			radius = radius % 360;
+			if(radius == 0){radius = null;}
 			imageRotateList.set(currItem.src,radius);
+		}
+
+		if(gallery.items.length == 1){//一张图片情况下;
+			$image = $(gallery.container).find('.pswp__img');
 		}
 		$image.css('transform',transform);
 	};

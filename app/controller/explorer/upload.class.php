@@ -57,6 +57,9 @@ class explorerUpload extends Controller{
 			if(!$info){
 				show_json(LNG("common.pathNotExists"),false);
 			}
+			
+			$this->in['name'] = $info['name'];
+			$uploader->fileName = $this->pathAllowReplace($info['name']);
 			$parent = IO::pathFather($info['path']);
 			if(!$parent){show_json(LNG("common.pathNotExists"),false);}
 			$savePath = rtrim($parent,'/').'/'.$info['name'];// 重新构造路径 父目录+文件名;

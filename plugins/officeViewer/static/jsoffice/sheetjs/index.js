@@ -33,7 +33,7 @@
             // document.getElementById("output").innerHTML = JSON.stringify(json, null, "\t");
             document.getElementById("output").innerHTML = html;
             setTbHead();
-            $('body').addClass('page-loaded');
+            // $('body').addClass('page-loaded');
         }catch(err){
             page.showTips('文件损坏，或包含不支持的内容格式！');
         }

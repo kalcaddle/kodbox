@@ -59,6 +59,7 @@ class explorerShare extends Controller{
 	}
 	
 	public function linkOut($path,$token=false){
+		if(!defined("USER_ID")){define("USER_ID",0);}
 		$parse  = KodIO::parse($path);
 		$info   = IO::info($path);
 		$apiKey = 'explorer/index/fileOut';

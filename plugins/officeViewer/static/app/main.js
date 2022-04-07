@@ -11,11 +11,11 @@ kodReady.push(function(){
 			}
 		});
 		// 暂不屏蔽
-		// _.delay(function(){
-		// 	kodApp.remove('officeLive');
-		// 	kodApp.remove('googleDocs');
-		// 	kodApp.remove('yzOffice');
-		// },100);
+		_.delay(function(){
+			kodApp.remove('officeLive');
+			kodApp.remove('googleDocs');
+			kodApp.remove('yzOffice');
+		},100);
 	});
 });
 

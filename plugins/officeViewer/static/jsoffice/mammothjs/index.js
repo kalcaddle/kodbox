@@ -50,29 +50,32 @@
                 "image/tiff": true
             };
             return image.read("base64").then(function(imageBuffer) {
-                // if (!imgTypeAll[image.contentType]) {
-                //     return {src: BASE_URL + 'jsoffice/mammothjs/images/error2.png'}
-                // }
+                if (!imgTypeAll[image.contentType]) {
+                    // image.style += 'border:1px solid #eee;';
+                    return {src: BASE_URL + 'jsoffice/mammothjs/images/error.svg'}
+                }
                 return {src: "data:" + image.contentType + ";base64," + imageBuffer};
             });
         })
     };
 
     // 加载文件
-    page.getFileInfo(function(file){
+    page.getFileInfo(function(file, tipsLoading){
         mammoth.convertToHtml({arrayBuffer: file.content}, options)
         .then(function(result){
             // console.log('转换结果',result)
             $("#output").html(result.value);
-            $('body').addClass('page-loaded');
+            // $('body').addClass('page-loaded');
+            if(tipsLoading){tipsLoading.close();tipsLoading = false;}
             // 输出解析错误信息
             for(var i in result.messages) {
                 console.warn(result.messages[i].message)
             }
             pageStyle(!!result.value);
         }).catch(function(err){
-            console.error(err);
+            if(tipsLoading){tipsLoading.close();tipsLoading = false;}
             page.showTips('文件损坏，或包含不支持的内容格式！');
+            console.error(err);
         }).done();
     });
 })();

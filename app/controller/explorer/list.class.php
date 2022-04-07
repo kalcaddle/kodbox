@@ -404,12 +404,12 @@ class explorerList extends Controller{
 				unset($list[$key]);
 			}
 		}
+		if(!is_array($list)) return array();
 		return array_values($list);
 	}
 
 	// 文件详细信息处理;
 	public function pathInfoMore($pathInfo){
-		//return $pathInfo;
 		$infoKey  = 'fileInfoMore';
 		$cacheKey = 'fileInfo.'.md5($pathInfo['path'].'@'.$pathInfo['size'].$pathInfo['modifyTime']);
 
@@ -418,25 +418,25 @@ class explorerList extends Controller{
 		if($isImage && !isset($pathInfo[$infoKey]['sizeWidth'])){
 			unset($pathInfo[$infoKey]);Cache::remove($cacheKey);//不使用缓存;
 		}
-		
-		if(isset($pathInfo[$infoKey])){
-		}else if(isset($pathInfo['sourceID'])){
-			$fileID = _get($pathInfo,'fileInfo.fileID',_get($pathInfo,'fileID'));
-			GetInfo::infoAdd($pathInfo);
-			if($fileID && is_array(_get($pathInfo,$infoKey) )){
-				$value = json_encode($pathInfo[$infoKey]);
-				Model("File")->metaSet($fileID,$infoKey,$value);
-			}
-		}else{ // 本地存储, io存储;
+
+		$getInfoSupport = GetInfo::support($pathInfo['ext']);
+		$fileID = _get($pathInfo,'fileInfo.fileID',_get($pathInfo,'fileID'));
+		if(!isset($pathInfo['sourceID']) && $getInfoSupport){
 			$infoMore = Cache::get($cacheKey);
-			if(is_array($infoMore)){
-				$pathInfo[$infoKey] = $infoMore;
-			}else{
-				GetInfo::infoAdd($pathInfo);
-				$infoAdd = is_array($pathInfo[$infoKey]) ? $pathInfo[$infoKey]:array();
-				Cache::set($cacheKey,$infoAdd,3600*24*20);
-			}
+			if(is_array($infoMore)){$pathInfo[$infoKey] = $infoMore;}
 		}
+
+		// unset($pathInfo[$infoKey]);Cache::remove($cacheKey);//debug
+		// if($fileID){Model("File")->metaSet($fileID,$infoKey,null);};
+		if(!isset($pathInfo[$infoKey]) && $getInfoSupport ){
+			// $infoMore = $this->pathInfoMoreParse($pathInfo['path'],$cacheKey,$fileID);
+			// if(is_array($infoMore)){$pathInfo[$infoKey] = $infoMore;}
+			$args = array($pathInfo['path'],$cacheKey,$fileID);// 异步任务处理;
+			$desc = '[pathInfoMore]'.$pathInfo['name'];
+			$key  ='pathInfoMoreParse-'.($fileID ? $fileID : $cacheKey);
+			TaskQueue::add('explorer.list.pathInfoMoreParse',$args,$desc,$key);
+		}
+		
 		// 文件封面;
 		if(isset($pathInfo[$infoKey]) && isset($pathInfo[$infoKey]['fileThumb']) ){
 			$fileThumb = $pathInfo[$infoKey]['fileThumb'];
@@ -444,6 +444,21 @@ class explorerList extends Controller{
 			$pathInfo['fileThumb'] = Action('explorer.share')->linkFile($fileThumb);
 		}
 		return $pathInfo;
+	}
+	
+	// 解析文件详情;
+	public function pathInfoMoreParse($file,$cacheKey,$fileID=false){
+		$infoKey  = 'fileInfoMore';
+		$infoFull = IO::info($file);
+		GetInfo::infoAdd($infoFull);
+		$infoMore = isset($infoFull[$infoKey]) ? $infoFull[$infoKey]:false;
+		if(!$infoMore) return;
+		if($fileID){
+			Model("File")->metaSet($fileID,$infoKey,json_encode($infoMore));
+		}else{
+			Cache::set($cacheKey,$infoMore,3600*24*20);
+		}
+		return $infoMore;
 	}
 	
 	/**
@@ -518,6 +533,7 @@ class explorerList extends Controller{
 			case 'fileTag': 	$result = Action('explorer.tag')->tagList();break;
 			case 'driver': 		$result = Action("explorer.listDriver")->get();break;
 		}
+		if(!is_array($result)) return array();
 		return array_values($result);
 	}
 	
@@ -657,6 +673,7 @@ class explorerList extends Controller{
 		if(Model('SystemOption')->get('shareLinkAllow') == '0'){
 			unset($list[KodIO::KOD_USER_SHARE_LINK]);
 		}
+		if(!is_array($list)) return array();
 		return array_values($list);
 	}
 

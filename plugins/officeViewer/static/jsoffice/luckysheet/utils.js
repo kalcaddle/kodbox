@@ -114,33 +114,60 @@ var utils = {
         return stringArray.reverse().join("");
     },
     // sheetjs.data转luckysheet.data
-    xlsToLuckySheet: function(sheet){
-        var arr = (sheet['!ref'] || ':').split(':');
+    xlsToLuckySheet: function(sheet, _sheet){
+        var arr = (_.get(sheet, '!ref') || ':').split(':');
         var cols = this.getCellNum(arr[1], true);
         cols = this.stringToNum(cols);
         cols = cols > 26 ? cols : 26;   // 列，字母，不足的填充
         var rows = this.getCellNum(arr[1]);
         rows = rows > 84 ? rows : 84;   // 行，数字
-        
+
+        // 表格样式
+        var _cols = _.get(sheet, '!cols') || {};
+        var _rows = _.get(sheet, '!rows') || {};
+        var _merges = _.get(sheet, '!merges') || {};
+
+        var obj = [];
         var self = this;
-        var obj = []
         for(var i=1; i<=rows; i++) {
             var row = [];
             for(var j=1; j<=cols; j++) {
                 var key = self.numToString(j) + i;
                 var cell = null;
                 if(sheet[key]) {
-                    var value = sheet[key].v;
+                    // https://mengshukeji.github.io/LuckysheetDocs/zh/guide/cell.html#基本单元格
+                    var value = sheet[key].v || '';
+                    var style = sheet[key].s || {};
+                    var bgColor = _.get(style, 'fgColor.rgb');  // 前景色
+                    // var ftColor = _.get(style, 'ftColor.rgb');
                     cell = {
-                        m: value,
-                        ct: {fa: 'General', t: 'g'},
-                        v: value
+                        m: value,   // 显示值
+                        v: value,   // 原始值
+                        ct: {fa: sheet[key].z || 'General', t: sheet[key].t || 'g'},
+                        // bg: bgColor ? '#'+bgColor : '',
+                        // bl: _.get(style, 'patternType') == 'bold' ? 1 : 0,
+                        tb: 2,   // 0:截断;1:溢出;2:换行
                     }
+                    if (bgColor) cell.bg = '#'+bgColor;
                 }
                 row.push(cell);
+                _sheet.config.columnlen[j-1] = _cols[j-1] ? _cols[j-1].wpx : 73;    // 默认列宽73px
             }
             obj.push(row)
+            _sheet.config.rowlen[i-1] = _rows[i-1] ? _rows[i-1].hpt * 4 / 3 : 19;   // 本来有参数hpx，但其值和hpt一样；默认值行高19px
         }
+        // 合并单元格
+        // https://mengshukeji.github.io/LuckysheetDocs/zh/guide/sheet.html#初始化配置
+        _.each(_merges, function(opt){
+            var r = opt.s.r;    // sheet[!merges] = [{e:{r:,c:},s:{r:,c:}}]
+            var c = opt.s.c;    // s:start,e:end
+            _sheet.config.merge[r+'_'+c] = {
+                r: r,
+                c: c,
+                rs: opt.e.r - r + 1,
+                cs: opt.e.c - c + 1,
+            };
+        });
         return obj;
     },
 
@@ -155,7 +182,11 @@ var utils = {
                 [null],
                 [null],
             ], 
-            "config": {}, 
+            "config": {
+                rowlen: {},     // 表格行高
+                columnlen: {},  // 表格行宽
+                merge: {},      // 合并单元格
+            }, 
             "index": 0, 
             // "jfgird_select_save": [], 
             "luckysheet_select_save": [], 

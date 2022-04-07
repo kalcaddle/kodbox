@@ -8,8 +8,11 @@ class adminBackup extends Controller{
 	}
 
     public function config(){
+		// 最近一条备份记录
 		if(Input::get('last', null, 0)) {
-			$this->lastItem();
+			$last = $this->model->lastItem();
+			if($last && $last['name'] != date('Ymd')) $last = null;
+			show_json($last);
 		}
 		$data	= $this->model->config();
 		$database = array_change_key_case($GLOBALS['config']['database']);
@@ -18,12 +21,6 @@ class adminBackup extends Controller{
 		$process= $this->model->process();
 		$info	= array('last' => $last, 'info' => $process);
 		show_json($data, true, $info);
-	}
-	// 最近一条备份记录
-	private function lastItem(){
-		$last = $this->model->lastItem();
-		if($last && $last['name'] != date('Ymd')) $last = null;
-		show_json($last);
 	}
 
 	/**

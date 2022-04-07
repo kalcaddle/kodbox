@@ -148,7 +148,7 @@ class userView extends Controller{
 		$url = $this->in['url'];
 		if (function_exists('imagecolorallocate')) {
 			ob_get_clean();
-			QRcode::png($url,false,QR_ECLEVEL_L,7,2);
+			QRcode::png($url,false,QR_ECLEVEL_L,5,2);
 		} else {
 			// https://api.pwmqr.com/qrcode/create/?url=
 			// https://demo.kodcloud.com/?user/view/qrcode&url=

@@ -36,13 +36,14 @@ class Mailer {
 		    $mail->Host			= $config['host'];					// Set the SMTP server to send through
 		    $mail->SMTPAuth		= true;								// Enable SMTP authentication
 		    $mail->Username		= $config['email'];					// SMTP username
-		    $mail->Password		= $config['password'];						// SMTP password
+		    $mail->Password		= $config['password'];				// SMTP password
 		    // $mail->SMTPSecure	= PHPMailer::ENCRYPTION_STARTTLS;	// Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` also accepted
 		    // $mail->SMTPSecure	= false;         					// Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` also accepted
 		    // $mail->SMTPSecure	= PHPMailer::ENCRYPTION_SMTPS;
 			$mail->SMTPSecure	= $config['secure'];
-		    // $mail->Port       	= 587;                             // TCP port to connect to
-		    $mail->Port       	= $config['port'];	// 465
+			if (!$mail->SMTPSecure) $mail->SMTPAutoTLS = false;		// 默认自动启用tls加密
+		    // $mail->Port       	= 587;								// TCP port to connect to
+		    $mail->Port       	= $config['port'];	// 不同服务提供的端口不同，总体包含：25、465、587、2525
 			$mail->setFrom($config['email'], $config['signature']);
 		    $mail->CharSet		= 'UTF-8';
 

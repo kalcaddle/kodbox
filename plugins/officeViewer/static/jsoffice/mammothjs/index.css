@@ -2,7 +2,7 @@
 .page-box #output p{text-indent: 2em;} */
 .page-box #output table,
 /* .page-box #output table tr td { border:1px solid #bbb; padding: 4px;} */
-.page-box #output table tr td { border:1px solid #747474; padding: 4px;}
+.page-box #output table tr td { border:1px solid #747474; padding: 4px; word-break: break-all;}
 .page-box #output table { border-collapse: collapse;}
 .page-box #output table.docx-table {width: 100%;}
 /* .page-box #output table { min-height: 25px; line-height: 25px; border-collapse: collapse; padding:2px;}

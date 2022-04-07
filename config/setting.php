@@ -121,7 +121,7 @@ $config['cache'] = array(
 	'sessionType'	=> 'file',	//缓存方式 database/file/redis/memcached
 	'sessionTime'	=> 3600*4,	//session失效时间 
     'cacheType'		=> 'file',	//缓存方式 database/file/redis/memcached
-	'lockTimeout'	=> 5,		//并发锁获取超时时间 5s;
+	'lockTimeout'	=> 15,		//并发锁获取超时时间 15s;
 	'cacheTime'		=> 3600*5,	//缓存默认时间;
 	    
     'file'	=> array('path' => TEMP_PATH.'_cache/'),
@@ -271,7 +271,8 @@ $config['settingSystemDefault'] = array(
 		array('name'=>'官网','url'=>'https://kodcloud.com',"icon"=>"ri-home-line-3",'target'=>'inline','use'=>'1')
 	),
 );
-
+$config['settingSystemDefault']['searchFulltext'] = 0;		// like%% 转为全文索引
+$config['settingSystemDefault']['searchFulltextForce'] = 0;	// 完整匹配; (否则会对$words进行分词,包含一部分也作为结果;会多出结果) 
 
 //新用户初始化默认配置
 $config['settingDefault'] = array(
@@ -581,5 +582,6 @@ if(GLOBAL_DEBUG_LOG_ALL){
 function writeLogAll($data=false){
 	$caller = get_caller_info();
 	$trace  = think_trace('[trace]');
-	write_log(array("in"=>$GLOBALS['in'],'out'=>$data,'call'=>$caller,'trace'=>$trace),'debug');
+	$ua = $_SERVER['HTTP_USER_AGENT'];
+	write_log(array("in"=>$GLOBALS['in'],'ua'=>$ua,'out'=>$data,'call'=>$caller,'trace'=>$trace),'debug');
 }

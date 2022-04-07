@@ -53,6 +53,10 @@ class explorerAuthUser extends Controller {
 	
 	public function canShare($shareInfo){
 		if(!$shareInfo) return false;
+		// 兼容早期版本,该字段为空的情况;
+		if(!$shareInfo['sourcePath'] && $shareInfo['sourceID'] != '0'){
+			$shareInfo['sourcePath'] = KodIO::make($shareInfo['sourceID']);
+		}
 		return $this->can($shareInfo['sourcePath'],'share',$shareInfo['userID']);
 	}
 	

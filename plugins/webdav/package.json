@@ -2,7 +2,7 @@
 	"id":"webdav",
 	"name":"{{LNG['webdav.meta.name']}}",
 	"title":"{{LNG['webdav.meta.title']}}",
-	"version":"1.32",
+	"version":"1.35",
 	"source":{
 		"className":" font-icon ri-hard-drive-fill-2 bg-yellow-6",
 		"icon":""
@@ -32,12 +32,6 @@
 			"desc":"{{LNG['webdav.config.isOpenDesc']}}",
 			"switchItem":{"1":"pluginAuth,detailAddress,pathAllow,detailConnect"}
 		},
-		"echoLog":{
-			"type":"switch",
-			"value":"0",
-			"display":"{{LNG['webdav.config.logTitle']}}",
-			"desc":"{{LNG['webdav.config.logDesc']}}:./data/temp/log/webdav/"
-		},
 		"pluginAuth":{
 			"type":"userSelect",
 			"value":{"all":1},
@@ -56,6 +50,12 @@
 			"desc":"{{LNG['webdav.config.pathAllowDesc']}}",
 		},
 		"sep001":"<hr/>",
+		"echoLog":{
+			"type":"switch",
+			"value":"0",
+			"display":"{{LNG['webdav.config.logTitle']}}",
+			"desc":"{{LNG['webdav.config.logDesc']}}:./data/temp/log/webdav/"
+		},
 		"detail":{
 			"display":"",
 			"value":

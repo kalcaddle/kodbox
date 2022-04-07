@@ -18,8 +18,10 @@ function adminer_object() {
 			return false;
 		}
 		function head() {
+			$host = KodSSO::appHost();
 			echo '<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover, shrink-to-fit=no" />';
-			echo '<script src="https://libs.baidu.com/jquery/2.0.0/jquery.min.js"></script>';
+			echo '<script>var kodSdkConfig = {api:"'.$host.'"};</script>';
+			echo '<script src="'.$host.'static/app/dist/sdk.js"></script>';
 			echo '<script type="text/javascript" src="./adminer.js"></script>';
 			return true;
 		}

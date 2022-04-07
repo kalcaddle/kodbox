@@ -322,9 +322,11 @@ class S3 {
 	 * @return array | false
 	 */
 	public function getBucket($bucket, $prefix = null, $marker = null, $maxKeys = null, $delimiter = null, $returnCommonPrefixes = false) {
-		$results = array();
+		$results = array('listObject' => array(), 'listPrefix' => array(), 'nextMarker' => null);
+		$listObject = $listPrefix = array();
 		$nextMarker = null;
 		do{
+			check_abort();
 			$rest = $this->s3Request('GET', $bucket, '', $this->endpoint);
 			if ($maxKeys == 0) {
 				$maxKeys = null;
@@ -357,7 +359,7 @@ class S3 {
 					$body['Contents'] = array($body['Contents']);
 				}
 				foreach ($body['Contents'] as $c){
-					$results[$c['Key']] = array(
+					$listObject[$c['Key']] = array(
 						'name'	 => $c['Key'],
 						'time'	 => strtotime($c['LastModified']),
 						'size'	 => (int) $c['Size'],
@@ -372,7 +374,7 @@ class S3 {
 					$body['CommonPrefixes'] = array($body['CommonPrefixes']);
 				}
 				foreach ($body['CommonPrefixes'] as $c) {
-					$results[$c['Prefix']] = array('prefix' => $c['Prefix']);
+					$listPrefix[$c['Prefix']] = array('name' => $c['Prefix']);
 				}
 			}
 			if (isset($body['NextMarker'])) {
@@ -380,6 +382,9 @@ class S3 {
 			}
 		}while(($maxKeys == null && $body && $nextMarker != null && $body['IsTruncated'] == 'true'));
 
+		$results['listObject'] = array_values($listObject);
+		$results['listPrefix'] = array_values($listPrefix);
+		$results['nextMarker'] = $nextMarker;
 		return $results;
 	}
 

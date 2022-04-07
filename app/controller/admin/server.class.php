@@ -215,7 +215,7 @@ class adminServer extends Controller {
 			}
 			$size = @filesize($file);
 		}else{
-			$tables = Model()->db()->query('show table status from ' . $database['db_name']);
+			$tables = Model()->db()->query('show table status from `' . $database['db_name'] . '`');
 			$rows = $size = 0;
 			foreach($tables as $item) {
 				$rows += $item['Rows'];

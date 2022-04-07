@@ -88,7 +88,12 @@ class filterUserCheck extends Controller {
 			$allowDevice = $this->checkDevice($device,$item['device']);
 			if( $allowDevice && $this->checkIP($ip,$item['disableIp']) ){
 				$error = UserModel::errorLang(UserModel::ERROR_IP_NOT_ALLOW);
-				show_tips($error."<br>IP: ".$ip);exit;
+				if($device['type'] == 'app'){
+					show_json($error."; IP: ".$ip,false);
+				}else{
+					show_tips($error."<br>IP: ".$ip);
+				}
+				exit;
 			}
 		}
 		return true;
@@ -121,7 +126,7 @@ class filterUserCheck extends Controller {
 		$device 	= $this->getDevice();
 		$checkList 	= json_decode($this->options['loginCheckAllow'],true);
 		if(!$checkList) return true;
-		if($ip == 'unknown' || $ip == $serverIP || $ip == '127.0.0.1') return true;
+		// if($ip == 'unknown' || $ip == $serverIP || $ip == '127.0.0.1') return true;
 
 		$error = UserModel::ERROR_IP_NOT_ALLOW;// 您当前ip不在允许登录的ip白名单里,请联系管理员!;
 		$rootIpAdd = "
@@ -224,7 +229,7 @@ class filterUserCheck extends Controller {
 		// ios APP 原生;
 		if(strstr($ua,'kodCloud-System:iOS')){
 			$device['type'] = 'app';
-			$device['system'] = 'iOS';
+			$device['system'] = 'ios';
 			$device['systemVersion'] = match_text($ua,"softwareVerison:(.*);");
 			$device['appVersion'] 	 = match_text($ua,"AppVersion:(.*);");
 		}

@@ -17,6 +17,9 @@ class webdavServer {
 		$this->urlBase  = substr($uri,0,strpos($uri,$DAV_PRE_PATH)+1); //$find之前;
 		$this->urlBase  = rtrim($this->urlBase,'/').$DAV_PRE_PATH;
 		$this->path = $this->parsePath($this->pathGet());
+		if(strpos($uri,$DAV_PRE_PATH) === false){
+			self::response(array('code'=>404,'body'=>"<error>您没有此权限!</error>"));exit;
+		}
 	}	
 	public function checkUser(){
 		$user = HttpAuth::get();
@@ -97,7 +100,7 @@ class webdavServer {
 		
 		$result  = array(
 			'href' 			=> KodIO::clear($this->urlBase.$pathAdd),
-			'modifyTime' 	=> @gmdate("D, d M Y H:i:s ",$item['modifyTime']),
+			'modifyTime' 	=> @gmdate("D, d M Y H:i:s",$item['modifyTime']).' GMT',
 			'createTime' 	=> @gmdate("Y-m-d\\TH:i:s\\Z",$item['createTime']),
 			'size' 			=> $item['size'] ? $item['size']:0,
 		);
@@ -109,6 +112,11 @@ class webdavServer {
 		if ($itemFile['type'] == 'folder') {//getetag
 			$xmlAdd = "<D:resourcetype><D:collection/></D:resourcetype>";
 			$xmlAdd.= "<D:getcontenttype>httpd/unix-directory</D:getcontenttype>";
+			$item['href'] = rtrim($item['href'],'/').'/';
+			if(isset($_SERVER['HTTP_DATE']) && isset($_SERVER['HTTP_DEPTH'])){
+				// goodsync同步处理;HTTP_DATE/HTTP_DEPTH; 首次列表展开失败问题处理;
+				$result['modifyTime'] = $_SERVER['HTTP_DATE'];
+			}
 		}else{
 			$ext    = $itemFile['ext'] ? $itemFile['ext']:get_path_ext($itemFile['name']);
 			$mime   = get_file_mime($ext);
@@ -174,7 +182,7 @@ class webdavServer {
 		}
 		// write_log([$this->pathGet(),$this->path,$pathInfo],'webdav');
 		return array(
-			"code" => 207,
+			"code" => 200,//207 => 200;
 			"body" => "<D:multistatus xmlns:D=\"DAV:\">\n{$out}\n</D:multistatus>"
 		);
 	}

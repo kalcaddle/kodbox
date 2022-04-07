@@ -106,9 +106,12 @@ class webdavPlugin extends PluginBase{
 	private function debug(){
 		// $this->log('start;'.$this->dav->pathGet().';'.$this->dav->path);
 		if(strstr($_SERVER['HTTP_USER_AGENT'],'Chrome')){
-			//PROPFIND;GET;MOVE;COPY,HEAD,PUT
-			$_SERVER['REQUEST_METHOD'] = 'PROPFIND';
+			// 兼容处理chrome插件访问webdav;
+			// PROPFIND;GET;MOVE;COPY,HEAD,PUT
 			// $_SERVER['REQUEST_METHOD'] = 'COPY';
+			if($_SERVER['REQUEST_METHOD'] == 'GET'){
+				$_SERVER['REQUEST_METHOD'] = 'PROPFIND';
+			}
 		}
 	}
 	public function endLog(){

@@ -23,11 +23,17 @@ class kodWebDav extends webdavServer {
 	/**
 	 * 用户登录校验;权限判断;
 	 * 性能优化: 通过cookie处理为已登录; (避免ad域用户或用户集成每次进行登录验证;)
+	 * 
 	 */
 	public function checkUser(){
 		$userInfo = Session::get("kodUser");
 	    if(!$userInfo || !is_array($userInfo)){
     	    $user = HttpAuth::get();
+			
+			// 兼容webdav挂载不支持中文用户名; 中文名用户名编解码处理;
+			if(substr($user['user'],0,2) == '$$'){
+				$user['user'] = rawurldecode(substr($user['user'],2));
+			}
     		$find = ActionCall('user.index.userInfo', $user['user'],$user['pass']);
     		if ( !is_array($find) || !isset($find['userID']) ){
     			$this->plugin->log(array($user,$find,$_SERVER['HTTP_AUTHORIZATION']));
@@ -215,8 +221,11 @@ class kodWebDav extends webdavServer {
 	
 	public function pathRemove($path){
 		if(!$this->can($path,'remove')) return false;
+		$tempInfo = IO::infoFull($path);
+		if(!$tempInfo) return true;
+		
 		$toRecycle = Model('UserOption')->get('recycleOpen');
-		return IO::remove($path, $toRecycle);
+		return IO::remove($tempInfo['path'], $toRecycle);
 	}
 	public function pathMove($path,$dest){
 		$pathUrl = $this->pathGet();
@@ -262,6 +271,11 @@ class kodWebDav extends webdavServer {
 		
 		if(!$this->can($path,'remove')) return false;
 		if(!$this->can($dest,'edit')) return false;
+		
+		// 名称不同先重命名;
+		if( $io->pathThis($destURL) != $io->pathThis($pathUrl) ){
+			$path = IO::rename($path,$io->pathThis($destURL));
+		}
 		return IO::move($path,$dest);
 	}
 	public function pathCopy($path,$dest){

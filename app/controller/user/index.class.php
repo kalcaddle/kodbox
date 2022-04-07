@@ -54,6 +54,7 @@ class userIndex extends Controller {
 		if(!Session::get('kod')){
 			show_tips(LNG('explorer.sessionSaveError'));
 		}
+		// 注意: Session设置sessionid的cookie;两个请求时间过于相近,可能导致删除cookie失败的问题;(又有sessionid请求覆盖)
 		// 设置csrf防护;
 		if(!Cookie::get('CSRF_TOKEN')){Cookie::set('CSRF_TOKEN',rand_string(16));}
 	}
@@ -327,6 +328,7 @@ class userIndex extends Controller {
 
 		Session::set('kodUser', $user);
 		Cookie::set('kodUserID', $user['userID']);
+		Cookie::set('kodTokenUpdate','1');//更新token通知;//自动登录处理;
 		$kodToken = Cookie::get('kodToken');
 		if($kodToken){//已存在则延期
 			Cookie::setSafe('kodToken',$kodToken);

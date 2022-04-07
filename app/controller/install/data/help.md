@@ -84,7 +84,7 @@
 | 字段 | 类型 | 字段说明 |
 | ---- | ---- | ---- |
 | fileID | bigint(20) unsigned   `自动增量`  | 文件ID |
-| content | mediumtext    | 文本文件内容 |
+| content | mediumtext    | 文本文件内容,最大16M |
 | createTime | int(11) unsigned    | 创建时间 |
 
 

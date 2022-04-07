@@ -94,7 +94,7 @@ class filterUserGroup extends Controller{
 	
 	private function checkItemRead($check,$action){
 		$groupList = Session::get("kodUser.groupInfo");
-		if(count($groupList) == 0){ // 不在任何部门则不支持用户及部门查询;
+		if(!$groupList || count($groupList) == 0){ // 不在任何部门则不支持用户及部门查询;
 			return $this->checkError(array('error' =>'error'));
 		}
 
@@ -270,6 +270,7 @@ class filterUserGroup extends Controller{
 			$groupRoot = Model('Group')->groupShowRoot($group['groupID'],$groupCompany);
 			$groupArray = array_merge($groupArray,$groupRoot);
 		}
-		return Model('Group')->groupMerge($groupArray);
+		$groupArray = Model('Group')->groupMerge($groupArray);
+		return $groupArray;
 	}
 }

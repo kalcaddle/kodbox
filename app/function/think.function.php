@@ -326,6 +326,11 @@ function think_trace($value = '[think]', $label = '', $level = 'DEBUG', $record 
 	if (defined('GLOBAL_DEBUG') && !GLOBAL_DEBUG ) return;
     if ($value == '[trace]') return $_trace;
 	if ($value == '[think]') return think_exception($_trace);
+	if ($label == '_set_'){
+		if(!$_trace[$level]){$_trace[$level] = array();}
+		$_trace[$level][] = $value;
+		return;
+	}
 
 	$logMax 	= 50;//最多纪录前30条sql; 避免额外开销及内存不可控
 	$level  	= strtoupper($level);
@@ -352,3 +357,4 @@ function think_trace($value = '[think]', $label = '', $level = 'DEBUG', $record 
 	}
 	if ($record){write_log($info,$level);}
 }
+function trace_log($value,$key=''){think_trace($value,'_set_',$key);}

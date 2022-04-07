@@ -32,13 +32,16 @@ $(function(){
     }
     // 开始载入pptx文件
     try{
+        var tipsLoading = Tips.loadingMask(false,'加载中',0.5);
         $('.page-box').addClass(isWap() ? 'is-in-wap' : 'not-in-wap');
         $('.page-box.not-in-wap #output').html('</div><div id="left_slides_bar"></div>');
         pptxToHtml(FILE_INFO.fileUrl);
         window.onerror = function (message, url, line, column, error) {
+            console.error(message, url, line, column, error);
             page.showTips('文件损坏，或包含不支持的内容格式！');
         }
     }catch(err){
+        if(tipsLoading){tipsLoading.close();tipsLoading = false;}
         console.error(err);
         page.showTips('文件损坏，或包含不支持的内容格式！');
     }
@@ -67,7 +70,7 @@ $(function(){
     utils.functionHook($,'attr',false,function(res,args){
         // console.log(res,args)
         var id = args[0].id || '';
-        if(id != 'all_slides_warpper') return res;
+        if(id != 'all_slides_warpper') return res;  // convertToHtml结束
 
         // 1.添加页码栏——移动端不添加（获取不到滚动事件）
         if(!$('#output .slide-page-toolbar').length) {
@@ -129,11 +132,14 @@ $(function(){
         // 4.初始化主区域子节点尺寸
         utils.initPageSize(pageRatio(wap));
 
-        // 5.加载图标
-        $('body').addClass('page-loaded');
+        // // 5.加载图标
+        // $('body').addClass('page-loaded');
 
         // 选中的边框
         $('#left_slides_bar .slide-box:eq(0)').addClass('total-page-point');
+
+        // 结束
+        if(tipsLoading){tipsLoading.close();tipsLoading = false;}
     });
     // 页面尺寸随窗口变化
     var setPgHeight = function(wap){

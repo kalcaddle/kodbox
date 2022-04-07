@@ -232,6 +232,7 @@ class explorerAuth extends Controller {
 		if( $ioType == KodIO::KOD_IO || $ioType == false ){
 			if( request_url_safe($path) ) return $action == 'view';
 			if($isRoot && $this->config["ADMIN_ALLOW_IO"]) return true;
+			if($isRoot && $parse['id'] == 'systemRecycle') return true;
 			return $this->errorMsg(LNG('explorer.pathNotSupport'),1001);
 		}
 		
@@ -393,6 +394,7 @@ class explorerAuth extends Controller {
 			return $this->checkAuthMethod($shareInfo['auth']['authValue'],$method);
 		}
 		
+		if (!$sourceID) $sourceID = $shareInfo['sourceID'];
 		$sourceInfo = Model('Source')->sourceInfo($sourceID);
 		$parent = Model('Source')->parentLevelArray($sourceInfo['parentLevel']);
 		array_push($parent,$sourceID);
