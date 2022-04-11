@@ -16,7 +16,8 @@ class webdavServer {
 		$uri  = rtrim($_SERVER['REQUEST_URI'],'/').'/'; //带有后缀的从domain之后部分;
 		$this->urlBase  = substr($uri,0,strpos($uri,$DAV_PRE_PATH)+1); //$find之前;
 		$this->urlBase  = rtrim($this->urlBase,'/').$DAV_PRE_PATH;
-		$this->path = $this->parsePath($this->pathGet());
+		$this->uri   	= $this->pathGet();
+		$this->path = $this->parsePath($this->uri);
 		if(strpos($uri,$DAV_PRE_PATH) === false){
 			self::response(array('code'=>404,'body'=>"<error>您没有此权限!</error>"));exit;
 		}
@@ -181,8 +182,10 @@ class webdavServer {
 			$out .= $this->parseItemXml($itemFile,$isInfo);
 		}
 		// write_log([$this->pathGet(),$this->path,$pathInfo],'webdav');
+		$code = 207;//207 => 200;
+		if(strstr($this->uri,'.xbel')){$code = 200;} // 兼容floccus
 		return array(
-			"code" => 200,//207 => 200;
+			"code" => $code,
 			"body" => "<D:multistatus xmlns:D=\"DAV:\">\n{$out}\n</D:multistatus>"
 		);
 	}

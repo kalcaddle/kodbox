@@ -22,7 +22,7 @@ function import($path=false){
 			CORER_DIR.'Backup/',
 		);
 		if(!is_dir(MODEL_DIR)){
-			$_autoLoaderPath = array(SDK_DIR);
+			$_autoLoaderPath = array(CLASS_DIR,SDK_DIR);
 		}
 	}
 	if($path){

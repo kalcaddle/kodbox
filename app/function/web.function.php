@@ -433,13 +433,9 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 	//error
 	if($response_info['http_code'] == 0){
 		$error_message = curl_error($ch);
-		if (! empty($error_message)) {
-			$error_message = "API call to $url failed; \n$error_message";
-		} else {
-			$error_message = "API call to $url failed;maybe network error!";
-		}
+		$error_message = $error_message ? "\n".$error_message : 'Network error!';
 		return array(
-			'data'		=> $error_message,
+			'data'		=> "API call to $url failed;".$error_message,
 			'code'		=> 0,
 			'header'	=> $response_info,
 		);

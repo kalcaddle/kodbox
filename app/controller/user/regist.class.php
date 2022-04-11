@@ -49,8 +49,8 @@ class userRegist extends Controller {
 		if ($data['source'] == 'findpwd') {
 			$this->userFindPwdCheck($data);
 		}
-
 		Action('user.setting')->checkMsgFreq($data);	// 消息发送频率检查
+
 		// 2.发送邮件/短信
 		$func = $data['type'] == 'email' ? 'sendEmail' : 'sendSms';
 		$res = Action('user.bind')->$func($data['input'], "{$data['type']}_{$data['source']}");
