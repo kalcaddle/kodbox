@@ -36,8 +36,10 @@ class kodRarArchive {
 			$file .= '.exe';	// win
 		}else if(strstr($os,'linux') ){
 			$result = shell_exec('apk --version');
-			if(strstr($result,'apk')){ // apilin 
-				$file .= '_linux';	// win
+			if(strstr($result,'apk')){
+				$file .= '_android'; // android
+			} else {
+				$file .= '_linux'; // linux
 			}
 		}
 		
