@@ -181,8 +181,8 @@ class userRegist extends Controller {
 			'nickName'	 => $nickName,
 			'password'	 => $data['password'],
 			'roleID'	 => $regist['roleID'],
-			'email'		 => '',
-			'phone'		 => '',
+			'email'		 => isset($data['email']) ? $data['email'] : '',
+			'phone'		 => isset($data['phone']) ? $data['phone'] : '',
 			'sizeMax'	 => floatval($regist['sizeMax']), //M
 			'status'	 => $regist['checkRegist'] == 1 ? 0 : 1, //0禁用；1启用 等待审核可以改为-1
 			'groupInfo'  => $regist['groupInfo']

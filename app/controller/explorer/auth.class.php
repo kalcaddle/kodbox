@@ -118,8 +118,10 @@ class explorerAuth extends Controller {
 	}
 	public function spaceAllow($path){
 		$parse  = KodIO::parse($path);
-		$info 	= IO::infoAuth($parse['pathBase']);//目标存储;
+		if($parse['isTruePath'] != true) return true;
+		if($parse['driverType'] == 'io') return true;
 		
+		$info = IO::infoAuth($parse['pathBase']);//目标存储;
 		// 目标在回收站中: 不支持保存/上传/远程下载/粘贴/移动到此/新建文件/新建文件夹;
 		if($info['isDelete'] == '1'){
 			$msg = $info['type'] == 'file' ? LNG('explorer.pathInRecycleFile') : LNG("explorer.pathInRecycle");
@@ -127,7 +129,9 @@ class explorerAuth extends Controller {
 		}
 		$space  = Action("explorer.list")->targetSpace($info);
 		if(!$space || $space['sizeMax']==0 ) return true; // 没有大小信息,或上限为0则放过;
-		return $space['sizeMax'] > $space['sizeUse'];
+		$result = $space['sizeMax'] > $space['sizeUse'];
+		if(!$result){$this->lastError = LNG('explorer.spaceIsFull');}
+		return $result;
 	}
 
 	public function checkSpaceOnCreate($sourceInfo){
@@ -316,8 +320,7 @@ class explorerAuth extends Controller {
 		$this->lastError = $msg.$code;
 		return false;
 	}
-	
-	
+	public function getLastError(){return $this->lastError;}
 	public function canView($path){return $this->can($path,'view');}
 	public function canRead($path){return $this->can($path,'download');}
 	public function canWrite($path){return $this->can($path,'edit');}

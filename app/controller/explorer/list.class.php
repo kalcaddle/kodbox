@@ -65,6 +65,7 @@ class explorerList extends Controller{
 		
 		$this->pathListParse($data);
 		$this->pageReset($data);
+		$this->addHistoryCount($data);
 	}	
 	
 	// 桌面文件夹自动检测;不存在处理;
@@ -156,6 +157,33 @@ class explorerList extends Controller{
 			$newData = $this->path($this->in['path']);
 			show_json($newData);
 		}
+	}
+	
+	// 文件历史版本数量追加;
+	private function addHistoryCount(&$data){
+		$sourceArr = array();$pathArr = array();
+		foreach ($data['fileList'] as $file){
+			if($file['sourceID']){$sourceArr[]  = $file['sourceID'];}
+			if(!$file['sourceID'] && $file['isWriteable']){$pathArr[] = $file['path'];}
+		}
+
+		$countSource = $sourceArr ? Model("SourceHistory")->historyCount($sourceArr):array();
+		$countLocal  = $pathArr   ? IOHistory::historyCount($pathArr):array();
+		if(!$countSource && !$countLocal) return;
+		foreach ($data['fileList'] as $key=>$file){
+			if($file['sourceID'] && $countSource[$file['sourceID']]){
+				$data['fileList'][$key]['historyCount'] = intval($countSource[$file['sourceID']]);
+			}
+			if($countLocal[$file['path']]){
+				$data['fileList'][$key]['historyCount'] = intval($countLocal[$file['path']]);
+			}
+		}
+	}
+	public function fileInfoAddHistory($pathInfo){
+		if(!$pathInfo || $pathInfo['type'] != 'file') return;
+		$data = array('fileList'=>array($pathInfo));
+		$this->addHistoryCount($data);
+		return $data['fileList'][0];
 	}
 	
 	private function _parseOrder(){
@@ -256,7 +284,7 @@ class explorerList extends Controller{
 		if($infoFull){
 			$pathInfo = Action('explorer.listDriver')->parsePathIO($pathInfo,$current);
 			$pathInfo = Action('explorer.listDriver')->parsePathChildren($pathInfo,$current);
-			if($pathInfo['type'] == 'file'){
+			if($pathInfo['type'] == 'file' && !$pathInfo['_infoSimple']){
 				$pathInfo = $this->pathParseOexe($pathInfo);
 				$pathInfo = $this->pathInfoMore($pathInfo);
 			}
@@ -270,13 +298,16 @@ class explorerList extends Controller{
 
 		// 下载权限处理;
 		$pathParse = KodIO::parse($pathInfo['path']);
-		$pathInfo['canDownload'] = $pathParse['isTruePath'];
+		if(!array_key_exists('isTruePath',$pathInfo)){
+			$pathInfo['isTruePath'] = $pathParse['isTruePath'];
+		}
+		$pathInfo['canDownload'] = $pathInfo['isTruePath'];
 		if(isset($pathInfo['auth'])){
 			$pathInfo['canDownload'] = Model('Auth')->authCheckDownload($pathInfo['auth']['authValue']);
 		}
-		
+
 		// 写入权限;
-		if($pathParse['isTruePath']){
+		if($pathInfo['isTruePath']){
 			if(isset($pathInfo['auth'])){
 				$pathInfo['canWrite'] = Model('Auth')->authCheckEdit($pathInfo['auth']['authValue']);
 			}
@@ -323,7 +354,9 @@ class explorerList extends Controller{
 		$path = rtrim($path,'/').'/';
 		$data['current']  = $this->pathCurrent($path);
 		$data['thisPath'] = $path;
-		$data['targetSpace'] = $this->targetSpace($data['current']);
+		if(!$data['targetSpace']){
+			$data['targetSpace'] = $this->targetSpace($data['current']);
+		}
 		foreach ($data['folderList'] as &$item) {
 			if( isset($item['children']) ){
 				$item['isParent'] = true;
@@ -467,6 +500,7 @@ class explorerList extends Controller{
 	private function pathParseOexe($pathInfo){
 		$maxSize = 1024*1024*1;
 		if($pathInfo['ext'] != 'oexe' || $pathInfo['size'] > $maxSize) return $pathInfo;
+		if(isset($pathInfo['oexeContent'])) return $pathInfo;
 
 		$content = IO::getContent($pathInfo['path']);
 		$pathInfo['oexeContent'] = json_decode($content,true);
@@ -534,6 +568,7 @@ class explorerList extends Controller{
 			case 'driver': 		$result = Action("explorer.listDriver")->get();break;
 		}
 		if(!is_array($result)) return array();
+		if(isset($result['folderList'])) return $result;
 		return array_values($result);
 	}
 	
@@ -679,22 +714,22 @@ class explorerList extends Controller{
 
 	private function ioInfo($pick){
 		$list = array(
-			KodIO::KOD_USER_FAV			=> array('name'=>LNG('explorer.toolbar.fav'),'pathDesc'=>LNG('explorer.pathDesc.fav')),
-			KodIO::KOD_GROUP_ROOT_SELF	=> array('name'=>LNG('explorer.toolbar.myGroup'),'pathDesc'=>LNG('explorer.pathDesc.myGroup')),
-			KodIO::KOD_USER_RECENT		=> array('name'=>LNG('explorer.toolbar.recentDoc'),'pathDesc'=>LNG('explorer.pathDesc.recentDoc')),
-			KodIO::KOD_USER_SHARE		=> array('name'=>LNG('explorer.toolbar.shareTo'),'pathDesc'=>LNG('explorer.pathDesc.shareTo')),
-			KodIO::KOD_USER_SHARE_LINK	=> array('name'=>LNG('explorer.toolbar.shareLink'),'pathDesc'=>LNG('explorer.pathDesc.shareLink')),
-			KodIO::KOD_USER_SHARE_TO_ME	=> array('name'=>LNG('explorer.toolbar.shareToMe')),
-			KodIO::KOD_USER_RECYCLE		=> array('name'=>LNG('explorer.toolbar.recycle'),'pathDesc'=>LNG('explorer.pathDesc.recycle')),
-			KodIO::KOD_SEARCH			=> array('name'=>LNG('common.search')),
+			array(KodIO::KOD_USER_FAV,'explorer.toolbar.fav','explorer.pathDesc.fav'),
+			array(KodIO::KOD_GROUP_ROOT_SELF,'explorer.toolbar.myGroup','explorer.pathDesc.myGroup'),
+			array(KodIO::KOD_USER_RECENT,'explorer.toolbar.recentDoc','explorer.pathDesc.recentDoc'),
+			array(KodIO::KOD_USER_SHARE,'explorer.toolbar.shareTo','explorer.pathDesc.shareTo'),
+			array(KodIO::KOD_USER_SHARE_LINK,'explorer.toolbar.shareLink','explorer.pathDesc.shareLink'),
+			array(KodIO::KOD_USER_SHARE_TO_ME,'explorer.toolbar.shareToMe',''),
+			array(KodIO::KOD_USER_RECYCLE,'explorer.toolbar.recycle','explorer.pathDesc.recycle'),
+			array(KodIO::KOD_SEARCH,'common.search',''),
 		);
 		$result = array();
-		foreach ($list as $key => $item){
-			$result[$key] = array(
-				"name"		=> $item['name'], 
-				"path"		=> $key.'/',
-				"icon"		=> trim(trim($key,'{'),'}'),
-				"pathDesc"	=> $item['pathDesc'],
+		foreach ($list as $item){
+			$result[$item[0]] = array(
+				"name"		=> LNG($item[1]),
+				"path"		=> $item[0].'/',
+				"icon"		=> trim(trim($item[0],'{'),'}'),
+				"pathDesc"	=> $item[2] ? LNG($item[2]) : '',
 			);
 		}
 		if(is_string($pick)){

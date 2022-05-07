@@ -2,7 +2,7 @@
 	"id":"DPlayer",
 	"name":"{{LNG['DPlayer.meta.name']}}",
 	"title":"{{LNG['DPlayer.meta.title']}}",
-	"version":"1.22",
+	"version":"1.23",
 	"source":{
 		"icon":"{{pluginHost}}static/images/icon.png",
 	},

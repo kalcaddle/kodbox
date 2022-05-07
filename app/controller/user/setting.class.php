@@ -221,23 +221,8 @@ class userSetting extends Controller {
 	}
 
 	/**
-	 * 用户头像上传
+	 * 用户头像（上传）
 	 */
-	public function setHeadImage() {
-		$link = Input::get('link', 'require');
-		if(strpos($link, APP_HOST) !== 0) {
-			show_json(LNG('common.illegalRequest'), false);
-		}
-		$userID = USER_ID;
-		$link = str_replace(APP_HOST, './', $link);
-		if(!$this->model->userEdit($userID, array("avatar" => $link))) {
-			show_json(LNG('explorer.upload.error'), false);
-		}
-		$user = $this->model->getInfo($userID);
-		Session::set('kodUser', $user);
-		show_json($link, true, $user);
-	}
-
 	public function uploadHeadImage(){
 		$ext = get_path_ext(Uploader::fileName());
 		if(!in_array($ext,$this->imageExt)){
@@ -256,6 +241,23 @@ class userSetting extends Controller {
 		$this->in['name'] = $image;
 		$this->in['path'] = $path;
 		Action('explorer.upload')->fileUpload();
+	}
+	/**
+	 * 用户头像（设置）
+	 */
+	public function setHeadImage() {
+		$link = Input::get('link', 'require');
+		if(strpos($link, APP_HOST) !== 0) {
+			show_json(LNG('common.illegalRequest'), false);
+		}
+		$userID = USER_ID;
+		$link = str_replace(APP_HOST, './', $link);
+		if(!$this->model->userEdit($userID, array("avatar" => $link))) {
+			show_json(LNG('explorer.upload.error'), false);
+		}
+		$user = $this->model->getInfo($userID);
+		Session::set('kodUser', $user);
+		show_json($link, true, $user);
 	}
 
 	/**

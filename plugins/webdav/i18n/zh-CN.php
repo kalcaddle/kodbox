@@ -29,4 +29,12 @@ return array(
 	'webdav.help.others'		=> "<b>其他客户端及系统</b>: 明确地址为上述webdav地址,账号密码为自己登陆账号即可，基本流程类似
 	<br/>Android,iOS移动端设备推荐:<a href='http://www.estrongs.com/' target='_blank'>ES文件浏览器</a>",
 	'webdav.help.windowsTips'	=> "首次使用需要取消上传及http限制,下载此文件后双击运行",
+	
+	'webdav.config.tab1'				=> 'WebDAV服务',
+	'webdav.config.tab2'				=> '存储挂载',	
+	'webdav.config.mountWebdav'			=> '挂载webdav存储',
+	'webdav.config.mountWebdavDesc'		=> '开启后支持挂载: 后台--存储管理中添加存储,选择存储类型选择webdav即可',
+	'webdav.config.mountDetail1'		=> '支持挂载其他webdav服务器,作为本机存储',
+	'webdav.config.mountDetail2'		=> '可挂载其他kodbox提供的webdav, 多个kodbox进行互联互通',
+	'webdav.config.mountDetail3'		=> '挂载服务为kodbox提供时, 前端上传下载直传,不走服务器中转',
 );

@@ -22,8 +22,8 @@ ClassBase.define({
 		{{/each}}';
 		var data = [
 			{
-				title:LNG['explorer.toolbar.myDocument'],
-				value:this.webdavPath + urlEncode(LNG['explorer.toolbar.myDocument'])+'/'
+				title:LNG['explorer.toolbar.rootPath'],
+				value:this.webdavPath + urlEncode(LNG['explorer.toolbar.rootPath'])+'/'
 			},
 			{
 				title:LNG['explorer.toolbar.myGroup'],

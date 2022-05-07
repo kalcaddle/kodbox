@@ -1,0 +1,52 @@
+{
+	"id":"oauth",
+	"name":"{{LNG['oauth.meta.name']}}",
+	"title":"{{LNG['oauth.meta.title']}}",
+	"version":"1.03",
+	"category":"tools,others",
+	"source":{
+		"className":"font-icon ri-shield-user-line bg-blue-6"
+	},
+	"description":"{{LNG['oauth.meta.desc']}}",
+	"auther":{
+		"copyright":"kodcloud.",
+		"homePage":"http://www.kodcloud.com"
+	},
+	"meta": {
+		"needNetwork": 1
+	},
+	"networkDesc": "{{LNG['oauth.meta.netwrokDesc']}}",
+	"configItem":{
+		"pluginAuth":{
+			"type":"userSelect",
+			"value":{"all":1},
+			"display":"{{LNG['admin.plugin.auth']}}",
+			"desc":"{{LNG['admin.plugin.authDesc']}}",
+			"className":"hidden",
+			"require":1
+		},
+		"desc":{
+			"type":"html",
+			"value":"{{LNG['oauth.meta.desc']}}",
+			"display":"{{LNG['admin.setting.recDesc']}}"
+		},
+		"sep001":"<hr>",
+		"list":{
+			"type":"html",
+			// "value":"<div class='type-list'>
+			// 		<p><i class='font-icon ri-qq-fill size20'></i><span>QQ</span><i class='font-icon ri-check-fill size12'></i></p>
+			// 		<p><i class='font-icon ri-wechat-fill size20'></i><span>{{LNG['common.wechat']}}</span><i class='font-icon ri-check-fill size12'></i></p>
+			// 		<p><i class='font-icon ri-github-fill size20'></i><span>GitHub</span><i class='font-icon ri-check-fill size12'></i></p>
+			// 		<hr><span class='fq-desc'>{{LNG['oauth.config.fqDesc']}}</span>
+			// 		<p><i class='font-icon ri-google-fill size20'></i><span>Google<span class='web-url'>（https://google.com）</span></span><i class='font-icon ri-check-fill size12'></i></p>
+			// 		<p><i class='font-icon ri-facebook-fill size20'></i><span>Facebook<span class='web-url'>（https://facebook.com）</span></span><i class='font-icon ri-check-fill size12'></i></p>
+			// 		</div>",
+			"value":"<div class='type-list'>
+					<p><i class='font-icon ri-qq-fill size20'></i><span>QQ</span><i class='font-icon ri-check-fill size12'></i></p>
+					<p><i class='font-icon ri-wechat-fill size20'></i><span>{{LNG['common.wechat']}}</span><i class='font-icon ri-check-fill size12'></i></p>
+					<p><i class='font-icon ri-github-fill size20'></i><span>GitHub</span><i class='font-icon ri-check-fill size12'></i></p>
+					</div>",
+			"display":"{{LNG['oauth.config.type']}}",
+		},
+	}
+}

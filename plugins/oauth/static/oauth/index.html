@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+
+<head>
+	<title><?php echo LNG('oauth.main.pageTitle');?></title>
+	<meta charset="utf-8">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="theme-color" content="#d89000">
+	<link rel="icon" href="./static/images/icon/fav.png">
+	<script>var kodSdkConfig = {api:'<?php echo APP_HOST;?>'};</script>
+	<?php $this->link('app/dist/sdk.js','static');?>
+	<?php $this->link('style/lib/font-icon/style.css','static');?>
+	<style>
+		body:after {
+			position: absolute;top: 0;right: 0;bottom: 0;left: 0;z-index: 100;
+			background: url("<?php echo STATIC_PATH.'images/common/loading-page.gif';?>");
+			margin: auto;width: 72px;height: 72px;
+			content: "";text-align: center;transition: all 0.5s;
+			background-color: #eee;background-size: 100% 100%;background-repeat: no-repeat;
+			border-radius: 8px;box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+		}
+		body.page-loaded:after {visibility: hidden;opacity: 0;}
+
+		body {width: 100%;height: 100%;position: fixed;top: 0;left: 0;bottom: 0;right: 0;}
+		#app {height: 100%;display: -webkit-flex;justify-content: center;align-items: center;}
+		.bind-box {text-align: center;}
+		.bind-box .title {color: red;font-size: 16px;}
+		.bind-box .msg {color: #747474;font-size: 13px;margin-bottom: 20px;}
+		.bind-box img {width: 120px;height: 120px;}
+		.bind-box .img-box p {margin-top: 10px;font-size: 12px;color: #bbb;}
+		.bind-box .img-box .loading {margin-top: 150px;font-size: 14px;color: #949494;font-style: italic;}
+		.bind-box .back-home{margin: 0px; font-size: 13px;display: none;}
+		.bind-box .back-home a{text-decoration: none; color: #1890ff;}
+	</style>
+	<script>
+		var BASE_URL = "<?php echo $this->pluginHost.'static/';?>";
+		var BASE_URL_API = "<?php echo $this->pluginApi;?>";
+	</script>
+</head>
+
+<body>
+	<div id="app">
+		<div class="bind-box">
+			<p class="title"></p>
+			<p class="msg"></p>
+			<div class="img-box">
+				<div class="loading">Loading...</div>
+			</div>
+			<p class="back-home"><a href="./"><?php echo LNG('oauth.main.backHome');?></a></p>
+		</div>
+	</div>
+
+	<script>
+		$(function () {
+			// 获取当前url参数
+			var getUrlParams = function () {
+				var data = {};
+				var query = window.location.search.substring(1).split('&');	// 先解码导致data参数（{}）异常
+				for(var i in query) {
+					var item = query[i];
+					var idx = item.indexOf('=');
+					if (idx > 0) {
+						var key	  = item.slice(0, idx);
+						var value = item.slice(idx + 1);
+						data[key] = urlDecode(value);
+					}
+				}
+				return data;
+			}
+
+			// 返回bindApi页面数据bind
+			var bindData = function (result) {
+				if (!result.code) {
+					return {
+						title:	'An error occurred',
+						imgUrl:	BASE_URL + 'images/error.png',
+						msg:	result.data,
+						errMsg: '',
+					}
+				}
+				var msgArr = result.data.msg.split(";");
+				result.data.msg = msgArr[0];
+				result.data.errMsg = msgArr[1] || '';
+				return result.data;
+			}
+			var pageUrl = './#setting/user/account';
+			var bindMsg = function (data) {
+				if (!data.success) {
+					if (data.type != 'weixin') {
+						// 绑定异常时不自动跳转
+						var hash = data.client ? './' : './#setting/user/account';
+						$(".bind-box .back-home a").attr('href', hash);
+						$(".bind-box .back-home").show();
+					}
+					return false;	// weixin则弹窗保持
+				}
+				// 后端
+				if (!data.client) {
+					return bindAfter(data.type, pageUrl);
+				}
+				// 前端-已绑定（进入主页面）
+				bindAfter(data.type, './', true, data.bind);
+			}
+			var bindAfter = function (type, url, client = false, bind = false) {
+				var time = type != 'weixin' ? 3000 : 1000;
+				if (client && bind) {
+					return setTimeout(function () {
+						window.parent.location.href = url;
+					}, time);
+				}
+				if (type != 'weixin') {
+					return setTimeout(function () { location.href = url; }, time);
+				}
+				if (client) {
+					window.parent.location.href = url;
+				} else {
+					if (!window.parent.artDialog.list["bindlogin"]) {
+						return setTimeout(function () { location.href = url; }, time);
+					}
+					window.parent.location.reload();
+				}
+				return setTimeout(function () {
+					window.parent.artDialog.list["bindlogin"].close();
+				}, time);
+			}
+			// 回调请求
+			$.ajax({
+				url: BASE_URL_API + 'bind&method=bindApi',
+				data: getUrlParams(),
+				dataType: 'json',
+				success: function (result) {
+					$('body').addClass('page-loaded');
+
+					var data = bindData(result);
+					$(".bind-box .title").text(data.title);
+					$(".bind-box .msg").text(data.msg);
+					var $box = $(".bind-box .img-box").html('<img src=""><p></p>');
+					$box.find('img').attr('src', data.imgUrl);
+					$box.find('p').text(data.errMsg);
+
+					if (result.code && result.data.success) {
+						$(".bind-box img").css('border-radius', '60px');
+						$(".bind-box img").next('p').html(htmlEncode(data.name));
+					}
+					bindMsg(result.data);
+				}
+			});
+		})
+	</script>
+</body>
+
+</html>

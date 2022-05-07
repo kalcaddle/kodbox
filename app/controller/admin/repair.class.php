@@ -47,8 +47,22 @@ class adminRepair extends Controller {
 	 * @return void
 	 */
 	public function clearErrorFile(){
-		$result = $this->resetFileLink(true);
+		$cache = Cache::get('clear_file_'.date('Ymd'));
+		if (!$cache || is_array($cache)) {
+			echo '<br/><p style="font-size:14px;">没有缺失的物理文件记录——此记录从缓存中获取，缓存数据在执行<code>done=1</code>时产生。</p>';
+			exit;
+		}
+		$model = Model('File');
+		$modelSource = Model("Source");$modelHistory = Model("SourceHistory");
+		$result = array('file' => 0, 'source' => 0);
+		foreach ($cache as $item) {
+			$rest = $this->delFileNone($model, $modelSource, $modelHistory, $item);
+			$result['file'] += $rest['file'];
+			$result['source'] += $rest['source'];
+		}
+		Cache::remove('clear_file_'.date('Ymd'));
 		echo '<p style="font-size:14px;">清除已不存在的物理文件记录共' . $result['file'] . '条，涉及source记录' . $result['source'] . '条！</p>';
+		exit;
 	}
 
 	/**
@@ -220,6 +234,7 @@ class adminRepair extends Controller {
 		$pageNum = 5000;$page = 1;$errorNum = 0;
 		$list = $model->selectPage($pageNum,$page);
 		
+		$cache = array();
 		$rest = array('file' => 0, 'source' => 0);
 		$task = new Task($taskType,'',$list['pageInfo']['totalNum']);
 		while($list && $page <= $list['pageInfo']['pageTotal']){
@@ -229,22 +244,40 @@ class adminRepair extends Controller {
 				}else{
 					$task->task['currentTitle'] = $errorNum .'个不存在';
 					write_log(array($taskType.'--已不存在的物理文件',$item),'sourceClear');$errorNum ++;
-					if ($done) {
-						$files = array_pad(array(), intval($item['linkCount']), $item['fileID']);	// 引用清0然后删除
-						$cnt1  = $model->remove($files);
-						$where = array("fileID"=>$item['fileID']);
-						$cnt2  = $modelSource->where($where)->delete();
-						$modelHistory->where($where)->delete();
-						$rest['file'] += intval($cnt1);
-						$rest['source'] += intval($cnt2);
-					}
+					$cache[] = array(
+						'fileID'	=> $item['fileID'],
+						'linkCount' => $item['linkCount'],
+					);
+					// if ($done) {
+					// 	$files = array_pad(array(), intval($item['linkCount']), $item['fileID']);	// 引用清0然后删除
+					// 	$cnt1  = $model->remove($files);
+					// 	$where = array("fileID"=>$item['fileID']);
+					// 	$cnt2  = $modelSource->where($where)->delete();
+					// 	$modelHistory->where($where)->delete();
+					// 	$rest['file'] += intval($cnt1);
+					// 	$rest['source'] += intval($cnt2);
+					// }
 				}
 				$task->update(1);
 			}
 			$page ++;$list = $model->selectPage($pageNum,$page);
 		}
 		$task->end();
+
+		if ($cache) Cache::set('clear_file_'.date('Ymd'), $cache);
 		return $rest;
+	}
+	// 删除不存在的物理文件
+	private function delFileNone($model, $modelSource, $modelHistory, $item){
+		$files = array_pad(array(), intval($item['linkCount']), $item['fileID']);	// 引用清0然后删除
+		$cnt1  = $model->remove($files);
+		$where = array("fileID"=>$item['fileID']);
+		$cnt2  = $modelSource->where($where)->delete();
+		$modelHistory->where($where)->delete();
+		return array(
+			'file'	 => intval($cnt1), 
+			'source' => intval($cnt2)
+		);
 	}
 
 	public function resetSourceHistory(){		

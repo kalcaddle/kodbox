@@ -23,7 +23,7 @@ return array(
 	'client.app.scanLogin'				=> '扫码登录',
 	'client.app.scanError'				=> '二维码异常或失效,请重试!',
 	'client.app.scanNotIP'				=> '不支持本机ip访问,请使用ip或域名访问',
-	'client.app.scanVersion'			=> '(iOS>2.1.1,Android>2.0.0)',
+	'client.app.scanVersion'			=> '(iOS>2.1.1,Android>2.1.1)',
 	
 	'client.app.loginApp'				=> '扫码登录App',
 	'client.app.loginAppDesc'			=> 'App需要先升级到最新版才支持',

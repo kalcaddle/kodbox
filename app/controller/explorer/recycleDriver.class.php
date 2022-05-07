@@ -139,7 +139,9 @@ class explorerRecycleDriver extends Controller{
 			return IO::remove($path);//已经在回收站中,则不再处理;
 		}
 		
-		IO::mkdir($recyclePath);
+		$destPath = IO::mkdir($recyclePath);
+		if(!$destPath){return IO::remove($path);} //新建失败,则尝试直接删除;
+
 		$toPath = IO::move($path,$recyclePath,REPEAT_RENAME_FOLDER);
 		$list = $this->listData();
 		$list[$toPath] = $beforePath;

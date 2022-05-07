@@ -81,7 +81,7 @@ class explorerUpload extends Controller{
 		if($path){
 			show_json(LNG("explorer.upload.success"),true,$this->uploadInfo($path));
 		}else{
-			show_json(LNG("explorer.upload.error"),false);
+			show_json(IO::getLastError(LNG("explorer.upload.error")),false);
 		}
 	}
 	private function uploadInfo($path){
@@ -143,12 +143,17 @@ class explorerUpload extends Controller{
 			),
 			"uploadLinkInfo"	=> IO::uploadLink($savePath, $size),//前端上传信息获取;
 			"uploadToKod"		=> $isSource,
+			"uploadChunkSize"	=> $this->config['settings']['upload']['chunkSize'],
 			"kodDriverType"		=> $default['driver'],
 		);
 		$linkInfo = &$infoData['uploadLinkInfo'];
 		if(isset($linkInfo['host'])){
 		    $linkInfo['host'] = str_replace("http://",'//',$linkInfo['host']);
 		}
+		
+		// 保留参数部分; kod挂载kod的webdav前端上传;
+		if($this->in['addUploadParam']){$infoData['addUploadParam'] = $this->in['addUploadParam'];} // server;
+		if($linkInfo['webdavUploadTo']){$infoData = $linkInfo;}	// webdav client 首次检测中转访问;
 		
 		if( $this->in['checkType'] == 'matchMd5' && 
 			!empty($this->in['checkHashMd5']) && 

@@ -62,6 +62,7 @@ class explorerIndex extends Controller{
 			$result['hashMd5'] = IO::hashMd5($result['path']);
 		}
 		$result = Action('explorer.list')->pathInfoMore($result);
+		$result = Action('explorer.list')->fileInfoAddHistory($result);
 		return $result;
 	}
 	
@@ -269,7 +270,9 @@ class explorerIndex extends Controller{
 		}
 		$repeat = !empty($this->in['fileRepeat']) ? $this->in['fileRepeat']:REPEAT_SKIP;
 		$result = IO::mkfile($this->in['path'],$content,$repeat);
-		$msg = !!$result ? LNG('explorer.success') : LNG('explorer.error');
+		
+		$errorLast = IO::getLastError(LNG('explorer.error'));
+		$msg = !!$result ? LNG('explorer.success') : $errorLast;
 		show_json($msg,!!$result,$result);
 	}
 	public function mkdir(){
@@ -281,7 +284,8 @@ class explorerIndex extends Controller{
 		}
 				
 		$result = IO::mkdir($this->in['path'],$repeat);
-		$msg = !!$result ? LNG('explorer.success') : LNG('explorer.error');
+		$errorLast = IO::getLastError(LNG('explorer.error'));
+		$msg = !!$result ? LNG('explorer.success') : $errorLast;
 		show_json($msg,!!$result,$result);
 	}
 	public function pathRename(){
@@ -290,7 +294,8 @@ class explorerIndex extends Controller{
 		$this->taskCopyCheck(array(array("path"=>$path)));
 		
 		$result = IO::rename($path,$this->in['newName']);
-		$msg = !!$result ? LNG('explorer.success') : LNG("explorer.pathExists");
+		$errorLast = IO::getLastError(LNG('explorer.pathExists'));
+		$msg = !!$result ? LNG('explorer.success') : $errorLast;
 		show_json($msg,!!$result,$result);
 	}
 
@@ -302,15 +307,15 @@ class explorerIndex extends Controller{
 			$toRecycle = false;
 		}
 		$success=0;$error=0;
-		$errorMsg = LNG('explorer.removeFail');
 		foreach ($list as $val) {
 			$result = Action('explorer.recycleDriver')->removeCheck($val['path'],$toRecycle);
 			$result ? $success ++ : $error ++;
 		}
 		$code = $error === 0 ? true:false;
-		$msg  = $code ? LNG('explorer.removeSuccess') : $errorMsg;
+		$errorLast = IO::getLastError(LNG('explorer.removeFail'));
+		$msg  = $code ? LNG('explorer.removeSuccess') : $errorLast;
 		if(!$code && $success > 0){
-			$msg = $success.' '.LNG('explorer.success').', '.$error.' '.LNG('explorer.error');
+			$msg = $success.' '.LNG('explorer.success').', '.$error.' '.$errorLast;
 		}
 		show_json($msg,$code);
 	}
@@ -461,12 +466,13 @@ class explorerIndex extends Controller{
 		if (count($list) == 0 || !$pathTo) {
 			show_json(LNG('explorer.clipboardNull'),false);
 		}
+		ignore_timeout(0);
 		$this->taskCopyCheck($list);
 		
-		$error = '';
+		Hook::trigger('explorer.pathCopyMove',$copyType,$list);
 		$repeat = Model('UserOption')->get('fileRepeat');
 		$repeat = !empty($this->in['fileRepeat']) ? $this->in['fileRepeat'] :$repeat;
-		$result = array();
+		$result = array();$errorList = array();
 		for ($i=0; $i < count($list); $i++) {
 			$thePath = $list[$i]['path'];
 			if ($copyType == 'copy') {
@@ -477,13 +483,19 @@ class explorerIndex extends Controller{
 				if(KodIO::clear($father) == KodIO::clear($pathTo) ){
 					$repeatType = REPEAT_RENAME_FOLDER;
 				}
-				$result[] = IO::copy($thePath,$pathTo,$repeatType);
+				$itemResult = IO::copy($thePath,$pathTo,$repeatType);
 			}else{
-				$result[] = IO::move($thePath,$pathTo,$repeat);
+				$itemResult = IO::move($thePath,$pathTo,$repeat);
 			}
+			if(!$itemResult){$errorList[] = $thePath;continue;}
+			$result[] = $itemResult;
 		}
-		$msg= $copyType == 'copy'?LNG('explorer.pastSuccess').$error:LNG('explorer.cutePastSuccess').$error;
-		$code = $error =='' ?true:false;
+		
+		$code = $result ? true:false;
+		$msg  = $copyType == 'copy'?LNG('explorer.pastSuccess'):LNG('explorer.cutePastSuccess');
+		
+		if(count($result) == 0){$msg = LNG('explorer.error');}
+		if($errorList){$msg .= "(".count($errorList)." error)\n".IO::getLastError();}
 		show_json($msg,$code,$result);
 	}
 	
@@ -503,7 +515,6 @@ class explorerIndex extends Controller{
 				show_json(LNG('explorer.share.noDownTips'), false);
 			}
 			$list[$i]['path'] = $info['path'];
-			// pr($path,$info);exit;
 		}
 		return $list;
 	}
@@ -708,7 +719,6 @@ class explorerIndex extends Controller{
 		$find   = $parent.'/'.rawurldecode($this->in['add']); //支持中文空格路径等;
 		$find   = KodIO::clear(str_replace('./','/',$find));
 		$info   = IO::infoFull($find);
-		// pr($parent,$this->in,$find,$info,IO::info($this->in['path']));exit;
 		if(!$info || $info['type'] != 'file'){
 			return show_json(LNG('common.pathNotExists'),false);
 		}

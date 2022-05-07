@@ -135,6 +135,7 @@ define(function(require, exports) {
 		jPlayerBindControl($playerBox);
 		$playerBox.find('audio').attr('autoplay','autoplay').removeAttr('muted');
 		// plaryer.mute(false);//取消静音;兼容android;
+		if(window.kodApp && kodApp.mediaAutoPlay === false){player.jPlayer("pause");}
 
 		//移动端;微信,safari等屏蔽了自动播放;首次点击页面触发播放;
 		//$playerBox.find('.aui-content').one("touchstart mousedown",play);

@@ -40,6 +40,7 @@ define(function(require, exports) {
 		var player = new DPlayer(playerOption);
 		player.play();
 		$target.find('video').attr('autoplay','autoplay').removeAttr('muted');
+		if(window.kodApp && kodApp.mediaAutoPlay === false){player.pause();}
 		
 		var dialog = $target.parents('.dplayer-dialog').data('artDialog');
 		var playerResize = playerDialogResize($target,dialog,false);

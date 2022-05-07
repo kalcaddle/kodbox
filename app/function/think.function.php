@@ -83,20 +83,23 @@ function think_exception($msg) {
 }
 
 function think_error_parse(&$error){
-    $errMsg = array(
-        'using password'        => '拒绝访问：用户名或密码错误。',
-        'timed out'             => '连接超时，请检查服务器地址是否正确。',
-        'connection refused'    => '连接被拒绝：配置信息有误，或服务未启动。',
-        'getaddrinfo failed'    => '连接错误，请检查服务器地址是否正确。',
-        '_NOT_SUPPERT_'         => '不支持的数据库类型，请检查对应服务，或配置文件是否正常。',
-        'Access denied'         => '拒绝访问：权限不足。'
+    $errList = array(
+        'using password'        => LNG('ERROR_DB_PWD'),
+        'timed out'             => LNG('ERROR_DB_TIMEOUT'),
+        'connection refused'    => LNG('ERROR_DB_CONN_RFS'),
+        'getaddrinfo failed'    => LNG('ERROR_DB_ADR'),
+        '_NOT_SUPPORT_'         => LNG('ERROR_DB_NOT_SUPPORT'),
+        'Access denied'         => LNG('ERROR_DB_XS_DENNIED'),
+        'Unknown database'      => LNG('ERROR_DB_NOT_EXIST'),
     );
-    foreach($errMsg as $key => $msg) {
+    $errMsg = '';
+    // $errMsg = '数据库操作异常，请检查对应服务及相关配置。';
+    foreach($errList as $key => $msg) {
         if(stripos($error, $key) !== false) {
-            $error .= '<br/></br/>' . $msg;
-            break;
+            $errMsg = $msg; break;
         }
     }
+    if ($errMsg) $error .= '<br/></br/>' . $errMsg;
 }
 
 /**

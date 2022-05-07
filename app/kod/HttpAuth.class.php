@@ -31,6 +31,6 @@ class HttpAuth {
 	}
 	
 	public static function make($user,$pass){
-		return "Authorization: Basic " + base64_encode($user.':'.$pass);
+		return "Authorization: Basic " . base64_encode($user.':'.$pass);
 	}
 }

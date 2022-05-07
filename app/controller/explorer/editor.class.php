@@ -13,6 +13,7 @@ class explorerEditor extends Controller{
 	
 	public function fileGet(){
 		$path = Input::get('path','require');
+		$this->fileGetHistoryCheck($path);
 		if(request_url_safe($path)){
 			$urlInfo = parse_url_query($path);
 			$driver  = new PathDriverUrl();
@@ -26,6 +27,28 @@ class explorerEditor extends Controller{
 		$pathInfo = Action('explorer.list')->pathInfoParse($pathInfo);
 		Action('explorer.index')->updateLastOpen($path);
 		$this->fileGetMake($path,$pathInfo);
+	}
+	
+	// 历史版本文件获取;
+	private function fileGetHistoryCheck($path){
+		if(!request_url_safe($path)) return;
+		$urlInfo = parse_url_query($path);
+		if(!isset($urlInfo['explorer/history/fileOut']) || !isset($urlInfo['path'])) return;
+		
+		$this->in['path'] = rawurldecode($urlInfo['path']);
+		$this->in['id']   = $urlInfo['id'];
+		$info = IO::info($this->in['path']);
+		if(!$info) return;
+		
+		$action = isset($info['sourceID']) ? 'explorer.history':'explorer.historyLocal';
+		$pathInfo = Action($action)->fileInfo();// 内部做权限检测;
+		if(!$pathInfo){return show_json(LNG('common.pathNotExists'),false);}
+
+		$pathInfo['name'] 	= isset($urlInfo['name']) ? rawurldecode($urlInfo['name']) : $pathInfo['name'];
+		$pathInfo['ext'] 	= get_path_ext($pathInfo['name']);
+		$pathInfo['pathDisplay'] = "[" . trim($pathInfo['name'], '/') . "]";
+		$filePath = $pathInfo['path'];$pathInfo['path'] = '';
+		$this->fileGetMake($filePath,$pathInfo);exit;
 	}
 	
 	private function contentPage($path,$size){
@@ -48,6 +71,10 @@ class explorerEditor extends Controller{
 			$content = $driver->fileSubstr($path,$from,$length);
 		}else{
 			$content = IO::fileSubstr($path,$from,$length);
+		}
+		
+		if($content === false){
+			show_json(IO::getLastError(LNG('explorer.error')),false);
 		}
 		if($size == 0){$content = '';}
 		return array(
@@ -121,7 +148,7 @@ class explorerEditor extends Controller{
 			$content = @mb_convert_encoding($content,$charset,'utf-8');
 		}
 		$result = IO::setContent($data['path'],$content);
-		$msg = $result ? LNG("explorer.saveSuccess") : LNG('explorer.saveError');
+		$msg = $result ? LNG("explorer.saveSuccess") : IO::getLastError(LNG('explorer.saveError'));
 		show_json($msg,!!$result);
 	}
 	

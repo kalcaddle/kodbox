@@ -17,8 +17,8 @@ class explorerHistory extends Controller{
 	private function checkAuth(){
 		$path = Input::get('path','require');
 		$info = IO::info($path);
-		if( !isset($info['sourceID']) ){ // 必须是kod的目录;
-			show_json(LNG('explorer.dataError'),false);
+		if( !isset($info['sourceID']) ){ // 物理目录,io路径代理请求;
+			Action('explorer.historyLocal')->delegate();exit;
 		}
 		Action('explorer.auth')->canWrite($path);
 		$this->sourceID = $info['sourceID'];
@@ -61,9 +61,7 @@ class explorerHistory extends Controller{
 		show_json($msg,!!$res);
 	}
 	
-	/**
-	 * 设置某个版本为最新版;
-	 */
+	//设置某个版本为最新版;
 	public function rollback() {
 		$id  = $this->checkItem();
 		$fileInfo = $this->model->fileInfo($id);
@@ -85,12 +83,15 @@ class explorerHistory extends Controller{
 		show_json($msg,!!$res);
 	}
 	public function fileOut(){
-		$id  = $this->checkItem();
-		$fileInfo = $this->model->fileInfo($id);
+		$fileInfo = $this->fileInfo();
 		$isDownload = isset($this->in['download']) && $this->in['download'] == 1;
 		if(isset($this->in['type']) && $this->in['type'] == 'image'){
 			return IO::fileOutImage($fileInfo['path'],$this->in['width']);
 		}
 		IO::fileOut($fileInfo['path'],$isDownload,$fileInfo['name']);
+	}
+	public function fileInfo(){
+		$id  = $this->checkItem();
+		return $this->model->fileInfo($id);
 	}
 }

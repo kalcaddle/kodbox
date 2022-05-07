@@ -13,7 +13,7 @@ class adminLog extends Controller{
      * @return void
      */
     public function typeList(){
-        $typeList = $this->model->allTypeList();
+        $typeList = $this->model->typeListAll();
         $list = array(
             'all'   => array('id' => 'all',  'text' => LNG('common.all')),
             'file'  => array('id' => 'file', 'text' => LNG('admin.log.typeFile')),
@@ -27,9 +27,9 @@ class adminLog extends Controller{
             $list[$mod]['children'][] = array('id' => $type,'text' => $name);
 		}
         $fileList = array(
+            array('id' => 'explorer.index.zipDownload', 'text' => LNG('admin.log.downFolder')),
             array('id' => 'explorer.index.fileOut', 'text' => LNG('admin.log.downFile')),
             array('id' => 'explorer.index.fileDownload', 'text' => LNG('admin.log.downFile')),
-            array('id' => 'explorer.index.zipDownload', 'text' => LNG('admin.log.downFolder')),
             array('id' => 'explorer.fav.add', 'text' => LNG('explorer.addFav')),
             array('id' => 'explorer.fav.del', 'text' => LNG('explorer.delFav')),
         );
@@ -46,11 +46,12 @@ class adminLog extends Controller{
 				// 'file.mkdir,file.mkfile' => '新建文件(夹)',
 				'file.copy,file.move,file.moveOut' => LNG('log.file.move'),
 				'explorer.fav.add,explorer.fav.del' => LNG('log.file.fav'),
+				'explorer.index.fileOut,explorer.index.fileDownload' => LNG('admin.log.downFile'),
 				'file.shareLinkAdd,file.shareLinkRemove' => LNG('log.file.shareLink'),
 				'file.shareToAdd,file.shareToRemove' => LNG('log.file.shareTo'),
 			),
 			'user' => array(
-				'user.setting.setHeadImage,user.setting.setUserInfo,user.bind.bindApi,user.bind.unbind' => LNG('log.user.edit'),
+				'user.setting.setHeadImage,user.setting.setUserInfo' => LNG('log.user.edit'),
 			),
 			'admin' => array(
 				'admin.group.add,admin.group.edit,admin.group.remove,admin.group.status,admin.group.sort' => LNG('log.group.edit'),
@@ -131,14 +132,14 @@ class adminLog extends Controller{
      * @param boolean $data
      * @return void
      */
-    public function log($data=false,$info=null){
-        $typeList = $this->model->allTypeList();
+    public function log($data=false){
+        if (isset($this->in['disableLog']) && $this->in['disableLog'] == '1') return;
+        $typeList = $this->model->typeListAll();
         if(!isset($typeList[ACTION])) return;
 		if($GLOBALS['loginLogSaved'] ==1) return;
         $actionList = array(
             'user.index.logout',
             'user.index.loginSubmit',
-            'user.bind.bindApi'
         );
         // 操作日志
         if(!in_array(ACTION, $actionList)){
@@ -157,7 +158,6 @@ class adminLog extends Controller{
             }
         }
         // 第三方绑定
-        if(ACTION == 'user.bind.bindApi' && !$data['success']) return;
         if(ACTION == 'user.index.loginSubmit'){
             if (!is_array($data)) return;
             return $this->loginLog();
@@ -192,7 +192,7 @@ class adminLog extends Controller{
     public function userLog(){
         $userID = Input::get('userID', 'int');
         // 获取文件操作类型
-		$typeList = $this->model->allTypeList();
+		$typeList = $this->model->typeListAll();
 		$types = array();
 		foreach($typeList as $key => $value) {
 			if(strpos($key, 'file.') === 0) $types[] = $key;

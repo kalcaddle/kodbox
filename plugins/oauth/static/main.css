@@ -1,0 +1,70 @@
+/* 登录页 */
+.page-model-login .more-login-area {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    position: relative;
+    width: 90%;
+    /* margin: 20px auto 20px; */
+    margin: 10px auto 15px;
+}
+.page-model-login .more-login-area .more-login-words {
+    position: relative;
+    top: 9px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: #fff;
+    font-size: 0.9em;
+}
+.login-third-box .third-item {
+    display: inline-block;
+    width: 35px;
+    height: 30px;
+    cursor: pointer;
+    background: url("../../../static/images/common/icon-sn-cr.png") -80px 0px no-repeat;
+}
+
+.page-model-login .login-third-box .third-item:active,
+.page-model-login .login-third-box .third-item:hover {opacity: 0.6;}
+.page-model-login .login-third-box .box-qq {background-position:-80px 0px;}
+.page-model-login .login-third-box .box-weixin {background-position:-248px 0px;}
+.page-model-login .login-third-box .box-github {background-position:-24px 0px;}
+.page-model-login .login-third-box .box-google {background-position:4px 0px;}
+/* .page-model-login .login-third-box .box-google .g_id_signin iframe{
+    height: 30px !important;
+    width: 45px !important;
+    margin-left: -6px !important;
+    opacity: 0;
+} */
+.page-model-login .login-third-box .box-facebook {background-position:-136px -0px;}
+
+/* 插件配置 */
+.app-config-oauth.dialog-plugin-config .panel-form-body .form-row[data-key=list] .type-list p{
+    /* height: 32px;line-height: 32px; */
+    height: 28px;line-height: 28px;
+}
+.app-config-oauth.dialog-plugin-config .panel-form-body .form-row[data-key=list] .type-list p>*{
+    display: inline-block; 
+    width: 55px;
+    text-align: left;
+}
+.app-config-oauth.dialog-plugin-config .panel-form-body .form-row[data-key=list] .type-list p>span{
+    width: calc(100% - 140px);
+}
+.app-config-oauth.dialog-plugin-config .panel-form-body .form-row[data-key=list] .type-list p .ri-check-fill{
+    width: 20px;
+    height: 20px;
+    line-height: 20px;
+    background: #52c41a;
+    color: #fff;
+    border-radius: 50%;
+    font-size: 12px;
+    text-align: center;
+}
+.app-config-oauth.dialog-plugin-config .panel-form-body .form-row[data-key=list] .type-list .fq-desc{
+    font-size: 0.8em;
+    color: #949494;
+    text-align: center;
+    display: block;
+}
+.app-config-oauth.dialog-plugin-config .panel-form-body .form-row[data-key=list] .type-list .web-url{
+    color: #949494;
+}

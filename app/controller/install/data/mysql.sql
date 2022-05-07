@@ -354,7 +354,7 @@ CREATE TABLE `system_option` (
   UNIQUE KEY `key_type` (`key`,`type`),
   KEY `createTime` (`createTime`),
   KEY `modifyTime` (`modifyTime`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='系统配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='系统配置表';
 
 DROP TABLE IF EXISTS `system_session`;
 CREATE TABLE `system_session` (
@@ -467,5 +467,5 @@ CREATE TABLE `user_option` (
   KEY `userID` (`userID`),
   KEY `key` (`key`),
   KEY `type` (`type`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='用户数据配置表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户数据配置表';
 

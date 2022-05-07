@@ -7,6 +7,30 @@ class adminBackup extends Controller{
 		$this->model = Model('Backup');
 	}
 
+	/**
+	 * 初始化备份计划任务
+	 * @return void
+	 */
+	public function taskInit(){
+		if(Model('systemOption')->get('autoTaskInit','backup') == 'ok') return;
+		// 数据备份
+		$data = array (
+			'name'	=> LNG('admin.task.backup'),
+			'type'	=> 'method',
+			'event' => 'admin.backup.start',
+			'time'	=> '{"type":"day","month":"1","week":"1","day":"02:00","minute":"10"}',
+			'desc'	=> LNG('admin.task.backupDesc'),
+			'enable' => '0',
+			'system' => '1',
+		);
+		if(!Model('SystemTask')->add($data)) return; 
+		Model('systemOption')->set('autoTaskInit','ok','backup');
+	}
+
+	/**
+	 * 计划任务配置信息
+	 * @return void
+	 */
     public function config(){
 		// 最近一条备份记录
 		if(Input::get('last', null, 0)) {

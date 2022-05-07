@@ -23,7 +23,7 @@ return array(
 	'client.app.scanLogin'				=> 'Scan Qrcode login',
 	'client.app.scanError'				=> 'Qrcode is error or disabled, please try again!',
 	'client.app.scanNotIP'				=> 'Not support local address',
-	'client.app.scanVersion'			=> '(iOS>2.1.1,Android>2.0.0)',
+	'client.app.scanVersion'			=> '(iOS>2.1.1,Android>2.1.1)',
 	
 	'client.app.loginApp'				=> 'Scan Qrcode login App',
 	'client.app.loginAppDesc'			=> 'App needs to be upgraded to the latest version',

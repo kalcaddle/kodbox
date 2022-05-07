@@ -59,7 +59,6 @@ class adminAuth extends Controller{
 	 */
 	public function remove() {
 		$id = Input::get('id','int');
-		
 		// 是否强制删除;
 		if(!isset($this->in['force'])){
 			// 判断是否被使用

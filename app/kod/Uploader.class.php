@@ -58,7 +58,7 @@ class Uploader{
 		}
 		
 		//分片上传必须携带文件大小,及分片切分大小;
-		CacheLock::lock($this->tempFile,60);
+		CacheLock::lock($this->tempFile,30);
 		$data = $this->statusGet();
 		$this->initFileTemp();
 		$chunkFile = $this->moveUploadedFile($dest);
@@ -68,7 +68,9 @@ class Uploader{
 		if(!$chunkFile) $this->showJson(LNG('explorer.moveError'),false);
 		
 		$offset = $chunk * $chunkSize;
-		$outFp = @fopen($this->tempFile, "r+");
+		if(!$outFp = @fopen($this->tempFile, "r+")){
+			$this->showJson('fopen file error:'.$this->tempFile,false);
+		}
 		fseek_64($outFp,$offset);
 		$success = $this->writeTo($chunkFile,$outFp,$this->tempFile);
 		$hash    = IO::hashSimple($chunkFile);
@@ -106,9 +108,6 @@ class Uploader{
 	}
 	private function showJson($data,$code){
 		CacheLock::unlock($this->tempFile);
-		if(!$code){
-			return show_json($data,$code); 
-		}
 		show_json($data,$code);
 	}
 	
@@ -197,7 +196,9 @@ class Uploader{
 	// 生成占位文件;
 	private function initFileTemp(){
 		if( file_exists($this->tempFile) ) return;
-		$fp = fopen($this->tempFile,'wb+');
+		if(!$fp = fopen($this->tempFile,'wb+')){
+			$this->showJson('fopen file error:'.$this->tempFile,false);
+		}
 		fseek_64($fp,$this->in['size']-1,SEEK_SET);
 		fwrite($fp,'0');
 		fclose($fp);
@@ -231,8 +232,8 @@ class Uploader{
 			IO::hashMd5($this->tempFile) == $fileMd5 ){
 			return true;
 		}
-		
-		$fp = fopen($this->tempFile,'r');
+
+		if(!$fp = fopen($this->tempFile,'r')) return false;
 		$success = true;
 		foreach ($data['chunkArray'] as $item) {
 			fseek_64($fp,$item['offset']);

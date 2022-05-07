@@ -55,8 +55,6 @@ class KodSSO{
 			$BASIC_PATH = str_replace('\\','/',dirname(dirname(dirname(__FILE__)))).'/';
 			$command = $phpBin.' '.$BASIC_PATH.'index.php '.escapeshellarg($uri);
 			$res = shell_exec($command);
-		}else{
-		    echo "shell_exec is disabled; please open it";exit;
 		}
 		if(!$res || substr(trim($res),0,1) != '[' ){ // 避免命令行调用返回错误的问题; 
 			$context = stream_context_create(array(
@@ -121,9 +119,10 @@ class KodSSO{
 		$BASIC_PATH = str_replace('\\','/',dirname(dirname(dirname(__FILE__)))).'/';
 		$WEB_ROOT 	= self::webrootPath($BASIC_PATH);
 		$WEB_URI    = str_replace($WEB_ROOT,'',$BASIC_PATH);
-		
+
 		// 有软连接情况处理;
-		if(substr($WEB_ROOT,0,strlen($BASIC_PATH)) != $WEB_ROOT){
+		if(substr($WEB_ROOT,0,strlen($BASIC_PATH)) != $WEB_ROOT || 
+			substr($BASIC_PATH,0,strlen($WEB_ROOT)) != $WEB_ROOT){
 			$WEB_URI = '';
 			$DOCUMENT_URI = isset($_SERVER["DOCUMENT_URI"]) ? $_SERVER["DOCUMENT_URI"]:'';
 			$pose = strpos($DOCUMENT_URI,'/plugins/');
@@ -169,18 +168,28 @@ class KodSSO{
 		return str_replace('\\','/',$_SERVER['DOCUMENT_ROOT']);
 	}
 	public static function host(){
-		$protocol = "http://";
-		if( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
+		$httpType = 'http';
+		if( (isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') ||
 			(isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') ||
 			$_SERVER['SERVER_PORT'] === 443 
-			){
-			$protocol = 'https://';
+		){
+			$httpType = 'https';
 		}
-		
-		$url_host = $_SERVER['SERVER_NAME'].($_SERVER['SERVER_PORT']=='80' ? '' : ':'.$_SERVER['SERVER_PORT']);
-		$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $url_host;
-		$host = isset($_SERVER['HTTP_X_FORWARDED_HOST']) ? $_SERVER['HTTP_X_FORWARDED_HOST'] : $host;//proxy
-		return rtrim($protocol.$host,'/').'/';
+		$port = isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT']:'';
+		$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_NAME'];
+		if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])){//proxy
+			$hosts = explode(',', $_SERVER['HTTP_X_FORWARDED_HOST']);
+			$host  = trim($hosts[0]);
+		}else if(isset($_SERVER['HTTP_X_FORWARDED_SERVER'])){
+			$host  = $_SERVER['HTTP_X_FORWARDED_SERVER'];
+		}
+		if(isset($_SERVER['HTTP_X_FORWARDED_PORT'])){
+			$ports = explode(',', $_SERVER['HTTP_X_FORWARDED_PORT']);
+			$port  = trim($ports[0]);
+		}
+		if(strstr($host,':')){$port = '';}
+		$port = ($port && $port != 80 && $port != 443) ? ':'.$port : '';
+		return $httpType.'://'.trim($host,'/').$port.'/';
 	}
 	public static function pathClear($path){
 		$path = str_replace('\\','/',trim($path));

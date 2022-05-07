@@ -187,7 +187,7 @@ $config['settings']['appType'] = array(
 );
 $config['defaultPlugins'] = array(
 	'adminer','DPlayer','imageExif','jPlayer','photoSwipe','picasa','pdfjs',
-	'simpleClock','client','webodf','webdav','toolsCommon',
+	'simpleClock','client','webodf','webdav','toolsCommon','oauth',
 	'yzOffice','officeViewer',
 );
 
@@ -227,7 +227,7 @@ $config['settingSystemDefault'] = array(
 	'fileEncryption'	=> 'keepName',	// all-全加密;keepExt-加密文件名保留扩展名;keepName-不加密;
 	'passwordErrorLock'	=> '1',			// 密码连续错误锁定账号开关; 某账号连续输入5次后锁定30s后才能登录;
 	'passwordLockNumber'=> '5',			// 密码连续错误允许次数;
-	'passwordLockTime'	=> '30',		// 密码连续错误锁定时间;
+	'passwordLockTime'	=> '60',		// 密码连续错误锁定时间;
 	
 	'passwordRule'		=> 'none',		// 限制密码强度;none-不限制;strong-中等强度;strongMore-高强度
 	'loginCheckAllow'	=> '',			// 登录限制
@@ -261,7 +261,6 @@ $config['settingSystemDefault'] = array(
 		"roleID" 			=> "2",			// 默认角色
 		"groupInfo" 		=> '{"1":"2"}',	// 默认部门
 		"allowPhone"		=> "1",			// 允许手机号绑定,找回密码;
-		"loginWith"			=> array('qq', 'weixin'),
 	),
 	'allowNickNameRpt'	=> false,			// 允许用户昵称重复
 	'menu'	=> array(		//初始化默认菜单配置

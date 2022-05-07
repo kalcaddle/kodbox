@@ -11,8 +11,10 @@ class webdavPlugin extends PluginBase{
 	}
 	public function regist(){
 		$this->hookRegist(array(
-			'user.commonJs.insert'  => 'webdavPlugin.echoJs',
-			'globalRequest'			=> 'webdavPlugin.route',
+			'user.commonJs.insert'  		=> 'webdavPlugin.echoJs',
+			'globalRequest'					=> 'webdavPlugin.route',
+			'admin.storage.add.before'		=> 'webdavPlugin.storeSaveBefore',
+			'admin.storage.edit.before'		=> 'webdavPlugin.storeSaveBefore',
 		));
 	}
 	public function echoJs(){
@@ -30,7 +32,26 @@ class webdavPlugin extends PluginBase{
 		return $config['webdavName'] ? $config['webdavName']:'kodbox';
 	}
 	
+	//存储新增/编辑前，数据处理
+	public function storeSaveBefore(){
+		if(strtolower($this->in['driver']) != 'webdav') return;
+		$data = Input::getArray(array(
+			"id"		=> array("default"=>null),
+			"driver" 	=> array("check"=>"require"),
+			"config" 	=> array("check"=>"require"),
+		));		
+		$config = json_decode($data['config'], true);
+		$dav  = new WebdavClient($config);
+		$data = $dav->check();
+		if(!$data['status']){
+			show_json('连接失败,请检查连接URL,或用户名密码是否正确;<br/>'.$data['header'][0],false);
+		}	
+	}
+	
 	public function route(){
+		include_once($this->pluginPath.'php/webdavClient.class.php');
+		include_once($this->pluginPath.'php/pathDriverWebdav.class.php');
+		
 		if(strtolower(MOD.'.'.ST) == 'plugin.index') exit;
 		$this->_checkConfig();
 		if(strtolower(MOD.'.'.ST) != 'plugin.webdav') return;
@@ -43,10 +64,11 @@ class webdavPlugin extends PluginBase{
 	public function run(){
 		if(!$this->isOpen()) return show_json("not open webdav",false);
 		require($this->pluginPath.'php/webdavServer.class.php');
-		require($this->pluginPath.'php/kodWebDav.class.php');
+		require($this->pluginPath.'php/webdavServerKod.class.php');
 		register_shutdown_function(array(&$this, 'endLog'));
 		
-		$this->dav = new kodWebDav('/index.php/plugin/webdav/'.$this->webdavName().'/'); // 适配window多一层;
+		$uriDav = '/index.php/plugin/webdav/'.$this->webdavName().'/';// 适配window多一层;
+		$this->dav = new webdavServerKod($uriDav);
 		$this->debug($dav);
 		$this->dav->run();
 	}
@@ -105,13 +127,12 @@ class webdavPlugin extends PluginBase{
 	}
 	private function debug(){
 		// $this->log('start;'.$this->dav->pathGet().';'.$this->dav->path);
-		if(strstr($_SERVER['HTTP_USER_AGENT'],'Chrome')){
-			// 兼容处理chrome插件访问webdav;
-			// PROPFIND;GET;MOVE;COPY,HEAD,PUT
-			// $_SERVER['REQUEST_METHOD'] = 'COPY';
-			if($_SERVER['REQUEST_METHOD'] == 'GET'){
-				$_SERVER['REQUEST_METHOD'] = 'PROPFIND';
-			}
+		// 兼容处理chrome插件访问webdav;
+		// PROPFIND;GET;MOVE;COPY,HEAD,PUT
+		if( $_SERVER['REQUEST_METHOD'] == 'GET' && 
+			strstr($_SERVER['HTTP_USER_AGENT'],'Chrome') &&
+			isset($_COOKIE['kodUserID']) ){
+			$_SERVER['REQUEST_METHOD'] = 'PROPFIND';
 		}
 	}
 	public function endLog(){
@@ -123,8 +144,8 @@ class webdavPlugin extends PluginBase{
 		$this->log('end;['.http_response_code().'];'.$logInfo);
 	}
 	
-	private function serverInfo($pick = '',$encode=false){
-		$ignore = 'USER,HOME,PATH_TRANSLATED,ORIG_SCRIPT_FILENAME,HTTP_CONNECTION,HTTP_ACCEPT,HTTP_HOST,SERVER_NAME,SERVER_PORT,SERVER_ADDR,REMOTE_PORT,REMOTE_ADDR,SERVER_SOFTWARE,GATEWAY_INTERFACE,REQUEST_SCHEME,SERVER_PROTOCOL,DOCUMENT_ROOT,DOCUMENT_URI,REQUEST_URI,SCRIPT_NAME,CONTENT_LENGTH,CONTENT_TYPE,REQUEST_METHOD,QUERY_STRING,PATH_INFO,SCRIPT_FILENAME,FCGI_ROLE,PHP_SELF,REQUEST_TIME_FLOAT,REQUEST_TIME,REDIRECT_STATUS,HTTP_ACCEPT_ENCODING,HTTP_CACHE_CONTROL,HTTP_UPGRADE_INSECURE_REQUESTS,HTTP_CONTENT_LENGTH,HTTP_CONTENT_TYPE';
+	private function serverInfo($pick = ''){
+		$ignore = 'USER,HOME,PATH_TRANSLATED,ORIG_SCRIPT_FILENAME,HTTP_CONNECTION,HTTP_ACCEPT,HTTP_HOST,SERVER_NAME,SERVER_PORT,SERVER_ADDR,REMOTE_PORT,REMOTE_ADDR,SERVER_SOFTWARE,GATEWAY_INTERFACE,REQUEST_SCHEME,SERVER_PROTOCOL,DOCUMENT_ROOT,DOCUMENT_URI,REQUEST_URI,SCRIPT_NAME,CONTENT_LENGTH,CONTENT_TYPE,REQUEST_METHOD,QUERY_STRING,PATH_INFO,SCRIPT_FILENAME,FCGI_ROLE,PHP_SELF,REQUEST_TIME_FLOAT,REQUEST_TIME,REDIRECT_STATUS,HTTP_ACCEPT_ENCODING,HTTP_CACHE_CONTROL,HTTP_UPGRADE_INSECURE_REQUESTS,HTTP_CONTENT_LENGTH,HTTP_CONTENT_TYPE,HTTP_REFERER';
 		$ignore .= ',HTTP_COOKIE,HTTP_ACCEPT_LANGUAGE,HTTP_USER_AGENT';
 		$ignore .= ',HTTP_AUTHORIZATION,PHP_AUTH_USER,PHP_AUTH_PW';
 		$ignore = explode(',',$ignore);
@@ -133,31 +154,36 @@ class webdavPlugin extends PluginBase{
 		$result = array();
 		foreach($GLOBALS['__SERVER'] as $key => $val){
 			if($pick){
-				if(in_array($key,$pick)){
-					$result[$key] = $val;
-				}
+				if(in_array($key,$pick)){$result[$key] = $val;}
 			}else{
-				if(!in_array($key,$ignore)){
-					$result[$key] = $val;
-				}
+				if(!in_array($key,$ignore)){$result[$key] = $val;}
 			}
 		}
 		return $result ? json_encode($result):'';
 	}
 	
 	public function log($data){
-		static $isOut = false;
+		static $logIndex = 0;
 		$config = $this->getConfig();
 		if(empty($config['echoLog'])) return;
 		if(is_array($data)){$data = json_encode_force($data);}
 		// if($_SERVER['REQUEST_METHOD'] == 'PROPFIND' ) return;
 		
-		$prefix = '';
-		if(!$isOut){
-			$prefix =  "[".$_SERVER['REQUEST_METHOD'].']:'.$_SERVER['REQUEST_URI'].";".$this->serverInfo('');
-			if(substr($data,0,5) != 'end;['){$prefix .= "\n                ";}
-			$isOut  = true;
+		$prefix = "     [S-$logIndex] ";
+		if(!$logIndex){
+			$prefix = "[SERVER-$logIndex] ";$logIndex++;
+			$data   = $_SERVER['REQUEST_METHOD'].':'.$_SERVER['REQUEST_URI'].";".$this->serverInfo('').$data;
 		}
-		write_log($prefix."    ".$data,'webdav');
+		write_log($prefix.$data,'webdav');
+	}
+	public function clientLog($data){
+		static $logIndex = 0;
+		$config = $this->getConfig();
+		if(empty($config['echoLog'])) return;
+		if(is_array($data)){$data = json_encode_force($data);}
+
+		$prefix = "     [C-$logIndex] ";
+		if(!$logIndex){$prefix = "[CLIENT-$logIndex] ";$logIndex++;}
+		write_log($prefix.$data,'webdav');
 	}
 }

@@ -38,11 +38,43 @@ class explorerListDriver extends Controller{
 				"size"			=> $item['sizeUse'],
 				"driverSpace"	=> $item['sizeMax']*1024*1024*1024,
 				"driverDefault" => $item['default'],
+				"driverType"	=> $item['driver'],
 				"icon" 			=> 'io-'.strtolower($item['driver']),
 				'isParent'		=> true,
 			);
 		}
-		return $list;
+		$result = array('folderList' => $list, 'fileList'=>array());
+		$this->driverListGroup($result);
+		return $result;
+	}
+	
+	// 对同一类型有多个存储的进行归类;
+	private function driverListGroup(&$result){
+		if(count($result['folderList']) <= 5) return;
+		
+		$groupMinNumber = 3; // 超过数量才显示分组,否则归类到其他;
+		$driverOthers   = array();
+		$groupShow 		= array();
+		$listGroup 		= array_to_keyvalue_group($result['folderList'],'driverType');
+		foreach ($listGroup as $key=>$val){
+			if(count($val) < $groupMinNumber){
+				$driverOthers[] = $key;continue;
+			}
+			$langKey = 'admin.storage.'.strtolower($key);
+			$groupShow[] = array(
+				'type' 	=> 'io-type-'.$key,
+				'title' => LNG($langKey) != $langKey ? LNG($langKey) : $key,
+				"filter"=> array('ioDriver'=>array('='=> $key)),
+			);
+		}
+		if(count($driverOthers) > 0){
+			$groupShow[] = array(
+				'type' 	=> 'io-type-others',
+				'title' => LNG('common.others'),
+				"filter"=> array('ioDriver'=>array('in'=>$driverOthers)),
+			);
+		}
+		$result['groupShow'] = $groupShow;
 	}
 
 		
@@ -64,10 +96,9 @@ class explorerListDriver extends Controller{
 		$storage = $driverList[$parse['id']];
 		if(!$storage) return $info;
 
-		$info['isReadable']  = true;
-		$info['isWriteable'] = true;
-		$info['pathDisplay'] = str_replace($parse['pathBase'],$storage['name'],$info['path']);
-
+		$info['isReadable']   = array_key_exists('isReadable',$info)  ? $info['isReadable']  : true;
+		$info['isWriteable']  = array_key_exists('isWriteable',$info) ? $info['isWriteable'] : true;
+		$info['pathDisplay']  = str_replace($parse['pathBase'],$storage['name'],$info['path']);
 		$langKey = 'admin.storage.'.strtolower($storage['driver']);
 		$info['ioType'] = LNG($langKey) != $langKey ? LNG($langKey) : $storage['driver'];
 		$info['ioDriver'] = $storage['driver'];
@@ -149,6 +180,7 @@ class explorerListDriver extends Controller{
 			"path"			=> $path,
 			"size"			=> $total - @disk_free_space($path),
 			"driverSpace"	=> $total,
+			"driverType"	=> 'Local',
 			"ioType" 		=> LNG("admin.storage.driver"),
 			"ioDriver"		=> "Local",			
 			"icon" 			=> 'io-driver',

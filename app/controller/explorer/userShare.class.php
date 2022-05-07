@@ -118,8 +118,7 @@ class explorerUserShare extends Controller{
 			),
 		);
 		$length = count($result['folderList']) + count($result['fileList']);
-		if($length <= 15){unset($result['groupShow']);}
-		
+		if($length <= 3){unset($result['groupShow']);}	
 		return $result;
 	}
 	

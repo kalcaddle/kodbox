@@ -65,7 +65,7 @@ class Input{
 			$result[$itemKey] = $in[$key];
 		}
 		if(count($error) > 0 ){
-			show_json(implode(";<br/>\n",$error),false);
+			show_json(implode(";\n",$error),false);
 		}
 		return $result;
 	}

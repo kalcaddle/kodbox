@@ -22,6 +22,7 @@ class adminSetting extends Controller {
 		foreach ($removeKey as $key) {
 			unset($data[$key]);
 		}
+		unset($data['regist']['loginWith']);	// 兼容旧版已存在的数据
 		
 		// 根部门名称;
 		$groupRoot = Model('Group')->where(array("parentID"=>0))->find();

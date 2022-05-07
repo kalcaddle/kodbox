@@ -2,7 +2,7 @@
 	"id":"webdav",
 	"name":"{{LNG['webdav.meta.name']}}",
 	"title":"{{LNG['webdav.meta.title']}}",
-	"version":"1.36",
+	"version":"1.37",
 	"source":{
 		"className":" font-icon ri-hard-drive-fill-2 bg-yellow-6",
 		"icon":""
@@ -15,6 +15,12 @@
 		"homePage":"http://www.kodcloud.com",
 	},
 	"configItem":{
+		"formStyle":{
+			"tabs":{
+				"{{LNG['webdav.config.tab1']}}":"pluginAuthOpen,webdavName,isOpen,pluginAuth,pathAllow,sep001,echoLog,detail,detailConnect",
+				"{{LNG['webdav.config.tab2']}}":"mountWebdav,mountDetail,kodboxUpload,kodboxDownload",
+			}
+		},
 		"pluginAuthOpen":{
 			"type":"switch",
 			"value":1,
@@ -75,5 +81,22 @@
 			"value":"<div class='kui-btn kui-btn-blue goto-connect-webdav' 
 					 link-href='#setting/user/webdav'>{{LNG['webdav.help.connect']}}</div></p>"
 		},
+		
+		
+		"mountWebdav":{
+			"type":"switch",
+			"value":1,
+			"display":"{{LNG['webdav.config.mountWebdav']}}",
+			"desc":"{{LNG['webdav.config.mountWebdavDesc']}}",
+			"switchItem":{"1":"mountDetail,kodboxUpload,kodboxDownload"}
+		},
+		"mountDetail":{
+			"display":"",
+			"value":"<div class='info-alert info-alert-blue p-10 align-left can-select can-right-menu'>
+			<li>{{LNG['webdav.config.mountDetail1']}}</li>
+			<li>{{LNG['webdav.config.mountDetail2']}}</li>
+			<li>{{LNG['webdav.config.mountDetail3']}}</li>
+			</div>"
+		}		
 	}
 }

@@ -202,14 +202,22 @@ function obj2array($obj){
 		return obj2array($obj);
 	} else {
 		return $obj;
-	} 
+	}
+}
+
+
+// 主动输出内容维持检测;(用户最终show_json情况; 文件下载情况不适用); 
+// 没有输出时,php-fpm情况下,connection_aborted判断不准确
+function check_abort_echo(){
+	if(isset($GLOBALS['ignore_abort']) && $GLOBALS['ignore_abort'] == 1) return;
+	ob_end_flush();echo str_pad('',1024*5);flush();
+	// write_log(connection_aborted().';'.connection_status(),'check_abort');
+	if(connection_aborted()){exit;}
 }
 
 function check_abort(){
-	if(isset($GLOBALS['ignore_abort'])) return;
-	if(connection_aborted()){
-		exit;
-	}
+	if(isset($GLOBALS['ignore_abort']) && $GLOBALS['ignore_abort'] == 1) return;
+	if(connection_aborted()){exit;}
 }
 function check_aborted(){
 	// connection_aborted();
@@ -1045,27 +1053,21 @@ function show_json($data=false,$code = true,$info=''){
 		'timeNow'	=> sprintf('%.4f',mtime()),
 		'data'	 	=> $data
 	);
-	if ($info != '') {
-		$result['info'] = $info;
-	}
+	if ($info != '') {$result['info'] = $info;}
 	// 有值且为true则返回，清空输出并返回数据结果
 	if( isset($GLOBALS['SHOW_JSON_NOT_EXIT']) && $GLOBALS['SHOW_JSON_NOT_EXIT'] == 1 ){
 		// 保留第一个show_json调用输出;ob_get_clean 后该次置空; 
-		if(!ob_get_length()){
-			echo json_encode_force($result);
-		}
+		if(!ob_get_length()){echo json_encode_force($result);}
 		return;
 	}
 
+	$temp = Hook::trigger("show_json",$result);
+	if(is_array($temp)){$result = $temp;}
 	if(defined("GLOBAL_DEBUG") && GLOBAL_DEBUG==1){
 		// $result['in']   = $GLOBALS['in'];
 		$result['memory'] = sprintf("%.3fM",memory_get_usage()/(1024*1024));
 		$result['call']   = get_caller_info();
 		$result['trace']  = think_trace('[trace]');
-	}
-	$temp = Hook::trigger("show_json",$result);
-	if(is_array($temp)){
-		$result = $temp;
 	}
 	check_abort(); // hook之后检测处理; task缓存保持;
 	

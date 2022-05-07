@@ -160,7 +160,7 @@ class explorerListSearch extends Controller{
 		$result = array('folderList'=> array(),'fileList'=> array());
 		$matchMax = 1000; $findNum = 0;
 		foreach($list as $item){
-			check_abort();
+			check_abort_echo();
 			$isFolder = $item['folder'];
 			if($onlyFolder && !$isFolder) continue;
 			if($onlyFile && $isFolder) continue;

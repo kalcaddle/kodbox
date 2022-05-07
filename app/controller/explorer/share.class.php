@@ -58,6 +58,15 @@ class explorerShare extends Controller{
 		return urlApi('explorer/share/file',"hash={$hash}");
 	}
 	
+	public function linkSafe($path,$downFilename=''){
+		if(!$path || !$info = IO::info($path)) return;
+		$link = Action('user.index')->apiSignMake('explorer/index/fileOut',array('path'=>$path));
+		
+		$addParam = '&name=/'.rawurlencode($info['name']);
+		$addParam .= $downFilename ? '&downFilename='.rawurlencode($downFilename):'';
+		return $link.$addParam;
+	}
+	
 	public function linkOut($path,$token=false){
 		if(!defined("USER_ID")){define("USER_ID",0);}
 		$parse  = KodIO::parse($path);

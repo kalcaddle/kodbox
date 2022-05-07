@@ -91,26 +91,36 @@ function http_build_url($urlArr) {
 }
 
 function http_type(){
-	if( (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ||
+	if( (isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') ||
 		(isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') ||
 		$_SERVER['SERVER_PORT'] === 443 
-		){
+	){
 		return 'https';
 	}
 	return 'http';
 }
 
 function get_host() {
-	$protocol = http_type().'://';
-	$url_host = $_SERVER['SERVER_NAME'].($_SERVER['SERVER_PORT']=='80' ? '' : ':'.$_SERVER['SERVER_PORT']);
-	$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $url_host;
-	$host = isset($_SERVER['HTTP_X_FORWARDED_HOST']) ? $_SERVER['HTTP_X_FORWARDED_HOST'] : $host;//proxy
-	return $protocol.$host;
+	$httpType = http_type();
+	$port = isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT']:'';
+	$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_NAME'];
+	if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])){//proxy
+		$hosts = explode(',', $_SERVER['HTTP_X_FORWARDED_HOST']);
+		$host  = trim($hosts[0]);
+	}else if(isset($_SERVER['HTTP_X_FORWARDED_SERVER'])){
+		$host  = $_SERVER['HTTP_X_FORWARDED_SERVER'];
+	}
+	if(isset($_SERVER['HTTP_X_FORWARDED_PORT'])){
+		$ports = explode(',', $_SERVER['HTTP_X_FORWARDED_PORT']);
+		$port  = trim($ports[0]);
+	}
+	if(strstr($host,':')){$port = '';}
+	$port = ($port && $port != 80 && $port != 443) ? ':'.$port : '';
+	return $httpType.'://'.trim($host,'/').$port.'/';
 }
 // current request url
 function this_url(){
-	$url = rtrim(get_host(),'/').'/'.ltrim($_SERVER['REQUEST_URI'],'/');
-	return $url;
+	return get_host().ltrim($_SERVER['REQUEST_URI'],'/');
 }
 
 //解决部分主机不兼容问题
@@ -186,10 +196,9 @@ function http_close(){
 	} else {
 		header("Connection: close");
 		header("Content-Length: ".ob_get_length());
-		ob_start();
-		echo str_pad('',1024*5);
-		ob_end_flush();
-		flush();
+		ob_start();echo str_pad('',1024*5);
+        ob_end_flush();flush();
+        ob_end_flush();echo str_pad('',1024*5);flush();
 	}
 	$firstRun = true;
 }
@@ -268,11 +277,9 @@ function curl_progress_end($curl,$curlResult=false){
 	$httpCode = $curlInfo['http_code'];
 	if($curlResult && $httpCode < 200 || $httpCode >= 300){
 		$errorMessage = curl_error($curl);
-		$headerSize   = curl_getinfo($curl,CURLINFO_HEADER_SIZE);
-		$body   = substr($curlResult, $headerSize);
-		$errorMessage = "code: ".$httpCode.'; '.curl_error($curl).$body;		
+		$errorMessage = "code=".$httpCode.'; '.curl_error($curl);		
 		$GLOBALS['curl_request_error'] = array('message'=>$errorMessage,'url'=> $curlInfo['url'],'code'=>$httpCode);
-		write_log("http:$httpCode;".$curlInfo['url'].";$errorMessage;");
+		write_log("[CURL] ".$curlInfo['url'].";$errorMessage;");
 		// throw new Exception($errorMessage);
 	}
 }
@@ -333,12 +340,10 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 		}
 	}
 	if($upload){
-		if (class_exists('\CURLFile')){
+		if(class_exists('\CURLFile')){
 			curl_setopt($ch, CURLOPT_SAFE_UPLOAD, true);
-		} else {
-			if (defined('CURLOPT_SAFE_UPLOAD')) {
-				curl_setopt($ch, CURLOPT_SAFE_UPLOAD, false);
-			}
+		}else if (defined('CURLOPT_SAFE_UPLOAD')) {
+			curl_setopt($ch, CURLOPT_SAFE_UPLOAD, false);
 		}
 	}
 
@@ -465,6 +470,19 @@ function curl_get_contents($url,$timeout=60){
 	return $data['data'];
 }
 
+function url_request_proxy($url,$method='GET',$data=false,$headers=false,$options=false,$json=false,$timeout=3600){
+	if(!is_array($headers)){$headers = array();}
+	$config = $GLOBALS['config'];
+	if($config['CURLOPT_PROXY']){
+		if(!is_array($options)){$options = array();}
+		foreach($config['CURLOPT_PROXY'] as $k=>$v){$options[$k] = $v;}
+	}else if($config['HTTP_PROXY']){
+		$add = strstr($config['HTTP_PROXY'],'?') ? '&':'?';
+		$url = $config['HTTP_PROXY'] .$add.'_url='.base64_encode($url);
+	};
+	return url_request($url,$method,$data,$headers,$options,$json,$timeout);
+}
+
 function get_headers_curl($url,$timeout=10,$depth=0,&$headers=array()){
 	if(!function_exists('curl_init')) return false;
 	if(!$url || !request_url_safe($url)) return false;
@@ -481,6 +499,13 @@ function get_headers_curl($url,$timeout=10,$depth=0,&$headers=array()){
 	curl_setopt($ch, CURLOPT_TIMEOUT,$timeout);
 	curl_setopt($ch, CURLOPT_REFERER,get_url_link($url));
 	curl_setopt($ch, CURLOPT_USERAGENT,'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36');
+	
+	// 通过GET获取header, 兼容oss等服务器不允许method=HEAD的情况;
+	if($GLOBALS['curl_header_use_get']){
+		curl_setopt($ch, CURLOPT_NOBODY,false);
+		curl_setopt($ch, CURLOPT_HTTPGET,1);
+		curl_setopt($ch, CURLOPT_HTTPHEADER, array("Range: bytes=0-0"));
+	}
 
 	$res = curl_exec($ch);
 	$res = explode("\r\n", $res);
@@ -593,6 +618,7 @@ function url_header($url){
 		'content-length'		=> 0, 
 		'location'				=> $url,//301调整
 		'content-disposition'	=> '',
+		'content-range'			=> '',
 	);
 	//处理多次跳转的情况
 	foreach ($checkArr as $key=>$val) {
@@ -607,6 +633,15 @@ function url_header($url){
 	$name 	= $checkArr['content-disposition'];
 	$length = $checkArr['content-length'];
 	$fileUrl= $checkArr['location'];
+	
+	// 如果是断点请求, 内容长度从content-range取总长度;
+	if($checkArr['content-range']){
+		$rangeArr = explode('/',$checkArr['content-range']);
+		if(count($rangeArr) == 2 && intval($rangeArr[1]) > intval($length)){
+			$length = intval($rangeArr[1]);
+		}
+	}
+	
 	if($name){
 		$disposition = $name;
 		$name = '';

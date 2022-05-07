@@ -8,28 +8,23 @@ class adminAutoTask extends Controller {
 		$this->model = Model('SystemTask');
 	}
 
-	public function taskInit(){
-		if(Model('systemOption')->get('autoTaskInit','backup') == 'ok') return;
-		// 数据备份
-		$data = array (
-			'name'	=> LNG('admin.task.backup'),
-			'type'	=> 'method',
-			'event' => 'admin.backup.start',
-			'time'	=> '{"type":"day","month":"1","week":"1","day":"02:00","minute":"10"}',
-			'desc'	=> LNG('admin.task.backupDesc'),
-			'enable' => '0',
-			'system' => '1',
-		);
-		if(!$this->model->add($data)) return; 
-		Model('systemOption')->set('autoTaskInit','ok','backup');
-	}
-	
+	/**
+	 * 计划任务列表
+	 * @return void
+	 */
     public function get(){
-		$this->taskInit();
 		$result = $this->model->listData();
+		$error = false;
+		foreach ($result as $i => $item) {	// 兼容列表异常数据
+		    if (!isset($item['name'])) {
+				unset($result[$i]);
+				$error = true;
+			}
+		}
+		if ($error) $result = array_values($result);
 		show_json($result,true);
 	}
-	
+
 	/**
 	 * 计划任务添加
 	 */

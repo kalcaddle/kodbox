@@ -39,6 +39,7 @@ class explorerListRecent extends Controller{
 				$value['recentType'] = 'viewTime';
 				$value['recentTime'] = $value['viewTime'];
 			}
+			$value['recentTime'] = intval($value['recentTime']);
 		};unset($value);
 		
 		$list = array_sort_by($list,'recentTime',true);
