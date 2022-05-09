@@ -79,7 +79,7 @@ class oauthBindIndex extends Controller {
 	 * @param type $type	qq|github|weixin|google|facebook
 	 * @param type $data
 	 */
-	private function bindDisplay($type, $data) {
+	public function bindDisplay($type, $data) {
 		$unionid = $data['unionid'];
 		$client = Input::get('client','require',1); // 前后端
 		$data['client'] = $client;

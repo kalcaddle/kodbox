@@ -12,7 +12,7 @@ class IpLocation {
 			require $path.'Ip2Region.php';
 			$obj = new Ip2Region($path.'Ip2Region.db');
 		}
-		
+		if(count(explode(':',$ip)) > 2) return 'IPV6';
 		$address = $obj->memorySearch($ip);// memorySearch/btreeSearch
 		return self::parseAddress($address['region']);
 	}

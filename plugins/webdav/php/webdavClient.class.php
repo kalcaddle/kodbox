@@ -25,8 +25,8 @@ class webdavClient {
 	// 存储options返回头DAV字段;(标记支持项)
 	private function patchCheck(){
 		$data = $this->options('/');
-		if(!$data['header']['DAV']) return;
-		$this->options['dav'] = $data['header']['DAV'];
+		if(!$data['header']['dav']) return;
+		$this->options['dav'] = $data['header']['dav'];
 		$GLOBALS['in']['config'] = json_encode($this->options,true);// 修改配置;
 	}
 
@@ -181,23 +181,22 @@ class webdavClient {
 		if(!$body) return $result;
 
 		$error = $status ? '':$header['0'];
-		$contentType  = $header['Content-Type'];
-		if(strstr($contentType,'/xml')){
-			$result['data'] = webdavClient::xmlParse($body);
-			if( !$status && is_array($result['data']) && 
-				array_key_exists('exception',$result['data']) ){
-				$exception = _get($result['data'],'exception','');
-				$message   = _get($result['data'],'message','');
-				$error = $exception ? $exception.';'.$message : $message;
-			}
-		}
-		if(strstr($contentType,'/json')){
+		if(strstr($header['content-type'],'/json')){
 			$result['data']  = @json_decode($body,true);
 			if( !$status && is_array($result['data']) && 
 				array_key_exists('code',$result['data']) &&
 				array_key_exists('data',$result['data']) &&
 				$result['data']['code'] != true ){
 				$error = _get($result['data'],'data','');
+			}
+		}
+		if(!is_array($result['data'])){
+			$result['data'] = webdavClient::xmlParse($body);
+			if( !$status && is_array($result['data']) && 
+				array_key_exists('exception',$result['data']) ){
+				$exception = _get($result['data'],'exception','');
+				$message   = _get($result['data'],'message','');
+				$error = $exception ? $exception.';'.$message : $message;
 			}
 		}
 		if(is_array($result['data'])){$result['_data'] = $body;}
@@ -268,9 +267,9 @@ class webdavClient {
 	// 请求完成保存cookie;
 	private function cookieSave($data){
 		if(!is_array($data['header'])) return;
-		if(!is_array($data['header']['Set-Cookie'])) return;
+		if(!is_array($data['header']['set-cookie'])) return;
 
-		$cookie = $data['header']['Set-Cookie'];
+		$cookie = $data['header']['set-cookie'];
 		$data   = array();
 		foreach ($cookie as $item) {
 			$value = substr($item,0,strpos($item,';'));

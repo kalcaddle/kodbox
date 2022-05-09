@@ -121,7 +121,13 @@ define(function(require, exports) {
 		});
 		
 		$('.pswp__container').addClass('init-first');
-		setTimeout(function(){$('.pswp__container').removeClass('init-first');},800);
+		setTimeout(function(){
+			$('.pswp__container').removeClass('init-first');
+			if(imageList.items.length == 1){ // 单张图片, ios浏览器异常情况处理;
+				var htmlCurrent = $('.pswp .pswp__item.current .pswp__zoom-wrap').html();
+				$(gallery.currItem.container).html(htmlCurrent);
+			}
+		},800);
 		
 		gallery.init();
 		gallery.listen('bindEvents',imageRotateAuto);
@@ -259,6 +265,7 @@ define(function(require, exports) {
 		$rotate.bind('click', function(e){
 			var radius = parseInt(imageRotateItem(gallery.currItem,'get')) + 90;
 			imageRotateItem(gallery.currItem,radius,true);
+			$('.pswp__ui--hidden').removeClass('pswp__ui--hidden');
 		});
 	};
 	var bindRemove = function(){
@@ -268,6 +275,7 @@ define(function(require, exports) {
 		var $rotate = $(html).insertAfter('.pswp__button--close');
 		$rotate.bind('click', function(e){
 			gallery.removeImage && gallery.removeImage();
+			$('.pswp__ui--hidden').removeClass('pswp__ui--hidden');
 		});
 
 		// 快捷键删除;

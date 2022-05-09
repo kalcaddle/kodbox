@@ -97,7 +97,7 @@ class webdavServerKod extends webdavServer {
 		);
 		// 企业网盘;
 		$groupArray = Action('filter.userGroup')->userGroupRoot();
-	    if (is_array($groupArray) && is_array($groupArray[0])){
+	    if (is_array($groupArray) && $groupArray[0]){
 			$groupInfo = Model('Group')->getInfo($groupArray[0]);
 			$list[] = array("path"=> KodIO::make($groupInfo['sourceInfo']['sourceID']),'name'=>$groupInfo['name']);
 		}

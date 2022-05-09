@@ -209,15 +209,21 @@ function obj2array($obj){
 // 主动输出内容维持检测;(用户最终show_json情况; 文件下载情况不适用); 
 // 没有输出时,php-fpm情况下,connection_aborted判断不准确
 function check_abort_echo(){
+	static $lastTime = 0;
 	if(isset($GLOBALS['ignore_abort']) && $GLOBALS['ignore_abort'] == 1) return;
-	ob_end_flush();echo str_pad('',1024*5);flush();
+	
+	// 每秒输出2次; 
+	if(timeFloat() - $lastTime >= 0.5){
+		ob_end_flush();echo str_pad('',1024*5);flush();
+		$lastTime = timeFloat();
+	}
 	// write_log(connection_aborted().';'.connection_status(),'check_abort');
-	if(connection_aborted()){exit;}
+	if(connection_aborted()){write_log(get_caller_msg(),'abort');exit;}
 }
 
 function check_abort(){
 	if(isset($GLOBALS['ignore_abort']) && $GLOBALS['ignore_abort'] == 1) return;
-	if(connection_aborted()){exit;}
+	if(connection_aborted()){write_log(get_caller_msg(),'abort');exit;}
 }
 function check_aborted(){
 	// connection_aborted();

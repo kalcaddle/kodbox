@@ -526,10 +526,10 @@ class explorerIndex extends Controller{
 		$taskID = $this->in['longTaskID'] ? $this->in['longTaskID']:$defaultID;
 		
 		$task = new TaskFileTransfer($taskID,'copyMove');
+		$task->update(0,true);//立即保存, 兼容文件夹子内容过多,扫描太久的问题;
 		for ($i=0; $i < count($list); $i++) {
 			$task->addPath($list[$i]['path']);
 		}
-		$task->update(0,true);//立即保存
 	}
 	
 	/**

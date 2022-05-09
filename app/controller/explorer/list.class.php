@@ -65,7 +65,7 @@ class explorerList extends Controller{
 		
 		$this->pathListParse($data);
 		$this->pageReset($data);
-		$this->addHistoryCount($data);
+		$this->addHistoryCount($data,$pathParse);
 	}	
 	
 	// 桌面文件夹自动检测;不存在处理;
@@ -160,7 +160,8 @@ class explorerList extends Controller{
 	}
 	
 	// 文件历史版本数量追加;
-	private function addHistoryCount(&$data){
+	private function addHistoryCount(&$data,$pathParse){
+		if($pathParse['type'] == KodIO::KOD_SHARE_LINK) return;
 		$sourceArr = array();$pathArr = array();
 		foreach ($data['fileList'] as $file){
 			if($file['sourceID']){$sourceArr[]  = $file['sourceID'];}
@@ -181,8 +182,10 @@ class explorerList extends Controller{
 	}
 	public function fileInfoAddHistory($pathInfo){
 		if(!$pathInfo || $pathInfo['type'] != 'file') return;
+		
+		$pathParse = KodIO::parse($pathInfo['path']);
 		$data = array('fileList'=>array($pathInfo));
-		$this->addHistoryCount($data);
+		$this->addHistoryCount($data,$pathParse);
 		return $data['fileList'][0];
 	}
 	

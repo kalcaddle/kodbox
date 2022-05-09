@@ -20,8 +20,9 @@ button[data-balloon]{overflow:visible}[data-balloon]{position:relative;cursor:po
 	background: rgba(0,0,0,0.6);box-sizing: content-box;
     padding: 10px;border-radius: 50%;backdrop-filter: blur(10px);
 }
-.dplayer .dplayer-mobile-play svg{position: relative;left: 4px;}
-.dplayer.dplayer-paused .dplayer-mobile-play{display:block;}
+/* .dplayer.dplayer-mobile.dplayer-playing .dplayer-mobile-play{display:none} */
+.dplayer.dplayer-paused .dplayer-mobile-play svg{position: relative;left: 4px;}
+
 .dplayer-dialog.dialog-max .dplayer-video-wrap .dplayer-video {
 	max-width: 100%;max-height: 100%;
     position: absolute;

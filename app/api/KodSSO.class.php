@@ -183,10 +183,6 @@ class KodSSO{
 		}else if(isset($_SERVER['HTTP_X_FORWARDED_SERVER'])){
 			$host  = $_SERVER['HTTP_X_FORWARDED_SERVER'];
 		}
-		if(isset($_SERVER['HTTP_X_FORWARDED_PORT'])){
-			$ports = explode(',', $_SERVER['HTTP_X_FORWARDED_PORT']);
-			$port  = trim($ports[0]);
-		}
 		if(strstr($host,':')){$port = '';}
 		$port = ($port && $port != 80 && $port != 443) ? ':'.$port : '';
 		return $httpType.'://'.trim($host,'/').$port.'/';
