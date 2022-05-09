@@ -491,7 +491,7 @@ class oauthBindIndex extends Controller {
 		$metaInfo = $userInfo['metaInfo'];
 		$bindInfo = array();
 		foreach ($this->typeList as $type => $value) {
-			$bindInfo[$type] = isset($metaInfo[$type . 'Unionid']) ? 1 : 0;
+			$bindInfo[$type.'Bind'] = isset($metaInfo[$type . 'Unionid']) ? 1 : 0;
 		}
 		// 密码是否为空
 		$data = array('bind' => $bindInfo, 'emptyPwd' => 0);

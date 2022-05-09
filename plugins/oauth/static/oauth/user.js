@@ -19,7 +19,7 @@ ClassBase.define({
             var name    = self.thirdItems[type];
             var content = '<a class="bind" href="javascript:void(0)">'+LNG['user.clickBind']+'</a>';
             var right   = '';
-            var isBind  = _.get(data.bind, type) || 0;
+            var isBind  = _.get(data.bind, type+'Bind') || 0;
             if (isBind) {
                 content = LNG['user.binded'];
                 right   = '<span class="col-action"><a class="unbind" href="javascript:void(0)">'+LNG['user.unbind']+'</a></span>';

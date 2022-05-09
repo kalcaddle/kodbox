@@ -298,7 +298,7 @@ class webdavClient {
 		}
 		return $result;
 	}
-	private function objectToArr($obj,&$arr){
+	private static function objectToArr($obj,&$arr){
 		$arrCount = 0; // 相同key,重复出现则归并为数组;
 		foreach($obj as $key => $val){
 			if(count($val) == 0){$arr[$key] = (string)$val;continue;}
