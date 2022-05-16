@@ -71,6 +71,7 @@ ClassBase.define({
             window.location.href = 'https://open.weixin.qq.com/connect/oauth2/authorize?'+param.join('&')+'#wechat_redirect';
             return false;
         }
+        // 微信外，使用开放平台接口授权
         var connect = _.startsWith(G.lang, 'zh') ? '' : ' ';
         $.dialog({
             id: 'bindlogin',

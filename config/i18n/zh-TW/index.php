@@ -1324,7 +1324,7 @@ return array(
     "explorer.charNoSupport"         => "不支持的特殊字符:",
     "explorer.moveError"             => "移動失敗",
     "explorer.lockError"             => "出錯了,並發鎖定超時",
-    "explorer.lockErrorDesc"         => "請降低請求頻率,或優化服務器並發相關配置,或者提升服務器硬件配置;",
+    "explorer.lockErrorDesc"         => "请稍后再试(可降低请求频率,优化并发相关配置).",
     "explorer.moveSubPathError"      => "出錯了，父目錄不能移動到子目錄！",
     "explorer.spaceIsFull"           => "剩餘空間不足,請聯繫管理員!",
     "explorer.sessionSaveError"      => "session寫入失敗!請查看磁盤是否已滿,或諮詢服務商。",

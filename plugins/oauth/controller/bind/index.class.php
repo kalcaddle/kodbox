@@ -66,8 +66,8 @@ class oauthBindIndex extends Controller {
 		if (!$data && is_string($input['data'])) {
 			$msg = LNG('common.invalidParam');
 			if (isset($this->in['info']) && $this->in['info'] == '40003') {
-				$msg = 'sign_error';
 				Model('SystemOption')->set('systemSecret', '');
+				$msg = 'sign_error';
 			}
 			return $this->bindHtml($type, $data, false, array('bind', $msg));
 		}
@@ -347,15 +347,17 @@ class oauthBindIndex extends Controller {
 		);
 		$post['sign'] = $this->makeSign($post['kodid'], $post);
 
-		// 获取微信appid
-		$appId = ($data['type'] == 'weixin') ? $this->appid($data['state']) : '';
+		$appId = '';
+		// 微信授权分公众号（微信内）和开放平台，对应appid，需要分别获取
+		if ($data['type'] == 'weixin') {
+			$data = array('type' => 'weixin', 'state' => $data['state']);
+			$res  = $this->apiRequest('appid', $data);
+			if (!$res['code']) {
+				show_json(LNG('user.bindWxConfigError').'.'.$res['data'], false);
+			}
+			$appId = $res['data'];
+		}
 		show_json(http_build_query($post), true, $appId);
-	}
-	// 获取微信appid
-	private function appid($state){
-		$res = $this->apiRequest('appid', array('type' => 'weixin', 'state' => $state));
-		if ($res['code']) return $res['data'];
-		show_json(LNG('user.bindWxConfigError').'.'.$res['data'], false);
 	}
 
 	/**

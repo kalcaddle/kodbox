@@ -47,6 +47,16 @@ define(function(require, exports) {
 		player.on('loadeddata',playerResize);
 		$(player.container).trigger('click');// 自动焦点; 视频操作快捷键响应;
 		
+		// 自动显示隐藏标题栏;
+		$(player.container).bind('click',function(e){
+			setTimeout(function(){
+				if($('.dplayer').hasClass('dplayer-hide-controller')){
+					$('.dplayer-dialog').addClass('hide-controller');
+				}else{
+					$('.dplayer-dialog').removeClass('hide-controller');
+				}
+			},100);
+		});		
 		//移动端;微信,safari等屏蔽了自动播放;首次点击页面触发播放;
 		// $target.find('.dplayer-video-wrap').one("touchstart mousedown",play);
 	}

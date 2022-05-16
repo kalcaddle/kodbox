@@ -87,7 +87,9 @@ class PathDriverWebdav extends PathDriverBase {
 		return $isFolder ? $children['hasFolder'] : $children['hasFile'];
 	}
 	public function listAll($path) {
-		return array();
+		$result = array();
+		$this->listAllMake($path,$result);
+		return $result;
 	}
 	
 	public function canRead($path) {return $this->exist($path);}

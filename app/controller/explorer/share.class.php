@@ -304,7 +304,8 @@ class explorerShare extends Controller{
 
 	//输出文件
 	public function fileOut(){
-		$path = rawurldecode($this->in['path']);//允许中文空格等;
+		// $path = rawurldecode($this->in['path']);//允许中文空格等;
+		$path = $this->in['path']; // 路径中包含%20等字符允许.
 		if(request_url_safe($path)) {
 			header('Location:' . $path);exit;
 		} 
@@ -366,6 +367,7 @@ class explorerShare extends Controller{
 	 * 压缩和下载合并为同一方法
 	 */
 	public function zipDownload(){
+		if($this->in['zipClient'] == '1'){Action('explorer.index')->zipDownload();} 
 		$this->zipSupportCheck();
 		$dataArr = json_decode($this->in['dataArr'],true);
 		foreach($dataArr as $i => $item){

@@ -33,18 +33,13 @@
 		"sep001":"<hr>",
 		"list":{
 			"type":"html",
-			// "value":"<div class='type-list'>
-			// 		<p><i class='font-icon ri-qq-fill size20'></i><span>QQ</span><i class='font-icon ri-check-fill size12'></i></p>
-			// 		<p><i class='font-icon ri-wechat-fill size20'></i><span>{{LNG['common.wechat']}}</span><i class='font-icon ri-check-fill size12'></i></p>
-			// 		<p><i class='font-icon ri-github-fill size20'></i><span>GitHub</span><i class='font-icon ri-check-fill size12'></i></p>
-			// 		<hr><span class='fq-desc'>{{LNG['oauth.config.fqDesc']}}</span>
-			// 		<p><i class='font-icon ri-google-fill size20'></i><span>Google<span class='web-url'>（https://google.com）</span></span><i class='font-icon ri-check-fill size12'></i></p>
-			// 		<p><i class='font-icon ri-facebook-fill size20'></i><span>Facebook<span class='web-url'>（https://facebook.com）</span></span><i class='font-icon ri-check-fill size12'></i></p>
-			// 		</div>",
 			"value":"<div class='type-list'>
 					<p><i class='font-icon ri-qq-fill size20'></i><span>QQ</span><i class='font-icon ri-check-fill size12'></i></p>
 					<p><i class='font-icon ri-wechat-fill size20'></i><span>{{LNG['common.wechat']}}</span><i class='font-icon ri-check-fill size12'></i></p>
 					<p><i class='font-icon ri-github-fill size20'></i><span>GitHub</span><i class='font-icon ri-check-fill size12'></i></p>
+					<hr><span class='fq-desc mb-10'>{{LNG['oauth.config.fqDesc']}}</span>
+					<p><i class='font-icon ri-google-fill size20'></i><span>Google<span class='web-url'>（https://google.com）</span></span><i class='font-icon ri-check-fill size12'></i></p>
+					<p><i class='font-icon ri-facebook-fill size20'></i><span>Facebook<span class='web-url'>（https://facebook.com）</span></span><i class='font-icon ri-check-fill size12'></i></p>
 					</div>",
 			"display":"{{LNG['oauth.config.type']}}",
 		},

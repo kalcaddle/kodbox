@@ -576,8 +576,11 @@ class explorerIndex extends Controller{
 	 * @return void
 	 */
 	public function zipDownload(){	
-		ignore_timeout();
 		$dataArr  = json_decode($this->in['dataArr'],true);
+		// 前端压缩处理;
+		if($this->in['zipClient'] == '1'){$this->zipDownloadClient($dataArr);return;}
+		
+		ignore_timeout();
 		$downName = $this->tmpZipName($dataArr);
 		$zipCache = TEMP_FILES;mk_dir($zipCache);
 
@@ -594,6 +597,26 @@ class explorerIndex extends Controller{
 	public function pathCrypt($path, $en=true){
 		$pass = Model('SystemOption')->get('systemPassword').'encode';
 		return $en ? Mcrypt::encode($path,$pass) : Mcrypt::decode($path,$pass);
+	}
+	
+	private function zipDownloadClient($dataArr){
+		$result  = array();
+		foreach($dataArr as $itemZip){
+			$pathInfo   = IO::info($itemZip['path']);
+			$isFolder   = $itemZip['type'] == 'folder';
+			$itemZipOut = array('path'=>'/'.$itemZip['name'],'folder'=>$isFolder);
+			$itemZipOut['modifyTime'] = $pathInfo['modifyTime'];
+
+			if(!$isFolder){
+				$itemZipOut['filePath'] = $itemZip['path'];
+				$itemZipOut['size'] = $pathInfo['size'];				
+				$result[] = $itemZipOut;continue;
+			}
+			$result[] = $itemZipOut;
+			$children = IO::listAllSimple($itemZip['path']);
+			$result   = array_merge($result, $children);
+		}
+		show_json($result,true);
 	}
 
 	/**

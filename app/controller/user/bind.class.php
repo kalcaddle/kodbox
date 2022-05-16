@@ -136,11 +136,7 @@ class userBind extends Controller {
 	 * @return type
 	 */
 	public function makeSign($kodid, $post) {
-		// 获取secret
-		if (!$secret = Model('SystemOption')->get('systemSecret')) {
-			// 本地没有,先去kodapi请求获取secret。获取secret的请求，参数secret以Kodid代替
-			$secret = $post['type'] != 'secret' ? $this->apiSecret() : $kodid;
-		}
+		$secret = $this->getApiSecret($kodid, $post['type']);
 		ksort($post);
 		$tmp = array();
 		$post = stripslashes_deep($post);
@@ -152,10 +148,17 @@ class userBind extends Controller {
 	}
 
 	/**
-	 * 向api请求secret
+	 * 获取api secret
 	 * @return type
 	 */
-	private function apiSecret() {
+	private function getApiSecret($kodid, $type) {
+		// 从本地获取
+		$secret = Model('SystemOption')->get('systemSecret');
+		if ($secret) return $secret;
+		// 本身为获取secret请求时，secret以kodid代替
+		if ($type == 'secret') return $kodid;
+
+		// 从平台获取
 		$res = $this->apiRequest('secret');
 		if (!$res['code']) {
 			$msg = 'Api secret error' . (!empty($res['data']) ? ': ' . $res['data'] : '');

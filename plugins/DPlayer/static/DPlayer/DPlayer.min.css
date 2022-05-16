@@ -21,11 +21,20 @@ button[data-balloon]{overflow:visible}[data-balloon]{position:relative;cursor:po
     padding: 10px;border-radius: 50%;backdrop-filter: blur(10px);
 }
 /* .dplayer.dplayer-mobile.dplayer-playing .dplayer-mobile-play{display:none} */
+.dplayer .dplayer-mobile-play svg{position: relative;left: 0;}
 .dplayer.dplayer-paused .dplayer-mobile-play svg{position: relative;left: 4px;}
 
 .dplayer-dialog.dialog-max .dplayer-video-wrap .dplayer-video {
 	max-width: 100%;max-height: 100%;
-    position: absolute;
+    position: absolute;margin: auto;
     left: 0;right: 0;top: 0;bottom: 0;
-    margin: auto;
+}
+
+
+.app-wap-small .share-page-main .content-box.content-show .common-main.dplayer-dialog{
+	bottom: 0;margin:0;border-radius:0;
+}
+.app-wap-small .dplayer-dialog.hide-controller .aui-header{opacity:0 !important;}
+.app-wap-small .dialog-max.dialog-simple.dplayer-dialog div.dplayer-video-wrap{
+	height:100%;margin:0;
 }

@@ -631,8 +631,7 @@ class installIndex extends Controller {
             'label' => 'label-green-deep',
             'sort' => 0,
         );
-		
-		$groupOwner = array (
+        $groupOwner = array (
             'name' => LNG('admin.role.group'),
             'display' => 1,
             'system' => 1,

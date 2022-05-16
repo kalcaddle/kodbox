@@ -175,17 +175,16 @@ class KodSSO{
 		){
 			$httpType = 'https';
 		}
-		$port = isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT']:'';
-		$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_NAME'];
+
+		$host = $_SERVER['SERVER_NAME'].($_SERVER['SERVER_PORT']=='80' ? '' : ':'.$_SERVER['SERVER_PORT']);
+		$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $host;
 		if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])){//proxy
 			$hosts = explode(',', $_SERVER['HTTP_X_FORWARDED_HOST']);
 			$host  = trim($hosts[0]);
 		}else if(isset($_SERVER['HTTP_X_FORWARDED_SERVER'])){
 			$host  = $_SERVER['HTTP_X_FORWARDED_SERVER'];
 		}
-		if(strstr($host,':')){$port = '';}
-		$port = ($port && $port != 80 && $port != 443) ? ':'.$port : '';
-		return $httpType.'://'.trim($host,'/').$port.'/';
+		return $httpType.'://'.trim($host,'/').'/';
 	}
 	public static function pathClear($path){
 		$path = str_replace('\\','/',trim($path));

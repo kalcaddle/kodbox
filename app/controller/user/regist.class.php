@@ -183,6 +183,8 @@ class userRegist extends Controller {
 			'roleID'	 => $regist['roleID'],
 			'email'		 => isset($data['email']) ? $data['email'] : '',
 			'phone'		 => isset($data['phone']) ? $data['phone'] : '',
+			'avatar'	 => isset($data['avatar']) ? $data['avatar'] : '',
+			'sex'	 	 => isset($data['sex']) ? $data['sex'] : 1,
 			'sizeMax'	 => floatval($regist['sizeMax']), //M
 			'status'	 => $regist['checkRegist'] == 1 ? 0 : 1, //0禁用；1启用 等待审核可以改为-1
 			'groupInfo'  => $regist['groupInfo']

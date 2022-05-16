@@ -102,20 +102,15 @@ function http_type(){
 
 function get_host() {
 	$httpType = http_type();
-	$port = isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT']:'';
-	$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_NAME'];
+	$host = $_SERVER['SERVER_NAME'].($_SERVER['SERVER_PORT']=='80' ? '' : ':'.$_SERVER['SERVER_PORT']);
+	$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $host;
 	if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])){//proxy
 		$hosts = explode(',', $_SERVER['HTTP_X_FORWARDED_HOST']);
 		$host  = trim($hosts[0]);
 	}else if(isset($_SERVER['HTTP_X_FORWARDED_SERVER'])){
 		$host  = $_SERVER['HTTP_X_FORWARDED_SERVER'];
 	}
-	
-	// $_SERVER['HTTP_X_FORWARDED_PORT']
-	// port error; https://github.com/apereo/phpCAS/blob/master/source/CAS/Client.php#L3996
-	if(strstr($host,':')){$port = '';}
-	$port = ($port && $port != 80 && $port != 443) ? ':'.$port : '';
-	return $httpType.'://'.trim($host,'/').$port.'/';
+	return $httpType.'://'.trim($host,'/').'/';
 }
 // current request url
 function this_url(){

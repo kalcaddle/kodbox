@@ -2,7 +2,7 @@
 	"id":"adminer",
 	"name":"Adminer",
 	"title":"{{LNG['Adminer.meta.title']}}",
-	"version":"5.04",
+	"version":"5.05",
 	"source":{
 		"thumb":"",
 		"className":"font-icon ri-database-fill-2 bg-blue-7",
@@ -18,7 +18,7 @@
 	"configItem":{
 		"pluginAuth":{
 			"type":"userSelect",
-			"value":{"role":"1"},
+			"value":{"user":"1"},
 			"display":"{{LNG['admin.plugin.auth']}}",
 			"desc":"{{LNG['admin.plugin.authDesc']}}",
 			"require":1

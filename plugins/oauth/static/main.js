@@ -7,8 +7,8 @@ kodReady.push(function(){
         "qq":       "QQ",
         "weixin":   LNG['common.wechat'],
         "github":   "GitHub",
-        // "google":   "Google",
-        // "facebook": "Facebook",
+        "google":   "Google",
+        "facebook": "Facebook",
     };
     // 后台设置
     var loginWith = _.join((_.get(G, 'system.options.loginConfig.loginWith') || []), ',');

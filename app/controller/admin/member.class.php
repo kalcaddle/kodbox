@@ -83,7 +83,7 @@ class adminMember extends Controller{
 			"phone" 	=> array("check"=>"phone",	"default"=>""),
 			"nickName" 	=> array("check"=>"require","default"=>""),
 			"avatar" 	=> array("check"=>"require","default"=>""),
-			"sex" 		=> array("check"=>"require","default"=>""),//0女1男
+			"sex" 		=> array("check"=>"require","default"=>1),//0女1男
 			"status" 	=> array("default"=>1),
 		));
 		if( !ActionCall('filter.userCheck.password',$data['password']) ){

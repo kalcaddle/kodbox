@@ -68,3 +68,9 @@
 .app-config-oauth.dialog-plugin-config .panel-form-body .form-row[data-key=list] .type-list .web-url{
     color: #949494;
 }
+
+/* 插件接口描述 */
+.admin-main-content .plugin-page .app-descript .data-app[data-app='oauth']+.right-content .api-title{
+    display: inline-block;
+    width: 80px;
+}

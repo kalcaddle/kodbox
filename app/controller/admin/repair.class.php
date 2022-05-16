@@ -48,7 +48,7 @@ class adminRepair extends Controller {
 	 */
 	public function clearErrorFile(){
 		$cache = Cache::get('clear_file_'.date('Ymd'));
-		if (!$cache || is_array($cache)) {
+		if (!$cache || !is_array($cache)) {
 			echo '<br/><p style="font-size:14px;">没有缺失的物理文件记录——此记录从缓存中获取，缓存数据在执行<code>done=1</code>时产生。</p>';
 			exit;
 		}
@@ -269,14 +269,14 @@ class adminRepair extends Controller {
 	}
 	// 删除不存在的物理文件
 	private function delFileNone($model, $modelSource, $modelHistory, $item){
-		$files = array_pad(array(), intval($item['linkCount']), $item['fileID']);	// 引用清0然后删除
-		$cnt1  = $model->remove($files);
 		$where = array("fileID"=>$item['fileID']);
-		$cnt2  = $modelSource->where($where)->delete();
+		$cnt1  = $modelSource->where($where)->delete();
 		$modelHistory->where($where)->delete();
+		$files = array_pad(array(), intval($item['linkCount']), $item['fileID']);	// 引用清0然后删除
+		$cnt2  = $model->remove($files);
 		return array(
-			'file'	 => intval($cnt1), 
-			'source' => intval($cnt2)
+			'source' => intval($cnt1),
+			'file'	 => intval($cnt2), 
 		);
 	}
 
