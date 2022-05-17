@@ -89,40 +89,22 @@
 				}
 				return data;
 			}
-
-			// 返回bindApi页面数据bind
+			// 解析bindApi页面返回数据
 			var bindData = function (result) {
 				if (!result.code) {
 					return {
 						title:	'An error occurred',
-						imgUrl:	BASE_URL + 'images/error.png',
+						avatar:	BASE_URL + 'images/error.png',
 						msg:	result.data,
-						errMsg: '',
+						desc: '',
 					}
 				}
 				var msgArr = result.data.msg.split(";");
 				result.data.msg = msgArr[0];
-				result.data.errMsg = msgArr[1] || '';
+				result.data.desc = msgArr[1] || '';
 				return result.data;
 			}
-			var pageUrl = './#setting/user/account';
-			var bindMsg = function (data) {
-				if (!data.success) {
-					if (data.type != 'weixin') {
-						// 绑定异常时不自动跳转
-						var hash = data.client ? './' : './#setting/user/account';
-						$(".bind-box .back-home a").attr('href', hash);
-						$(".bind-box .back-home").show();
-					}
-					return false;	// weixin则弹窗保持
-				}
-				// 后端
-				if (!data.client) {
-					return bindAfter(data.type, pageUrl);
-				}
-				// 前端-已绑定（进入主页面）
-				bindAfter(data.type, './', true, data.bind);
-			}
+			// 页面跳转
 			var bindAfter = function (type, url, client = false, bind = false) {
 				var time = type != 'weixin' ? 3000 : 1000;
 				if (client && bind) {
@@ -145,6 +127,41 @@
 					window.parent.artDialog.list["bindlogin"].close();
 				}, time);
 			}
+			// ajax请求回调
+			var ajaxAfter = function(result){
+				// 1.页面信息
+				$('body').addClass('page-loaded'+(!$.isWap ? ' is-not-wap' : ''));
+
+				var data = bindData(result);
+				$(".bind-box .title").text(data.title);
+				$(".bind-box .msg").text(data.msg);
+				var $box = $(".bind-box .img-box").html('<img src=""><p></p>');
+				$box.find('img').attr({src: data.avatar, onerror: 'this.src="'+STATIC_PATH+'images/common/default-avata.png'+'"'});
+				$box.find('p').text(data.desc);
+				if (result.code && result.data.success) {
+					$(".bind-box img").css('border-radius', '60px');
+					$(".bind-box img").next('p').html(htmlEncode(data.name));
+				}
+
+				// 2.页面跳转
+				var data = result.data;
+				// 绑定异常时不自动跳转
+				if (!data.success) {
+					if (data.type != 'weixin') {
+						var hash = data.client ? './' : './#setting/user/account';
+						$(".bind-box .back-home a").attr('href', hash);
+						$(".bind-box .back-home").show();
+					}
+					return false;	// weixin弹窗保持
+				}
+				// 后端
+				if (!data.client) {
+					var url = './#setting/user/account';
+					return bindAfter(data.type, url);
+				}
+				// 前端-已绑定（进入主页面）
+				bindAfter(data.type, './', true, data.bind);
+			}
 
 			// 回调请求
 			$.ajax({
@@ -152,20 +169,11 @@
 				data: getUrlParams(),
 				dataType: 'json',
 				success: function (result) {
-					$('body').addClass('page-loaded'+(!$.isWap ? ' is-not-wap' : ''));
-
-					var data = bindData(result);
-					$(".bind-box .title").text(data.title);
-					$(".bind-box .msg").text(data.msg);
-					var $box = $(".bind-box .img-box").html('<img src=""><p></p>');
-					$box.find('img').attr({src: data.imgUrl, onerror: 'this.src="'+STATIC_PATH+'images/common/default-avata.png'+'"'});
-					$box.find('p').text(data.errMsg);
-
-					if (result.code && result.data.success) {
-						$(".bind-box img").css('border-radius', '60px');
-						$(".bind-box img").next('p').html(htmlEncode(data.name));
-					}
-					bindMsg(result.data);
+					ajaxAfter(result);
+				},
+				error: function(xhr,status,error){
+					var result = {code: false, data: error};
+					ajaxAfter(result);
 				}
 			});
 		})

@@ -206,7 +206,7 @@ function beforeShutdownError($code=false,$msg='',$file='',$line=0){
 	if(!$errorType || $errorType == 'Notice' || $errorType=='Deprecated') return;
 	$file  = '/'.str_replace($_SERVER['BASIC_PATH'],'',$file);
 	$error = $errorType.','.$msg.','.$file.','.$line;
-	write_log($error."\n".get_caller_msg(1),'error');
+	write_log($error."\n".get_caller_msg(1)."\n".json_decode($GLOBALS['in']),'error');
 }
 function beforeShutdownFatalError($e){
 	think_exception($e);

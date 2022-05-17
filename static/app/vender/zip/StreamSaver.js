@@ -20,6 +20,8 @@
     ? 'iframe'
     : 'navigate'
 
+  // firefox; // add by warlee;
+  if(!useBlobFallback && 'MozAppearance' in document.documentElement.style){useBlobFallback = true;}
   const streamSaver = {
     createWriteStream,
     WritableStream: window.WritableStream || ponyfill.WritableStream,

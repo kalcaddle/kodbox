@@ -10,9 +10,17 @@ kodReady.push(function(){
         "google":   "Google",
         "facebook": "Facebook",
     };
-    // 后台设置
-    var loginWith = _.join((_.get(G, 'system.options.loginConfig.loginWith') || []), ',');
+    // 获取第三方登录项
+    var getLoginWith = function(){
+        if (!_.isUndefined(G.system.options.loginWith)) {
+            return G.system.options.loginWith;
+        }
+        return _.join((_.get(G, 'system.options.loginConfig.loginWith') || []), ',');
+    }
+
+    // 1.后台设置
     Events.bind("admin.setting.initViewBefore",function(formData, options, self){
+        var loginWith = getLoginWith();
         // 无法插入到指定属性（openRegist）之前，只能在定义处加初始值
         formData.loginWith = {
 			"type":     "checkbox",
@@ -24,8 +32,52 @@ kodReady.push(function(){
         formData.sep401 = '<hr>';
 	});
 
-    // 个人中心设置
+    // 2.插件设置
+    Events.bind("plugin.config.formBefore", function(formData, options, self){
+        if (_.get(options, 'id') != 'app-config-oauth') return;
+
+        var list = [];
+        var loginWith = getLoginWith();
+        var logins = loginWith ? _.split(loginWith, ',') : [];
+        _.each(thirdItems, function(title, type){
+            var opt = "";
+            var web = "";
+            if (_.includes(['google', 'facebook'], type)) {
+                if (type == 'google') {
+                    opt = "<hr><span class='fq-desc mb-10'>"+LNG['oauth.config.fqDesc']+"</span>";
+                }
+                web = "<span class='web-url'>（https://"+type+".com）</span>";
+            }
+            var icon = type == 'weixin' ? 'wechat' : type;
+            var checked = _.includes(logins, type) ? 'checked="checked"' : '';
+            opt += "<p class='mb-5'><i class='font-icon ri-"+icon+"-fill size20'></i><span>"+title+web+"</span>\
+                <input type='checkbox' name='type' value='"+type+"' class='kui-checkbox' "+checked+">\
+                </p>";
+            list.push(opt);
+        });
+        formData.list.value = "<div class='type-list'>"+(_.join(list,''))+"</div>";
+        formData.loginWith.value = loginWith;
+    });
+    Events.bind("plugin.config.formAfter", function(self){
+        if (!self.formoauth) return;
+        var formMaker = self.formoauth;
+        // 可能保存失败，暂不做处理
+        formMaker.bind('onSave', function(result){
+            var loginWith = [];
+            formMaker.$el.find("input[name=type]").each(function(){
+                if ($(this).is(":checked")) {
+                    loginWith.push($(this).val());
+                }
+            });
+            result.loginWith = _.join(loginWith, ',');
+            G.system.options.loginConfig.loginWith = loginWith;
+            G.system.options.loginWith = result.loginWith;
+        });
+    });
+
+    // 3.个人中心设置
     Events.bind('user.account.initViewAfter', function(self){
+        var loginWith = getLoginWith();
         if (!loginWith) return;
         requireAsync([
             staticPath+'oauth/user.js' + version,
@@ -35,9 +87,10 @@ kodReady.push(function(){
         });
     });
 
-    // 登录页
+    // 4.登录页
     // Events.bind("router.after.user/login",function(){
     Events.bind("user.login.initViewAfter",function(self){
+        var loginWith = getLoginWith();
         if (!loginWith) return;
 		requireAsync([
             staticPath+'oauth/login.js' + version,
@@ -47,7 +100,9 @@ kodReady.push(function(){
         });
 	});
 
-    // 日志列表解析
+    if($.hasKey('plugin.{{package.id}}.event')) return;
+
+    // 5.日志列表解析
     ClassBase.extendHook({
 		hookMatch:'dataParseHtmlItem,dataParseOthers,dataParseUsers',
 		dataParseUsers:function(){

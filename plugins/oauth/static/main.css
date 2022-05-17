@@ -41,15 +41,17 @@
     /* height: 32px;line-height: 32px; */
     height: 28px;line-height: 28px;
 }
-.app-config-oauth.dialog-plugin-config .panel-form-body .form-row[data-key=list] .type-list p>*{
+.app-config-oauth.dialog-plugin-config .panel-form-body .form-row[data-key=list] .type-list p>i{
     display: inline-block; 
     width: 55px;
     text-align: left;
 }
 .app-config-oauth.dialog-plugin-config .panel-form-body .form-row[data-key=list] .type-list p>span{
+    display: inline-block; 
     width: calc(100% - 140px);
+    text-align: left;
 }
-.app-config-oauth.dialog-plugin-config .panel-form-body .form-row[data-key=list] .type-list p .ri-check-fill{
+/* .app-config-oauth.dialog-plugin-config .panel-form-body .form-row[data-key=list] .type-list p .ri-check-fill{
     width: 20px;
     height: 20px;
     line-height: 20px;
@@ -58,12 +60,13 @@
     border-radius: 50%;
     font-size: 12px;
     text-align: center;
-}
+} */
 .app-config-oauth.dialog-plugin-config .panel-form-body .form-row[data-key=list] .type-list .fq-desc{
     font-size: 0.8em;
     color: #949494;
-    text-align: center;
     display: block;
+    /* text-align: center; */
+    padding-left: 55px;
 }
 .app-config-oauth.dialog-plugin-config .panel-form-body .form-row[data-key=list] .type-list .web-url{
     color: #949494;

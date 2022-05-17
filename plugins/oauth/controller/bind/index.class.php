@@ -71,6 +71,10 @@ class oauthBindIndex extends Controller {
 			}
 			return $this->bindHtml($type, $data, false, array('bind', $msg));
 		}
+		if (empty($data['unionid'])) {
+			$msg = isset($data['data']) && is_string($data['data']) ? $data['data'] : LNG('explorer.dataError');
+			return $this->bindHtml($type, $data, false, array('bind', $msg));
+		}
 		return $this->bindDisplay($type, $data);
 	}
 
@@ -91,9 +95,7 @@ class oauthBindIndex extends Controller {
 			$function = $client ? 'bindFront' : 'bindBack';
 			return $this->$function($type, $data);
 		}
-		// 已绑定
-		// 前端：直接跳转登录
-		// 后端：已绑定(别的账号)，提示绑定失败
+		// 已绑定，前端：直接跳转登录；后端：已绑定(别的账号)，提示绑定失败
 		if ($client) {
 			$data['bind'] = true;
 			if(is_array($bind) && $bind[0]){
@@ -142,25 +144,19 @@ class oauthBindIndex extends Controller {
 	 * @param type $type
 	 * @param type $data
 	 * @param type $success
-	 * @param type $msgData
+	 * @param type $msg
 	 */
-	private function bindHtml($type, $data, $success, $msgData) {
+	private function bindHtml($type, $data, $success, $msg) {
 		$return = array(
 			'type'		 => $type, // 绑定类型
-			'typeTit'	 => $this->typeList[$type]['title'], // 绑定类型名称
 			'success'	 => (int) $success, // 绑定结果
 			'bind'		 => isset($data['bind']) ? $data['bind'] : false, // 是否已绑定
 			'client'	 => (int) $data['client'], // 前后端
 			'name'		 => isset($data['nickName']) ? $data['nickName'] : '',
 			'avatar'	 => isset($data['avatar']) ? $data['avatar'] : '', // 头像
-			'imgUrl'	 => './static/images/file_icon/icon_others/error.png', // 结果标识(头像orX)
-			'title'		 => LNG('explorer.error'), // 结果标题
-			'msg'		 => $this->_bindInfo($type, $success, $msgData), // 结果说明
+			'title'		 => $success ? LNG('explorer.success') : LNG('explorer.error'), // 结果标题
+			'msg'		 => $this->_bindInfo($type, $success, $msg), // 结果说明
 		);
-		if ($success) {
-			$return['title'] = LNG('explorer.success');
-			$return['imgUrl'] = $data['avatar'];
-		}
 		if ($return['bind']) Hook::trigger('user.bind.log', 'bind', $return);
 		return show_json($return);
 	}
@@ -169,32 +165,31 @@ class oauthBindIndex extends Controller {
 	 * api返回操作结果信息
 	 * @param type $type	// qq|github|weixin
 	 * @param type $succ	//
-	 * @param type $act	// connect|bind|login
 	 * @param type $msg		// sign_error|update_error|bind_others
 	 * @return type
 	 */
-	private function _bindInfo($type, $success, $msgData = array()) {
-		$act = $msgData[0];
-		$msg = isset($msgData[1]) ? $msgData[1] : '';
-		$title = $this->typeList[$type]['title'];
+	private function _bindInfo($type, $success, $msg = array()) {
+		$action = $msg[0];	// connect|bind|login
+		$title	= $this->typeList[$type]['title'];
 		if ($success) {
-			return LNG('common.congrats') . $title . LNG('common.' . $act . 'Success');
+			return LNG('common.congrats') . $title . LNG('common.' . $action . 'Success');
 		}
 		$errTitle = LNG('common.sorry') . $title;
-		if ($act == 'login') {
+		if ($action == 'login') {
 			return $errTitle . LNG('common.loginError') . ';'.$title . LNG('user.thirdBindFirst');
 		}
 		// 2.2 尚未启用
-		if ($act == 'invalid') {
+		if ($action == 'invalid') {
 			return $errTitle . LNG('common.loginError') . ';' . LNG('user.userEnabled');
 		}
 		// 2.3 其他失败
 		$errList = array(
 			'sign_error'	 => LNG('user.bindSignError'),
 			'update_error'	 => LNG('user.bindUpdateError'),
-			'bind_others'	 => $title . LNG('user.bindOthers') . "[{$msgData[2]}]"
+			'bind_others'	 => $title . LNG('user.bindOthers') . (isset($msg[2]) ? "[{$msg[2]}]" : '')
 		);
-		return $errTitle . LNG('common.bindError') .';' . (isset($errList[$msg]) ? $errList[$msg] : $msg);
+		$msgKey = isset($msg[1]) ? $msg[1] : '';
+		return $errTitle . LNG('common.bindError') .';' . (isset($errList[$msgKey]) ? $errList[$msgKey] : $msgKey);
 	}
 	
 	/**

@@ -2,7 +2,7 @@
 return array(
 	'oauth.meta.name'			=> "Third-party login authentication",
 	'oauth.meta.title'			=> "Third-party login authentication",
-	'oauth.meta.desc'			=> 'This application is connected to various third-party login authentication methods including QQ and WeChat. You can select settings in the background <a href="./#admin/setting/index/user" target="_blank">System Settings - Registration and Login</a> to achieve unified account authentication.',
+	'oauth.meta.desc'			=> 'This application is connected to various third-party login authentication methods including QQ and WeChat.<br>You can select settings here (or <a href="./#admin/setting/index/user" target="_blank">System Settings - Registration and Login</a>) to achieve unified account authentication.',
 	'oauth.meta.netwrokDesc'	=> "<h4>Description:</h4> During the running process of the application, it will request the external network interface (each authentication platform and the KodCloud API platform), and realize the verification of the user account by calling the interface. The external network interfaces that may be involved are as follows:<br/>
 									<span class='api-title'>QQ：</span><span class='blue-6'>https://graph.qq.com</span><br/>
 									<span class='api-title'>WeChat：</span><span class='blue-6'>https://api.weixin.qq.com</span><br/>

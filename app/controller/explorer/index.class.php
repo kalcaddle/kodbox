@@ -627,23 +627,20 @@ class explorerIndex extends Controller{
 		ignore_timeout();
 		$dataArr  = json_decode($this->in['dataArr'],true);
 		$zipLimit = Model('SystemOption')->get('downloadZipLimit');
+		$task 	  = $this->taskZip($dataArr);
 		if($zipLimit && $zipLimit > 0){
 			$zipLimit  = floatval($zipLimit) * 1024 * 1024 * 1024;
-			$totalSize = 0.0;
-			foreach($dataArr as $item){
-				$pathInfo = IO::infoWithChildren($item['path']);
-				$totalSize += $pathInfo['size'];
-			}
+			$totalSize = intval($task->task['sizeTotal']);
 			if($totalSize > $zipLimit){
-				show_json(LNG('admin.setting.downloadZipLimitTips'),false);
+				$limitTips = '('.size_format($zipLimit).')';
+				show_json(LNG('admin.setting.downloadZipLimitTips').$limitTips,false);
 			}
-		}	
+		}
 		
 		$fileType = Input::get('type', 'require','zip');
 		$repeat   = Model('UserOption')->get('fileRepeat');
 		$repeat   = !empty($this->in['fileRepeat']) ? $this->in['fileRepeat'] :$repeat;
 
-		$this->taskZip($dataArr);
 		$zipFile = IOArchive::zip($dataArr, $fileType, $zipPath,$repeat);
 		if($zipPath != '') return $zipFile;
 		$info = IO::info($zipFile);
@@ -656,9 +653,11 @@ class explorerIndex extends Controller{
 		$defaultID = 'zip-'.USER_ID.'-'.rand_string(8);
 		$taskID = $this->in['longTaskID'] ? $this->in['longTaskID']:$defaultID;
 		$task = new TaskZip($taskID,'zip');
+		$task->update(0,true);//立即保存, 兼容文件夹子内容过多,扫描太久的问题;
 		for ($i=0; $i < count($list); $i++) {
 			$task->addPath($list[$i]['path']);
 		}
+		return $task;
 	}
 	private function taskUnzip($data){
 		$defaultID = 'unzip-'.USER_ID.'-'.rand_string(8);

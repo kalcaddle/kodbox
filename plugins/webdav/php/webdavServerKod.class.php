@@ -243,7 +243,8 @@ class webdavServerKod extends webdavServer {
 	// GET 下载文件;是否支持301跳转;对象存储下载走直连;
 	private function notSupportHeader(){
 		$software = array(
-			'ReaddleDAV Documents',	//ios Documents 不支持;
+			'ReaddleDAV Documents',	// ios Documents 不支持;
+			'GstpClient',			// goodsync 同步到对象存储问题
 		);
 		$ua = $_SERVER['HTTP_USER_AGENT'];
 		foreach ($software as $type){
