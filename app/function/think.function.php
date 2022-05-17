@@ -64,7 +64,7 @@ function think_exception($msg) {
 		$error = $msg;
 	}
 	
-	write_log($desc.';'.$error."\n".get_caller_msg(),'error');
+	write_log($desc.';'.$error."\n".get_caller_msg()."\n".json_encode($GLOBALS['in']),'error');
     if(defined('GLOBAL_DEBUG') && !GLOBAL_DEBUG ){
 		$error = "<div class='desc'>$desc</div>".$error;
         $error = str_replace(BASIC_PATH,'./',$error); //去除路径前缀;
