@@ -111,6 +111,7 @@ class adminPlugin extends Controller{
 
 	// download=>fileSize=>unzip=>remove
 	public function install(){
+		$GLOBALS['IO_NO_HISTORY'] = 1; // 安装插件不记录历史版本;
 		$app = Input::get('app','key');
 		$appPath = PLUGIN_DIR.$app.'.zip';
 		$appPathTemp = $appPath.'.downloading';
