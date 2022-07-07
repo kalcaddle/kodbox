@@ -59,6 +59,9 @@ class explorerShare extends Controller{
 	}
 	
 	public function linkSafe($path,$downFilename=''){
+		if(!defined('USER_ID') || !USER_ID){
+			return $this->link($path,$downFilename);
+		}
 		if(!$path || !$info = IO::info($path)) return;
 		$link = Action('user.index')->apiSignMake('explorer/index/fileOut',array('path'=>$path));
 		
@@ -170,21 +173,21 @@ class explorerShare extends Controller{
 		if($this->share) return;
 		$this->share = $share = $this->model->getInfoByHash($hash);
 		if(!$share || $share['isLink'] != '1'){
-			show_json(LNG('explorer.share.notExist'),30100);
+			$this->showError(LNG('explorer.share.notExist'),30100);
 		}
 		if($share['sourceInfo']['isDelete'] == '1'){
-			show_json(LNG('explorer.share.notExist'),30100);
+			$this->showError(LNG('explorer.share.notExist'),30100);
 		}
 		//外链分享有效性处理: 当分享者被禁用,没有分享权限,所在文件不再拥有分享权限时自动禁用外链分享;
 		if(!Action('explorer.authUser')->canShare($share)){
 			$userInfo = Model('User')->getInfoSimpleOuter($share['userID']);
 			$tips = '('.$userInfo['name'].' - '.LNG('common.noPermission').')';
-			show_json(LNG('explorer.share.notExist') .$tips,30100);
+			$this->showError(LNG('explorer.share.notExist') .$tips,30100);
 		}
 
 		//检测是否过期
 		if($share['timeTo'] && $share['timeTo'] < time()){
-			show_json(LNG('explorer.share.expiredTips'),30101,$this->get(true));
+			$this->showError(LNG('explorer.share.expiredTips'),30101,$this->get(true));
 		}
 
 		//检测下载次数限制
@@ -194,16 +197,14 @@ class explorerShare extends Controller{
 			$msg = LNG('explorer.share.downExceedTips');
 			$pathInfo = explode('/', $this->in['path']);
 			if(!empty($pathInfo[1]) || is_ajax()) {
-				show_json($msg,30102,$this->get(true));
+				$this->showError($msg,30102,$this->get(true));
 			}
 			show_tips($msg);
 		}
 		//检测是否需要登录
 		$user = Session::get("kodUser");
-		if( $share['options'] && 
-			$share['options']['onlyLogin'] == '1' && 
-			!is_array($user)){
-			show_json(LNG('explorer.share.loginTips'),30103,$this->get(true));
+		if( $share['options'] && $share['options']['onlyLogin'] == '1' && !is_array($user)){
+			$this->showError(LNG('explorer.share.loginTips'),30103,$this->get(true));
 		}
 		//检测密码
 		$passKey  = 'Share_password_'.$share['shareID'];
@@ -215,14 +216,20 @@ class explorerShare extends Controller{
 				if($pass == $share['password']){
 					Session::set($passKey,$pass);
 				}else{
-					show_json(LNG('explorer.share.errorPwd'),false);
+					$this->showError(LNG('explorer.share.errorPwd'),false);
 				}
 			}
 			// 检测密码
 			if( Session::get($passKey) != $share['password'] ){
-				show_json(LNG('explorer.share.needPwd'),30104,$this->get(true));
+				$this->showError(LNG('explorer.share.needPwd'),30104,$this->get(true));
 			}
 		}
+	}
+	private function showError($msg,$code,$info=false){
+		$action = strtolower(ACT);
+		$tipsAction = array('fileout','filedownload');
+		if(in_array($action,$tipsAction)){return show_tips($msg);}
+		show_json($msg,$code,$info);
 	}
 
 	/**
@@ -240,7 +247,7 @@ class explorerShare extends Controller{
 			$share['options']['notDownload'] == '1' && 
 			((equal_not_case(ACT,'fileOut') && $this->in['download']=='1') || 
 			equal_not_case(ACT,'zipDownload')) ){
-			show_json(LNG('explorer.share.noDownTips'),false);
+			$this->showError(LNG('explorer.share.noDownTips'),false);
 		}
 		if( $share['options'] && 
 			$share['options']['notView'] == '1' && 
@@ -249,12 +256,12 @@ class explorerShare extends Controller{
 				equal_not_case(ACT,'unzipList')
 			)
 		){
-			show_json(LNG('explorer.share.noViewTips'),false);
+			$this->showError(LNG('explorer.share.noViewTips'),false);
 		}
 		if( $share['options'] && 
 			$share['options']['canUpload'] != '1' && 
 			equal_not_case(ACT,'fileUpload') ){
-			show_json(LNG('explorer.share.noUploadTips'),false);
+			$this->showError(LNG('explorer.share.noUploadTips'),false);
 		}
 		if((equal_not_case(ACT,'fileOut') && $this->in['download']=='1') ||
 			equal_not_case(ACT,'zipDownload') || 

@@ -107,7 +107,7 @@ class getid3_optimfrog extends getid3_handler
 		$info = &$this->getid3->info;
 		$RIFFdata = '';
 		$this->fseek($info['avdataoffset']);
-		while (!$this->feof() && ($this->ftell() < $info['avdataend'])) {
+		while (!feof($this->getid3->fp) && ($this->ftell() < $info['avdataend'])) {
 			$BlockOffset = $this->ftell();
 			$BlockData   = $this->fread(8);
 			$offset      = 8;
@@ -188,6 +188,7 @@ class getid3_optimfrog extends getid3_handler
 				case 'COMP':
 					// unlike other block types, there CAN be multiple COMP blocks
 
+					$COMPdata           = array();
 					$COMPdata['offset'] = $BlockOffset;
 					$COMPdata['size']   = $BlockSize;
 

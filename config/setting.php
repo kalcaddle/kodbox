@@ -113,6 +113,7 @@ $config['systemOption'] = array(
 	'requestPerMinuteMax'  		=> 0,			// 每分钟最大请求数;0不限制; 推荐:600,300个则每秒5个,每5秒25个, 25个内小于5s
 	'requestAllowPerMinuteMax' 	=> 0,			// 允许的接口每分钟最大请求数;0不限制;推荐:3000, 高频次接口(upload/mkdir/list)
 	'userTaskAllowMax'			=> 0, 			// 每个用户允许的长任务个数;0不限制, 推荐50, 管理员不受限制; 占用独立进程;
+	'userAllowShowInfo'			=> 1,			// 允许普通用户模糊搜索所有用户(默认为关闭,只能精确搜索,避免用户信息泄露); 
 );
 
 
@@ -187,7 +188,7 @@ $config['settings']['appType'] = array(
 );
 $config['defaultPlugins'] = array(
 	'adminer','DPlayer','imageExif','jPlayer','photoSwipe','picasa','pdfjs',
-	'simpleClock','client','webodf','webdav','toolsCommon','oauth',
+	'simpleClock','client','webodf','webdav','toolsCommon','oauth','fileThumb',
 	'yzOffice','officeViewer',
 );
 
@@ -279,6 +280,8 @@ $config['settingDefault'] = array(
 	'listSortField'		=> "name",		// name||size||ext||mtime
 	'listSortOrder'		=> "up",		// asc||desc
 	'fileIconSize'		=> "80",		// 图标大小
+	'fileOpenClick'		=> 'dbclick',	// 打开文件方式 dbclick|click; 双击|单击;
+	'fileShowDesc'		=> '0',			// 图标模式显示文件夹文件详情(大小,文件夹包含子内容数)
 	'animateOpen'		=> "1",			// dialog动画
 	'soundOpen'			=> "0",			// 操作音效
 	'theme'				=> "auto",		// 'light','dark-mode','auto'
@@ -289,6 +292,8 @@ $config['settingDefault'] = array(
 	"recycleOpen"		=> "1",			// 1 | 0 代表是否开启
 	'kodAppDefault'		=> '',			// 
 	"fileIconSizeDesktop"=> '70',		// 桌面图标大小
+	"fileIconSizePhoto" => '120',		// 相册模式图片大小
+	'photoConfig'		=> '',			// 相册配置
 	'resizeConfig'		=> 
 		'{"filename":250,"filetype":80,"filesize":80,"filetime":215,"editorTreeWidth":200,"explorerTreeWidth":200}',
 	'imageThumb'		=> '1',
@@ -543,7 +548,7 @@ $config['authRoleAction']= array(
 		'admin.group' 		=> 'get,getByID,search'
 	),
 	'admin.member.userEdit'	=> array('admin.member'=>'add,edit,remove,status,addGroup,removeGroup,switchGroup'),
-	'admin.member.groupEdit'=> array('admin.group'=>'add,edit,status,sort,remove'),
+	'admin.member.groupEdit'=> array('admin.group'=>'add,edit,status,sort,remove,switch'),
 	
 	'admin.auth.list'		=> array('admin.auth'=>'get'),
 	'admin.auth.edit'		=> array('admin.auth'=>'add,edit,remove,sort'),

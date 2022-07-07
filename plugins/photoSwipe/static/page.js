@@ -1,8 +1,8 @@
 define(function(require, exports) {
-	var imageRemoveCallback = false;
+	var lastImageList = {};
 	var getImageArr = function(filePath,name){
 		var imageList = kodApp.imageList;
-		imageRemoveCallback =  imageList.removeCallback || false;
+		lastImageList = imageList;
 		kodApp.imageList = false;
 		if(!imageList) {
 			imageList = {items:[{
@@ -115,6 +115,7 @@ define(function(require, exports) {
 			}
 		});
 		gallery.listen('close', function(){
+			if(imageList>=3){$('.pswp__item').not('.current').find('img').remove();}
 			setTimeout(function(){
 				$(gallery.container).find('.pswp__zoom-wrap').fadeOut(200);
 			},300);
@@ -163,17 +164,20 @@ define(function(require, exports) {
 		};
 		
 		gallery.removeImage = function(){
-			if(!imageRemoveCallback) return;
-			imageRemoveCallback(gallery.currItem.data,function(){
+			if(!lastImageList.removeCallback) return;
+			lastImageList.removeCallback(gallery.currItem.data,function(){
 				gallery.removeCurrent();
 			});
 		}
 		setTimeout(function(){
-			var $btnRemove = $('.pswp__button--remove');
-			$btnRemove.addClass('hidden');
-			if(imageRemoveCallback){$btnRemove.removeClass('hidden');}
+			var $btnRemove = $('.pswp__button--remove').addClass('hidden');
+			if(lastImageList.removeCallback){$btnRemove.removeClass('hidden');}
+			
+			var $btnInfo = $('.pswp__button--info').addClass('hidden');
+			if(lastImageList.imageInfoCallback){$btnInfo.removeClass('hidden');}
 		},10);
 		window.photoSwipeView = gallery;
+		gallery.lastImageList = lastImageList;
 		
 		// 解决滚动穿透问题;(UC,内嵌网页等情况)
 		$(".pswp__bg").scrollTop($(".pswp__bg").scrollInnerHeight() / 2);
@@ -261,8 +265,8 @@ define(function(require, exports) {
 		gallery.listen('afterChange',imageRotateAuto);
 		if($('.pswp__button--rotate').length) return;
 		var html = '<button class="pswp__button pswp__button--rotate"></button>';
-		var $rotate = $(html).insertAfter('.pswp__button--close');
-		$rotate.bind('click', function(e){
+		var $button = $(html).insertAfter('.pswp__button--close');
+		$button.bind('click', function(e){
 			var radius = parseInt(imageRotateItem(gallery.currItem,'get')) + 90;
 			imageRotateItem(gallery.currItem,radius,true);
 			$('.pswp__ui--hidden').removeClass('pswp__ui--hidden');
@@ -272,8 +276,8 @@ define(function(require, exports) {
 		gallery.listen('afterChange',imageRotateAuto);
 		if($('.pswp__button--remove').length) return;
 		var html = '<button class="pswp__button pswp__button--remove"></button>';
-		var $rotate = $(html).insertAfter('.pswp__button--close');
-		$rotate.bind('click', function(e){
+		var $button = $(html).insertAfter('.pswp__button--close');
+		$button.bind('click', function(e){
 			gallery.removeImage && gallery.removeImage();
 			$('.pswp__ui--hidden').removeClass('pswp__ui--hidden');
 		});
@@ -285,6 +289,48 @@ define(function(require, exports) {
 				$('.pswp .pswp__button--remove').trigger('click');
 			}
 		});
+	};
+	
+	var itemInfoOpen = false;
+	var bindItemInfo = function(){
+		itemInfoOpen = false;
+		if(artDialog){$('.pswp_content').css('z-index',artDialog.defaults.zIndex++);}
+		gallery.listen('afterChange',function(){
+			if(!lastImageList.itemChange) return;
+			lastImageList.itemChange(gallery.currItem.data);
+		});
+		gallery.listen('close', function(){
+			itemInfoOpen = false;
+			$('.pswp_content').removeClass('panel-info-open')
+			if(lastImageList.closeCallback){lastImageList.closeCallback();}
+		});
+		$('.pswp_content').addClass('dark-mode');
+		
+		if($('.pswp__button--info').length) return;
+		var html = '<button class="pswp__button pswp__button--info"></button>';
+		var $button = $(html).insertAfter('.pswp__button--close');
+		if(!$('.file-panel-info').length){
+			$('<div class="file-panel-info"></div>').appendTo('.pswp_content');
+		}
+		var closeView = function(){
+			itemInfoOpen = false;
+			if(!lastImageList.imageInfoCallback) return;
+			$('.pswp_content').removeClass('panel-info-open')
+			lastImageList.imageInfoCallback(false);
+			photoSwipeView.updateSize();
+		}
+		var openView = function(){
+			if(!lastImageList.imageInfoCallback) return;
+			itemInfoOpen = true;
+			$('.pswp_content').addClass('panel-info-open')
+			lastImageList.imageInfoCallback(gallery.currItem.data,$('.file-panel-info'));
+			photoSwipeView.updateSize();
+		}
+		
+		$button.bind('click', function(e){
+			itemInfoOpen ? closeView():openView();
+		});
+		$('.pswp_content').delegate('.panel-close','click',closeView);
 	};
 	
 	var imageRotateItem = function(currItem,radius,isSave){
@@ -324,6 +370,7 @@ define(function(require, exports) {
 			bindClose();
 			bindRotate();
 			bindRemove();
+			bindItemInfo();
 		});
 	};
 });

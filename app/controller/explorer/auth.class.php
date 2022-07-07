@@ -155,12 +155,13 @@ class explorerAuth extends Controller {
 		}else{
 			$target = Model('Group')->getInfo($targetID);
 		}
+		$target['sizeUse'] = (!$target['sizeUse'] || $target['sizeUse'] <= 0 ) ? 0 : intval($target['sizeUse']);
 		$result = array(
 			'targetType'	=> $targetType,
 			'targetID' 		=> $targetID,
 			'targetName'	=> $target['name'],
 			"sizeMax" 		=> floatval($target['sizeMax'])*1024*1024*1024,
-    		"sizeUse" 		=> intval($target['sizeUse']),
+    		"sizeUse" 		=> $target['sizeUse'],
 		);
 		$result = Hook::filter("explorer.targetSpace",$result);
 		return $result;

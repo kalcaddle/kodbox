@@ -278,7 +278,7 @@ class filterUserCheck extends Controller {
 		if(time() - $item[count($item)-1] > $lockTime){$item = array();}
 		if(count($item) >= $lockErrorNum){array_shift($item);}
 		$item[] = time();
-		Cache::set($key,$item,600);write_log("set:$key;".json_encode($item),'lock');
+		Cache::set($key,$item,600);
 		return $user;
 	}
 }

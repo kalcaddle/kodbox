@@ -13,8 +13,8 @@ class adminStorage extends Controller {
 		// 获取各存储中文件数(io_file)
 		$res = array();
 		if ($ids) {
-			$sql = 'SELECT ioType as id, COUNT(ioType) as cnt FROM io_file WHERE ioType IN ('.implode(',',$ids).') GROUP BY ioType';
-			$res = Model('File')->query($sql);
+			$where = array('ioType'=>array('in',implode(',',$ids)));
+			$res = Model('File')->field(array('ioType'=>'id','count(ioType)'=>'cnt'))->where($where)->group('ioType')->select();
 			$res = array_to_keyvalue($res, 'id', 'cnt');
 		}
 		foreach ($result as &$item) {

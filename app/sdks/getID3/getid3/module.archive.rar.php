@@ -21,9 +21,11 @@ if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that acce
 class getid3_rar extends getid3_handler
 {
 	/**
+	 * if true use PHP RarArchive extension, if false (non-extension parsing not yet written in getID3)
+	 *
 	 * @var bool
 	 */
-	public $option_use_rar_extension = true; //add by warlee;
+	public $use_php_rar_extension = true;
 
 	/**
 	 * @return bool
@@ -33,7 +35,7 @@ class getid3_rar extends getid3_handler
 
 		$info['fileformat'] = 'rar';
 
-		if ($this->option_use_rar_extension === true) {
+		if ($this->use_php_rar_extension === true) {
 			if (function_exists('rar_open')) {
 				if ($rp = rar_open($info['filenamepath'])) {
 					$info['rar']['files'] = array();
@@ -50,7 +52,7 @@ class getid3_rar extends getid3_handler
 				$this->error('RAR support does not appear to be available in this PHP installation');
 			}
 		} else {
-			$this->error('PHP-RAR processing has been disabled (set $getid3_rar->option_use_rar_extension=true to enable)');
+			$this->error('PHP-RAR processing has been disabled (set $getid3_rar->use_php_rar_extension=true to enable)');
 		}
 		return false;
 

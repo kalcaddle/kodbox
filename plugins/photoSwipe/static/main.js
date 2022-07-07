@@ -6,7 +6,7 @@ kodReady.push(function(){
 			title:'{{package.name}}',
 			ext:"{{config.fileExt}}",
 			sort:"{{config.fileSort}}",
-			icon:"x-item-icon x-jpg",
+			icon:"x-item-icon x-gif",
 			callback:function(path,ext,name){
 				var appStatic = "{{pluginHost}}static/";
 				var appStaticDefault = "{{pluginHostDefault}}static/";

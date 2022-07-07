@@ -20,14 +20,18 @@ if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that acce
 
 class getid3_pdf extends getid3_handler
 {
-	public $returnXREF = false; // return full details of PDF Cross-Reference Table (XREF)
+	/** misc.pdf
+	 * return full details of PDF Cross-Reference Table (XREF)
+	 *
+	 * @var bool
+	 */
+	public $returnXREF = false;
 
 	/**
 	 * @return bool
 	 */
 	public function Analyze() {
 		$info = &$this->getid3->info;
-
 		$this->fseek(0);
 		if (preg_match('#^%PDF-([0-9\\.]+)$#', rtrim($this->fgets()), $matches)) {
 			$info['pdf']['header']['version'] = floatval($matches[1]);
@@ -62,39 +66,45 @@ class getid3_pdf extends getid3_handler
 							}
 						}
 					}
+
+					asort($info['pdf']['xref']['offset']);
+					$maxObjLengths = array();
+					$prevOffset = 0;
+					$prevObjNum = 0;
+					foreach ($info['pdf']['xref']['offset'] as $objectNumber => $offset) {
+						// walk through all listed offsets to calculate the maximum possible length for each known object
+						if ($prevObjNum) {
+							$maxObjLengths[$prevObjNum] = $offset - $prevOffset;
+						}
+						$prevOffset = $offset;
+						$prevObjNum = $objectNumber;
+					}
+					ksort($maxObjLengths);
 					foreach ($info['pdf']['xref']['offset'] as $objectNumber => $offset) {
 						if ($info['pdf']['xref']['entry'][$objectNumber] == 'f') {
 							// "free" object means "deleted", ignore
 							continue;
 						}
-						$this->fseek($offset);
-						$line = rtrim($this->fgets());
-						if (preg_match('#^'.$objectNumber.' ([0-9]+) obj#', $line, $matches)) {
-							if (strlen($line) > strlen($matches[0])) {
-								// object header line not actually on its own line, rewind file pointer to start reading data
-								$this->fseek($offset + strlen($matches[0]));
-							}
-							$objectData  = '';
-							while (true) {
-								$line = $this->fgets();
-								if (rtrim($line) == 'endobj') {
-									break;
+						if (!empty($maxObjLengths[$objectNumber]) && ($maxObjLengths[$objectNumber] < $this->getid3->option_fread_buffer_size)) {
+							// ignore object that are zero-size or >32kB, they are unlikely to contain information we're interested in
+							$this->fseek($offset);
+							$objBlob = $this->fread($maxObjLengths[$objectNumber]);
+							if (preg_match('#^'.$objectNumber.'[\\x00 \\r\\n\\t]*([0-9]+)[\\x00 \\r\\n\\t]*obj[\\x00 \\r\\n\\t]*(.*)(endobj)?[\\x00 \\r\\n\\t]*$#s', $objBlob, $matches)) {
+								list($dummy, $generation, $objectData) = $matches;
+								if (preg_match('#^<<[\r\n\s]*(/Type|/Pages|/Parent [0-9]+ [0-9]+ [A-Z]|/Count [0-9]+|/Kids *\\[[0-9A-Z ]+\\]|[\r\n\s])+[\r\n\s]*>>#', $objectData, $matches)) {
+									if (preg_match('#/Count ([0-9]+)#', $objectData, $matches)) {
+										$info['pdf']['pages'] = (int) $matches[1];
+										break; // for now this is the only data we're looking for in the PDF not need to loop through every object in the file (and a large PDF may contain MANY objects). And it MAY be possible that there are other objects elsewhere in the file that define additional (or removed?) pages
+									}
 								}
-								$objectData .= $line;
+							} else {
+								$this->error('Unexpected structure "'.substr($objBlob, 0, 100).'" at offset '.$offset);
+								break;
 							}
-							if (preg_match('#^<<[\r\n\s]*(/Type|/Pages|/Parent [0-9]+ [0-9]+ [A-Z]|/Count [0-9]+|/Kids *\\[[0-9A-Z ]+\\]|[\r\n\s])+[\r\n\s]*>>#', $objectData, $matches)) {
-								if (preg_match('#/Count ([0-9]+)#', $objectData, $matches)) {
-									$info['pdf']['pages'] = (int) $matches[1];
-									break; // for now this is the only data we're looking for in the PDF not need to loop through every object in the file (and a large PDF may contain MANY objects). And it MAY be possible that there are other objects elsewhere in the file that define additional (or removed?) pages
-								}
-							}
-						} else {
-							$this->error('Unexpected structure "'.$line.'" at offset '.$offset);
-							break;
 						}
 					}
 					if (!$this->returnXREF) {
-						unset($info['pdf']['xref']['offset'], $info['pdf']['xref']['generation'], $info['pdf']['xref']['entry']);
+						unset($info['pdf']['xref']['offset'], $info['pdf']['xref']['generation'], $info['pdf']['xref']['entry'], $info['pdf']['xref']['xref_offsets']);
 					}
 
 				} else {

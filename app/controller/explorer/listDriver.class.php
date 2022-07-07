@@ -76,9 +76,8 @@ class explorerListDriver extends Controller{
 		}
 		$result['groupShow'] = $groupShow;
 	}
-
-		
-	public function parsePathIO($info,$current=false){
+	
+	public function parsePathIO(&$info,$current=false){
 		if(substr($info['path'],0,4) != '{io:') return $info;
 		static $driverList = false;
 		if ($driverList === false) {
@@ -123,7 +122,7 @@ class explorerListDriver extends Controller{
 		// pr($storage,$parse,$info,$driverList);exit;
 		return $info;
 	}
-	public function parsePathChildren($info,$current){
+	public function parsePathChildren(&$info,$current){
 		if($info['type'] == 'file' || isset($info['hasFolder']) ) return $info;	
 		$ioAllow = array('Local','MinIO');// 'Local','MinIO'
 		$pathParse = KodIO::parse($current['path']);

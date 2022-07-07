@@ -49,7 +49,7 @@ class getid3_amr extends getid3_handler
 
 		$buffer = '';
 		do {
-			if ((strlen($buffer) < $this->getid3->fread_buffer_size()) && !$this->feof()) {
+			if ((strlen($buffer) < $this->getid3->fread_buffer_size()) && !feof($this->getid3->fp)) {
 				$buffer .= $this->fread($this->getid3->fread_buffer_size() * 2);
 			}
 			$AMR_frame_header = ord(substr($buffer, 0, 1));

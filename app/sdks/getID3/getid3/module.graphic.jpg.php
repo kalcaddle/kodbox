@@ -60,13 +60,14 @@ class getid3_jpg extends getid3_handler
 
 		$returnOK = false;
 		switch ($type) {
-			case IMG_JPG:
+			case IMAGETYPE_JPEG:
 				$info['video']['resolution_x'] = $width;
 				$info['video']['resolution_y'] = $height;
 
 				if (isset($imageinfo['APP1'])) {
 					if (function_exists('exif_read_data')) {
-						if (substr($imageinfo['APP1'], 0, 4) == 'Exif') {
+						if($imageinfo['APP1']){ // add by warlee; 包含exif及http的都进行处理;
+						// if (substr($imageinfo['APP1'], 0, 4) == 'Exif') { // 
 							//$this->warning('known issue: https://bugs.php.net/bug.php?id=62523');
 							//return false;
 							set_error_handler(function($errno, $errstr, $errfile, $errline) { // https://github.com/JamesHeinrich/getID3/issues/275
@@ -177,7 +178,7 @@ class getid3_jpg extends getid3_handler
 		}
 		return true;
 	}
-
+	
 	/**
 	 * @param mixed $value
 	 *

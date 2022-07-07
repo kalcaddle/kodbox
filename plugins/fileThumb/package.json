@@ -1,0 +1,66 @@
+{
+	"id":"fileThumb",
+	"name":"{{LNG['fileThumb.meta.name']}}",
+	"title":"{{LNG['fileThumb.meta.title']}}",
+	"version":"1.62",
+	"category":"file,media",
+	"source":{
+		"className":"x-item-icon x-psd"
+	},
+	"description":"{{LNG['fileThumb.meta.desc']}}",
+
+	"auther":{
+		"copyright":"kodcloud",
+		"homePage":"http://kodcloud.com"
+	},
+	"configItem":{
+		"formStyle":{
+			"loadFile":"{{pluginHost}}static/check.js"
+		},
+		"pluginAuth":{
+			"type":"userSelect",
+			"value":{"all":1},
+			"display":"{{LNG['admin.plugin.auth']}}",
+			"desc":"{{LNG['admin.plugin.authDesc']}}",
+			"require":1
+		},
+		"imagickBin":{
+			"type":"input",
+			"value":"convert",
+			"display":"imageMagick路径",
+			"require":1,
+			"desc":"用于psd,ttf,ps,gta等缩略图"
+		},
+		"ffmpegBin":{
+			"type":"input",
+			"value":"ffmpeg",
+			"display":"ffmpegBin路径",
+			"require":1,
+			"desc":"用于ps,ai,pdf等文件缩略图<br/><br/>
+					<button class='btn btn-success check-psd-server mr-10'>连接测试</button>
+					<button class='btn btn-link check-psd-help' >服务部署手册</button>"
+		},
+
+		"sep001":"<h4>文件关联设置:</h4>",
+		"fileSort":{
+			"type":"number",
+			"display":"{{LNG['admin.plugin.fileSort']}}",
+			"desc":"{{LNG['admin.plugin.fileSortDesc']}}",
+			"value":100
+		},
+		"fileExt":{
+			"type":"tags",
+			"display":"{{LNG['admin.plugin.fileExt']}}",
+			"desc":"{{LNG['admin.plugin.fileExtDesc']}}",
+			//raw,rw2,srw
+			"value":"psd,psb,ps,ps2,ps3,tif,tiff,tga,tst,plt,ai,jpe,dds,crw,3fr,fff,ppm,mef,mos,mdc,iiq,eps,heic,ttf"
+		},
+		"fileThumb":{
+			"type":"tags",
+			"display":"{{LNG['fileThumb.Config.fileThumbExt']}}",
+			"value":"psd,psb,ps,ps2,ps3,tif,tiff,tga,tst,plt,ai,jpe,dds,crw,3fr,fff,ppm,mef,mos,mdc,iiq,eps,
+			,pdf,xps,heic,ttf,
+			,3gp,avi,mp4,m4v,mov,mpg,mpeg,mpe,mts,m2ts,wmv,ogv,webm,vob,flv,f4v,mkv,rmvb,rm"
+		}
+	}
+}

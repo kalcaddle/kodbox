@@ -13,8 +13,10 @@ ClassBase.define({
         var opt = '';
         _.each(this.loginWith, function(type){
             var name = self.thirdItems[type];
+            var icon = type == 'weixin' ? 'wechat' : type;
             var title = _.replace(LNG['oauth.main.loginWith'], '[0]', name);
-                opt += '<span class="box-'+type+' third-item" data-type='+type+' title="'+title+'" title-timeout="200"></span>';
+                // opt += '<span class="box-'+type+' third-item" data-type='+type+' title="'+title+'" title-timeout="200"></span>';
+                opt += '<i class="font-icon ri-'+icon+'-fill third-item with-color" data-type='+type+' title="'+title+'" title-timeout="200"></i>';
         });
         var html = '<div class="text-muted text-center more-login-area">\
                         <span class="more-login-words">'+LNG['user.moreLogin']+'</span>\
@@ -34,7 +36,7 @@ ClassBase.define({
                 return location.href = './';
             }
 			var type = $(e.currentTarget).attr("data-type");
-            if (type != 'weixin') Tips.loadingMask();
+            if (type != 'weixin') Tips.loadingMask(false, LNG['oauth.main.loading']);
 			self.Bind.bind(type);
 		});
     }

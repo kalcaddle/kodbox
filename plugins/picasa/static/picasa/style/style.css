@@ -5,7 +5,7 @@
 #PicasaMask {position: fixed; _position: absolute; z-index: 10000; top: 0; left: 0; 
 background: #000; overflow: hidden;}
 
-
+.screen-fullscreen #PicasaMask{opacity:1 !important;}
 #PV_Close{position: fixed; _position: absolute; z-index: 10001; right:-70px; top:-75px;height:140px;
 width:140px;text-decoration:none;background:#000;border-radius:70px;opacity:0.4;filter:alpha(opacity=40);}
 #PV_Close span{display:block;margin-top:75px;margin-left:35px;color:#fff;

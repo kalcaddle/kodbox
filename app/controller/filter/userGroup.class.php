@@ -51,6 +51,7 @@ class filterUserGroup extends Controller{
 			'admin.group.status' 	=> array('group'=>'groupID','error'=>'error'),
 			'admin.group.remove' 	=> array('group'=>'groupID','error'=>'error'),
 			'admin.group.sort' 		=> array('group'=>'groupID','error'=>'error'),
+			'admin.group.switch' 	=> array('group'=>'from','group'=>'to','error'=>'error'),
 			
 			// 部门公共标签: 获取,修改;
 			// 'explorer.taggroup.get' => array('group'=>'groupID','read'=>'allow','error'=>'error','requestFrom'=>'user'),
@@ -97,6 +98,10 @@ class filterUserGroup extends Controller{
 		if(!$groupList || count($groupList) == 0){ // 不在任何部门则不支持用户及部门查询;
 			return $this->checkError(array('error' =>'error'));
 		}
+		
+		// 是否允许普通用户模糊搜索其他人开关; 
+		$allowShowUserInfo = $GLOBALS['config']['systemOption']['userAllowShowInfo'] == 1;
+		if($allowShowUserInfo && ($action == 'admin.member.search' || $action == 'admin.member.getbyid')) return;
 
 		// app 接口请求认为是前端请求
 		if( strstr($_SERVER['HTTP_USER_AGENT'],'kodCloud-System:iOS') || 
@@ -151,9 +156,10 @@ class filterUserGroup extends Controller{
 			'phone' 	=> $words,
 			'_logic' 	=> 'or',
 		);
-		$user = Model("User")->where($where)->find();
-		if($user){
-			$list = Model('User')->userListInfo(array($user['userID']));
+		$list = array();$page = array('totalNum' => 0);
+		$userArray = Model("User")->field('userID')->where($where)->select(); // 允许搜索重名用户;
+		if($userArray){
+			$list = Model('User')->userListInfo(array_to_keyvalue($userArray,'','userID'));
 			$list = array_values($list);
 			$page['totalNum'] = 1;
 		}

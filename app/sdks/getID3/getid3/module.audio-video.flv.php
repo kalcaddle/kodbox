@@ -161,6 +161,7 @@ class getid3_flv extends getid3_handler
 						$info['flv']['video']['videoCodec'] = $LastHeaderByte & 0x07;
 
 						$FLVvideoHeader = $this->fread(11);
+						$PictureSizeEnc = array();
 
 						if ($info['flv']['video']['videoCodec'] == GETID3_FLV_VIDEO_H264) {
 							// this code block contributed by: moysevichØgmail*com
@@ -309,8 +310,6 @@ class getid3_flv extends getid3_handler
 					// noop
 					break;
 			}
-			
-			
 			if($found_video && $found_audio && $found_meta){break;}//add by warlee; 找到后停止;
 			$this->fseek($NextOffset);
 		}

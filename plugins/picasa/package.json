@@ -4,7 +4,7 @@
 	"title":"{{LNG['picasa.meta.title']}}",
 	"version":"1.30",
 	"source":{
-		"className":"x-item-icon x-jpg",
+		"className":"x-item-icon x-png",
 		"screenshoot":[
 			"{{staticPath}}images/wall_page/1.jpg",
 			"{{staticPath}}images/wall_page/5.jpg"

@@ -219,7 +219,8 @@ class getid3_real extends getid3_handler
 
 							case 'audio/x-pn-realaudio':
 							case 'audio/x-pn-multirate-realaudio':
-								$this->ParseOldRAheader($thisfile_real_chunks_currentchunk_typespecificdata, $thisfile_real_chunks_currentchunk['parsed_audio_data']);
+								$this->ParseOldRAheader($thisfile_real_chunks_currentchunk_typespecificdata, $parsedAudioData);
+								$thisfile_real_chunks_currentchunk['parsed_audio_data'] = &$parsedAudioData;
 
 								$info['audio']['sample_rate']     = $thisfile_real_chunks_currentchunk['parsed_audio_data']['sample_rate'];
 								$info['audio']['bits_per_sample'] = $thisfile_real_chunks_currentchunk['parsed_audio_data']['bits_per_sample'];

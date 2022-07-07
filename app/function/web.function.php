@@ -254,27 +254,12 @@ function curl_progress_end($curl,$curlResult=false){
 	$runTime = '[ RunTime:'.think_status('curlTimeStart','curlTimeEnd',6).'s ]';
 	$runInfo = "sizeUp={$curlInfo['size_upload']};sizeDown={$curlInfo['download_content_length']};";//json_encode($curlInfo)
 	think_trace(" ".$curlInfo['url'].";".$runInfo.$runTime,'','CURL');
-
-	// 缓存处理;
-	if($curlResult){
-		// if(count($GLOBALS['curlCache']) > 50){
-		// 	$GLOBALS['curlCacheResult'] = null;
-		// 	$GLOBALS['curlCacheResult'] = array();
-		// 	$GLOBALS['curlCache'] = null;
-		// 	$GLOBALS['curlCache'] = array();
-		// }
-		// $GLOBALS['curlCacheResult'][$curlInfo['url']] = $curlResult;
-		// $GLOBALS['curlCache'][$curlInfo['url']] = curl_copy_handle($curl);
-	}
-	
 	
 	$httpCode = $curlInfo['http_code'];
 	if($curlResult && $httpCode < 200 || $httpCode >= 300){
-		$errorMessage = curl_error($curl);
-		$errorMessage = "code=".$httpCode.'; '.curl_error($curl);		
+		$errorMessage = "curl error code=".$httpCode.'; '.curl_error($curl);		
 		$GLOBALS['curl_request_error'] = array('message'=>$errorMessage,'url'=> $curlInfo['url'],'code'=>$httpCode);
 		write_log("[CURL] ".$curlInfo['url'].";$errorMessage;");
-		// throw new Exception($errorMessage);
 	}
 }
 function curl_progress(){

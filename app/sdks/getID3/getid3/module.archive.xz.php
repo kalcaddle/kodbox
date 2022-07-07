@@ -20,7 +20,6 @@ if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that acce
 
 class getid3_xz extends getid3_handler
 {
-
 	/**
 	 * @return bool
 	 */

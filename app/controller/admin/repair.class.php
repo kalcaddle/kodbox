@@ -49,7 +49,8 @@ class adminRepair extends Controller {
 	public function clearErrorFile(){
 		$cache = Cache::get('clear_file_'.date('Ymd'));
 		if (!$cache || !is_array($cache)) {
-			echo '<br/><p style="font-size:14px;">没有缺失的物理文件记录——此记录从缓存中获取，缓存数据在执行<code>done=1</code>时产生。</p>';
+			echo '-------------------------------------------<br>';
+			echo '<p style="font-size:14px;">没有缺失的物理文件记录——此记录从缓存中获取，缓存数据在执行<code>done=1</code>时产生，因此请务必先执行<code>done=1</code>。</p>';
 			exit;
 		}
 		$model = Model('File');
@@ -270,10 +271,16 @@ class adminRepair extends Controller {
 	// 删除不存在的物理文件
 	private function delFileNone($model, $modelSource, $modelHistory, $item){
 		$where = array("fileID"=>$item['fileID']);
+		$list  = $modelSource->where($where)->select();
 		$cnt1  = $modelSource->where($where)->delete();
 		$modelHistory->where($where)->delete();
 		$files = array_pad(array(), intval($item['linkCount']), $item['fileID']);	// 引用清0然后删除
 		$cnt2  = $model->remove($files);
+		// 重置父目录大小
+		$list = array_unique(array_to_keyvalue($list, '', 'parentID'));
+		foreach($list as $parentID) {
+            $modelSource->folderSizeReset($parentID);
+        }
 		return array(
 			'source' => intval($cnt1),
 			'file'	 => intval($cnt2), 

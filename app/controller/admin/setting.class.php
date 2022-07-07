@@ -56,7 +56,12 @@ class adminSetting extends Controller {
 	 */
 	public function mailTest() {
 		$input = Input::get('address', 'require');
-		$systemName = Model('SystemOption')->get('systemName');
+
+		$systemName = Input::get('systemName');
+		if (!$systemName) $systemName = Model('SystemOption')->get('systemName');
+		$systemDesc = Input::get('systemDesc');
+		if (!$systemDesc) $systemDesc = Model('SystemOption')->get('systemDesc');
+
 		$data = array(
 			'type'			=> 'email',
 			'input'			=> $input,
@@ -69,7 +74,11 @@ class adminSetting extends Controller {
 					'type'	=> 'code', 
 					'data'	=> array('code' => rand_string(6))
 				),
-				'signature'	=> $systemName,
+				'system'	=> array(	// 系统信息
+					'icon'	=> STATIC_PATH.'images/icon/fav.png',
+					'name'	=> $systemName,
+					'desc'	=> $systemDesc
+				),
 				'server'		=> Input::getArray(array(
 					'host'		=> array('check' => 'require'),
 					'email'		=> array('check' => 'require'),

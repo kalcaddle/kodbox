@@ -60,8 +60,10 @@ class webdavServerKod extends webdavServer {
     			return HttpAuth::error();
     		}
     		ActionCall('user.index.loginSuccess',$find);
+			
 			// 登录日志;
-			if(HttpHeader::method() == 'OPTIONS'){
+			$needLog = time() - intval($find['lastLogin']) >= 60; // 超过1分钟才记录
+			if($needLog && HttpHeader::method() == 'OPTIONS'){
 				Model('User')->userEdit($find['userID'],array("lastLogin"=>time()));
 				ActionCall('admin.log.loginLog');
 			}

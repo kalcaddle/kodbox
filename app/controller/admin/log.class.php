@@ -54,7 +54,7 @@ class adminLog extends Controller{
 				'user.setting.setHeadImage,user.setting.setUserInfo' => LNG('log.user.edit'),
 			),
 			'admin' => array(
-				'admin.group.add,admin.group.edit,admin.group.remove,admin.group.status,admin.group.sort' => LNG('log.group.edit'),
+				'admin.group.add,admin.group.edit,admin.group.remove,admin.group.status,admin.group.sort,admin.group.switch' => LNG('log.group.edit'),
 				'admin.member.add,admin.member.edit,admin.member.remove,admin.member.addGroup,admin.member.removeGroup,admin.member.switchGroup,admin.member.status' => LNG('log.member.edit'),
 				'admin.role.add,admin.role.edit,admin.role.remove' => LNG('log.role.edit'),
 				'admin.auth.add,admin.auth.edit,admin.auth.remove' => LNG('log.auth.edit'),
@@ -148,21 +148,45 @@ class adminLog extends Controller{
                 $act = ST . '.' . ACT;
                 $func = array('fav.add', 'fav.del', 'index.fileOut', 'index.fileDownload', 'index.zipDownload');
                 if(!in_array($act, $func)) return;
-                if (ACT == 'fileOut') { // 客户端下载会多次请求，只记录第一次
-                    if (!isset($_SERVER['HTTP_RANGE']) || $_SERVER['HTTP_RANGE'] != 'bytes=0-1') return;
+                if (in_array(ACT, array('fileOut', 'fileDownload'))) { // 多线程下载，或某些浏览器会请求多次
+                    if (!$this->checkDownload()) return;
+                } else if (ACT == 'zipDownload') {
+                    if (isset($this->in['zipClient']) && $this->in['zipClient'] == '1') {
+                        $data = false;  // 前端压缩下载会返回列表，故下方以$this->in赋值
+                    }
                 }
             }
             if(!is_array($data)) {
                 $data = $this->in;
-                unset($data['URLremote'], $data['URLrouter'], $data['HTTP_DEBUG_URL'], $data[str_replace(".", "/", ACTION)]);
+                unset($data['URLremote'], $data['URLrouter'], $data['HTTP_DEBUG_URL'], $data['CSRF_TOKEN'], $data[str_replace(".", "/", ACTION)]);
             }
         }
         // 第三方绑定
         if(ACTION == 'user.index.loginSubmit'){
             if (!is_array($data)) return;
             return $this->loginLog();
-        }		
+        }
         return $this->model->addLog(ACTION, $data);
+    }
+
+    /**
+     * 检测下载
+     * 无range：小文件不传，大文件可能有多个请求，前期不传——60s差不多能完成（60s内多次下载也只记一次）
+     * 有range：浏览器下载多次请求时，可能是start或end与size相近（size-1），end-start>1，此时在无range请求时记录
+     * @return void
+     */
+    private function checkDownload(){
+        if (!isset($_SERVER['HTTP_RANGE'])) {
+            $key = md5(json_encode($this->in));
+            if (Cache::get($key)) return false;
+            Cache::set($key, 60);
+            return true;
+        }
+        $start = $end = 0;
+        $bytes = explode('-', str_replace('bytes=', '', $_SERVER['HTTP_RANGE']));
+        $start = intval($bytes[0]);
+        $end   = isset($bytes[1]) ? intval($bytes[1]) : 0;
+        return abs($end - $start) > 1 ? false : true;   // app:0-;客户端:0-1
     }
 
     /**

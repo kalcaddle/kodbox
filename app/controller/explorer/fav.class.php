@@ -59,7 +59,7 @@ class explorerFav extends Controller{
 		};unset($item);
 		return $list;
 	}
-	public function favAppendItem($item){
+	public function favAppendItem(&$item){
 		static $favList = false;
 		if($favList === false){
 			$favList = $this->model->listData();
@@ -71,10 +71,14 @@ class explorerFav extends Controller{
 		}
 		$path 	 = $item['path'];$favItem = false;
 		$favItem = isset($favList[$path]) ? $favList[$path]:$favItem;
-		$path 	 = rtrim($item['path'],'/');
-		$favItem = isset($favList[$path]) ? $favList[$path]:$favItem;
-		$path 	 = rtrim($item['path'],'/').'/';
-		$favItem = isset($favList[$path]) ? $favList[$path]:$favItem;
+		if(!$favItem){
+			$path 	 = rtrim($item['path'],'/');
+			$favItem = isset($favList[$path]) ? $favList[$path]:$favItem;
+		}
+		if(!$favItem){
+			$path 	 = rtrim($item['path'],'/').'/';
+			$favItem = isset($favList[$path]) ? $favList[$path]:$favItem;
+		}
 		
 		if( $favItem ){
 			$item['sourceInfo']['isFav'] = 1;
@@ -83,7 +87,7 @@ class explorerFav extends Controller{
 		}
 		// $item['$favItem'] = $favItem;		
 		// 收藏文件;
-		if($item['type'] == 'file'){
+		if($item['type'] == 'file' && !$item['ext']){
 			$item['ext'] = get_path_ext($item['name']);
 		}
 		return $item;

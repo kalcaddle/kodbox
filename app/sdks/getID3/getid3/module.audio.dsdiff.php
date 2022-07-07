@@ -46,6 +46,7 @@ class getid3_dsdiff extends getid3_handler
 		$info['audio']['bits_per_sample'] = 1;
 
 		$info['dsdiff'] = array();
+		$thisChunk = null;
 		while (!$this->feof() && ($ChunkHeader = $this->fread(12))) {
 			if (strlen($ChunkHeader) < 12) {
 				$this->error('Expecting chunk header at offset '.(isset($thisChunk['offset']) ? $thisChunk['offset'] : 'N/A').', found insufficient data in file, aborting parsing');
@@ -209,7 +210,7 @@ class getid3_dsdiff extends getid3_handler
 
 					getid3_lib::IncludeDependency(GETID3_INCLUDEPATH.'module.tag.id3v2.php', __FILE__, true);
 					$getid3_temp = new getID3();
-					$getid3_temp->openfile($this->getid3->filename, null, $this->getid3->fp);
+					$getid3_temp->openfile($this->getid3->filename, $this->getid3->info['filesize'], $this->getid3->fp);
 					$getid3_id3v2 = new getid3_id3v2($getid3_temp);
 					$getid3_id3v2->StartingOffset = $this->ftell();
 					if ($thisChunk['valid'] = $getid3_id3v2->Analyze()) {

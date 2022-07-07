@@ -188,7 +188,7 @@ class adminMember extends Controller{
 			return ActionCall('filter.userCheck.passwordTips');
 		}
 		// 不支持修改自己的权限角色;避免误操作;
-		if($data['userID'] == USER_ID){
+		if($data['userID'] == USER_ID && isset($data['roleID'])){
 			$user = Session::get('kodUser');
 			if($user['roleID'] != $data['roleID']){
 				return show_json("not support change self role!",false);
@@ -312,18 +312,18 @@ class adminMember extends Controller{
 			'groupInfo' => array('check' => 'require'),
 		));
 		$total	 = (int) $fileData['total'];
-		$success = 0;
+		$error	 = array();
 		foreach($fileData['list'] as $value) {
 			$this->in = array_merge($value, $data);
 			$res = ActionCallHook('admin.member.add');
-			if($res['code']) $success++;
+			if (!$res['code']) $error[$this->in['name']] = $res['data'];
 		}
-		$fail  = $total - $success;
-		$info  = LNG('common.inAll') . ":{$total}; ";
-		$info .= LNG('common.success') . ":{$success}";
-		if ($fail > 0) {
-			$info .= "<br/>" . LNG('common.fail') . ":{$fail} (".LNG('admin.member.importFailDesc').")";
-		}
+		$success = $total - count($error);
+		$info = array(
+			'total'		=> $total,
+			'success'	=> $success,
+			'error'		=> $error,
+		);
 		$code  = (boolean) $success;
 		$data  = $code ? LNG('admin.member.importSuccess') : LNG('admin.member.importFail');
 		show_json($data, $code, $info);
@@ -349,7 +349,6 @@ class adminMember extends Controller{
 		$dataList = array_filter($dataList);
         $list = array();
         $keys = array('name','nickName','password','sex','phone','email');
-		$sex  = array('女' => 0, '男' => 1);
         foreach($dataList as $value) {
             $tmp = array();
             foreach($keys as $i => $key) {
@@ -362,8 +361,7 @@ class adminMember extends Controller{
 						$val = $this->iconvValue($val);
 						break;
 					case 'sex':
-						$val = $this->iconvValue($val);
-						$val = isset($sex[$val]) ? $sex[$val] : 1;
+						$val = $val != '0' ? 1 : 0;
                         break;
                     case 'phone':
                     case 'email':
@@ -374,13 +372,13 @@ class adminMember extends Controller{
                 }
                 $tmp[$key] = $val;
 			}
-			if(empty($tmp)) continue;
+			if(empty($tmp) || empty($tmp['name']) || empty($tmp['password'])) continue;
 			if(isset($list[$tmp['name']])) continue;
             $list[$tmp['name']] = $tmp;
         }
         return array(
 			'list'	=> array_values($list), 
-			'total' => count($dataList), 
+			'total' => count($list), 
 		);
 	}
 	private function iconvValue($value){

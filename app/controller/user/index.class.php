@@ -15,7 +15,7 @@ class userIndex extends Controller {
 	public function index(){
 		include(TEMPLATE.'user/index.html');
 	}
-	// 进入初始化
+	// 进入初始化; total=10ms左右;
 	public function init(){
 		Hook::trigger('globalRequestBefore');
 		Hook::bind('beforeShutdown','user.index.shutdownEvent');
@@ -30,11 +30,13 @@ class userIndex extends Controller {
 		
 		Action('filter.index')->bind();
 		$this->loginCheck();
-		Model('Plugin')->init(); // 5ms; 15ms;
+		Model('Plugin')->init();
 		Action('filter.index')->trigger();
 	}
 	public function shutdownEvent(){
-		CacheLock::unlockRuntime();// 清空异常时退出,未解锁的加锁;
+		TaskQueue::addSubmit();		// 结束后有任务时批量加入
+		TaskRun::autoRun();			// 定期执行及延期任务处理;
+		CacheLock::unlockRuntime(); // 清空异常时退出,未解锁的加锁;
 	}
 	private function initDB(){
 		think_config($GLOBALS['config']['databaseDefault']);
@@ -51,9 +53,10 @@ class userIndex extends Controller {
 			}
 			Session::sign($sessionSign);
 		}
-		Session::set('kod',1);
+		
 		if(!Session::get('kod')){
-			show_tips(LNG('explorer.sessionSaveError'));
+			Session::set('kod',1);
+			if(!Session::get('kod')){show_tips(LNG('explorer.sessionSaveError'));}
 		}
 		// 注意: Session设置sessionid的cookie;两个请求时间过于相近,可能导致删除cookie失败的问题;(又有sessionid请求覆盖)
 		// 设置csrf防护;

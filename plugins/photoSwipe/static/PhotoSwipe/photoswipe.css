@@ -13,7 +13,7 @@
   overflow: hidden;
   -ms-touch-action: none;
   touch-action: none;
-  z-index: 991500;
+  z-index: 15000;
   -webkit-text-size-adjust: 100%;
   /* create separate layer, to avoid paint on window.onscroll in webkit/blink */
   -webkit-backface-visibility: hidden;
@@ -176,21 +176,13 @@
 
 .pswp__error-msg a {color: #CCC;text-decoration: underline; }
 
-.pswp__button{transition:opacity, background-color .2s;}
+.pswp__button{transition:opacity, background-color .2s;color: #fff;font-size: 18px;font-family: 'remixicon';}
 .pswp__button:hover {background-color: rgba(255,255,255,0.1);}
 .pswp__button.pswp__button--rotate{background-image: none !important;}
-.pswp__button.pswp__button--rotate:before{
-	content: "\eb95";
-	font-family: 'remixicon' !important;
-    color: #fff;font-size: 18px;
-}
+.pswp__button.pswp__button--rotate:before{content: "\eb95";}
 
 .pswp__button.pswp__button--remove{background-image: none !important;}
-.pswp__button.pswp__button--remove:before{
-	content:"\ec1e";
-	font-family: 'remixicon' !important;
-    color: #fff;font-size: 18px;
-}
+.pswp__button.pswp__button--remove:before{content:"\ec1e";}
 
 /* .pswp__container:not(.touch-start) .pswp__item.loading .pswp__zoom-wrap{transform: none !important;} */
 .pswp__item.loading .pswp__zoom-wrap{transform: none !important;}
@@ -203,3 +195,20 @@
     top: 0;right: 0;left: 0;bottom: 0;
     margin: auto;height: 80%;min-width: 40%;
 }
+
+.pswp .file-panel *{box-sizing: initial;}
+.pswp__button.pswp__button--info{background-image: none !important;}
+.pswp__button.pswp__button--info:before{content:"\ee58";}
+
+.app-wap-small .pswp__button.pswp__button--info{display: none !important;}
+.pswp_content .pswp__scroll-wrap{z-index:2;}
+.pswp_content.dark-mode .file-panel{
+	border-left: 1px solid rgba(255,255,255,0.15);
+	box-shadow: 0 0 10px #00000080;background: rgba(20,20,20,0.8);
+}
+.pswp_content .file-panel-info{position:absolute;right:0;top:0;bottom:0;width:320px;z-index:1;}
+.pswp_content.panel-info-open .pswp__scroll-wrap{width:auto;right:320px;}
+.pswp_content.panel-info-open .pswp__button.pswp__button--info{color: #1890ff;background: rgba(255,255,255,0.15);}
+	
+.pswp_content .file-panel .btn[data-action="copyWget"]{display: none;}
+.pswp_content .file-panel .btn[data-action="copyCurl"]{display: none;}

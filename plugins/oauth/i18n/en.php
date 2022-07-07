@@ -18,4 +18,8 @@ return array(
 	'oauth.main.backHome'		=> 'Home page',
 	'oauth.main.notLogin'		=> 'The user information is abnormal, or the login is invalid',
 	'oauth.main.pageTitle'		=> 'Account authentication',
+
+	'oauth.main.loading'		=> 'Loading...',
+	'oauth.main.loadTips'		=> 'Connecting to [0] authentication, please make sure you can access its corresponding website',
+	'oauth.main.loginRpt'		=> 'Do not resubmit',
 );

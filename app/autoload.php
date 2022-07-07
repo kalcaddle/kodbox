@@ -90,28 +90,42 @@ function Action($name = '') {
  * 
  * 参数合并为数组; 类似于js的 apply($object,$args);
  * ActionApply('user.index.appConfig',array("add",'123'));
+ * 
+ * 支持: 
+ * 1. 直接调用:函数,类方法,静态类方法;eg: 'clear_html', array($this,'pathInfo'), array('IO','exist');
+ * 2. 控制器方法; eg: 'user.index.appConfig';
+ * 3. 模型方法;   eg: 'sourceModel.targetSpaceUpdate';
+ * 
+ * 4. 插件方法;   	  eg: 'testPlugin.echoJs';
+ * 4. 插件模型方法;   eg: 'testPlugin.chartUserModel.getInfo';
  */
 function ActionApply($action,$args=array()){
+	static $_cache = array();
 	if(is_array($action)){ //可调用方法; array($this,'log');
 		return call_user_func_array($action,$args);
-	}	
+	}
+
+	if(isset($_cache[$action])){
+		return call_user_func_array($_cache[$action],$args);
+	}
 	if(function_exists($action)){ //全局函数;
-		return call_user_func_array($action,$args);
+		$_cache[$action] = $action;
+	}else{
+		$last 	  	= strrpos($action,'.');
+		$className	= substr($action,0,$last);
+		$method   	= substr($action,$last + 1);
+		$obj 		= Action($className);
+		if(!$method || !is_object($obj) || !method_exists($obj,$method)){
+			return actionCallError("$action method not exists!");
+		}
+		$_cache[$action] = array($obj,$method);
 	}
-	$last 	  	= strrpos($action,'.');
-	$className	= substr($action,0,$last);
-	$method   	= substr($action,$last + 1);
-	$obj 		= Action($className);
-	if(!is_object($obj) || !method_exists($obj,$method)){
-		return actionCallError("$action method not exists!");
-	}
-	$result = call_user_func_array(array($obj,$method), $args);
-	// pr_trace($action,$method,$result,$args);
-	return $result;
+	return call_user_func_array($_cache[$action], $args);
 }
 function actionCallError($msg){
 	// think_exception($msg,false);
-	return write_log($msg."\n".get_caller_msg(),'error');
+	write_log($msg."\n".get_caller_msg(),'error');
+	return false;
 }
 
 /**

@@ -79,7 +79,11 @@ class userBind extends Controller {
 					'type'	=> 'code', 
 					'data'	=> array('code' => rand_string(6))
 				),
-				'signature'	=> $systemName,
+				'system'	=> array(	// 系统信息
+					'icon'	=> STATIC_PATH.'images/icon/fav.png',
+					'name'	=> $systemName,
+					'desc'	=> Model('SystemOption')->get('systemDesc')
+				),
 			)
 		);
 		return Action('user.msg')->send($data);
