@@ -177,4 +177,17 @@ class adminGroup extends Controller{
 		$msg = $res ? LNG('explorer.success') : LNG('explorer.error');
 		show_json($msg,!!$res);
 	}
+
+	/**
+	 * 部门迁移 
+	 */
+	public function switch(){
+		$data = Input::getArray(array(
+			"from"		=> array("check"=>"int"),
+			"to"		=> array("check"=>"int"),
+		));
+		$res = $this->model->groupSwitch($data['from'],$data['to']);
+		$msg = $res ? LNG('explorer.success') : LNG('explorer.error');
+		show_json($msg,!!$res);
+	}
 }

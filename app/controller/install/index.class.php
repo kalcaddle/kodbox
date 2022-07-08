@@ -521,9 +521,12 @@ class installIndex extends Controller {
 
         $dataPath = './data/files/';
         if(!is_dir($dataPath)) @mk_dir($dataPath);
+        $freeSize = @disk_free_space($dataPath);
+        $freeSize = $freeSize ? floor($freeSize / 1024 / 1024 / 1024) : 0;
+        $freeSize = $freeSize > 10 ? floor($freeSize / 10) * 10 : 10;
         $data = array (
             'name' => LNG('admin.storage.localStore'),
-            'sizeMax' => '1024',
+            'sizeMax' => $freeSize,
             'driver' => 'Local',
             'default' => '1',
             'system' => '1',

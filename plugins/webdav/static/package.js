@@ -11,7 +11,7 @@ define(function(require, exports) {
             "type":"number",
             "value":1024,
             "display":LNG['admin.member.spaceSize'],
-            "desc":"(GB)",
+            "desc":LNG['admin.storage.sizeDesc'],
             "require":1
         },
 		"sep_webdav":"<hr/>",

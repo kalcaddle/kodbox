@@ -29,7 +29,8 @@ function import($path=false){
 		if(is_dir($path)){
 			$_autoLoaderPath[] = rtrim($path,'/').'/';
 		}else if( is_file($path) ){		
-			return include_once $path;
+			include_once $path;
+			return array();
 		}
 	}	
 	return $_autoLoaderPath;

@@ -97,21 +97,25 @@ class userMsg extends Controller {
         );
         foreach($init as $key => &$value) {
             if(isset($data['config'][$key])) $value = $data['config'][$key];
-        };unset($value);
+        };
         // 发件服务器信息
         if(isset($data['config']['server'])) {
             $init = array_merge($init, $data['config']['server']);
         }
+        // 发送者名称
+        $signature = _get($data, 'config.system.name');
+        if (!$signature) $signature = Model('SystemOption')->get('systemName');
+        $init['signature'] = $signature;
         // 邮件内容，自定义内容为字符串；根据模板获取为数组：array('type'=>'code','data'=>array('code' => 123))
         if(is_array($init['content'])) {
-            $type = $init['content']['type'];
-            $data = $init['content']['data'];
-            $init['content'] = $this->emailContent($type, $data);
+            $init['content'] = $this->emailContent($data);
         }
+
         // 邮件发送
 		$mail = new Mailer();
         $res = $mail->send($init);
-        if($res['code'] && isset($type) && $type == 'code') {
+        $type = _get($data, 'config.content.type');
+        if($res['code'] && $type == 'code') {
             $res['data'] = $data['code'];
         }
         return $res;
@@ -123,29 +127,39 @@ class userMsg extends Controller {
      * @param [type] $data
      * @return void
      */
-    public function emailContent($type, $data){
-        $systemName = Model('SystemOption')->get('systemName');
-        $signature = !empty($data['signature']) ? $data['signature'] : $systemName;
+    public function emailContent($data){
+        $system = _get($data, 'config.system', array());
+        if (!$system['icon']) $system['icon'] = 'https://api.kodcloud.com/static/images/icon/fav.png';
+        if (request_url_safe($system['icon'])) {    // 网络图片转base64
+            $imageInfo = getimagesize($system['icon']);
+            $imageData = 'data:' . $imageInfo['mime'] . ';base64,' . chunk_split(base64_encode(file_get_contents($system['icon'])));
+            $system['icon'] = $imageData;
+        }
+        if (!$system['name']) $system['name'] = Model('SystemOption')->get('systemName');
+        if (!$system['desc']) $system['desc'] = Model('SystemOption')->get('systemDesc');
 
+        $addr = _get($data, 'config.address');
+        $type = _get($data, 'config.content.type');
+        $data = _get($data, 'config.content.data');
+        $user = _get($data, 'user', $addr);
         switch($type) {
             case 'code':
                 $data = array(
                     'type'  => 'code',
-                    'dear'  => LNG('admin.dearUser'),
-                    'text'  => sprintf(LNG('admin.emailThxUse'), $systemName) . LNG('admin.emailVerifyCode'),
+                    'dear'  => sprintf(LNG('admin.emailDear'), $user),
+                    'text'  => LNG('admin.emailCodeText'),
                     'code'  => $data['code'],
-                    'tips'  => LNG('admin.emailVerifyInTime'),
-                    'name'  => $signature,
                     'date'  => date('Y-m-d'),
+                    'system'=> $system,
                 );
                 break;
             case 'notice':
                 $data = array(
                     'type'  => 'notice',
-                    'dear'  => isset($data['dear']) ? $data['dear'] : LNG('admin.dearUser'),
+                    'dear'  => sprintf(LNG('admin.emailDear'), $user),
                     'text'  => is_array($data['text']) ? $data['text'] : array($data['text']),  // 正文
-                    'name'  => $signature,
                     'date'  => date('Y-m-d'),
+                    'system'=> $system,
                 );
                 break;
             default:

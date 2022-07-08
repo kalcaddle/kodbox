@@ -400,7 +400,7 @@ class getid3_aac extends getid3_handler
 			if (!isset($BitrateCache[$FrameLength])) {
 				$BitrateCache[$FrameLength] = ($info['aac']['header']['sample_frequency'] / 1024) * $FrameLength * 8;
 			}
-			getid3_lib::safe_inc($info['aac']['bitrate_distribution'][$BitrateCache[$FrameLength]], 1);
+			getid3_lib::safe_inc($info['aac']['bitrate_distribution'][(string)$BitrateCache[$FrameLength]], 1);
 
 			$info['aac'][$framenumber]['aac_frame_length']     = $FrameLength;
 

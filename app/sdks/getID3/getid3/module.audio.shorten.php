@@ -17,6 +17,7 @@
 if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that access modules directly on public webservers
 	exit;
 }
+
 class getid3_shorten extends getid3_handler
 {
 	/**

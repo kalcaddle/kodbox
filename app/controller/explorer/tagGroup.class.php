@@ -76,7 +76,7 @@ class explorerTagGroup extends Controller{
 	}
 	
 	// 部门子内容,公共标签追加; 根部门--追加 groupTagList
-	public function tagAppendItem($pathInfo){
+	public function tagAppendItem(&$pathInfo){
 		if(!isset($pathInfo['targetType']) || isset($pathInfo['shareID'])) return $pathInfo;
 		if($pathInfo['targetType'] != 'group') return $pathInfo;
 		

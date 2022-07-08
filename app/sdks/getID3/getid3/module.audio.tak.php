@@ -20,7 +20,9 @@ if (!defined('GETID3_INCLUDEPATH')) { // prevent path-exposing attacks that acce
 
 class getid3_tak extends getid3_handler
 {
-
+	/**
+	 * @return bool
+	 */
 	public function Analyze() {
 		$info = &$this->getid3->info;
 

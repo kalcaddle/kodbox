@@ -24,6 +24,8 @@ define('GETID3_MIDI_MAGIC_MTRK', 'MTrk'); // MIDI track header magic
 class getid3_midi extends getid3_handler
 {
 	/**
+	 * if false only parse most basic information, much faster for some files but may be inaccurate
+	 *
 	 * @var bool
 	 */
 	public $scanwholefile = true;
@@ -61,6 +63,7 @@ class getid3_midi extends getid3_handler
 		$thisfile_midi_raw['ticksperqnote'] = getid3_lib::BigEndian2Int(substr($MIDIdata, $offset, 2));
 		$offset += 2;
 
+		$trackdataarray = array();
 		for ($i = 0; $i < $thisfile_midi_raw['tracks']; $i++) {
 			while ((strlen($MIDIdata) - $offset) < 8) {
 				if ($buffer = $this->fread($this->getid3->fread_buffer_size())) {
@@ -85,7 +88,7 @@ class getid3_midi extends getid3_handler
 			}
 		}
 
-		if (!isset($trackdataarray) || !is_array($trackdataarray)) {
+		if (!is_array($trackdataarray) || count($trackdataarray) === 0) {
 			$this->error('Cannot find MIDI track information');
 			unset($thisfile_midi);
 			unset($info['fileformat']);

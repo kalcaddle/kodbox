@@ -48,9 +48,11 @@ class getid3_tiff extends getid3_handler
 		$CurrentIFD                  = array();
 
 		$FieldTypeByteLength = array(1=>1, 2=>1, 3=>2, 4=>4, 5=>8);
-
 		$nextIFDoffset = $this->TIFFendian2Int($this->fread(4), $info['tiff']['byte_order']);
-
+		
+		// exif数据解析处理优化;// changed by warlee; 
+		$this->readExif($nextIFDoffset,'EXIF');		
+		/*
 		while ($nextIFDoffset > 0) {
 
 			$CurrentIFD['offset'] = $nextIFDoffset;
@@ -123,8 +125,13 @@ class getid3_tiff extends getid3_handler
 			$nextIFDoffset = $this->TIFFendian2Int($this->fread(4), $info['tiff']['byte_order']);
 
 		}
-
+		*/
+		$exif = array();
 		foreach ($info['tiff']['ifd'] as $IFDid => $IFDarray) {
+			if(!isset($IFDarray['fields'])) {
+				continue;
+			}
+			if(!is_array($exif[$IFDid])){$exif[$IFDid] = array();}
 			foreach ($IFDarray['fields'] as $key => $fieldarray) {
 				switch ($fieldarray['raw']['tag']) {
 					case 256: // ImageWidth
@@ -144,6 +151,8 @@ class getid3_tiff extends getid3_handler
 					case 305: // Software
 					case 306: // DateTime
 					case 315: // Artist
+					case 36867: // DateTimeOriginal
+					case 36868: // DateTimeOriginal
 					case 316: // HostComputer
 						if (isset($fieldarray['value'])) {
 							$info['tiff']['ifd'][$IFDid]['fields'][$key]['raw']['data'] = $fieldarray['value'];
@@ -206,17 +215,204 @@ class getid3_tiff extends getid3_handler
 					default:
 						break;
 				}
+				
+				$entryData  = $info['tiff']['ifd'][$IFDid]['fields'][$key];
+				$entryValue = isset($fieldarray['value']) ? $fieldarray['value'] : $fieldarray['raw']['valoff'];
+				$exif[$IFDid][$key] = isset($entryData['raw']['data']) ? $entryData['raw']['data'] : $entryValue;
 			}
 		}
-		
-		// add by warlee; 部分tif图片获取尺寸错误问题处理;
-		$imageInfo = getimagesize_io($info['filenamepath']);
-		if($imageInfo){
-			$info['video']['resolution_x'] = $imageInfo[0];
-			$info['video']['resolution_y'] = $imageInfo[1];
+
+		// GPS计算处理; // changed by warlee; 
+		$gps = $exif['GPS'];
+		if(!$gps){$exif['GPS'] = array();}
+		$gps['computed'] = array();
+		if (is_array($gps['GPSLatitude'])){
+			$data = $gps['GPSLatitude'];
+			$directionMultiplier = ((isset($gps['GPSLatitudeRef']) && ($gps['GPSLatitudeRef'] === 'S')) ? -1 : 1);
+			$gps['computed']['latitude'] = $directionMultiplier * ($data[0] + ($data[1] / 60) + ($data[2] / 3600));
 		}
-		
+		if (is_array($gps['GPSLongitude'])){
+			$data = $gps['GPSLongitude'];
+			$directionMultiplier = ((isset($gps['GPSLongitudeRef']) && ($gps['GPSLongitudeRef'] === 'W')) ? -1 : 1);
+			$gps['computed']['longitude'] = $directionMultiplier * ($data[0] + ($data[1] / 60) + ($data[2] / 3600));
+		}
+		if (isset($gps['GPSAltitudeRef'])) {
+			$directionMultiplier = (!empty($gps['GPSAltitudeRef']) ? -1 : 1); // 0 = above sea level; 1 = below sea level
+			$gps['computed']['altitude'] = $directionMultiplier * $gps['GPSAltitude'];
+		}
+		$exif['GPS']  = $gps;$info['exif'] = $exif;
+		$info['exif']['EXIF'] = array_merge($info['exif']['EXIF'],$info['exif']['IFD0']);
+		$info['exif']['IFD0'] = $info['exif']['EXIF'];
+		if(!isset($info['video']['resolution_x'])){
+			if(isset($exif['IFD0']['PixelXDimension'])){
+				$info['video']['resolution_x'] = $exif['IFD0']['PixelXDimension'];
+				$info['video']['resolution_y'] = $exif['IFD0']['PixelYDimension'];
+			}else{
+				$imageInfo = getimagesize_io($info['filenamepath']);
+				if($imageInfo){
+					$info['video']['resolution_x'] = $imageInfo[0];
+					$info['video']['resolution_y'] = $imageInfo[1];
+				}
+			}
+		}
 		return true;
+	}
+	
+	// 通用exif数据读取;
+	public function readExif($readOffset,$codeType=''){
+		$info = &$this->getid3->info;
+		$exifOffset = $info['avdataoffset'];
+		$this->fseek($exifOffset + $readOffset);
+	
+		$byteOrder  = $info['tiff']['byte_order'];
+		$CurrentIFD = array('offset'=>$readOffset);
+		$CurrentIFD['fieldcount'] = $this->TIFFendian2Int($this->fread(2),$byteOrder);
+		for ($i = 0; $i < $CurrentIFD['fieldcount']; $i++) {
+			$item = array();
+			$entryOffset = $exifOffset + $readOffset + 2 + $i * (2+2+4+4);
+			$this->fseek($entryOffset); // 重置到起始位置;
+			$item['raw']['tag']      = $this->TIFFendian2Int($this->fread(2),$byteOrder);
+			$item['raw']['type']     = $this->TIFFendian2Int($this->fread(2),$byteOrder);
+			$item['raw']['length']   = $this->TIFFendian2Int($this->fread(4),$byteOrder);
+			$item['raw']['valoff']   = $this->fread(4);//valueOffset;
+			if($codeType == 'EXIF' || $codeType == 'IFD0'){$item['raw']['tag_name'] = $this->TIFFcommentName($item['raw']['tag']);}
+			if($codeType == 'GPS'){$item['raw']['tag_name'] = $this->getGpsName($item['raw']['tag']);}
+			
+			$valueCount  = $item['raw']['length'];
+			$valueOffset = $this->TIFFendian2Int($item['raw']['valoff'],$byteOrder);
+			switch ($item['raw']['type']) {
+				case 1: // BYTE  An 8-bit unsigned integer.
+					if ($valueCount <= 4) {
+						$item['value']  = $this->TIFFendian2Int(substr($item['raw']['valoff'], 0, 1),$byteOrder);
+					} else {
+						$item['offset'] = $valueOffset;
+					}
+					break;
+				case 2: // ASCII 8-bit bytes  that store ASCII codes; the last byte must be null.
+					if ($valueCount <= 4) {
+						$item['value']  = substr($item['raw']['valoff'],0,$valueCount);
+					} else {
+						$this->fseek($valueOffset + $exifOffset);
+						$item['value'] = $this->fread($valueCount);
+					}
+					if(substr($item['value'],-1) == "\x00"){ // 去除结尾\0字符;
+						$item['value'] = substr($item['value'],0,-1);
+					}
+					break;	
+				case 3: // SHORT A 16-bit (2-byte) unsigned integer.
+					if ($valueCount == 1) {
+						$item['value']  = $this->TIFFendian2Int(substr($item['raw']['valoff'], 0, 2),$byteOrder);
+					} else {
+						$item['value'] = array();
+						$this->fseek($valueCount > 2 ? $valueOffset + $exifOffset : $entryOffset + 8);
+						for ($j=0; $j < $valueCount; $j++) { 
+							$item['value'][] = $this->TIFFendian2Int($this->fread(2),$byteOrder);
+						}
+					}
+					break;
+				case 4: // LONG  A 32-bit (4-byte) unsigned integer.
+					if ($valueCount == 1) {
+						$item['value']  = $valueOffset;
+					} else {
+						$item['value'] = array();
+						$this->fseek($valueOffset + $exifOffset);
+						for ($j=0; $j < $valueCount; $j++) { 
+							$item['value'][] = $this->TIFFendian2Int($this->fread(4),$byteOrder);
+						}
+					}
+					break;
+				case 5: // RATIONAL   Two LONG_s:  the first represents the numerator of a fraction, the second the denominator.
+					$this->fseek($valueOffset + $exifOffset);
+					$values = array();
+					for ($j=0; $j < $valueCount; $j++) { 
+						$value1 = $this->TIFFendian2Int($this->fread(4),$byteOrder);
+						$value2 = $this->TIFFendian2Int($this->fread(4),$byteOrder);
+						$values[] = $value1 / $value2;
+					}
+					$item['value'] = $valueCount == 1 ? $values[0] : $values;
+					break;
+				case 7: // UNDEFINED An 8-bit byte that may contain anything, depending on the definition of the field.
+					$item['offset'] = $valueOffset;
+					break;	
+				case 10:// SRATIONAL Two SLONGs: the first represents the numerator of a fraction, the second the denominator.
+					$this->fseek($valueOffset + $exifOffset);
+					$values = array();
+					for ($j=0; $j < $valueCount; $j++) { 
+						$value1 = $this->TIFFendian2Int($this->fread(4),$byteOrder);
+						$value2 = $this->TIFFendian2Int($this->fread(4),$byteOrder);
+						$values[] = $value1 / $value2;
+					}
+					$item['value'] = $valueCount == 1 ? $values[0] : $values;
+					break;
+					
+				// In TIFF 6.0, some new field types have been defined:
+				// These new field types are also governed by the byte order (II or MM) in the TIFF header.
+				case 6: // SBYTE An 8-bit signed (twos-complement) integer.
+				case 8: // SSHORT A 16-bit (2-byte) signed (twos-complement) integer.
+				case 9: // SLONG A 32-bit (4-byte) signed (twos-complement) integer.
+				case 11: // FLOAT Single precision (4-byte) IEEE format
+				case 12: // DOUBLE Double precision (8-byte) IEEE format
+				default:$this->warning('unhandled IFD field type '.$item['raw']['type'].' for IFD entry '.$i);break;
+			}
+			if($item['offset']){$item['offset'] += $exifOffset;}
+			$CurrentIFD['fields'][$item['raw']['tag_name']] = $item;
+		}
+		$info['tiff']['ifd'][$codeType] = $CurrentIFD;
+		if(isset($CurrentIFD['fields']['Exif IFD'])){
+			$item = $CurrentIFD['fields']['Exif IFD'];
+			$this->readExif($item['value'],'IFD0');
+		}
+		if(isset($CurrentIFD['fields']['GPS IFD'])){
+			$item = $CurrentIFD['fields']['GPS IFD'];
+			$this->readExif($item['value'],'GPS');
+		}
+	}
+	public function TIFFendian2Float($bytestring, $byteorder) {
+		if ($byteorder == 'Intel') {
+			return getid3_lib::LittleEndian2Float($bytestring);
+		} elseif ($byteorder == 'Motorola') {
+			return getid3_lib::BigEndian2Float($bytestring);
+		}
+		return false;
+	}
+	public function getGpsName($id) {
+		static $GpsNameArray = array();
+		if (empty($GpsNameArray)) {
+			$GpsNameArray = array(
+				0x0000 => "GPSVersionID",
+				0x0001 => "GPSLatitudeRef",
+				0x0002 => "GPSLatitude",
+				0x0003 => "GPSLongitudeRef",
+				0x0004 => "GPSLongitude",
+				0x0005 => "GPSAltitudeRef",
+				0x0006 => "GPSAltitude",
+				0x0007 => "GPSTimeStamp",
+				0x0008 => "GPSSatellites",
+				0x0009 => "GPSStatus",
+				0x000A => "GPSMeasureMode",
+				0x000B => "GPSDOP",
+				0x000C => "GPSSpeedRef",
+				0x000D => "GPSSpeed",
+				0x000E => "GPSTrackRef",
+				0x000F => "GPSTrack",
+				0x0010 => "GPSImgDirectionRef",
+				0x0011 => "GPSImgDirection",
+				0x0012 => "GPSMapDatum",
+				0x0013 => "GPSDestLatitudeRef",
+				0x0014 => "GPSDestLatitude",
+				0x0015 => "GPSDestLongitudeRef",
+				0x0016 => "GPSDestLongitude",
+				0x0017 => "GPSDestBearingRef",
+				0x0018 => "GPSDestBearing",
+				0x0019 => "GPSDestDistanceRef",
+				0x001A => "GPSDestDistance",
+				0x001B => "GPSProcessingMethod",
+				0x001C => "GPSAreaInformation",
+				0x001D => "GPSDateStamp",
+				0x001E => "GPSDifferential"
+			);
+		}
+		return (isset($GpsNameArray[$id]) ? $GpsNameArray[$id] : 'unknown/invalid ('.$id.')');
 	}
 
 	/**
@@ -297,6 +493,13 @@ class getid3_tiff extends getid3_handler
 				270 => 'ImageDescription',
 				271 => 'Make',
 				272 => 'Model',
+				42035 	=> 'LensMake',
+				42036 	=> 'LensModel',
+				42034 	=> 'LensSpecification',
+				36880 	=> 'OffsetTime',
+				36881 	=> 'OffsetTimeDigitized',
+				36882 	=> 'OffsetTimeOriginal',
+				
 				273 => 'StripOffsets',
 				274 => 'Orientation',
 				277 => 'SamplesPerPixel',

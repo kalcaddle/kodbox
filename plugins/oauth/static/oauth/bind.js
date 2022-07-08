@@ -1,13 +1,18 @@
 ClassBase.define({
-    init: function () {
+    init:function(){
         this.request = new kodApi.request({parent: this});
     },
     // 绑定
-    bind: function (type, action = 'login', client = 1) {
-        var self = this;
+    bind:function(type,action,client){
+		action = action == undefined ? 'login' : action;
+		client = client == undefined ? 1 : client;
+        if (this.notifyTips) {
+            return Tips.tips(LNG['oauth.main.loginRpt'], 'warning');
+        }
         // 判断是否在微信浏览器
         this.platform = $.browserIS.weixin ? 'mp' : 'open';  // 公众平台or开放平台
 
+        var self = this;
         var param = {method: 'oauth', type: type, action: action, client: client, state: this.platform};
         this.request.requestSend('plugin/oauth/bind', param, function(result){
             if (!result.code) {
@@ -43,7 +48,8 @@ ClassBase.define({
         });
     },
     // (第三方)账号绑定提交
-    bindSubmit: function (type, param, appid='') {
+    bindSubmit: function (type,param,appid) {
+		appid = appid || '';
         var directUrl = G.system.settings.kodApiServer + 'plugin/platform/&' + param;
         switch (type) {
             case 'weixin':
@@ -53,6 +59,7 @@ ClassBase.define({
             case 'github':
             case 'google':
             case 'facebook':
+                if (type != 'qq') this.showTips(type);
                 window.top.location.href = directUrl;
                 break;
             default: break;
@@ -98,5 +105,21 @@ ClassBase.define({
                 href: ""
             });
         });
-    }
+    },
+
+    // 跳转加载慢，显示提示信息
+    showTips: function(type){
+        var self = this;
+        var tips = _.replace(LNG['oauth.main.loadTips'], '[0]', _.upperFirst(type));
+        this.notifyTips = Tips.notify({
+            icon:"loading",
+            title:LNG['common.tips'],
+            content:"<div style='line-height:20px;'>"+tips+"（https://"+type+".com）</div>",
+            onClose:function(){
+                self.notifyTips = null;
+                window.top.location.reload();
+                return false;
+            }
+        });
+    },
 });

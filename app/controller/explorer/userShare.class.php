@@ -30,7 +30,7 @@ class explorerUserShare extends Controller{
 	}
 	
 	// 分享信息处理;
-	public function shareAppendItem($item){
+	public function shareAppendItem(&$item){
 		$shareInfo = _get($item,'shareInfo');
 		if(!isset($item['sourceInfo'])){$item['sourceInfo'] = array();}
 		if(isset($item['sourceInfo']['shareInfo']) ) return $item;
@@ -131,9 +131,14 @@ class explorerUserShare extends Controller{
 	}
 	private function sharePathInfoCheck($path){
 		$parse = KodIO::parse($path);
-		if ($parse['driverType'] == KodIO::KOD_IO) {
+		if ($parse['driverType'] == 'io') {
 			$driver = Model('Storage')->listData($parse['id']);
 			if (!$driver) return false;
+
+			$type = strtolower($driver['driver']);
+			$typeList = $GLOBALS['config']['settings']['ioClassList'];
+			$class = 'PathDriver'.(isset($typeList[$type]) ? $typeList[$type] : ucfirst($type));
+			if( !class_exists($class) ) return false;
 		}
 		try {
 			$info = IO::info($path);

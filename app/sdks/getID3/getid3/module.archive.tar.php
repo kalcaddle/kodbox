@@ -38,7 +38,7 @@ class getid3_tar extends getid3_handler
 		$null_512k = str_repeat("\x00", 512); // end-of-file marker
 
 		$this->fseek(0);
-		while (!$this->feof()) {
+		while (!feof($this->getid3->fp)) {
 			$buffer = $this->fread(512);
 			if (strlen($buffer) < 512) {
 				break;
@@ -141,6 +141,9 @@ class getid3_tar extends getid3_handler
 		else                    $type='u'; // UNKNOWN
 
 		// Determine permissions
+		$owner            = array();
+		$group            = array();
+		$world            = array();
 		$owner['read']    = (($mode & 00400) ? 'r' : '-');
 		$owner['write']   = (($mode & 00200) ? 'w' : '-');
 		$owner['execute'] = (($mode & 00100) ? 'x' : '-');

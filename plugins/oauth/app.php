@@ -89,6 +89,7 @@ class oauthPlugin extends PluginBase{
 		}
 		// app绑定第三方账号
 		if (isset($this->in['third']) && !empty($data)) {
+			$this->in['method'] = 'bindWithApp';
 			return $this->action()->bindWithApp($data);
 		}
 		show_json(LNG('common.illegalRequest'), false);

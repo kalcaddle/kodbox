@@ -57,7 +57,7 @@
         if(navigator.serviceWorker){
 			navigator.serviceWorker.register('<?php echo APP_HOST;?>?user/view/manifestJS');
 		}
-		var isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+		var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 		var theTheme = "<?php echo Model('userOption')->get('theme');?>";
 		var darkMode = theTheme == 'dark-mode' ? true: (theTheme == 'auto' && isDark); 
 		if(darkMode){document.getElementsByTagName('body')[0].setAttribute("class","bg-black");}

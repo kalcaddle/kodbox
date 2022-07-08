@@ -34,6 +34,7 @@ class getid3_lpac extends getid3_handler
 			$this->error('Expected "LPAC" at offset '.$info['avdataoffset'].', found "'.$StreamMarker.'"');
 			return false;
 		}
+		$flags = array();
 		$info['avdataoffset'] += 14;
 
 		$info['fileformat']            = 'lpac';

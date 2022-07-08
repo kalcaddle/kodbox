@@ -48,7 +48,6 @@ class explorerListGroup extends Controller{
 			if(!isset($groupSource[$groupID])) continue;
 			
 			$pathInfo = $groupSource[$groupID];			
-			// $pathInfo['name'] = '['.$pathInfo['name'].']';
 			$pathInfo['sourceRoot'] = 'groupPath';
 			$pathInfo['pathDisplay']= $pathInfo['groupPathDisplay'];
 			if(!$pathInfo['auth']){
@@ -60,7 +59,7 @@ class explorerListGroup extends Controller{
 				}
 			}
 			
-			// 没有字文件; 则获取是否有子部门;
+			// 没有子文件; 则获取是否有子部门;
 			if( !$pathInfo['hasFolder'] && !$pathInfo['hasFile'] ){
 				$groupInfo = Model('Group')->getInfo($groupID);
 				$pathInfo['hasFolder']  = $groupInfo['hasChildren'];
@@ -68,7 +67,7 @@ class explorerListGroup extends Controller{
 			}
 			$result[] = $pathInfo;
 		}
-		// pr($result,$groupInfo,$groupSource,$groupArray);exit;
+		// pr($result,$groupSource,$group,$groupArray);exit;
 		return $result;
 	}
 	// 过滤已禁用部门
@@ -92,25 +91,24 @@ class explorerListGroup extends Controller{
 		$pathInfo = $data['current'];
 		if(!$pathInfo || _get($pathInfo,'targetType') != 'group') return false;
 		if(isset($pathInfo['shareID'])) return false;
-		
-		// 第一页才罗列;
-		$page = intval($this->in['page']);
-		$page = $page >= 1? $page:1;
-		if($page !=1) return false;
-		
+
 		//不是根目录
 		$parents = $this->model->parentLevelArray($pathInfo['parentLevel']);
 		if(count($parents) != 0) return false;
-
 		if(!$this->enableListGroup($pathInfo['targetID'])) return;
-		$groupID = $pathInfo['targetID'];
-		$groupList  = $this->modelGroup->where(array('parentID'=>$groupID))->select();
-		$data['groupList'] = $this->groupArray($groupList);
+		
+		$groupList  = $this->modelGroup->where(array('parentID'=>$pathInfo['targetID']))->select();
+		$groupListAdd  = $this->groupArray($groupList);
+		$data['pageInfo']['totalNum'] += count($groupListAdd);
+		if(intval($this->in['page']) > 1) return;// 第一页才罗列;
+
+		$data['groupList'] = $groupListAdd;
 		$data['groupShow'] = array(
 			array('type'=>'childGroup','title'=>LNG('explorer.pathGroup.group'),"filter"=>array('sourceRoot'=>'groupPath')),
 			array('type'=>'childContent','title'=>LNG('explorer.pathGroup.groupContent'),"filter"=>array('sourceRoot'=>'!=groupPath')),
 		);
 		if(count($data['groupList']) == 0){unset($data['groupShow']);}
+		// show_json($data);exit;
 	}
 
 	public function pathGroupAuthMake($groupID,$userID=false){

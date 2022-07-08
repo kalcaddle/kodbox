@@ -48,7 +48,7 @@ class getid3_mpc extends getid3_handler
 			// this is SV7
 			return $this->ParseMPCsv7();
 
-		} elseif (preg_match('/^[\x00\x01\x10\x11\x40\x41\x50\x51\x80\x81\x90\x91\xC0\xC1\xD0\xD1][\x20-37][\x00\x20\x40\x60\x80\xA0\xC0\xE0]/s', $MPCheaderData)) {
+		} elseif (preg_match('#^[\x00\x01\x10\x11\x40\x41\x50\x51\x80\x81\x90\x91\xC0\xC1\xD0\xD1][\x20-37][\x00\x20\x40\x60\x80\xA0\xC0\xE0]#s', $MPCheaderData)) {
 
 			// this is SV4 - SV6, handle seperately
 			return $this->ParseMPCsv6();
@@ -348,6 +348,7 @@ class getid3_mpc extends getid3_handler
 		$info['avdataoffset'] += $thisfile_mpc_header['size'];
 
 		// Most of this code adapted from Jurgen Faul's MPEGplus source code - thanks Jurgen! :)
+		$HeaderDWORD = array();
 		$HeaderDWORD[0] = getid3_lib::LittleEndian2Int(substr($MPCheaderData, 0, 4));
 		$HeaderDWORD[1] = getid3_lib::LittleEndian2Int(substr($MPCheaderData, 4, 4));
 

@@ -26,7 +26,7 @@ ClassBase.define({
             }
             opt += '<div id="'+type+'" class="acc-row">\
                         <span class="col-title">\
-                            <i class="font-icon ri-'+(type == 'weixin' ? 'wechat' : type)+'-fill size20"></i>\
+                            <i class="font-icon ri-'+(type == 'weixin' ? 'wechat' : type)+'-fill with-color"></i>\
                             <span>'+name+'</span>\
                         </span>\
                         <span class="col-content">'+content+'</span>'+right+'\
@@ -57,7 +57,7 @@ ClassBase.define({
             var target = $(e.currentTarget);
             var type = target.parents(".acc-row").attr("id");
             if (target.attr("class") == 'bind') {
-                if (type != 'weixin') Tips.loadingMask();
+                if (type != 'weixin') Tips.loadingMask(false, LNG['oauth.main.loading']);
                 return self.Bind.bind(type, 'bind', 0);
             }
             if(self.emptyPwd == '1') {

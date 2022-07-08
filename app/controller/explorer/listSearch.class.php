@@ -45,6 +45,9 @@ class explorerListSearch extends Controller{
 	private function searchMutil($param){
 		$param['words'] = '';
 		$list = false;
+		if(count($param['wordsMutil']) > 100){
+			show_json(LNG('common.numberLimit').'(100)',false);
+		}
 		foreach($param['wordsMutil'] as $word){
 			$param['words'] = $word;
 			$find = $this->searchData($param);
@@ -65,14 +68,15 @@ class explorerListSearch extends Controller{
 		return $list;
 	}
 	
-	private function searchData($param){
+	public function searchData($param){
 		$path  = $param['parentPath'];
 		$parse = KodIO::parse($path);
 		$searchContent = $param['words'] && in_array('content',$param['option']);
 		
 		//本地路径搜索;
-		$searchIO = array('',KodIO::KOD_IO,KodIO::KOD_SHARE_ITEM,KodIO::KOD_SHARE_LINK);
-		if($path && (in_array($parse['type'],$searchIO) || $searchContent) ){
+		$searchLocalArr = array('',KodIO::KOD_IO,KodIO::KOD_SHARE_ITEM,KodIO::KOD_SHARE_LINK);
+		$searchIO = in_array($parse['type'],$searchLocalArr) && (!$param['parentID']);
+		if($path && ($searchIO || $searchContent) ){
 			unset($param['parentID']);
 			return $this->searchIO($path,$param);
 		}
@@ -111,6 +115,7 @@ class explorerListSearch extends Controller{
 			}
 			if($key == 'wordsMutil'){
 				$param[$key] = array_filter(explode("\n",$paramIn[$key]));
+				$param[$key] = array_values($param[$key]);
 			}
 		}
 		
@@ -120,14 +125,15 @@ class explorerListSearch extends Controller{
 		if(isset($param['timeTo'])) $param['timeTo'] = intval($param['timeTo']);
 		if(!is_array($param['option'])){$param['option'] = array();}
 		
-		$param['words'] = trim($param['words'], '/');
-		$path = $param['parentPath'];
+		$searchPath     	= $param['parentPath'] ? $param['parentPath'] : MY_HOME;
+		$param['words'] 	= trim($param['words'], '/');
+		$param['parentID']  = $this->searchPathSource($searchPath);
+	}
+	
+	public function searchPathSource($path){
+		if(!$path) return false;
+		$path  = trim($path,'/');
 		$parse = KodIO::parse($path);
-		if(!$path || $parse['type'] == ''){ //本地路径
-			$user = Session::get('kodUser');
-			$param['parentID'] = $user['sourceInfo']['sourceID'];
-			return;
-		}
 		Action('explorer.auth')->canView($path); //权限检测;
 		if($parse['type'] == KodIO::KOD_SHARE_ITEM){
 			$shareID  	= $parse['id'];
@@ -139,7 +145,7 @@ class explorerListSearch extends Controller{
 		}else if($parse['type'] == KodIO::KOD_SOURCE){
 			$sourceInfo = IO::info($path);
 		}
-		$param['parentID'] = $sourceInfo['sourceID'];
+		return $sourceInfo ? $sourceInfo['sourceID'] : false;
 	}
 	
 	/**
@@ -158,7 +164,7 @@ class explorerListSearch extends Controller{
 		}
 
 		$result = array('folderList'=> array(),'fileList'=> array());
-		$matchMax = 1000; $findNum = 0;
+		$matchMax = 2000; $findNum = 0;
 		foreach($list as $item){
 			check_abort_echo();
 			$isFolder = $item['folder'];

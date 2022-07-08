@@ -8,7 +8,7 @@ kodReady.push(function(){
         "weixin":   LNG['common.wechat'],
         "github":   "GitHub",
         "google":   "Google",
-        "facebook": "Facebook",
+        "facebook": "Facebook"
     };
     // 获取第三方登录项
     var getLoginWith = function(){
@@ -27,7 +27,7 @@ kodReady.push(function(){
 			"value":    loginWith,
 			"display":  LNG['admin.setting.thirdLogin'],
 			"desc":     LNG['admin.setting.thirdLoginDesc'],
-			"info":     thirdItems,
+			"info":     thirdItems
 		};
         formData.sep401 = '<hr>';
 	});
@@ -50,7 +50,7 @@ kodReady.push(function(){
             }
             var icon = type == 'weixin' ? 'wechat' : type;
             var checked = _.includes(logins, type) ? 'checked="checked"' : '';
-            opt += "<p class='mb-5'><i class='font-icon ri-"+icon+"-fill size20'></i><span>"+title+web+"</span>\
+            opt += "<p class='mb-5'><i class='font-icon ri-"+icon+"-fill with-color'></i><span>"+title+web+"</span>\
                 <input type='checkbox' name='type' value='"+type+"' class='kui-checkbox' "+checked+">\
                 </p>";
             list.push(opt);

@@ -168,7 +168,7 @@ class getid3_bonk extends getid3_handler
 				$thisfile_bonk_INFO['entries_count'] = 0;
 				$NextInfoDataPair = $this->fread(5);
 				if (!$this->BonkIsValidTagName(substr($NextInfoDataPair, 1, 4))) {
-					while (!$this->feof()) {
+					while (!feof($this->getid3->fp)) {
 						//$CurrentSeekInfo['offset']  = getid3_lib::LittleEndian2Int(substr($NextInfoDataPair, 0, 4));
 						//$CurrentSeekInfo['nextbit'] = getid3_lib::LittleEndian2Int(substr($NextInfoDataPair, 4, 1));
 						//$thisfile_bonk_INFO[] = $CurrentSeekInfo;

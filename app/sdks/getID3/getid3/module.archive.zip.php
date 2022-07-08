@@ -121,11 +121,11 @@ class getid3_zip extends getid3_handler
 					    !empty($info['zip']['files']['docProps']['core.xml'])) {
 							// http://technet.microsoft.com/en-us/library/cc179224.aspx
 							$info['fileformat'] = 'zip.msoffice';
-							if (!empty($ThisFileInfo['zip']['files']['ppt'])) {
+							if (!empty($info['zip']['files']['ppt'])) {
 								$info['mime_type'] = 'application/vnd.openxmlformats-officedocument.presentationml.presentation';
-							} elseif (!empty($ThisFileInfo['zip']['files']['xl'])) {
+							} elseif (!empty($info['zip']['files']['xl'])) {
 								$info['mime_type'] = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
-							} elseif (!empty($ThisFileInfo['zip']['files']['word'])) {
+							} elseif (!empty($info['zip']['files']['word'])) {
 								$info['mime_type'] = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 							}
 					}
@@ -166,7 +166,7 @@ class getid3_zip extends getid3_handler
 		$info['zip']['uncompressed_size'] = 0;
 		$info['zip']['entries_count']     = 0;
 
-		$this->rewind();
+		rewind($this->getid3->fp);
 		while ($fileentry = $this->ZIPparseLocalFileHeader()) {
 			$info['zip']['entries'][] = $fileentry;
 			$info['zip']['entries_count']++;
@@ -212,7 +212,7 @@ class getid3_zip extends getid3_handler
 		$info['zip']['uncompressed_size'] = 0;
 		$info['zip']['entries_count']     = 0;
 
-		$this->rewind();
+		rewind($this->getid3->fp);
 		while ($fileentry = $this->ZIPparseLocalFileHeader()) {
 			$info['zip']['entries'][] = $fileentry;
 			$info['zip']['entries_count']++;
@@ -231,6 +231,7 @@ class getid3_zip extends getid3_handler
 	 * @return array|false
 	 */
 	public function ZIPparseLocalFileHeader() {
+		$LocalFileHeader = array();
 		$LocalFileHeader['offset'] = $this->ftell();
 
 		$ZIPlocalFileHeader = $this->fread(30);
@@ -296,7 +297,7 @@ class getid3_zip extends getid3_handler
 			$DataDescriptor = $this->fread(16);
 			$LocalFileHeader['data_descriptor']['signature']         = getid3_lib::LittleEndian2Int(substr($DataDescriptor,  0, 4));
 			if ($LocalFileHeader['data_descriptor']['signature'] != 0x08074B50) { // "PK\x07\x08"
-				$this->getid3->warning('invalid Local File Header Data Descriptor Signature at offset '.($this->ftell() - 16).' - expecting 08 07 4B 50, found '.getid3_lib::PrintHexBytes($LocalFileHeader['data_descriptor']['signature']));
+				$this->getid3->warning('invalid Local File Header Data Descriptor Signature at offset '.($this->ftell() - 16).' - expecting 08 07 4B 50, found '.getid3_lib::PrintHexBytes(substr($DataDescriptor,  0, 4)));
 				$this->fseek($LocalFileHeader['offset']); // seek back to where filepointer originally was so it can be handled properly
 				return false;
 			}
@@ -329,6 +330,7 @@ class getid3_zip extends getid3_handler
 	 * @return array|false
 	 */
 	public function ZIPparseCentralDirectory() {
+		$CentralDirectory = array();
 		$CentralDirectory['offset'] = $this->ftell();
 
 		$ZIPcentralDirectory = $this->fread(46);
@@ -388,6 +390,7 @@ class getid3_zip extends getid3_handler
 	 * @return array|false
 	 */
 	public function ZIPparseEndOfCentralDirectory() {
+		$EndOfCentralDirectory = array();
 		$EndOfCentralDirectory['offset'] = $this->ftell();
 
 		$ZIPendOfCentralDirectory = $this->fread(22);

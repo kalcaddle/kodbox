@@ -56,7 +56,7 @@ class filterLimit extends Controller{
 				show_json($GLOBALS['explorer.sharePathInfo.error'], false);
 			}
 			if($info['type'] == 'folder' && $storeMax && $info['children']['fileNum'] > $storeMax){
-                show_json(LNG('转存文件个数超出限制; 您最大可转存文件个数为:'.$storeMax), false);
+                show_json(LNG('explorer.filter.shareCopyLimit').$storeMax, false);
 			}
 		}
     }
@@ -75,7 +75,7 @@ class filterLimit extends Controller{
             $shareInfo = Model('Share')->getInfo($data['shareID']);
             if($shareMax && floatval($shareInfo['sourceInfo']['size']) > $shareMax){
                 $sizeShow = size_format($shareMax);
-                show_json(LNG('分享文件大小超出限制; 您最大可分享文档:'.$sizeShow), false);
+                show_json(LNG('explorer.filter.shareSizeLimit').$sizeShow, false);
             }
         }
     }
@@ -91,7 +91,7 @@ class filterLimit extends Controller{
         $unzipMax  = floatval($this->config['settings']['unzipFileSizeMax'])*1024*1024*1024;
         if($unzipMax && floatval($info['size']) > $unzipMax){
             $sizeShow = size_format($unzipMax);
-            show_json(LNG('解压文件大小超出限制; 您最大可解压文档:'.$sizeShow), false);
+            show_json(LNG('explorer.filter.unzipSizeLimit').$sizeShow, false);
         }
     }
 
@@ -109,7 +109,7 @@ class filterLimit extends Controller{
 		$zipMax  = floatval($this->config['settings']['zipFileSizeMax'])*1024*1024*1024;
         if($zipMax && $size > $zipMax){
             $sizeShow = size_format($zipMax);
-            show_json(LNG('压缩文件大小超出限制; 您最大可压缩文档:'.$sizeShow), false);
+            show_json(LNG('explorer.filter.zipSizeLimit').$sizeShow, false);
         }
     }
 
@@ -122,7 +122,7 @@ class filterLimit extends Controller{
 		$uploadMax  = floatval($this->config['settings']['ignoreFileSize'])*1024*1024*1024;
         if($size && $uploadMax && floatval($size) > $uploadMax){
             $sizeShow = size_format($uploadMax);
-            show_json(LNG('上传大小超出限制; 您最大可上传文档:'.$sizeShow), false);
+            show_json(LNG('explorer.filter.uploadSizeLimit').$sizeShow, false);
         }
     }
 }

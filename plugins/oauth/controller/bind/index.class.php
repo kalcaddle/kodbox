@@ -84,6 +84,7 @@ class oauthBindIndex extends Controller {
 	 * @param type $data
 	 */
 	public function bindDisplay($type, $data) {
+		$this->updateAvatar($data);
 		$unionid = $data['unionid'];
 		$client = Input::get('client','require',1); // 前后端
 		$data['client'] = $client;
@@ -157,6 +158,7 @@ class oauthBindIndex extends Controller {
 			'title'		 => $success ? LNG('explorer.success') : LNG('explorer.error'), // 结果标题
 			'msg'		 => $this->_bindInfo($type, $success, $msg), // 结果说明
 		);
+		$this->updateAvatar($return);
 		if ($return['bind']) Hook::trigger('user.bind.log', 'bind', $return);
 		return show_json($return);
 	}
@@ -424,12 +426,21 @@ class oauthBindIndex extends Controller {
 		$param = array(
 			'type'		=> $data['type'],
 			'nickName'	=> $data['name'],
-			'avatar'	=> $data['avatar'],
+			'avatar'	=> isset($data['avatar']) ? $data['avatar'] : '',
 			'sex'		=> isset($data['sex']) ? $data['sex'] : 1,
 			'openid'	=> $data['openid'],
 			'unionid'	=> $data['unionid'],
 		);
+		$this->updateAvatar($param);
 		$this->apiRequest('bind', $param);	// 这里不管成功与否，登录信息已存储
+	}
+
+	// 头像地址替换
+	private function updateAvatar(&$data){
+		if (empty($data['avatar'])) return;
+		if (substr($data['avatar'],0,7) == 'http://') {
+			$data['avatar'] = 'https://'.substr($data['avatar'], 7);
+		}
 	}
 
 	/**

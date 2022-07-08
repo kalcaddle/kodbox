@@ -9,7 +9,6 @@ getID3 获取图片,音频,视频信息 https://www.getid3.org/
 		if($found_video && $found_audio && $found_meta){break;}//add by warlee; 找到后停止;
 		搜索:$info['playtime_seconds'] = $Duration / 1000;
 	2. getid3/module.graphic.gif.php  Analyze方法93行后加入: return; // add by warlee;
-	3. getid3/module.archive.rar.php  26行改为true: public $option_use_rar_extension = true; //add by warlee;
  */
 class GetInfo{
 	private static $fileTypeArray;
@@ -22,7 +21,7 @@ class GetInfo{
 		static $obj;
 		if (!$obj) {
 			require SDK_DIR.'/getID3/getid3/getid3.php';
-			$obj = new getID3();			
+			$obj = new getID3();
 		}
 		if(!$info || $info['type'] != 'file') return;
 		if(!self::support($info['ext']) || isset($info['fileInfoMore']) ) return;
@@ -40,14 +39,13 @@ class GetInfo{
 				$keyArray = self::$fileTypeArray['support'][$fileType]['keyMap'];
 				$getInfo  = @$obj->analyze($theFile,$info['size'],$info['name']);
 				$fileInfo = self::parseData($getInfo,$keyArray,$info);
-				// pr($theFile,$getInfo,$fileInfo,exif_read_data($info['path']));exit;
+				// pr($theFile,$getInfo,$fileInfo,exif_read_data($info['path']),$fileType);
 				// $filePath = 'data://image/jpeg;base64,'.base64_encode(StreamWrapperIO::read($theFile,0,1024*64));
 				// pr(exif_read_data($filePath),exif_read_data($info['path']),exif_read_data($theFile),$getInfo);exit;
 			}
 		} catch (Exception $e){
 			$fileInfo = array('fileType'=>$fileType);
 		}
-		
 		if(!$fileInfo) return;
 		
 		$fileInfo = self::arrayValueLimit($fileInfo);//长度限制处理;
@@ -93,7 +91,10 @@ class GetInfo{
 					break;
 				}				
 				$matchKeyTrue = str_replace('@',$ext,$matchKey);
-				$value = _get($getInfo,$matchKeyTrue);
+				$matchKeyIngore = str_replace('@.','',$matchKey);
+				$value1 = _get($getInfo,$matchKeyTrue);
+				$value2 = _get($getInfo,$matchKeyIngore);
+				$value  = $value1 ? $value1 : ($value2 ? $value2 : $value1);
 				$value = is_array($value) ? $value[0] : $value;
 				if($value){break;}
 			}			
@@ -238,6 +239,11 @@ class GetInfo{
 		
 	// 数据整理;
 	private static function fileTypeArray(){
+		$gps = array(//经度,东西N/E;纬度,南北纬S/N;海拔
+			'longitude'	=> '@.exif.GPS.computed.longitude,tags.quicktime.gps_longitude',
+			'latitude'	=> '@.exif.GPS.computed.latitude,tags.quicktime.gps_latitude',
+			'altitude'	=> '@.exif.GPS.computed.altitude,tags.quicktime.gps_altitude',
+		);
 		return array(
 		// @:代表替换为扩展名; eg: @.exif.IFD0.Software 在png下代表 png.exif.IFD0.Software
 		// , 冒号代表多个取值时从前到后依次获取直到满足; eg: 
@@ -248,13 +254,14 @@ class GetInfo{
 		// https://m.sojson.com/image/exif.html
 		'image'	=> array(
 			'ext'	=> 'jpg,jpeg,png,gif,bmp,tiff,tif,psd,pcd,svg,efax,webp,'.			// exif解析处理;TODO;
-					   'cr2,erf,kdc,dcr,dng,nrw,nef,orf,rw2,pef,srw,arw,sr2',
+					   'cr2,erf,kdc,dcr,dng,nrw,nef,orf,rw2,pef,srw,arw,sr2,heic,heif,hevc', // heic,heif,hevc
 			'keyMap'	=> array(
 				'sizeWidth' 	=> 'video.resolution_x',
 				'sizeHeight' 	=> 'video.resolution_y',
 				'resolutionX' 	=> '@.exif.IFD0.XResolutionx,@.exif.IFD0.XResolution',		// 分辨率 dpi
 				'resolutionY' 	=> '@.exif.IFD0.XResolutiony,@.exif.IFD0.YResolution',		// 分辨率 dpi
 				'createTime' 	=> '@.exif.IFD0.DateTime,@.EXIF.DateTimeOriginal,
+									@.exif.EXIF.DateTimeOriginal,
 									xmp.xmp.CreateDate,tags.@.datetime', 					// 拍摄日期
 				'modifyTime' 	=> '.xmp.xmp.ModifyDate', 									// 修改日期		
 				'orientation' 	=> '@.exif.IFD0.Orientation', 								// 方向
@@ -273,11 +280,7 @@ class GetInfo{
 				'animated'		=> '@.animation.animated',
 				
 				// gps
-				'gps' 			=> array(//经度,东西N/E;纬度,南北纬S/N;海拔
-					'longitude'		=> '@.exif.GPS.computed.longitude',
-					'latitude'		=> '@.exif.GPS.computed.latitude',
-					'altitude'		=> '@.exif.GPS.computed.altitude',
-				),
+				'gps' 			=> $gps,
 				'deviceMake' 	=> '@.exif.IFD0.Make,tags.@.make', 							// 设备制造商
 				'deviceType' 	=> '@.exif.IFD0.Model,tags.@.model',						// 设备型号
 				'imageDesc' 	=> '@.exif.IFD0.ImageDescription,tags.@.imagedescription',	// 图片说明
@@ -285,7 +288,7 @@ class GetInfo{
 				
 				// 拍摄信息; https://blog.csdn.net/dreamboycx/article/details/40591875
 				'camera' => array(
-					'ApertureFNumber'		=>'@.exif.COMPUTED.ApertureFNumber',		// 光圈数; f/2.2
+					'ApertureFNumber'		=>'@.exif.COMPUTED.ApertureFNumber,exif.EXIF.FNumber',		// 光圈数; f/2.2
 					'ApertureValue'			=>'@.exif.EXIF.ApertureValue',				// 光圈值; 2.275
 					'ShutterSpeedValue'		=>'@.exif.EXIF.ShutterSpeedValue',			// 快门速度; 5.05
 					'ExposureTime'			=>'@.exif.EXIF.ExposureTime',				// 曝光时间s; 0.033  转换为:1/33
@@ -303,7 +306,7 @@ class GetInfo{
 			'ext'	=> 'aac,adts,au,amr,avr,bonk,dsf,dss,ff,dts,flac,la,lpac,midi,mac,it,xm,s3m,'.
 					   'mpc,mp3,ofr,rkau,shn,tak,wav,wma,m4a,ogg,vqf,wv,voc,tta',
 			'keyMap' => array(
-				'playtime' 		=> 'playtime_seconds',									// 时长,向上取整;
+				'playtime' 		=> 'playtime_seconds,@.pageheader.0.page_length',					// 时长,向上取整;
 				'createTime' 	=> 'quicktime.timestamps_unix.create.moov mvhd',		// 内容创建时间
 				'modifyTime' 	=> 'quicktime.timestamps_unix.modify.moov mvhd',		// 内容修改时间
 				'software' 		=> 'audio.matroska.encoder,
@@ -314,7 +317,7 @@ class GetInfo{
 				'channel' 		=> 'audio.channels',						// 音频声道; 为1则不显示;
 				'dataformat' 	=> 'audio.codec',							// 编解码器 h264
 				'bitPerSimple' 	=> 'audio.bits_per_sample',					// 每个样本的位数
-				'bitrate' 		=> 'audio.bitrate',							// 比特率 kbps
+				'bitrate' 		=> 'audio.bitrate,@.pageheader.theora.nominal_bitrate',	// 比特率 kbps
 				
 				// 'channelmode' 	=> 'audio.channelmode',					// 
 				'tags' 	=> array(
@@ -340,6 +343,7 @@ class GetInfo{
 				'frameRate' 	=> 'video.frame_rate',						// 帧率	向上取整;
 				'bitrate' 		=> '@.video.raw.bitrate,video.bitrate',		// 数据比特率 kbps
 
+				'gps' 			=> $gps,
 				'dataformat' 	=> 'video.fourcc_lookup,
 									video.streams.[01|1].dataformat,
 									video.streams.[01|1].fourcc,
@@ -378,12 +382,14 @@ class GetInfo{
 // exif_read_data 读取streamwrapper的文件会异常;
 // 参考: https://github.com/avalanche123/Imagine/issues/728
 function exif_read_data_io($file,$sections = null,$asArray=false,$readThumbnail=false){
-	$fileStr  = StreamWrapperIO::read($file,0,1024*64);
-	$filePath = 'data://image/jpeg;base64,'.base64_encode($fileStr);
-	return exif_read_data($filePath,$sections,$asArray,$readThumbnail);
+	$fileStr  = StreamWrapperIO::read($file,0,1024*256);
+	$fileData = 'data://image/jpeg;base64,'.base64_encode($fileStr);
+	$result   = exif_read_data($fileData,$sections,$asArray,$readThumbnail);
+	return $result;
 }
 function getimagesize_io($filePath,&$info=false){
-	$fileStr  = StreamWrapperIO::read($filePath,0,1024*64);
-	$filePath = 'data://image/jpeg;base64,'.base64_encode($fileStr);
-	return getimagesize($filePath,$info);
+	$fileStr  = StreamWrapperIO::read($filePath,0,1024*2560);
+	$fileData = 'data://image/jpeg;base64,'.base64_encode($fileStr);
+	$result   = getimagesize($fileData,$info);
+	return $result;
 }

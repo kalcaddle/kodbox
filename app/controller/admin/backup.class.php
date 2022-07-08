@@ -38,11 +38,16 @@ class adminBackup extends Controller{
 			if($last && $last['name'] != date('Ymd')) $last = null;
 			show_json($last);
 		}
-		$data	= $this->model->config();
+		$data	= $this->model->config();		// 备份配置信息
 		$database = array_change_key_case($GLOBALS['config']['database']);
 		$data['dbType'] = Action('admin.server')->_dbType($database);	// mysql/sqlite
-		$last	= $this->model->lastItem();
-		$process= $this->model->process();
+		$last	= $this->model->lastItem();		// 最近一条备份记录
+		if($data['enable'] != '1') {
+		    $process= null;
+		    if(isset($last['status'])) $last['status'] = 1;
+		} else {
+		    $process= $this->model->process();	// 备份进度
+		}
 		$info	= array('last' => $last, 'info' => $process);
 		show_json($data, true, $info);
 	}

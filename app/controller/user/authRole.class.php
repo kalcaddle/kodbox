@@ -136,7 +136,7 @@ class userAuthRole extends Controller {
 		$alias = array(
 			'explorer.add'			=> 'explorer.view',
 			'explorer.download'		=> 'explorer.view',
-			'explorer.share'		=> 'explorer.download,explorer.remove',
+			'explorer.share'		=> 'explorer.edit',
 			// 'explorer.upload'		=> 'explorer.add',
 			'explorer.edit'			=> 'explorer.view,explorer.upload,explorer.download',
 			'explorer.remove'		=> 'explorer.edit',

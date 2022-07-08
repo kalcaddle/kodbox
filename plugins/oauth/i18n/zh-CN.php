@@ -18,4 +18,8 @@ return array(
 	'oauth.main.backHome'		=> '返回主页',
 	'oauth.main.notLogin'		=> '用户信息异常，或登录已失效',
 	'oauth.main.pageTitle'		=> '账号认证',
+
+	'oauth.main.loading'		=> '加载中...',
+	'oauth.main.loadTips'		=> '正在连接[0]认证，请确保您能访问其对应网站',
+	'oauth.main.loginRpt'		=> '请勿重复提交',
 );

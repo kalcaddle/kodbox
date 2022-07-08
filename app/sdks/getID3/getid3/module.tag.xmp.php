@@ -81,7 +81,7 @@ class Image_XMP
 	* Reads all the JPEG header segments from an JPEG image file into an array
 	*
 	* @param string $filename - the filename of the JPEG file to read
-	* @return array|boolean  $headerdata - Array of JPEG header segments,
+	* @return array|false  $headerdata - Array of JPEG header segments,
 	*                        FALSE - if headers could not be read
 	*/
 	public function _get_jpeg_header_data($filename)
@@ -147,7 +147,7 @@ class Image_XMP
 
 				// Read the segment data with length indicated by the previously read size
 				$len = ($decodedsize['size'] > 2) ? $decodedsize['size'] - 2 : 0;
-				$segdata = $len ? fread($filehnd, $len) : '';
+				$segdata = $len ? fread($filehnd, $len) : '';// add by warlee;
 
 				// Store the segment information in the output array
 				$headerdata[] = array(
@@ -193,32 +193,34 @@ class Image_XMP
 	* Retrieves XMP information from an APP1 JPEG segment and returns the raw XML text as a string.
 	*
 	* @param string $filename - the filename of the JPEG file to read
-	* @return string|boolean $xmp_data - the string of raw XML text,
-	*                        FALSE - if an APP 1 XMP segment could not be found, or if an error occured
+	* @return string|false $xmp_data - the string of raw XML text,
+	*                        FALSE - if an APP 1 XMP segment could not be found, or if an error occurred
 	*/
 	public function _get_XMP_text($filename)
 	{
 		//Get JPEG header data
 		$jpeg_header_data = $this->_get_jpeg_header_data($filename);
-		if(!$jpeg_header_data) return false;//add by warlee; 数据为空时兼容php8
-		
-		//Cycle through the header segments
-		for ($i = 0; $i < count($jpeg_header_data); $i++)
-		{
-			// If we find an APP1 header,
-			if (strcmp($jpeg_header_data[$i]['SegName'], 'APP1') == 0)
-			{
-				// And if it has the Adobe XMP/RDF label (http://ns.adobe.com/xap/1.0/\x00) ,
-				if (strncmp($jpeg_header_data[$i]['SegData'], 'http://ns.adobe.com/xap/1.0/'."\x00", 29) == 0)
-				{
-					// Found a XMP/RDF block
-					// Return the XMP text
-					$xmp_data = substr($jpeg_header_data[$i]['SegData'], 29);
 
-					return trim($xmp_data); // trim() should not be neccesary, but some files found in the wild with null-terminated block (known samples from Apple Aperture) causes problems elsewhere (see https://www.getid3.org/phpBB3/viewtopic.php?f=4&t=1153)
+		//Cycle through the header segments
+		if (is_array($jpeg_header_data) && count($jpeg_header_data) > 0) {
+			foreach ($jpeg_header_data as $segment) {
+				// If we find an APP1 header,
+				if (strcmp($segment['SegName'], 'APP1') === 0) {
+					// And if it has the Adobe XMP/RDF label (http://ns.adobe.com/xap/1.0/\x00) ,
+					if (strncmp($segment['SegData'], 'http://ns.adobe.com/xap/1.0/' . "\x00", 29) === 0) {
+						// Found a XMP/RDF block
+						// Return the XMP text
+						$xmp_data = substr($segment['SegData'], 29);
+
+						// trim() should not be necessary, but some files found in the wild with null-terminated block
+						// (known samples from Apple Aperture) causes problems elsewhere
+						// (see https://www.getid3.org/phpBB3/viewtopic.php?f=4&t=1153)
+						return trim($xmp_data);
+					}
 				}
 			}
 		}
+
 		return false;
 	}
 
@@ -227,7 +229,7 @@ class Image_XMP
 	* which contains all the XMP (XML) information.
 	*
 	* @param string $xmltext - a string containing the XMP data (XML) to be parsed
-	* @return array|boolean $xmp_array - an array containing all xmp details retrieved,
+	* @return array|false $xmp_array - an array containing all xmp details retrieved,
 	*                       FALSE - couldn't parse the XMP data.
 	*/
 	public function read_XMP_array_from_text($xmltext)
@@ -237,7 +239,7 @@ class Image_XMP
 		{
 			return false;
 		}
-		if(!function_exists('xml_parser_create')) return false;
+		if(!function_exists('xml_parser_create')) return false; // add by warlee;
 		// Create an instance of a xml parser to parse the XML text
 		$xml_parser = xml_parser_create('UTF-8');
 

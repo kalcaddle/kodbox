@@ -203,7 +203,7 @@ CREATE TABLE `io_source_event` (
   KEY `userID` (`userID`),
   KEY `eventType` (`type`),
   KEY `createTime` (`createTime`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='文档事件表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='文档事件表';
 
 DROP TABLE IF EXISTS `io_source_history`;
 CREATE TABLE `io_source_history` (
@@ -340,7 +340,7 @@ CREATE TABLE `system_log` (
   KEY `type` (`type`),
   KEY `createTime` (`createTime`),
   KEY `sessionID` (`sessionID`)
-) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='系统日志表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='系统日志表';
 
 DROP TABLE IF EXISTS `system_option`;
 CREATE TABLE `system_option` (

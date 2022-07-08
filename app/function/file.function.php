@@ -1026,9 +1026,7 @@ function path_clear_name($path){
  * @return boolean
  */
 function write_log($log, $type = 'default', $level = 'log'){
-	if(!defined('LOG_PATH')){
-		return;
-	}
+	if(!defined('LOG_PATH')) return;
 	list($usec, $sec) = explode(' ', microtime());
 	$now_time = date('[H:i:s.').substr($usec,2,3).'] ';
 	$target   = LOG_PATH . strtolower($type) . '/';
@@ -1046,6 +1044,7 @@ function write_log($log, $type = 'default', $level = 'log'){
 	}
 	if(!file_exists($target)){
 		error_log("<?php exit;?>\n", 3,$target);
+		@chmod($target,0777);
 	}
 
 	if(is_object($log) || is_array($log)){

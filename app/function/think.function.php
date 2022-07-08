@@ -324,14 +324,29 @@ function think_status($start, $end = '', $dec = 4) {
  */
 function think_trace($value = '[think]', $label = '', $level = 'DEBUG', $record = false) {
 	static $_trace = array();
+	static $_logTemp = array();
+	
 	$info = ($label ? $label.':':'').print_r($value, true);
 	if ($level == 'ERR') return think_exception($info);
 	if (defined('GLOBAL_DEBUG') && !GLOBAL_DEBUG ) return;
     if ($value == '[trace]') return $_trace;
 	if ($value == '[think]') return think_exception($_trace);
-	if ($label == '_set_'){
+	if ($label == '_log_'){
+		if(!$_trace[$level]){$_trace[$level] = array();$_logTemp[$level] = TIME_FLOAT;}
+		if($value === false){$_trace[$level] = array();$_logTemp[$level] = TIME_FLOAT;return;}
+		
+		if(is_array($value)){$value = json_encode($value);}
+		$timeNow  = timeFloat();$timeNowArr = explode('.',$timeNow.'000');
+		$timeShow = date('i:s.',$timeNowArr[0]).substr($timeNowArr[1],0,4);
+		$_trace[$level][] = $timeShow.': '.$value.'('.sprintf('%.4f',$timeNow - $_logTemp[$level]).'s)';
+		$_logTemp[$level] = $timeNow;
+		return;
+	}
+
+	if ($label == '_count_'){
 		if(!$_trace[$level]){$_trace[$level] = array();}
-		$_trace[$level][] = $value;
+		if(!$_trace[$level][$value]){$_trace[$level][$value] = 0;}
+		$_trace[$level][$value] += 1;
 		return;
 	}
 
@@ -348,16 +363,17 @@ function think_trace($value = '[think]', $label = '', $level = 'DEBUG', $record 
 	
 	$useTime = substr($info,strrpos($info,'[ RunTime:')+10,-5);
 	$_trace[$keyTime]  = sprintf('%.5f',$_trace[$keyTime] + $useTime );
-	if(count($_trace[$keyTrace]) < $logMax){
-		$timeNow = explode('.',timeFloat().'000');
-		$timeNow = date('H:i:s.',$timeNow[0]).substr($timeNow[1],0,4);
-		$index = count($_trace[$keyTrace]) + 1;
+	if(count($_trace[$keyList]) < $logMax){
+		$timeNow  = timeFloat();$timeNowArr = explode('.',$timeNow.'000');
+		$timeShow = date('i:s.',$timeNowArr[0]).substr($timeNowArr[1],0,4);
+		$index = count($_trace[$keyList]) + 1;
 		$index = $index < 10 ? '0'.$index.'' : $index.'';
-		$trace = array_slice(get_caller_info(),4,-2);
-
-		$_trace[$keyList][$index] = $info;
-		$_trace[$keyTrace][$index]= array_merge(array('// '.$useTime."s;  ".$timeNow,'// '.$info),$trace);
+		$_trace[$keyList][$index] = $timeShow.'['.$useTime.'s]: '.substr($info,0,-21);
+		
+		$trace = array_slice(get_caller_info(),4,-2); // 5ms 每个;
+		$_trace[$keyTrace][$index]= array_merge(array($timeShow.'['.$useTime.'s]: ',$info),$trace);
 	}
 	if ($record){write_log($info,$level);}
 }
-function trace_log($value,$key=''){think_trace($value,'_set_',$key);}
+function trace_log($value,$key='_log'){  think_trace($value,'_log_',$key);}
+function trace_count($value,$key='_count'){think_trace($value,'_count_',$key);}

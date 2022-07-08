@@ -57,6 +57,7 @@ class getid3_png extends getid3_handler
 		}
 
 		while ((($this->ftell() - (strlen($PNGfiledata) - $offset)) < $info['filesize'])) {
+			$chunk = array();
 			$chunk['data_length'] = getid3_lib::BigEndian2Int(substr($PNGfiledata, $offset, 4));
 			if ($chunk['data_length'] === false) {
 				$this->error('Failed to read data_length at offset '.$offset);
@@ -66,7 +67,13 @@ class getid3_png extends getid3_handler
 			$truncated_data = false;
 			while (((strlen($PNGfiledata) - $offset) < ($chunk['data_length'] + 4)) && ($this->ftell() < $info['filesize'])) {
 				if (strlen($PNGfiledata) < $this->max_data_bytes) {
-					$PNGfiledata .= $this->fread($this->getid3->fread_buffer_size());
+					$str = $this->fread($this->getid3->fread_buffer_size());
+					if (strlen($str) > 0) {
+						$PNGfiledata .= $str;
+					} else {
+						$this->warning('At offset '.$offset.' chunk "'.substr($PNGfiledata, $offset, 4).'" no more data to read, data chunk will be truncated at '.(strlen($PNGfiledata) - 8).' bytes');
+						break;
+					}
 				} else {
 					$this->warning('At offset '.$offset.' chunk "'.substr($PNGfiledata, $offset, 4).'" exceeded max_data_bytes value of '.$this->max_data_bytes.', data chunk will be truncated at '.(strlen($PNGfiledata) - 8).' bytes');
 					break;

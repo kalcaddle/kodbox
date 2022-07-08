@@ -36,6 +36,7 @@ class Hook{
 	 * 绑定事件到方法;$action 为可调用内容;
 	 */
 	static public function bind($event,$action,$once=false) {
+		if(!is_string($event)) return false;
 		if(!isset(self::$events[$event])){
 			self::$events[$event] = array();
 		}
@@ -49,6 +50,7 @@ class Hook{
 		self::bind($event,$action,true);
 	}
 	static public function unbind($event,$action = false) {
+		if(!is_string($event)) return false;
 		//解绑所有;
 		if(!$action){
 			self::$events[$event] = array();
@@ -68,54 +70,56 @@ class Hook{
 	//数据处理;只支持传入一个参数
 	static public function filter($event,$param) {
 		$events = self::$events;
-		if( !isset($events[$event]) ) return $param;
-		$actions = $events[$event];
+		if(!is_string($event)) return false;
+		if(!isset($events[$event])) return $param;
+		if(count(self::$events[$event]) == 0) return $param;
+
 		$result  = $param;
-		if(!is_array($actions) || count($actions) == 0)  return $result;
-		for ($i=0; $i < count($actions); $i++) {
+		$actions = self::$events[$event];
+		$actionsCount = count($actions);
+		for ($i=0; $i < $actionsCount; $i++) {
 			$action = $actions[$i];
-			if( $action['once'] && $action['times'] > 1){
-				continue;
-			}
+			if($action['once'] && $action['times'] > 1) continue;
+			
 			self::$events[$event][$i]['times'] = $action['times'] + 1;
-			$temp = self::apply($action['action'],array($result));
+			$temp = ActionApply($action['action'],array($result));
+			Hook::trigger($action['action']);
+			
 			// 类型相同才替换;
 			// pr($action['action'],gettype($result),gettype($temp));
-			if(gettype($temp) == gettype($result)){
-				$result = $temp;
-			}			
+			if(gettype($temp) == gettype($result)){$result = $temp;}
 		}
 		return $result;
 	}
 	
 	static public function trigger($event) {
-		$events = self::$events;
-		$result  = false;
-		if( !isset($events[$event]) ) return $result;
-		$actions = $events[$event];
-		if(!is_array($actions) || count($actions) == 0)  return $result;
+		static $_logHook = 100;
+		if($_logHook === 100){$_logHook = defined("GLOBAL_LOG_HOOK") && GLOBAL_LOG_HOOK;}
+		if(!is_string($event)) return false;
+		if(!isset(self::$events[$event])) return false;
+		if(count(self::$events[$event]) == 0) return false;
 		
+		$result  = false;
+		$actions = self::$events[$event];
+		$actionsCount = count($actions);
 		$args = func_get_args();
 		array_shift($args);
-		for ($i=0; $i < count($actions); $i++) {
+		for ($i=0; $i < $actionsCount; $i++) {
 			$action = $actions[$i];
-			if( $action['once'] && $action['times'] > 1){
-				continue;
-			}
-			if(defined("GLOBAL_LOG_HOOK") && GLOBAL_LOG_HOOK){
-				write_log($event.'==>start: '.$action['action'],'hook-trigger');
-			}
+			if($action['once'] && $action['times'] > 1) continue;
+			if($_logHook){write_log($event.'==>start: '.$action['action'],'hook-trigger');}
+
 			self::$events[$event][$i]['times'] = $action['times'] + 1;
-			$res = self::apply($action['action'],$args);
+			$res = ActionApply($action['action'],$args);
+			Hook::trigger($action['action']);
 			
-			if(defined("GLOBAL_LOG_HOOK") && GLOBAL_LOG_HOOK){
+			if($_logHook){
 				write_log(get_caller_info(),'hook-trigger');
-				//避免循环调用
-				if($action['times'] == 200){
+				if($action['times'] == 200){//避免循环调用
 					$msg = is_array($action['action']) ? json_encode_force($action['action']):$action['action'];
 					write_log("Warning,Too many trigger on:".$event.'==>'.$msg,'warning');
 				}
-			}			
+			}
 			$result = is_null($res) ? $result:$res;
 		}
 		return $result;

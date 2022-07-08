@@ -96,8 +96,11 @@
 						title:	'An error occurred',
 						avatar:	BASE_URL + 'images/error.png',
 						msg:	result.data,
-						desc: '',
+						desc:	'',
 					}
+				}
+				if (!result.data.success) {
+					result.data.avatar = BASE_URL + 'images/error.png';
 				}
 				var msgArr = result.data.msg.split(";");
 				result.data.msg = msgArr[0];
@@ -136,10 +139,10 @@
 				$(".bind-box .title").text(data.title);
 				$(".bind-box .msg").text(data.msg);
 				var $box = $(".bind-box .img-box").html('<img src=""><p></p>');
-				$box.find('img').attr({src: data.avatar, onerror: 'this.src="'+STATIC_PATH+'images/common/default-avata.png'+'"'});
+				$box.find('img').attr({src: data.avatar});
 				$box.find('p').text(data.desc);
 				if (result.code && result.data.success) {
-					$(".bind-box img").css('border-radius', '60px');
+					$(".bind-box img").attr({onerror: 'this.src="'+STATIC_PATH+'images/common/default-avata.png'+'"'}).css('border-radius', '60px');
 					$(".bind-box img").next('p').html(htmlEncode(data.name));
 				}
 
