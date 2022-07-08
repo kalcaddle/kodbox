@@ -70,16 +70,14 @@ class explorerAuth extends Controller {
 			case 'explorer.index.pathdelete':$this->checkAuthArray('remove');break;
 			case 'explorer.index.pathcopy':$this->checkAuthArray('download');break;
 			case 'explorer.index.pathcute':
-				$this->checkAuthArray('download');
-				$this->checkAuthArray('remove');
+				$this->checkAuthArray('edit');
 				break;
 			case 'explorer.index.pathcopyto':
 				$this->checkAuthArray('download');
 				$this->canRead($this->in['path']);
 				break;
 			case 'explorer.index.pathcuteto':
-				$this->checkAuthArray('download');
-				$this->checkAuthArray('remove');
+				$this->checkAuthArray('edit');
 				$this->canWrite($this->in['path']);
 				break;
 			default:

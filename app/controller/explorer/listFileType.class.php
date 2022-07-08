@@ -61,6 +61,7 @@ class explorerListFileType extends Controller{
 
 		$thePath = rtrim($pathParse['param'],'/');
 		$thePath = $thePath ? $thePath : $homePath;
+		if(substr($thePath,0,2) == '/{'){$thePath = substr($thePath,1);}
 		if(!Action('explorer.auth')->canView($thePath)){
 			show_json(LNG('explorer.noPermissionAction'),false);	
 		}

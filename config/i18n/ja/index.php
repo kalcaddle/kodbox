@@ -410,7 +410,7 @@ return array(
     "admin.member.uploadDataInvalid" => "アップロードデータが無効か期限切れです。もう一度アップロードしてください",
     "admin.member.importSuccess"     => "インポートが完了しました",
     "admin.member.importFail"        => "インポートに失敗しました",
-    "admin.member.importFailDesc"    => "成功：[1];失敗：[2]",
+    "admin.member.importFailDesc"    => "無効または重複するフィールド",
     "admin.member.importName"        => "ログインアカウント（必須、一意）",
     "admin.member.importNickName"    => "ニックネーム（ユニーク）",
     "admin.member.importPwd"         => "パスワードが必要）",
@@ -793,7 +793,7 @@ return array(
     "admin.log.editUser"             => "ユーザーを編集",
     "admin.log.addUserTo"            => "ユーザーを部門に追加する",
     "admin.log.removeUserFrom"       => "ユーザーが部門から削除されました",
-    "admin.log.switchUserGroup"      => "ユーザーを部門に移行する",
+    "admin.log.switchUserGroup"      => "ユーザー移行部門",
     "admin.log.stausUser"            => "ユーザーを有効/無効にする",
     "admin.log.addRole"              => "新しい役割",
     "admin.log.editRole"             => "役割を編集",
@@ -2122,7 +2122,7 @@ return array(
     "explorer.tag.name"              => "ファイルタグ",
     "explorer.tag.edit"              => "ラベル管理",
     "explorer.tag.add"               => "ラベルを作成",
-    "explorer.tag.remove"            => "このタグを削除してもよろしいですか？",
+    "explorer.tag.remove"            => "ラベルを削除してもよろしいですか？",
     "explorer.tag.inputHolder"       => "ラベル名を入力してください",
     "explorer.tag.addTo"             => "ラベルを設定する",
     "explorer.tag.default1"          => "学ぶ",
@@ -2471,5 +2471,7 @@ return array(
     "explorer.filter.shareSizeLimit" => "共有ファイルのサイズが制限を超えています。共有できる最大値は次のとおりです。",
     "explorer.filter.unzipSizeLimit" => "解凍ファイルのサイズが制限を超えています。解凍できる最大値は次のとおりです。",
     "explorer.filter.zipSizeLimit"   => "圧縮ファイルのサイズが制限を超えています。圧縮可能なドキュメントの最大数は次のとおりです。",
-    "explorer.filter.uploadSizeLimit" => "アップロードサイズが制限を超えています。アップロードできる最大数は次のとおりです。"
+    "explorer.filter.uploadSizeLimit" => "アップロードサイズが制限を超えています。アップロードできる最大数は次のとおりです。",
+    "admin.emailThxUse"              => "こんにちは！ %s をご利用いただきありがとうございます。",
+    "admin.emailVerifyCode"          => "、メールで確認しています。このリクエストの確認コードは次のとおりです。"
 );
