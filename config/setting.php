@@ -385,7 +385,7 @@ $config['documentType'] = array(
 	),
 	"image" => array(
 		"name"		=> '图片',
-		"ext"		=> "jpg,png,gif,jpeg,bmp,ico,svg,webp,heic,psd",
+		"ext"		=> "jpg,png,gif,jpeg,bmp,ico,svg,webp,heic",
 	),	
 	"music" => array(
 		"name"		=> '音乐',

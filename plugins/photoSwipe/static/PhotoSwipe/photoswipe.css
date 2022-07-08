@@ -209,6 +209,7 @@
 .pswp_content .file-panel-info{position:absolute;right:0;top:0;bottom:0;width:320px;z-index:1;}
 .pswp_content.panel-info-open .pswp__scroll-wrap{width:auto;right:320px;}
 .pswp_content.panel-info-open .pswp__button.pswp__button--info{color: #1890ff;background: rgba(255,255,255,0.15);}
-	
+.pswp__error-msg{width: 100% !important;height: auto !important;}
+
 .pswp_content .file-panel .btn[data-action="copyWget"]{display: none;}
 .pswp_content .file-panel .btn[data-action="copyCurl"]{display: none;}
