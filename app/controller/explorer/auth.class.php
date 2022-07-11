@@ -234,8 +234,11 @@ class explorerAuth extends Controller {
 		// 物理路径 io路径拦截；只有管理员且开启了访问才能做相关操作;
 		if( $ioType == KodIO::KOD_IO || $ioType == false ){
 			if( request_url_safe($path) ) return $action == 'view';
-			if($isRoot && $this->config["ADMIN_ALLOW_IO"]) return true;
-			if($isRoot && $parse['id'] == 'systemRecycle') return true;
+			
+			// 允许管理存储,即可访问系统回收站及挂载的存储.
+			$pathCanRead = Action('user.authRole')->authCan('admin.storage.edit');
+			if($pathCanRead && $this->config["ADMIN_ALLOW_IO"]) return true;
+			if($pathCanRead && $parse['id'] == 'systemRecycle') return true;
 			return $this->errorMsg(LNG('explorer.pathNotSupport'),1001);
 		}
 		

@@ -61,8 +61,9 @@ kodReady.push(function () {
 		}
 	});
 	Events.bind('storage.list.view.load', function(self){
-		var storeList = self.parent.storeListAll || {};
+		return;
 		// 暂不支持设置为默认存储.
+		var storeList = self.parent.storeListAll || {};
 		_.each(storeList, function(item){
 			if(_.toLower(item.driver) != ioType) return;
 			self.$(".app-list [data-id='"+item.id+"'] .dropdown-menu li").eq(0).hide();

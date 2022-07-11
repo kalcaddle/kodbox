@@ -116,7 +116,7 @@ class userMsg extends Controller {
         $res = $mail->send($init);
         $type = _get($data, 'config.content.type');
         if($res['code'] && $type == 'code') {
-            $res['data'] = $data['code'];
+            $res['data'] = _get($data, 'config.content.data.code');
         }
         return $res;
     }
