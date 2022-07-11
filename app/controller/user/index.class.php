@@ -118,7 +118,7 @@ class userIndex extends Controller {
 			// 用户账号hash对比; 账号密码修改自动退出处理;
 			if($findUser['userHash'] != $this->user['userHash']){
 				Session::destory();
-				show_json('user hash error!',ERROR_CODE_LOGOUT);
+				show_json(LNG('common.loginTokenError').'(hash)',ERROR_CODE_LOGOUT);
 			}
 			Session::set('kodUser',$findUser);
 		}
