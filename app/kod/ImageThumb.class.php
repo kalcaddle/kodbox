@@ -36,6 +36,15 @@ class ImageThumb {
 		$this->srcH = imageSY($this->im);
 		return $this;
 	}
+	
+	//生成等比例缩略图; 按宽度处理,兼容长图情况;
+	public static function createThumb($from,$to,$width,$height){
+		// if(!Cache::get('fileThumb.getConvert')){};// 使用fileThumb插件转换; 
+		// 速度对比 2000x2000=>300x300  gd:220ms; imagemagick:360ms; new Imagick: 280ms;
+		$cm = new ImageThumb($from,'file');
+		$cm->prorate($to,$width,$height);
+	}
+	
 	public static function image($file){
 		$info = '';
 		$data = GetImageSize($file, $info);

@@ -13,7 +13,7 @@ ClassBase.define({
 		}
 
 		var tpl = '{{each dataList item}}\
-		<div class="row-item mb-10">\
+		<div class="row-item mb-10" tabindex="0">\
 			<span class="title" style="display:inline-block;width:100px;">{{item.title}}:</span>\
 			<input type="text" value="{{item.value}}" readonly="" style="width:45%;" class="span-title-right">\
 			<span class="input-title input-title-right kui-btn" action="copy">\
@@ -22,8 +22,12 @@ ClassBase.define({
 		{{/each}}';
 		var data = [
 			{
-				title:LNG['explorer.toolbar.rootPath'],
-				value:this.webdavPath + urlEncode(LNG['explorer.toolbar.rootPath'])+'/'
+				title:LNG['explorer.file.address']+"(all)",
+				value:this.webdavPath
+			},
+			{
+				title:LNG['explorer.toolbar.fav'],
+				value:this.webdavPath+urlEncode(LNG['explorer.toolbar.fav'])+'/'
 			},
 			{
 				title:LNG['explorer.toolbar.myGroup'],
@@ -31,13 +35,16 @@ ClassBase.define({
 			}
 		];
 
+		var $input   = this.$('.item-detailAddress input');
 		var $content = this.$('.item-pathAllowMore .info-alert');
+		$input.val(this.webdavPath + 'my/');
 		this.renderHtml(tpl,{dataList:data},$content);
 		$content.find('[action]').bind('click',function(){
 			var value = $(this).prev().val();
 			$.copyText(value);
 			Tips.tips(LNG['explorer.share.copied']);
 		});
+		this.$('.item-openMore .btn').trigger('click');
 	},
 
 	formData:function(){
@@ -46,9 +53,9 @@ ClassBase.define({
 			"formStyle":{"hideSave":"1",className:"form-box-title-block "},
 			"detailAddress":{
 				"type":"html",
-				"display":"<b>webdav "+LNG['common.address']+"</b>",
+				"display":"<b>webdav "+LNG['common.address']+"</b> ("+LNG['explorer.toolbar.rootPath']+")",
 				"value":"<input type='text' value='"+this.webdavPath+"' readonly style='width:70%;' class='span-title-right'/>\
-				<span class='input-title input-title-right kui-btn' action='copy'><i class='font-icon ri-file-copy-line-2'></i>"+LNG['explorer.copy']+"</span>"
+				<span class='input-title input-title-right kui-btn' action='copy' tabindex='0'><i class='font-icon ri-file-copy-line-2'></i>"+LNG['explorer.copy']+"</span>"
 			},
 			"openMore":{
 				"type":"button",

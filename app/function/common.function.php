@@ -1154,7 +1154,7 @@ function hex2str($hex){
  * @param string $document 待处理的字符串
  * @return string 
  */
-function html2txt($document){
+function html2txtClear($document){
 	$search = array ("'<script[^>]*?>.*?</>'si", // 去掉 javascript
 		"'<[\/\!]*?[^<>]*?>'si", // 去掉 HTML 标记
 		"'([\r\n])[\s]+'", // 去掉空白字符
@@ -1184,7 +1184,38 @@ function html2txt($document){
 		"chr(\\1)");
 	$text = preg_replace_callback ($search, function(){return $replace;}, $document);
 	return $text;
-} 
+}
+
+function html2txt($str){  
+	$str = preg_replace("/<style .*?<\/style>/is", "", $str);$str = preg_replace("/<script .*?<\/script>/is", "", $str);
+	$str = preg_replace("/<br \s*\/?\/>/i", "\n", $str);
+	$str = preg_replace("/<\/?p>/i", "\n\n", $str);
+	$str = preg_replace("/<\/?td>/i", "\n", $str);
+	$str = preg_replace("/<\/?div>/i", "\n", $str);
+	$str = preg_replace("/<\/?blockquote>/i", "\n", $str);
+	$str = preg_replace("/<\/?li>/i", "\n", $str);
+	$str = preg_replace("/\&nbsp\;/i", " ", $str);
+	$str = preg_replace("/\&nbsp/i", " ", $str);
+	$str = preg_replace("/\&amp\;/i", "&", $str);
+	$str = preg_replace("/\&amp/i", "&", $str);  
+	$str = preg_replace("/\&lt\;/i", "<", $str);
+	$str = preg_replace("/\&lt/i", "<", $str);
+	$str = preg_replace("/\&ldquo\;/i", '"', $str);
+	$str = preg_replace("/\&ldquo/i", '"', $str);
+	$str = preg_replace("/\&lsquo\;/i", "'", $str);
+	$str = preg_replace("/\&lsquo/i", "'", $str);
+	$str = preg_replace("/\&rsquo\;/i", "'", $str);
+	$str = preg_replace("/\&rsquo/i", "'", $str);
+	$str = preg_replace("/\&gt\;/i", ">", $str); 
+	$str = preg_replace("/\&gt/i", ">", $str); 
+	$str = preg_replace("/\&rdquo\;/i", '"', $str); 
+	$str = preg_replace("/\&rdquo/i", '"', $str); 
+	$str = strip_tags($str);
+	$str = html_entity_decode($str, ENT_QUOTES, $encode);
+	$str = preg_replace("/\&\#.*?\;/i", "", $str); 
+	return $str;
+}
+
 
 // 获取内容第一条
 function match_text($content, $preg){
@@ -1312,6 +1343,16 @@ function pr_trace(){
 function pr_trace_exit(){pr_trace();exit;}
 
 function pr(){
+	$arg = func_get_args();
+	$num = func_num_args();
+	if( !isset($GLOBALS['debugLastTime']) ){
+		$time = mtime() - TIME_FLOAT;
+	}else{
+		$time = mtime() - $GLOBALS['debugLastTime'];
+	}
+	$GLOBALS['debugLastTime'] = mtime();
+	if($num == 0 || ($num== 1 && !$arg[0])) return;
+	
 	ob_start();
 	$style = '<style>
 	pre.debug{margin:10px;font-size:14px;color:#222;font-family:Consolas ;line-height:1.2em;background:#f6f6f6;
@@ -1335,17 +1376,9 @@ function pr(){
 	    $method = $callAt['class'].'->'.$callAt['function'];
 	}
 	$fileInfo = get_path_this($callFile['file']).'; '.$method.'()';
-	if( !isset($GLOBALS['debugLastTime']) ){
-		$time = mtime() - TIME_FLOAT;
-	}else{
-		$time = mtime() - $GLOBALS['debugLastTime'];
-	}
-	$GLOBALS['debugLastTime'] = mtime();
 
 	$time = sprintf("%.5fs",$time);
 	echo "<i class='debug_keywords'>".$fileInfo.";[line-".$callFile['line']."];{$time}</i><br/>";
-	$arg = func_get_args();
-	$num = func_num_args();
 	for ($i=0; $i < $num; $i++) {
 		var_dump($arg[$i]);
 	}

@@ -214,13 +214,14 @@ class webdavServer {
 
 		// 扩展kod内容;
 		$infoMore = array();
-		$picker   = array('groupShow','pageInfo','targetSpace');
+		$picker   = array('groupShow','pageInfo','targetSpace','listTypePhoto','listTypeSet','pageSizeArray');
 		foreach ($picker as $key){
 			if(array_key_exists($key,$listFile)){$infoMore[$key] = $listFile[$key];}
 		}
-		if($infoMore){$out.= "<D:extendFileList>".base64_encode(json_encode($infoMore))."</D:extendFileList>";}
+		$infoMoreData = $infoMore ? base64_encode(json_encode($infoMore)):'';
 		return array(
 			"code" => $code,
+			"headers" => array('X-extendFileList: '.$infoMoreData),
 			"body" => "<D:multistatus xmlns:D=\"DAV:\">\n{$out}\n</D:multistatus>"
 		);
 	}

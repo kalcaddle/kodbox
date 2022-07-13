@@ -21,7 +21,7 @@ class fileThumbPlugin extends PluginBase{
 			$config 		= $this->getConfig('fileThumb');
 			$supportThumb 	= explode(',',$config['fileThumb']);
 			$supportView  	= explode(',',$config['fileExt']);
-			$supportBin 	= $this->checkSupport();
+			$supportBin 	= $this->getConvert() && $this->getFFmpeg();
 		}
 		if($supportBin != 'ok') return;
 		if($pathInfo['type'] == 'folder') return;
@@ -37,17 +37,6 @@ class fileThumbPlugin extends PluginBase{
 		return $pathInfo;
 	}
 
-	public function checkSupport(){
-		$cacheKey = 'fileThumbSupport';
-		$result   = Cache::get($cacheKey);
-		if($result) return $result;
-
-		$allow  = $this->getConvert() && $this->getFFmpeg();
-		$result = $allow ? 'ok':'error';
-		Cache::set('fileThumbSupport',$result,60);
-		return $result;
-	}
-
 	//linux 注意修改获取bin文件的权限问题;
 	public function check(){
 		if(isset($_GET['check'])){
@@ -61,10 +50,10 @@ class fileThumbPlugin extends PluginBase{
 			if(!$ffmpeg){
 				$msg .= "$ffmpeg ffmpeg调用失败，检测是否安装该软件，或是否有执行权限;<br/>";
 			}
-			Cache::set('fileThumbSupport',$result ? 'ok':'error',60);
 			show_json($msg,$result);
 		}
-		Cache::remove('fileThumbSupport');
+		Cache::remove('fileThumb.getFFmpeg');
+		Cache::remove('fileThumb.getConvert');
 		include($this->pluginPath.'static/check.html');
 	}
 
@@ -167,7 +156,6 @@ class fileThumbPlugin extends PluginBase{
 		return false;
 	}
 	
-	
 	private function thumbFont($fontFile,$cacheFile,$maxSize){
 		$textMore = '
 		可道云在线云盘
@@ -241,7 +229,14 @@ class fileThumbPlugin extends PluginBase{
 	// convert -density 900 banner.psd -colorspace RGB -resample 300 -trim -thumbnail 200x200 test.jpg
 	// convert -colorspace rgb simple.pdf[0] -density 100 -sample 200x200 sample.jpg
 	private function thumbImage($file,$cacheFile,$maxSize,$ext){
-		// $ext  = get_path_ext($file);
+		$this->thumbImageCreate($file,$cacheFile,$maxSize,$ext);
+		$isResize = explode(',','gif,png,bmp,jpe,jpeg,jpg,heic');
+		if(in_array($ext,$isResize)) return;
+
+		ImageThumb::createThumb($cacheFile,$cacheFile,$maxSize,$maxSize);
+	}
+	
+	public function thumbImageCreate($file,$cacheFile,$maxSize,$ext){
 		$command = $this->getConvert();
 		if(!$command){
 			echo "ImageMagick 软件未找到，请安装后再试";
@@ -271,16 +266,21 @@ class fileThumbPlugin extends PluginBase{
 			case 'doc':
 			case 'docx':$file.= '[0]';break;
 
+			// https://legacy.imagemagick.org/Usage/thumbnails/
 			case 'tif':$file.= '[0]';$param = " -flatten ";break;
 			case 'gif':
 			case 'png':
-			case 'jpg':$param = "-flatten -colorspace RGB -size";break;
-			case 'heic':;$param ="";break;
+			case 'bmp':
+			case 'jpe':
+			case 'jpeg':
+			case 'jpg':$param   = "-resize {$maxSize}x{$maxSize}";break;
+			case 'heic':;$param = "-resize {$maxSize}x{$maxSize}";break;
 			
 			default:
 				$dng = 'dng,cr2,erf,raf,kdc,dcr,mrw,nrw,nef,orf,pef,x3f,srf,arw,sr2';
+				$dng = $dng.',3fr,crw,dcm,fff,iiq,mdc,mef,mos,plt,ppm,raw,rw2,srw,tst';
 				if(in_array($ext,explode(',',$dng))){
-					$param = "-size {$maxSize}x{$maxSize}";
+					$param = "-resize {$maxSize}x{$maxSize}";
 					$file = 'rgb:'.$file.'[0]';
 				}
 				break;
@@ -299,11 +299,18 @@ class fileThumbPlugin extends PluginBase{
 		if(!file_exists($tempPath)) return;
 
 		move_path($tempPath,$cacheFile);
-		$cm = new ImageThumb($cacheFile,'file');
-		$cm->prorate($cacheFile,$maxSize,$maxSize);
+		return true;
 	}
 	
-	private function getFFmpeg(){
+	
+	public function getFFmpeg(){
+		return Cache::getCall('fileThumb.getFFmpeg',60,array($this,'getFFmpegNow'));
+	}
+	public function getConvert(){
+		return Cache::getCall('fileThumb.getConvert',60,array($this,'getConvertNow'));
+	}
+	
+	public function getFFmpegNow(){
 		$check  = 'ffmpeg';
 		$config = $this->getConfig();
 		if( $this->checkBin($config['ffmpegBin'],$check) ){
@@ -327,8 +334,7 @@ class fileThumbPlugin extends PluginBase{
 		}
 		return false;
 	}
-
-	private function getConvert(){
+	public function getConvertNow(){
 		$check  = 'imagemagick';
 		$config = $this->getConfig();
 		if( $this->checkBin($config['imagickBin'],$check) ){

@@ -140,6 +140,7 @@ class webdavServerKod extends webdavServer {
 				$langKeys[$key][] = $langArr[$key];
 			}
 		}
+		$langKeys['explorer.toolbar.rootPath'][] = 'my'; // 增加;
 		Cache::set('webdav_lang_path_root',$langKeys,3600);
 		return $langKeys;
 	}

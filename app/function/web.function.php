@@ -402,7 +402,7 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 		default:break;
 	}
 
-	if(!empty($options)){
+	if(is_array($options)){
 		curl_setopt_array($ch, $options);
 	}
 	$response = curl_exec($ch);curl_progress_end($ch,$response);

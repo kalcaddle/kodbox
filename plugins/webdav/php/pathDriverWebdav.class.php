@@ -247,8 +247,11 @@ class PathDriverWebdav extends PathDriverBase {
 			$this->infoCache[$key] = $item;
 		}
 		// 追加信息处理;extendFileList
-		if(isset($data['data']['extendFileList'])){
-			$arr  = json_decode(base64_decode($data['data']['extendFileList']),true);
+		$extendData = _get($data,'data.extendFileList');
+		$extendData = $extendData ? $extendData : _get($data,'header.X-extendFileList');
+		$extendData = $extendData ? $extendData : _get($data,'header.X-EXTENDFILELIST');
+		if($extendData){
+			$arr  = json_decode(base64_decode($extendData),true);
 			$result = array_merge($result,$arr ? $arr:array());
 		}
 		// pr($data,$result);exit;
