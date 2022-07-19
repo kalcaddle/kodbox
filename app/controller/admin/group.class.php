@@ -181,7 +181,7 @@ class adminGroup extends Controller{
 	/**
 	 * 部门迁移 
 	 */
-	public function switch(){
+	public function switchGroup(){
 		$data = Input::getArray(array(
 			"from"		=> array("check"=>"int"),
 			"to"		=> array("check"=>"int"),

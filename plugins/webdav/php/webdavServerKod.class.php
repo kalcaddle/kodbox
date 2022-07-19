@@ -56,7 +56,7 @@ class webdavServerKod extends webdavServer {
 			}
     		$find = ActionCall('user.index.userInfo', $user['user'],$user['pass']);
     		if ( !is_array($find) || !isset($find['userID']) ){
-    			$this->plugin->log(array($user,$find,$_SERVER['HTTP_AUTHORIZATION']));
+    			// $this->plugin->log(array($user,$find,$_SERVER['HTTP_AUTHORIZATION']));
     			return HttpAuth::error();
     		}
     		ActionCall('user.index.loginSuccess',$find);

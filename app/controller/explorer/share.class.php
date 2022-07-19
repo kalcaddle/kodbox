@@ -129,6 +129,7 @@ class explorerShare extends Controller{
 		
 		// 仅文件,判断预览;
 		if(	$result['type'] == 'file' && 
+			$this->share['options']['notDownload'] == '1' &&
 			$this->share['options']['notView'] == '1'){
 			return false;
 		}		
@@ -251,6 +252,7 @@ class explorerShare extends Controller{
 		}
 		if( $share['options'] && 
 			$share['options']['notView'] == '1' && 
+			$share['options']['notDownload'] == '1' && 
 			(	equal_not_case(ACT,'fileGet') ||
 				equal_not_case(ACT,'fileOut') ||
 				equal_not_case(ACT,'unzipList')
@@ -357,6 +359,7 @@ class explorerShare extends Controller{
 			$this->parsePath($searchParam['parentPath']); //校验path;
 			$data = Action('explorer.listSearch')->listSearchPath($pathParse);
 			Action('explorer.list')->pageParse($data);
+			Action('explorer.list')->pathListParse($data);
 			$data['current']  = Action('explorer.list')->pathCurrent($path);
 			$data['thisPath'] = $path;
 		}else{

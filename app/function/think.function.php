@@ -100,6 +100,15 @@ function think_error_parse(&$error){
         }
     }
     if ($errMsg) $error .= '<br/></br/>' . $errMsg;
+	
+	// 加入 系统版本/php版本/数据库类型;
+	$version = php_uname('s').' '.php_uname('r').'/'.PHP_VERSION;
+	$dbType  = _get($GLOBALS['config'],'database.DB_TYPE','');
+	if($dbType == 'pdo'){
+		$dsn = explode(':',_get($GLOBALS['config'],'database.DB_DSN',''));
+		$dbType = 'pdo.'.$dsn[0];
+	}
+	$error .= '<div style="color:#ccc;font-size:12px;">['.$version.'/'.$dbType.']</div>';
 }
 
 /**

@@ -446,7 +446,9 @@ class explorerList extends Controller{
 	
 	private function dataFilterAuth($list){
 		if(_get($GLOBALS,'isRoot') && $this->config["ADMIN_ALLOW_SOURCE"]) return $list;
+		$shareLinkPre = '{shareItemLink';
 		foreach ($list as $key => $item) {
+			if( substr($item['path'],0,strlen($shareLinkPre)) == $shareLinkPre) continue;
 			if( isset($item['targetType']) &&
 				$item['targetType'] == 'user' &&
 				$item['targetID'] == USER_ID ){

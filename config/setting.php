@@ -385,19 +385,19 @@ $config['documentType'] = array(
 	),
 	"image" => array(
 		"name"		=> '图片',
-		"ext"		=> "jpg,png,gif,jpeg,bmp,ico,svg,webp,heic",
+		"ext"		=> "jpg,jpeg,png,gif,bmp,ico,svg,webp,tif,tiff,cdr,svgz,xbm,eps,pjepg,heic,raw,psd,ai",
 	),	
 	"music" => array(
 		"name"		=> '音乐',
-		"ext"		=> "mp3,wav,wma,m4a,ogg,flac,aac",
+		"ext"		=> "mp3,wav,wma,m4a,ogg,omf,amr,aa3,flac,aac,cda,aif,aiff,mid,ra,ape",
 	),
 	"movie" => array(
 		"name"		=> '视频',
-		"ext"		=> "mp4,flv,rmvb,avi,mkv,mov,f4v,mpeg,mpg,vob,wmv,ogv,webm,3gp,mts,m2ts,m4v,mpe,3g2,asf",
+		"ext"		=> "mp4,flv,rm,rmvb,avi,mkv,mov,f4v,mpeg,mpg,vob,wmv,ogv,webm,3gp,mts,m2ts,m4v,mpe,3g2,asf,dat,asx,wvx,mpa",
 	),
 	"zip" => array(
 		"name"		=> '压缩包',
-		"ext"		=> "zip,gz,rar,iso,tar",
+		"ext"		=> "zip,gz,rar,iso,tar,7z,gz,ar,bz,bz2,xz,arj",
 	),
 	"others" => array(
 		"name"		=> '其他',
@@ -548,7 +548,7 @@ $config['authRoleAction']= array(
 		'admin.group' 		=> 'get,getByID,search'
 	),
 	'admin.member.userEdit'	=> array('admin.member'=>'add,edit,remove,status,addGroup,removeGroup,switchGroup'),
-	'admin.member.groupEdit'=> array('admin.group'=>'add,edit,status,sort,remove,switch'),
+	'admin.member.groupEdit'=> array('admin.group'=>'add,edit,status,sort,remove,switchGroup'),
 	
 	'admin.auth.list'		=> array('admin.auth'=>'get'),
 	'admin.auth.edit'		=> array('admin.auth'=>'add,edit,remove,sort'),

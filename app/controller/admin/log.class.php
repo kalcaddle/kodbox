@@ -54,7 +54,7 @@ class adminLog extends Controller{
 				'user.setting.setHeadImage,user.setting.setUserInfo' => LNG('log.user.edit'),
 			),
 			'admin' => array(
-				'admin.group.add,admin.group.edit,admin.group.remove,admin.group.status,admin.group.sort,admin.group.switch' => LNG('log.group.edit'),
+				'admin.group.add,admin.group.edit,admin.group.remove,admin.group.status,admin.group.sort,admin.group.switchGroup' => LNG('log.group.edit'),
 				'admin.member.add,admin.member.edit,admin.member.remove,admin.member.addGroup,admin.member.removeGroup,admin.member.switchGroup,admin.member.status' => LNG('log.member.edit'),
 				'admin.role.add,admin.role.edit,admin.role.remove' => LNG('log.role.edit'),
 				'admin.auth.add,admin.auth.edit,admin.auth.remove' => LNG('log.auth.edit'),

@@ -39,7 +39,7 @@
 		"loginWith":{
 			"type": "input",
 			"className": "hidden",
-			"value": ""
+			"value": "qq,weixin"
 		}
 	}
 }

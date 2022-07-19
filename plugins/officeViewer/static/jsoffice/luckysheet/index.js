@@ -17,7 +17,7 @@ $(function(){
             // showsheetbar: false, // 是否显示底部sheet页按钮
             // showstatisticBar: false, // 是否显示底部计数栏
             sheetBottomConfig: false, // sheet页下方的添加行按钮和回到顶部按钮配置
-            allowEdit: false, // 是否允许前台编辑——edit
+            allowEdit: true, // 是否允许前台编辑——edit
             enableAddRow: false, // 允许增加行
             enableAddCol: false, // 允许增加列
             // userInfo: false, // 右上角的用户信息展示样式
@@ -28,6 +28,13 @@ $(function(){
             // functionButton: '<button id="" class="btn btn-primary" style="padding:3px 6px;font-size: 12px;margin-right: 10px;">下载</button>',  // 需要显示信息栏
         });
         // $('body').addClass('page-loaded');
+        $('body').bind('keydown', function (e) {
+            // ctrl+s
+            if (e.keyCode == 83 && (e.ctrlKey || e.metaKey)) {
+                Tips.tips('暂不支持内容保存！', 'warning')
+                return false;
+            }
+        });
     }
 
     // 读取文件内容，生成luckysheet配置参数——导入

@@ -28,3 +28,14 @@
 }
 .luckysheet-scrollbars.luckysheet-scrollbar-y{padding-bottom: 24px;}
 /* .luckysheet-grid-container{bottom: 23px;} */
+
+/* 隐藏部分右键菜单 */
+#luckysheet-cols-rows-data .luckysheet-cols-menuitem:not(#luckysheet-delete-text) {
+    display: none !important;
+}
+.luckysheet-sheet-area div.luckysheet-sheets-item .luckysheet-sheets-item-menu {
+    display: none;
+}
+.luckysheet-sheet-area div.luckysheet-sheets-item {
+    padding-right: 5px;
+}

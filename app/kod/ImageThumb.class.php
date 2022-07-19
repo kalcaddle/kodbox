@@ -94,11 +94,13 @@ class ImageThumb {
 
 	// 生成扭曲型缩图
 	function distortion($toFile, $toW, $toH){
+		$toW = intval($toW);$toH = intval($toH);
 		$cImg = $this->creatImage($this->im, $toW, $toH, 0, 0, 0, 0, $this->srcW, $this->srcH);
 		return $this->echoImage($cImg, $toFile);
 	} 
 	// 生成按比例缩放的缩图
 	function prorate($toFile, $toW, $toH){
+		$toW = intval($toW);$toH = intval($toH);
 		$toWH = $toW / $toH;
 		$srcWH = $this->srcW / $this->srcH;
 		if ($toWH<=$srcWH) {
@@ -140,6 +142,7 @@ class ImageThumb {
 		
 	// 生成最小裁剪后的缩图
 	function cut($toFile, $toW, $toH){
+		$toW = intval($toW);$toH = intval($toH);
 		$toWH = $toW / $toH;
 		$srcWH = $this->srcW / $this->srcH;
 		if ($toWH<=$srcWH) {
@@ -156,6 +159,7 @@ class ImageThumb {
 	} 
 	// 生成背景填充的缩图,默认用白色填充剩余空间，传入$isAlpha为真时用透明色填充
 	function backFill($toFile, $toW, $toH,$isAlpha=false,$red=255, $green=255, $blue=255){
+		$toW = intval($toW);$toH = intval($toH);
 		$toWH = $toW / $toH;
 		$srcWH = $this->srcW / $this->srcH;
 		if ($toWH<=$srcWH) {

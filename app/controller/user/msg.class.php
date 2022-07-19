@@ -132,7 +132,7 @@ class userMsg extends Controller {
         if (!$system['icon']) $system['icon'] = 'https://api.kodcloud.com/static/images/icon/fav.png';
         if (request_url_safe($system['icon'])) {    // 网络图片转base64
             $imageInfo = getimagesize($system['icon']);
-            $imageData = 'data:' . $imageInfo['mime'] . ';base64,' . chunk_split(base64_encode(file_get_contents($system['icon'])));
+            $imageData = 'data:' . $imageInfo['mime'] . ';base64,' . chunk_split(base64_encode(curl_get_contents($system['icon'])));
             $system['icon'] = $imageData;
         }
         if (!$system['name']) $system['name'] = Model('SystemOption')->get('systemName');

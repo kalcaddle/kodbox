@@ -852,7 +852,7 @@ function show_tips($message,$url= '', $time = 3,$title = ''){
 	#msgbox #info a{color: #64b8fb;text-decoration: none;padding: 2px 0px;border-bottom: 1px solid;}
 	#msgbox a{text-decoration:none;color:#2196F3;}
 	#msgbox a:hover{color:#f60;border-bottom:1px solid}
-	#msgbox .desc{padding: 10px 0;color: #faad14;}
+	#msgbox .desc{color: #faad14;}
 	#msgbox pre{word-break: break-all;word-wrap: break-word;white-space: pre-wrap;
 		background: #002b36;padding:1em;color: #839496;border-left: 6px solid #8e8e8e;border-radius: 3px;}
 	</style>

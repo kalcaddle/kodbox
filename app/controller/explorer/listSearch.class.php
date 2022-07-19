@@ -70,17 +70,62 @@ class explorerListSearch extends Controller{
 	
 	public function searchData($param){
 		$path  = $param['parentPath'];
-		$parse = KodIO::parse($path);
+		$parse = KodIO::parse($path);$parseBefore = $parse;
 		$searchContent = $param['words'] && in_array('content',$param['option']);
-		
-		//本地路径搜索;
-		$searchLocalArr = array('',KodIO::KOD_IO,KodIO::KOD_SHARE_ITEM,KodIO::KOD_SHARE_LINK);
-		$searchIO = in_array($parse['type'],$searchLocalArr) && (!$param['parentID']);
-		if($path && ($searchIO || $searchContent) ){
-			unset($param['parentID']);
-			return $this->searchIO($path,$param);
+		$io = IO::init($path);
+		if($io->pathParse['truePath']){ // [内部协作分享+外链分享]-物理路径及io路径;
+			$path  = $io->pathParse['truePath'];
+			$parse = KodIO::parse($path);
 		}
-		return $this->model->listSearch($param);
+		if($parse['type'] == KodIO::KOD_SHARE_LINK && !$io->pathParse['truePath']){ // 外链分享-物理路径及io路径;
+			$param['parentID'] = $io->path;
+		}
+
+		//本地路径搜索;
+		$listData = array('fileList' => array(),'folderList'=>array());
+		$fromIO   = $path && ( in_array($parse['type'],array('',false,KodIO::KOD_IO)) || $searchContent);
+		if($fromIO){
+			unset($param['parentID']);
+			$listData = $this->searchIO($path,$param);
+		}else{
+			if(!$param['parentID']) return $listData;
+			$listData = $this->model->listSearch($param);
+		}
+		$listData = $this->listDataParseShareItem($listData,$parseBefore);
+		$listData = $this->listDataParseShareLink($listData,$parseBefore);
+		// pr($fromIO,$path,$param,$parse,$io,$listData);exit;
+		return $listData;
+	}
+	
+	// 内部协作分享搜索
+	private function listDataParseShareItem($listData,$parseSearch){
+		if($parseSearch['type'] != KodIO::KOD_SHARE_ITEM) return $listData;
+		$userShare = Action('explorer.userShare');
+		$shareInfo = Model("Share")->getInfo($parseSearch['id']);
+		foreach ($listData as $key => $keyList) {
+			if($key != 'folderList' && $key != 'fileList' ) continue;
+			$keyListNew = array();
+			foreach ($keyList as $source){
+				$source = $userShare->_shareItemeParse($source,$shareInfo);
+				if($source){$keyListNew[] = $source;}
+			};
+			$listData[$key] = $keyListNew;
+		}
+		return $listData;
+	}
+	// 外链分享搜索
+	private function listDataParseShareLink($listData,$parseSearch){
+		if($parseSearch['type'] != KodIO::KOD_SHARE_LINK) return $listData;
+		foreach ($listData as $key => $keyList) {
+			if($key != 'folderList' && $key != 'fileList' ) continue;
+			$keyListNew = array();
+			foreach ($keyList as $source){
+				$source = Action('explorer.share')->shareItemInfo($source);
+				if($source){$keyListNew[] = $source;}
+			};
+			$listData[$key] = $keyListNew;
+		}
+		return $listData;
 	}
 	
 	private function parseParam($pathInfo,&$param,&$paramIn,&$sourceInfo){

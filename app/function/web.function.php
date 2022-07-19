@@ -43,7 +43,15 @@ function get_server_ip(){
 	}else{
 		$ip = getenv('SERVER_ADDR');
 	}
-	//$serverIP = gethostbyname(gethostname().'.');
+	
+	if(!$ip){
+		$ipArray = gethostbynamel(gethostname());
+		$ipArray = is_array($ipArray) ? $ipArray : array();
+		for($i=0; $i < count($ipArray); $i++) { 
+			if($ipArray[$i] == '127.0.0.1'){continue;}
+			$ip = $ipArray[$i];break;
+		}
+	}
 	return $ip;
 }
 

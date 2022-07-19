@@ -51,7 +51,7 @@ class filterUserGroup extends Controller{
 			'admin.group.status' 	=> array('group'=>'groupID','error'=>'error'),
 			'admin.group.remove' 	=> array('group'=>'groupID','error'=>'error'),
 			'admin.group.sort' 		=> array('group'=>'groupID','error'=>'error'),
-			'admin.group.switch' 	=> array('group'=>'from','group'=>'to','error'=>'error'),
+			'admin.group.switchGroup' => array('group'=>'from','group'=>'to','error'=>'error'),
 			
 			// 部门公共标签: 获取,修改;
 			// 'explorer.taggroup.get' => array('group'=>'groupID','read'=>'allow','error'=>'error','requestFrom'=>'user'),
