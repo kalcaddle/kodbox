@@ -157,7 +157,9 @@ class explorerUserShare extends Controller{
 			return Action('explorer.userShareUser')->get($type);
 		}
 		
+		Model("share_to")->selectPageReset();// 确保被筛选后分页数据正常;
 		$shareList = $this->model->listToMe(5000);
+		Model("share_to")->selectPageRestore();
 		$shareHide = Model('UserOption')->get('hideList','shareToMe');
 		$shareHide = $shareHide ? json_decode($shareHide,true):array();
 		foreach ($shareList['list'] as $key=>$shareItem){
@@ -184,7 +186,10 @@ class explorerUserShare extends Controller{
 				'sourceID' => array('in',$sourceArray),
 				'isDelete' => 0,
 			);
+			
+			Model('Source')->selectPageReset();
 			$sourceList  = Model('Source')->listSource($where);
+			Model('Source')->selectPageRestore();
 			$sourceArray = array_merge($sourceList['folderList'],$sourceList['fileList']);
 			$sourceArray = array_to_keyvalue($sourceArray,'sourceID');
 		}
