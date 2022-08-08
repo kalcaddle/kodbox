@@ -51,12 +51,10 @@ class explorerListSearch extends Controller{
 		foreach($param['wordsMutil'] as $word){
 			$param['words'] = $word;
 			$find = $this->searchData($param);
-			if(!$list) {
-				$list = $find;
-			}else{
-				$list['fileList']   = array_merge($list['fileList'],$find['fileList']);
-				$list['folderList'] = array_merge($list['folderList'],$find['folderList']);
-			}
+			if(!$list) {$list = $find;continue;}
+			
+			$list['fileList']   = array_merge($list['fileList'],$find['fileList']);
+			$list['folderList'] = array_merge($list['folderList'],$find['folderList']);
 		}
 		// 合并相同的结果;
 		$list['fileList']   = array_values(array_to_keyvalue($list['fileList'],'path'));
@@ -71,7 +69,6 @@ class explorerListSearch extends Controller{
 	public function searchData($param){
 		$path  = $param['parentPath'];
 		$parse = KodIO::parse($path);$parseBefore = $parse;
-		$searchContent = $param['words'] && in_array('content',$param['option']);
 		$io = IO::init($path);
 		if($io->pathParse['truePath']){ // [内部协作分享+外链分享]-物理路径及io路径;
 			$path  = $io->pathParse['truePath'];
@@ -80,10 +77,14 @@ class explorerListSearch extends Controller{
 		if($parse['type'] == KodIO::KOD_SHARE_LINK && !$io->pathParse['truePath']){ // 外链分享-物理路径及io路径;
 			$param['parentID'] = $io->path;
 		}
+		$result = Hook::trigger('explorer.listSearch.searchDataBefore',$param);//调整$param;
+		if(is_array($result)){$param = $result;}
 
 		//本地路径搜索;
+		$searchContent = $param['words'] && in_array('content',$param['option']);
 		$listData = array('fileList' => array(),'folderList'=>array());
 		$fromIO   = $path && ( in_array($parse['type'],array('',false,KodIO::KOD_IO)) || $searchContent);
+		if(is_array($param['fileID'])){$fromIO =  false;}
 		if($fromIO){
 			unset($param['parentID']);
 			$listData = $this->searchIO($path,$param);
@@ -91,14 +92,18 @@ class explorerListSearch extends Controller{
 			if(!$param['parentID']) return $listData;
 			$listData = $this->model->listSearch($param);
 		}
+
+		$result   = Hook::trigger('explorer.listSearch.searchDataAfter',$param,$listData); // 调整结果
+		if(is_array($result)){$listData = $result;}
+		// pr($fromIO,$path,$param,$parse,$listData);exit;
+		
 		$listData = $this->listDataParseShareItem($listData,$parseBefore);
 		$listData = $this->listDataParseShareLink($listData,$parseBefore);
-		// pr($fromIO,$path,$param,$parse,$io,$listData);exit;
 		return $listData;
 	}
 	
 	// 内部协作分享搜索
-	private function listDataParseShareItem($listData,$parseSearch){
+	public function listDataParseShareItem($listData,$parseSearch){
 		if($parseSearch['type'] != KodIO::KOD_SHARE_ITEM) return $listData;
 		$userShare = Action('explorer.userShare');
 		$shareInfo = Model("Share")->getInfo($parseSearch['id']);
@@ -114,7 +119,7 @@ class explorerListSearch extends Controller{
 		return $listData;
 	}
 	// 外链分享搜索
-	private function listDataParseShareLink($listData,$parseSearch){
+	public function listDataParseShareLink($listData,$parseSearch){
 		if($parseSearch['type'] != KodIO::KOD_SHARE_LINK) return $listData;
 		foreach ($listData as $key => $keyList) {
 			if($key != 'folderList' && $key != 'fileList' ) continue;
@@ -281,23 +286,45 @@ class explorerListSearch extends Controller{
 	}
 	
 	private function searchFile(&$file,$search){
-		if(!is_text_file($file['ext'])) return false;
 		if($file['size'] <= 1) return false;
-		if($file['size'] >= 1024*1024*10) return false;
+		$content = Hook::trigger('explorer.listSearch.fileContentText',$file);
+		if(!is_text_file($file['ext']) && !$content) return false;
+		if($file['size'] >= 1024*1024*10 && !$content) return false;
 		
-		if(isset($file['filePath'])){
-			$content = IO::getContent($file['filePath']);
-		}else{
-			$content = IO::getContent($file['path']);
+		$filePath = isset($file['filePath']) ? $file['filePath'] : $file['path'];
+		$content  = $content ? $content : IO::getContent($filePath);
+		if(!$content || strlen($content) < strlen($content)) return false;
+		if(!is_text_file($file['ext'])){//单行数据展示
+			$find = $this->contentSearchMatch($content,$search);
+			if($find){$file['searchContentMatch'] = $find;}
+			return $find ? true : false;
 		}
+
+		$find = content_search($content,$search,false);
+		if($find){$file['searchTextFile'] = $find;}
+		return $find ? true : false;
+	}
+	
+	// $content中匹配到$word的内容截取; 最大长度默认300; 前一行+
+	public function contentSearchMatch(&$content,$word,$maxContent = 300){
+		if(!$content || !$word) return false;
+		$pose  = stripos($content,$word);
+		if($pose === false) return false;
+		$start = intval($pose) <= 0 ? 0 : $pose;
+		$stopChar = array("\n",' ',',','.','!','.','!',';');
+		for($i = $start; $i >= 0; $i--){
+			$start = $i;
+			if($pose - $i > $maxContent * 0.2 - strlen($word)){break;}
+			if(in_array($content[$i],$stopChar)) break;
+		}
+		$start  = $start <= 20 ? 0 : $start;
+		$length = strlen($word) + $maxContent;
+		$str 	= utf8Repair(substr($content,$start,$length));
+		if(strlen($content) > $start + $length + 10){$str .= '...';}
+		$str = str_replace(array("\n\n",'&nbsp;','&quot;'),array("\n",' ','"'),$str);
 		
-		$isCase  = false;
-		$find = content_search($content,$search,$isCase);
-		unset($content);
-		if(!$find) return false;
-		$file['searchTextFile'] = $find;
-		// $file['searchContentMatch'] = mb_substr($find[0]['str'],0,250).'...'; //单行数据展示
-		return true;
+		// pr($word,$pose,$start,$length,$str,$content);exit;
+		return $str;
 	}
 	
 	// 多个搜索词并列搜索; "且"语法,返回同时包含的内容;

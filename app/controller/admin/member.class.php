@@ -314,6 +314,7 @@ class adminMember extends Controller{
 		$total	 = (int) $fileData['total'];
 		$error	 = array();
 		foreach($fileData['list'] as $value) {
+			if(!is_array($value)) continue;
 			$this->in = array_merge($value, $data);
 			$res = ActionCallHook('admin.member.add');
 			if (!$res['code']) $error[$this->in['name']] = $res['data'];

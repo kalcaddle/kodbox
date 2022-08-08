@@ -141,7 +141,9 @@ class userMsg extends Controller {
         $addr = _get($data, 'config.address');
         $type = _get($data, 'config.content.type');
         $data = _get($data, 'config.content.data');
-        $user = _get($data, 'user', $addr);
+        $user = _get($data, 'user');
+        if (!$user) $user = $addr;
+
         switch($type) {
             case 'code':
                 $data = array(

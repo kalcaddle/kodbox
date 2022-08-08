@@ -1,6 +1,8 @@
 $(function(){
+    // v2.1.13
     // 根据数据绘制表格
     var loadLuckySheet = function(exportJson){
+        var allowEdit = _.get(FILE_INFO, 'canWrite') == '1' ? true : false;
         // 获得转化后的表格数据后，使用luckysheet初始化，或者更新已有的luckysheet工作簿
         // 注：luckysheet需要引入依赖包和初始化表格容器才可以使用
         luckysheet.create({
@@ -17,7 +19,7 @@ $(function(){
             // showsheetbar: false, // 是否显示底部sheet页按钮
             // showstatisticBar: false, // 是否显示底部计数栏
             sheetBottomConfig: false, // sheet页下方的添加行按钮和回到顶部按钮配置
-            allowEdit: true, // 是否允许前台编辑——edit
+            allowEdit: allowEdit, // 是否允许前台编辑——edit
             enableAddRow: false, // 允许增加行
             enableAddCol: false, // 允许增加列
             // userInfo: false, // 右上角的用户信息展示样式

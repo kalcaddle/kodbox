@@ -274,6 +274,29 @@ function check_code($code){
 	imagedestroy($im);//销毁图片
 }
 
+// 立即输出内容到页面; $replace 为true时不作为后续输出
+function echoLog($log,$replace=false){
+	static $isClean   = false;
+	static $logBefore = '';
+	if(!$isClean){
+		ob_end_clean();
+		ignore_timeout();
+		header('X-Accel-Buffering: no');
+		$isClean = true;
+	}
+	$timeStyle  = '<span style="display:inline-block;width:100px;font-size:14px;color:#888;">';
+	$textStyle  = '<span style="display:inline-block;font-size:14px;color:#471dff;">';
+	$timeFloat 	= explode(".",mtime());
+	$timeNow 	= date("H:i:s.",time()).substr($timeFloat[1],0,3);
+	$logNow 	= $timeStyle.$timeNow."</span>".$textStyle.$log.'</span><br/>';
+
+	if(!$replace){$logBefore .= $logNow;}
+	$logOut = $replace ? $logBefore.$logNow : $logBefore;
+	$logOut = str_replace('`','\\`',$logOut);
+	$logOut = '(document.body&&(document.body.innerHTML=`'.$logOut.'`))||(document.write(`'.$logOut.'`));';
+	ob_end_flush();echo '<script>'.$logOut.'</script>'.str_pad('',1024*2);flush();
+}
+
 
 /**
  * 计算N次方根
@@ -852,7 +875,7 @@ function show_tips($message,$url= '', $time = 3,$title = ''){
 	#msgbox #info a{color: #64b8fb;text-decoration: none;padding: 2px 0px;border-bottom: 1px solid;}
 	#msgbox a{text-decoration:none;color:#2196F3;}
 	#msgbox a:hover{color:#f60;border-bottom:1px solid}
-	#msgbox .desc{color: #faad14;}
+	#msgbox .desc{color:#f60;font-weight: 600;padding: 10px 0 10px;}
 	#msgbox pre{word-break: break-all;word-wrap: break-word;white-space: pre-wrap;
 		background: #002b36;padding:1em;color: #839496;border-left: 6px solid #8e8e8e;border-radius: 3px;}
 	</style>
@@ -870,28 +893,34 @@ END;
 	exit;
 }
 
-function get_caller_trace($trace) {//return array();
+function get_caller_trace($trace,$needArgs = true) {
 	$trace = is_array($trace) ? $trace : array();
-	$traceText = array(); //var_dump($trace);exit;
+	$traceText = array();
 	$maxLoad = 50; //数据过多自动丢失后面内容;
 	if(count($trace) > $maxLoad){
 		$trace = array_slice($trace,count($trace) - $maxLoad);
 	}
-	foreach($trace as $i=>$call){
-		if (isset($call['object']) && is_object($call['object'])) {
+	$trace = array_reverse($trace);
+	$ignoreMethod = array('get_caller_info','think_exception','think_trace');
+	$keepArgs     = array('Action','ActionApply','ActionCall');
+	foreach($trace as $i => $call){
+		$method = $call['function'] ? $call['function'] : '';
+		if(in_array($method,$ignoreMethod)) continue;
+		if(isset($call['class']) && $call['class'] == 'ClassBaseCall') continue;
+		if(isset($call['object']) && is_object($call['object'])) {
 			$call['object'] = get_class_name($call['object']); 
 		}else if(isset($call['class'])){
 			$call['object'] = $call['class'];
 		}
-        
-		$file = !isset($call['file']) ? null : str_replace(BASIC_PATH,'',$call['file']);
-		$traceText[$i] = !isset($call['line']) ? null : $file.'['.$call['line'].'] ';
+		
+		$file = $call['file'] ? get_path_this(get_path_father($call['file'])).'/'.get_path_this($call['file']) : '';
+		$traceText[$i] = isset($call['line']) ? $file.'['.$call['line'].'] ' : $file;
 		$traceText[$i].= empty($call['object'])? '': $call['object'].$call['type']; 
-		if( $call['function']=='show_json' || 
-			$call['function'] =='think_trace'){
-			$traceText[$i].= $call['function'].'(args)';
+		if( $method =='show_json' || $method =='think_trace'){
+			$traceText[$i].= $method.'(args)';
 		}else{
 			$args  = (isset($call['args']) && is_array($call['args'])) ? $call['args'] : array();
+			if(!$needArgs && !in_array($method,$keepArgs)){$args = array();}
 			$param = json_encode(array_parse_deep($args));
 			$param = str_replace(array('\\/','\/','\\\\/','\"'),array('/','/','/','"'),$param);
 			if(substr($param,0,1) == '['){
@@ -901,20 +930,20 @@ function get_caller_trace($trace) {//return array();
 			if(strlen($param) > $maxLength) {
 				$param = mb_substr($param,0,$maxLength).'...';
 			}
-			$traceText[$i].= $call['function'].'('.rtrim($param,',').')';
+			$traceText[$i].= $method ? $method.'('.rtrim($param,',').')' : '';
 		}
 	}
-	unset($traceText[0]);
-	$traceText = array_reverse($traceText);
-	return $traceText;
+	return array_values($traceText);
 }
 
-function get_caller_info() { 
+function get_caller_info($needArgs = true) { 
 	$trace = debug_backtrace();
-	return get_caller_trace($trace);
+	return get_caller_trace($trace,$needArgs);
 }
 function get_caller_msg($trace = false) { 
-	$msg = get_caller_info();
+	return get_caller_msg_parse(get_caller_info(),$trace);
+}
+function get_caller_msg_parse($msg,$trace = false) { 
 	$msg = array_slice($msg,0,count($msg) - 1);
 	$msg['memory'] = sprintf("%.3fM",memory_get_usage()/(1024*1024));
 	if($trace){
@@ -1246,6 +1275,7 @@ if(!function_exists('mb_strlen')){
 /**
  * 字符串截取自动修复;(仅utf8 字符串); 去除前后不足一个字符的字节
  * 截取多余部分用replace替换;
+ * 只处理头和尾;
  * 
  * $str = substr("我的中国心",1,-2); 
  * $str = utf8Repair($str);
@@ -1256,39 +1286,34 @@ if(!function_exists('mb_strlen')){
  * 4 240-247, 128-191, 128-191, 128-191
  */
 function utf8Repair($str,$replace=''){
-	$length   = strlen($str);
-	$charByte = 0;$start = 0;$end = $length;
-	$char = ord($str[$start]);
+	$start = 0;$char = ord($str[$start]);
 	while($char >= 128 && $char <= 191 && $start <= 5){
-		$start ++;
-		$char = ord($str[$start]);
+		$start ++;$char = ord($str[$start]);
 	}
-	
-	for($i = $start; $i < $length; $i++){
-		$char = ord($str[$i]);
-		if($char <= 128) continue;
-		if($char > 247){return $str;}
-		else if ($char > 239) {$charByte = 4;}
+
+	$length  = strlen($str);$charByte = 0;
+	$endFrom = $length - 5 > 0 ? $length - 5 : 0;
+	for($end = $endFrom; $end < $length; $end++){
+		$char = ord($str[$end]);
+		if ($char <= 128 || ($char >= 128 && $char <= 191)) continue;
+		if ($char > 239) {$charByte = 4;}
 		else if ($char > 223) {$charByte = 3;}
 		else if ($char > 191) {$charByte = 2;}
 		else {return $str;}
-		if (($i + $charByte) > $length){
-			$end = $i;break;
-		}
-		while ($charByte > 1) {
-			$i++;$char = ord($str[$i]);
-			if ($char < 128 || $char > 191){return $str;}
-			$charByte--;
-		}
+
+		if ($end + $charByte - 1 == $length - 1){$end = $length - 1;break;} // 头占用一个字节,需减去;
+		if ($end + $charByte - 1 >  $length - 1){$end = $end - 1;break;}
+		$end = $end + $charByte - 2;// -1,因为上面+1;
 	}
-	
-	$charStart = '';$charEnd = '';
-	if($start == 0 && $end == $length) return $str;
+
+	$charStart = '';$charEnd = '';$strLen = $end - $start + 1;
+	if($start == 0 && $end == $length - 1) return $str;
+	if($strLen <= 0) return $replace ? str_repeat($replace,$length) : '';
 	if($replace && $start){$charStart = str_repeat($replace,$start);}
-	if($replace && $end != $length){$charEnd = str_repeat($replace,$length - $end);}
+	if($replace && $end != $length){$charEnd = str_repeat($replace,$length - $end + 1);}
 	
 	// pr($start,$end,$length,$charStart,$charEnd);exit;
-	return $charStart.substr($str,$start,$end - $start).$charEnd;
+	return $charStart.substr($str,$start,$end - $start + 1).$charEnd;
 }
 
 /**
@@ -1351,7 +1376,7 @@ function pr(){
 		$time = mtime() - $GLOBALS['debugLastTime'];
 	}
 	$GLOBALS['debugLastTime'] = mtime();
-	if($num == 0 || ($num== 1 && !$arg[0])) return;
+	if($num == 0 || ($num== 1 && is_null($arg[0]))) return;
 	
 	ob_start();
 	$style = '<style>

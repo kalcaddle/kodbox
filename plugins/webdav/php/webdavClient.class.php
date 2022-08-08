@@ -15,6 +15,7 @@ class webdavClient {
 		$this->basePath = KodIO::clear($urlInfo['path']);
 		$this->basicAuth= "Basic ".base64_encode($options['user'].":".$options['password']);
 		$this->plugin 	= Action('webdavPlugin');
+		$GLOBALS['requestFrom'] = 'webdav';
 	}
 	
 	public function check(){

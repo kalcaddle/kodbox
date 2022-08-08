@@ -1,4 +1,5 @@
 (function(){
+    // v.1.4.20
     // 1.get browser.js: run 'make setup' or read makefile;
     // 2.get browser.min.js: node_modules/.bin/uglifyjs mammoth.browser.kod.js -c > mammoth.browser.kod.min.js
     // 给页面添加样式

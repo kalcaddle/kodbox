@@ -68,6 +68,8 @@ class userBind extends Controller {
 	 */
 	public function sendEmail($input, $action) {
 		$systemName = Model('SystemOption')->get('systemName');
+		$user = Session::get('kodUser');
+		$name = _get($user, 'nickName', _get($user, 'name'));
 		$data = array(
 			'type'		=> 'email',
 			'input'		=> $input,
@@ -77,7 +79,10 @@ class userBind extends Controller {
 				'subject'	=> "[{$systemName}]" . LNG('user.emailVerify'),
 				'content'	=> array(
 					'type'	=> 'code', 
-					'data'	=> array('code' => rand_string(6))
+					'data'	=> array(
+						'user' => $name,
+						'code' => rand_string(6)
+					)
 				),
 				'system'	=> array(	// 系统信息
 					'icon'	=> STATIC_PATH.'images/icon/fav.png',

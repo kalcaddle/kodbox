@@ -161,11 +161,11 @@ class webdavServerKod extends webdavServer {
 
 		// 已存在回收站中处理;
 		if($info && $info['isDelete'] == '1'){
-			$resetName = $info['name'] .date('(H:i:s)');
+			$resetName = $info['name'] .date('(H-i-s)');
 			if($info['type'] == 'file'){
 				$ext = '.'.get_path_ext($info['name']);
 				$theName   = substr($info['name'],0,strlen($info['name']) - strlen($ext));
-				$resetName = $theName.date('(H:i:s)').$ext;
+				$resetName = $theName.date('(H-i-s)').$ext;
 			}
 			IO::rename($info['path'],$resetName);
 			$info = IO::infoFull($newPath);
@@ -193,10 +193,10 @@ class webdavServerKod extends webdavServer {
 		}
 		return $result;
 	}
-	public function pathExists($path){
+	public function pathExists($path,$allowInRecycle = false){
 		$info = IO::infoFull($path);
 		if(!$info) return false;
-		if($info['isDelete'] == '1') return false;
+		if(!$allowInRecycle && $info['isDelete'] == '1') return false;
 		return true;
 	}
 	
@@ -210,9 +210,9 @@ class webdavServerKod extends webdavServer {
 		if(!$info && !Action('explorer.auth')->pathOnlyShow($path) ){
 			return false;
 		}
-
+		
+		// if($info && $info['isDelete'] == '1') return false;//回收站中; 允许复制下载等操作;
 		if(!$this->can($path,'show')) return false;
-		if($info && $info['isDelete'] == '1') return false;//回收站中;
 		if($info && $info['type'] == 'file'){ //单个文件;
 			return array('fileList'=>array($info),'current'=>$info);
 		}
@@ -340,6 +340,7 @@ class webdavServerKod extends webdavServer {
 		if(!$tempInfo) return true;
 		
 		$toRecycle = Model('UserOption')->get('recycleOpen');
+		if($tempInfo['isDelete'] == '1'){$toRecycle = false;}
 		return IO::remove($tempInfo['path'], $toRecycle);
 	}
 	public function pathMove($path,$dest){
@@ -371,7 +372,7 @@ class webdavServerKod extends webdavServer {
 			    return $result;
 			}
 			// 都存在则覆盖；
-			if( $this->pathExists($path) && $this->pathExists($destFile) ){
+			if( $this->pathExists($path,true) && $this->pathExists($destFile) ){
 				$destFileInfo = IO::infoFull($destFile);
 
 				// $content = IO::getContent($path);

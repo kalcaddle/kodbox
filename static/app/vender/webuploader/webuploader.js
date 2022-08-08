@@ -1530,6 +1530,8 @@
                     dnd;
     
                 this.dnd = dnd = new Dnd( options );
+				this.owner.dnd = this.dnd;// 临时添加方法; 拖拽结束触发; add  by warlee;
+
     
                 dnd.once( 'ready', deferred.resolve );
                 // dnd.on( 'drop', function( files ) {
@@ -4831,6 +4833,15 @@
                 	$dom.on('dragleave',self.dragLeaveHandler );
 					$dom.on('drop',self.dropHandler );
 				});
+				
+				//changed by warlee;
+				this.owner.dragAndDrop = this;
+				this.owner.dropFileStart = function(e){
+					var e = e.originalEvent || e;
+					var dataTransfer = e.dataTransfer;
+					self.trigger('filesAccept',dataTransfer);// 文件夹;
+					self._getTansferFiles( dataTransfer,self.getRuid());
+				}
     
                 if ( this.options.disableGlobalDnd ) {
                     $( document ).on( 'dragover', this.dragOverHandler );
@@ -4937,11 +4948,11 @@
 				files = dataTransfer.files;
 				if (files.length == 0) return;//可能是字符串拖拽到窗口
 				
-                canAccessFolder = !!(items && items[ 0 ].webkitGetAsEntry);
+                canAccessFolder = !!(items && items[0] && items[0].webkitGetAsEntry);
                 for ( i = 0, len = files.length; i < len; i++ ) {
                     file = files[ i ];
-                    item = items && items[ i ];
-					var entry = item.webkitGetAsEntry();
+                    var item  = items && items[i];
+					var entry = item && item.webkitGetAsEntry && item.webkitGetAsEntry();
                     if ( canAccessFolder && entry && entry.isDirectory ) {
                         promises.push( this._traverseDirectoryTree(entry, results,ruid) );
                     } else {

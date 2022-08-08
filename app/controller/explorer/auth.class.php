@@ -121,7 +121,8 @@ class explorerAuth extends Controller {
 		
 		$info = IO::infoAuth($parse['pathBase']);//目标存储;
 		// 目标在回收站中: 不支持保存/上传/远程下载/粘贴/移动到此/新建文件/新建文件夹;
-		if($info['isDelete'] == '1'){
+		$fromDav = _get($GLOBALS,'requestFrom') == 'webdav';
+		if($info['isDelete'] == '1' && !$fromDav){
 			$msg = $info['type'] == 'file' ? LNG('explorer.pathInRecycleFile') : LNG("explorer.pathInRecycle");
 			show_json($msg,false);
 		}

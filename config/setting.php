@@ -233,6 +233,7 @@ $config['settingSystemDefault'] = array(
 	'passwordRule'		=> 'none',		// 限制密码强度;none-不限制;strong-中等强度;strongMore-高强度
 	'loginCheckAllow'	=> '',			// 登录限制
 	'csrfProtect'		=> '1',		 	// 开启csrf保护	
+	'downloadZipClient' => '1',			// 开启前端打包压缩下载(需要能够链接外网,或https);
 	'downloadZipLimit'	=> '0',			// 文件夹打包下载限制,默认为0, 0为不限制; 为避免服务器性能消耗过大,文件夹过大时限制打包下载
 	'showFileLink'		=> '1',			// 文件外链展示开关;默认开启; (关闭后,文件属性不再显示外链连接)
 	'showFileMd5'		=> '1',			// 文件md5是否展示; 默认开启; (关闭后,文件属性不再显示文件md5)

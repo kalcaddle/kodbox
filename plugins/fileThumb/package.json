@@ -2,7 +2,7 @@
 	"id":"fileThumb",
 	"name":"{{LNG['fileThumb.meta.name']}}",
 	"title":"{{LNG['fileThumb.meta.title']}}",
-	"version":"1.62",
+	"version":"1.63",
 	"category":"file,media",
 	"source":{
 		"className":"x-item-icon x-psd"

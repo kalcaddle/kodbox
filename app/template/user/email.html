@@ -1,7 +1,7 @@
 
 <div style="margin:0px; padding:0px; font-size:14px; color:#333; font-family:'宋体',arial,sans-serif;">
     <center>
-        <div style="margin:10px auto 20px; width:520px; background:#fff; box-shadow:0 0 10px #b1b1b1; text-align:left;">
+        <div style="margin:10px auto 20px; width:500px; background:#fff; box-shadow:0 0 10px #b1b1b1; text-align:left;">
 
             <div style="margin:0 40px; color:#999; border-bottom:1px dotted #DDD; padding:40px 0 30px; font-size:13px; text-align:center;">
                 <a href="https://kodcloud.com/" style="text-decoration:none;display:inline-flex;" one-link-mark="yes">
@@ -13,16 +13,16 @@
                 </a>
             </div>
 
-            <div style="padding:30px 40px 40px; min-height:240px;">
+            <div style="padding:30px 40px 40px; min-height:280px;">
                 <p style="margin:0px; margin-bottom:20px;"><?php echo $data['dear']; ?></p>
                 <?php if($data['type'] == 'code') { ?>
-                    <p><?php echo $data['text']; ?></p>
+                    <p style="margin:0px;"><?php echo $data['text']; ?></p>
                     <p style="margin:0px; text-align:center; margin-top:40px;">
                         <span style="padding:8px 16px;border-radius:3px;text-align:center;text-decoration:none;background-color:#ecf4fb;color:#1890ff;font-size:18px; font-weight:700; letter-spacing:2px; margin:0;white-space:nowrap;display:inline-block;"><?php echo $data['code'];?></span>
                     </p>
                 <?php } else if ($data['type'] == 'notice') { ?>
                     <?php foreach($data['text'] as $line) { ?>
-                        <p><?php echo $line; ?></p>
+                        <p style="margin:0px;"><?php echo $line; ?></p>
                     <?php } ?>
                 <?php } ?>
             </div>

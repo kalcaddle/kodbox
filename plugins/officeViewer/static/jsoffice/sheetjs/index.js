@@ -1,4 +1,5 @@
 (function(){
+    // v0.17.0
     // 给表格增加序列栏
     var setTbHead = function(){
         var table = document.getElementsByTagName('tbody');

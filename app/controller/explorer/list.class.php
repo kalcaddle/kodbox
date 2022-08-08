@@ -18,7 +18,7 @@ class explorerList extends Controller{
 	public function __construct(){
 		parent::__construct();
 		$this->model = Model("Source");
-	}	
+	}
 	public function path($thePath = false){
 		$path     = $thePath ? $thePath : $this->in['path'];
 		$path     = $path != '/' ? rtrim($path,'/') : '/';//路径保持统一;
@@ -135,7 +135,8 @@ class explorerList extends Controller{
 	}
 	private function pageReset(&$data){
 		// 合并额外current数据;
-		if(isset($data['currentFieldAdd'])){
+		if(is_array($data['currentFieldAdd'])){
+			$data['current'] = is_array($data['current']) ? $data['current'] : array();
 			$data['current'] = array_merge($data['current'],$data['currentFieldAdd']);
 			unset($data['currentFieldAdd']);
 		}
@@ -223,7 +224,8 @@ class explorerList extends Controller{
 		if(!$current || $current['exists'] === false){
 			show_json(LNG('common.pathNotExists'),false);
 		}
-		if(isset($current['isDelete']) && $current['isDelete'] == '1'){
+		$fromDav = _get($GLOBALS,'requestFrom') == 'webdav';
+		if(isset($current['isDelete']) && $current['isDelete'] == '1' && !$fromDav){
 			show_json(LNG("explorer.pathInRecycle"),false);
 		}
 	}

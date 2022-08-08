@@ -313,8 +313,8 @@ class explorerShare extends Controller{
 
 	//输出文件
 	public function fileOut(){
-		// $path = rawurldecode($this->in['path']);//允许中文空格等;
-		$path = $this->in['path']; // 路径中包含%20等字符允许.
+		$path = rawurldecode($this->in['path']);//允许中文空格等;
+		// $path = $this->in['path']; // 路径中包含%20等字符允许.
 		if(request_url_safe($path)) {
 			header('Location:' . $path);exit;
 		} 

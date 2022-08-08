@@ -3,58 +3,58 @@
 class S3 {
 
 	// ACL flags
-	const ACL_PRIVATE = 'private';
-	const ACL_PUBLIC_READ = 'public-read';
-	const ACL_PUBLIC_READ_WRITE = 'public-read-write';
-	const ACL_AUTHENTICATED_READ = 'authenticated-read';
-	const STORAGE_CLASS_STANDARD = 'STANDARD';
-	const STORAGE_CLASS_RRS = 'REDUCED_REDUNDANCY';
+	const ACL_PRIVATE				= 'private';
+	const ACL_PUBLIC_READ 			= 'public-read';
+	const ACL_PUBLIC_READ_WRITE 	= 'public-read-write';
+	const ACL_AUTHENTICATED_READ 	= 'authenticated-read';
+	const STORAGE_CLASS_STANDARD 	= 'STANDARD';
+	const STORAGE_CLASS_RRS 		= 'REDUCED_REDUNDANCY';
 	const STORAGE_CLASS_STANDARD_IA = 'STANDARD_IA';
-	const SSE_NONE = '';
-	const SSE_AES256 = 'AES256';
-	const AMZ_SEEK_TO = 'seekTo';
-	const AMZ_LENGTH = 'length';
-	const MAX_PART_NUM = 1000;
-	const MIN_PART_SIZE = 10485760; // 最小分片10M
-	const MAX_PART_SIZE = 5368709120; // 最大分片5G
-	const UPLOAD_RETRY = 3; // 分片、整合失败,重试3次
+	const SSE_NONE 					= '';
+	const SSE_AES256 				= 'AES256';
+	const AMZ_SEEK_TO 				= 'seekTo';
+	const AMZ_LENGTH 				= 'length';
+	const MAX_PART_NUM 				= 1000;	// 最大分片数
+	const MIN_PART_SIZE 			= 10485760; // 最小分片10M
+	const MAX_PART_SIZE 			= 5368709120; // 最大分片5G
+	const UPLOAD_RETRY 				= 3; // 分片、整合失败,重试3次
 
-	private $__accessKey = null;
-	private $__secretKey = null;
-	public $defDelimiter = null;
-	public $endpoint = 's3.amazonaws.com';
-	public $region = '';
-	public $proxy = null;
-	public $useSSL = false; // Connect using SSL?
-	public $useSSLValidation = true; // Use SSL validation?
-	public $useSSLVersion = CURL_SSLVERSION_TLSv1; // Use SSL version
-	public $useExceptions = false;
-	private $__timeOffset = 0;
-	public $sslKey = null;
-	public $sslCert = null;
-	public $sslCACert = null;
-	private $__signingKeyPairId = null;
-	private $__signingKeyResource = false;
-	public $progressFunction = null;
-	public $signVer = 'v4';
+	private $__accessKey 			= null;
+	private $__secretKey 			= null;
+	public $defDelimiter 			= null;
+	public $endpoint 				= 's3.amazonaws.com';
+	public $region 					= '';
+	public $proxy 					= null;
+	public $useSSL 					= false; // Connect using SSL?
+	public $useSSLValidation 		= true;	// Use SSL validation?
+	public $useSSLVersion 			= CURL_SSLVERSION_TLSv1; // Use SSL version
+	public $useExceptions 			= false;
+	private $__timeOffset 			= 0;
+	public $sslKey 					= null;
+	public $sslCert 				= null;
+	public $sslCACert 				= null;
+	private $__signingKeyPairId 	= null;
+	private $__signingKeyResource 	= false;
+	public $progressFunction 		= null;	// 传输进度回调方法
+	public $signVer 				= 'v4';	// 默认签名版本
 
 	// s3 request相关
 	// private $endpoint;			// AWS URI.
 	private $verb;					// Verb.
 	private $bucket;				// S3 bucket name.
 	private $uri;					// Object URI.
-	private $resource = '';			// Final object URI.
+	private $resource 	= '';		// Final object URI.
 	private $parameters = array();	// Additional request parameters.
 	private $amzHeaders = array();	// Amazon specific request headers.
-	private $headers = array(		// HTTP request headers.
+	private $headers 	= array(	// HTTP request headers.
 		'Host' 			=> '', 
 		'Date'			=> '', 
 		'Content-MD5'	=> '', 
 		'Content-Type'	=> '',
 	);
-	public $fp = false;				// Use HTTP PUT?
-	public $size = 0;				// PUT file size.
-	public $data = false;			// PUT post fields.
+	public $fp			= false;	// Use HTTP PUT?
+	public $size		= 0;		// PUT file size.
+	public $data		= false;	// PUT post fields.
 	public $response;				// S3 request respone.
 
 	/**

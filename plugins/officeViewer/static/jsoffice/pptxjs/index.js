@@ -1,4 +1,5 @@
 $(function(){
+    // v1.21.00
     // get min.js: node_modules/.bin/uglifyjs pptxjs.kod.js -c > pptxjs.kod.min.js
     var isWap = function(){
         return $(window.document).width() < 768;
@@ -37,6 +38,7 @@ $(function(){
         $('.page-box.not-in-wap #output').html('</div><div id="left_slides_bar"></div>');
         pptxToHtml(FILE_INFO.fileUrl);
         window.onerror = function (message, url, line, column, error) {
+            if(tipsLoading){tipsLoading.close();tipsLoading = false;}
             console.error(message, url, line, column, error);
             page.showTips('文件损坏，或包含不支持的内容格式！');
         }

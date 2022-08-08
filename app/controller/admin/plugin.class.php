@@ -76,10 +76,9 @@ class adminPlugin extends Controller{
 				$item['info'] = $userSelect;
 			}
 		};unset($item);
+		
 		$result = ActionCall($app.'Plugin.onGetConfig',$formData);
-		if(is_array($result)){
-			$formData = $result;
-		}
+		if(is_array($result)){$formData = $result;}
 		show_json($formData);
 	}
 
@@ -101,9 +100,7 @@ class adminPlugin extends Controller{
 		}
 		$this->model->changeStatus($app,1);
 		$result = ActionCall($app.'Plugin.onSetConfig',$json);
-		if(is_array($result)){
-			$json = $result;
-		}
+		if(is_array($result)){$json = $result;}
 				
 		$this->model->setConfig($app,$json);
 		show_json(LNG('explorer.success'));

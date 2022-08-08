@@ -62,6 +62,8 @@ class adminSetting extends Controller {
 		$systemDesc = Input::get('systemDesc');
 		if (!$systemDesc) $systemDesc = Model('SystemOption')->get('systemDesc');
 
+		$user = Session::get('kodUser');
+		$name = _get($user, 'nickName', _get($user, 'name'));
 		$data = array(
 			'type'			=> 'email',
 			'input'			=> $input,
@@ -72,7 +74,10 @@ class adminSetting extends Controller {
 				'subject'	=> "[{$systemName}]" . LNG('user.emailVerify') . '-' . LNG('common.test'),
 				'content'	=> array(
 					'type'	=> 'code', 
-					'data'	=> array('code' => rand_string(6))
+					'data'	=> array(
+						'user' => $name,
+						'code' => rand_string(6)
+					)
 				),
 				'system'	=> array(	// 系统信息
 					'icon'	=> STATIC_PATH.'images/icon/fav.png',

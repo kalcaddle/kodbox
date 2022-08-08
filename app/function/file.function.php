@@ -902,7 +902,7 @@ function is_text_file($ext){
 	$extArray = array(
 		'3ds','4th','_adb','a','abap','abc','ac','acl','ada','adb','adoc','ahk','alda','am','apex','apl','app','apple-app-site-association','applescript','aql','arcconfig','arclint','as','asc','asciidoc','asl','asm','asn','asn1','asp','aspx','ass','astylerc','atom','authors','aw',
 		'b','babelrc','bak','bash','bash_history','bash_logout','bash_profile','bashrc','bat','bf','bib','brew_all_commands','bro','build','bzl',
-		'c','c9search_results','cabal','cakefile','cbl','cc','cer','cf','cfg','cfm','cgi','changelog','changes','cirru','cl','classpath','clj','cljc','cljs','cljx','cls','cmake','cmake.in','cmd','cnf','cob','coffee','commit_editmsg','compile','component','conf','config','configure','container','contributing','copying','coveragerc','cpp','cpy','cql','cr','credits','cs','csd','cshtml','cson','csproj','css','csv','ctp','curly','cxx','cyp','cypher','crt',
+		'c','c9search_results','cabal','cakefile','cbl','cc','cer','cf','cfg','cfm','cgi','changelog','changes','cirru','cl','classpath','clj','cljc','cljs','cljx','cls','cmake','in','cmd','cnf','cob','coffee','commit_editmsg','compile','component','conf','config','configure','container','contributing','copying','coveragerc','cpp','cpy','cql','cr','credits','cs','csd','cshtml','cson','csproj','css','csv','ctp','curly','cxx','cyp','cypher','crt',
 		'd','dae','darglint','dart','def','depcomp','description','desktop','di','diff','dist','dockerfile','dockerfile-dist','dockerfile-master','dockerignore','dot','dox','drl','dsl','dtd','dummy','dxf','dxf-check','dxfb-check','dyalog','dyl','dylan',
 		'e','ecl','edi','editorconfig','edn','eex','ejs','el','elm','empty','epp','erb','erl','err','eslintignore','ex','example','exclude','exs',
 		'f','f77','f90','f95','factor','feature','fetch_head','filters','fingerprint','for','forth','frag','frt','fs','fsi','fsl','fsscript','fsx','fth','ftl','fun','fx',
@@ -924,9 +924,10 @@ function is_text_file($ext){
 		'v','vala','values','vb','vbproj','vbs','vcproj','vcxproj','version','vert','vfp','vh','vhd','vhdl','viminfo','vm','vmx','vmxd','vmxf','vsixmanifest','vtl','vtt','vue',
 		'wast','wat','we','webapp','webidl','webloc','wiki','wl','wlk','wls','wpgm','wpy','wsdl','wtest',
 		'x3d','xaml','xbl','xcscheme','xhtml','xib','xml','xq','xquery','xsd','xsl','xslt','xu','xul','xy',
-		'yaml','yml','ys','z80',
+		'yaml','yml','ys','z80','mht','mhtml',
 		'zeek','zsh','zsh-template','zsh-theme','zsh-update','zsh_history','zshrc','zshrc_self',
 	);
+	if($ext === -1) return $extArray;
 	return in_array($ext,$extArray);
 }
 

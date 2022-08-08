@@ -8,12 +8,15 @@
  */
 class webdavServer {
 	public $lastError = '';
+	public $method = '';
 	public function __construct($root,$DAV_PRE_PATH) {
 		$this->root = $root;
 		$this->initPath($DAV_PRE_PATH);
 		$this->start();
 	}
 	public function initPath($DAV_PRE_PATH){
+		$GLOBALS['requestFrom'] = 'webdav';
+		$this->method = 'http'.HttpHeader::method();
 		$uri  = rtrim($_SERVER['REQUEST_URI'],'/').'/'; //带有后缀的从domain之后部分;
 		if(!$this->pathCheck($uri)){//路径长度限制
 			$this->lastError = LNG('common.lengthLimit');
@@ -26,7 +29,7 @@ class webdavServer {
 		if(strpos($uri,$DAV_PRE_PATH) === false){
 			$this->lastError = LNG('common.noPermission');
 			$this->response(array("code"=>404));exit;
-		}
+		}		
 	}
 	public function checkUser(){
 		$user = HttpAuth::get();
@@ -48,7 +51,7 @@ class webdavServer {
 		}
 		$notCheck = array('httpMKCOL','httpPUT');
 		if( !in_array($method,$notCheck) && 
-			!$this->pathExists($this->path) ){
+			!$this->pathExists($this->path,true) ){
 			$result = array('code' => 404);
 		}else{
 			$result = $this->$method();
@@ -63,7 +66,7 @@ class webdavServer {
 		return substr($path,strpos($path,$this->urlBase)+ strlen($this->urlBase) );
 	}
 	
-	public function pathExists($path){
+	public function pathExists($path,$allowInRecycle=false){
 		return file_exists($path);
 	}
 	public function pathMkdir($path){

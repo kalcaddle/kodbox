@@ -141,6 +141,7 @@ class explorerListDriver extends Controller{
 					$infoMore = array('exists'=>false);
 				}else{
 					$infoMore = IO::has($info['path'],1);
+					$infoMore = is_array($infoMore) ? $infoMore : array();
 					$infoMore = array_merge($infoPath,$infoMore);
 				}
 			}

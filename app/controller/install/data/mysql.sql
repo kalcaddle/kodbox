@@ -108,7 +108,8 @@ CREATE TABLE `io_file` (
   KEY `linkCount` (`linkCount`),
   KEY `createTime` (`createTime`),
   KEY `ioType` (`ioType`),
-  KEY `hashMd5` (`hashMd5`)
+  KEY `hashMd5` (`hashMd5`),
+  KEY `name` (`name`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='文档存储表';
 
 DROP TABLE IF EXISTS `io_file_contents`;
@@ -117,7 +118,8 @@ CREATE TABLE `io_file_contents` (
   `content` mediumtext NOT NULL COMMENT '文本文件内容,最大16M',
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`fileID`),
-  KEY `createTime` (`createTime`)
+  KEY `createTime` (`createTime`),
+  FULLTEXT KEY `content` (`content`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='文件id';
 
 DROP TABLE IF EXISTS `io_file_meta`;

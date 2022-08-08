@@ -39,21 +39,21 @@ class fileThumbPlugin extends PluginBase{
 
 	//linux 注意修改获取bin文件的权限问题;
 	public function check(){
+		Cache::remove('fileThumb.getFFmpeg');
+		Cache::remove('fileThumb.getConvert');
 		if(isset($_GET['check'])){
 			$convert = $this->getConvert();
 			$ffmpeg  = $this->getFFmpeg();
-			$msg = '检测失败:<br/>';
 			$result  = $convert && $ffmpeg;
+			$message = $result ? 'ok': '检测失败:<br/>';
 			if(!$convert){
-				$msg .= "$convert convert调用失败，检测是否安装该软件，或是否有执行权限;<br/>";
+				$message .= "$convert convert调用失败，检测是否安装该软件，或是否有执行权限;<br/>";
 			}
 			if(!$ffmpeg){
-				$msg .= "$ffmpeg ffmpeg调用失败，检测是否安装该软件，或是否有执行权限;<br/>";
+				$message .= "$ffmpeg ffmpeg调用失败，检测是否安装该软件，或是否有执行权限;<br/>";
 			}
-			show_json($msg,$result);
+			show_json($message,$result);
 		}
-		Cache::remove('fileThumb.getFFmpeg');
-		Cache::remove('fileThumb.getConvert');
 		include($this->pluginPath.'static/check.html');
 	}
 
@@ -311,15 +311,13 @@ class fileThumbPlugin extends PluginBase{
 	}
 	
 	public function getFFmpegNow(){
-		$check  = 'ffmpeg';
+		$check  = 'options';
 		$config = $this->getConfig();
 		if( $this->checkBin($config['ffmpegBin'],$check) ){
 			return $config['ffmpegBin'];
 		}
 		$result = $this->guessBinPath('ffmpeg',$check);
-		if($result){
-			return $result;
-		}
+		if($result){return $result;}
 		$findMore = array(
 			'/imagemagick/ffmpeg',
 			'/imagemagick/bin/ffmpeg',
@@ -328,14 +326,12 @@ class fileThumbPlugin extends PluginBase{
 		);
 		foreach ($findMore as $value) {
 			$result = $this->guessBinPath($value,$check);
-			if($result){
-				return $result;
-			}
+			if($result){return $result;}
 		}
 		return false;
 	}
 	public function getConvertNow(){
-		$check  = 'imagemagick';
+		$check  = 'options';
 		$config = $this->getConfig();
 		if( $this->checkBin($config['imagickBin'],$check) ){
 			return $config['imagickBin'];
@@ -403,10 +399,7 @@ class fileThumbPlugin extends PluginBase{
 	}
 	private function checkBin($bin,$check){
 		$result = shell_exec($bin.' --help');
-		if(strstr($result,$check)){
-			return true;
-		}
-		return false;
+		return stripos($result,$check) > 0 ? true : false;
 	}
 	private function findBinPath($bin,$check){
 		$isWin = $GLOBALS['config']['systemOS'] == 'windows';

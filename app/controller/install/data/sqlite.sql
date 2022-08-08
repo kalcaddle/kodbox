@@ -119,6 +119,7 @@ CREATE INDEX 'idx_io_file_linkCount' ON 'io_file' ("linkCount");
 CREATE INDEX 'idx_io_file_createTime' ON 'io_file' ("createTime");
 CREATE INDEX 'idx_io_file_ioType' ON 'io_file' ("ioType");
 CREATE INDEX 'idx_io_file_hashMd5' ON 'io_file' ("hashMd5");
+CREATE INDEX 'idx_io_file_name' ON 'io_file' ("name");
 
 DROP TABLE IF EXISTS "io_file_contents";
 CREATE TABLE "io_file_contents" (
@@ -129,6 +130,7 @@ CREATE TABLE "io_file_contents" (
 -- index io_file_contents:
 CREATE INDEX 'idx_io_file_contents_primary_key' ON 'io_file_contents' ("fileID");
 CREATE INDEX 'idx_io_file_contents_createTime' ON 'io_file_contents' ("createTime");
+CREATE INDEX 'idx_io_file_contents_content' ON 'io_file_contents' ("content");
 
 DROP TABLE IF EXISTS "io_file_meta";
 CREATE TABLE "io_file_meta" (

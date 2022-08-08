@@ -323,7 +323,7 @@ class explorerIndex extends Controller{
 		}else if(@file_exists($tplFile)){
 			$content = file_get_contents($tplFile);
 		}
-		$repeat = !empty($this->in['fileRepeat']) ? $this->in['fileRepeat']:REPEAT_SKIP;
+		$repeat = !empty($this->in['fileRepeat']) ? $this->in['fileRepeat']:REPEAT_RENAME;
 		$result = IO::mkfile($this->in['path'],$content,$repeat);
 		
 		$errorLast = IO::getLastError(LNG('explorer.error'));
@@ -616,6 +616,7 @@ class explorerIndex extends Controller{
 	public function clearCache(){
 		$maxTime = 3600*24;
 		$list = IO::listPath(TEMP_FILES);
+		$list = is_array($list) ? $list : array('fileList'=>array(),'folderList'=>array());
 		$list = array_merge($list['fileList'],$list['folderList']);
 		foreach($list as $item){
 			if(time() - $item['modifyTime'] < $maxTime) continue;

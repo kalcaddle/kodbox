@@ -24,6 +24,7 @@ class adminLog extends Controller{
             $action = explode('.', $type);
             $mod = $action[0];
             if(!isset($list[$mod])) continue;
+			if(!is_array($list[$mod]['children'])){$list[$mod]['children'] = array();}
             $list[$mod]['children'][] = array('id' => $type,'text' => $name);
 		}
         $fileList = array(
@@ -33,6 +34,7 @@ class adminLog extends Controller{
             array('id' => 'explorer.fav.add', 'text' => LNG('explorer.addFav')),
             array('id' => 'explorer.fav.del', 'text' => LNG('explorer.delFav')),
         );
+		if(!is_array($list['file']['children'])){$list['file']['children'] = array();}
 		$list['file']['children'] = array_merge($list['file']['children'], $fileList);
         $list = $this->typeListMerge($list);
         show_json($list);

@@ -29,7 +29,7 @@
 .luckysheet-scrollbars.luckysheet-scrollbar-y{padding-bottom: 24px;}
 /* .luckysheet-grid-container{bottom: 23px;} */
 
-/* 隐藏部分右键菜单 */
+/* 编辑模式，隐藏部分右键菜单 */
 #luckysheet-cols-rows-data .luckysheet-cols-menuitem:not(#luckysheet-delete-text) {
     display: none !important;
 }

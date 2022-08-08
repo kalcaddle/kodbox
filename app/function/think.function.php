@@ -43,43 +43,23 @@ function think_var_cache($name, $value = '', $path = TEMP_PATH) {
  * @return void
  */
 function think_exception($msg) {
-	if(is_object($msg)){ //系统错误或警告;
-		$filePath = get_path_this(get_path_father($msg->getFile()));
-		$fileLine = '../'.$filePath.'/'.get_path_this($msg->getFile()).'['.$msg->getLine().'];  ';
-		$callTrace = $msg->getTrace();
-		$last = $callTrace[0];
-		$desc = $last['function'].'(); ';
-		if(isset($last['class'])){
-			$desc = $last['class'].'->'.$desc;
-		}
-		$desc  = $fileLine.$desc;
-		$error = $msg->getMessage();
-	}else{
-		$callTrace = debug_backtrace();
-		$last = $callTrace[1];
-		$desc = $last['function'].'(); ';
-		if($last['class']){
-			$desc = $last['class'].'->'.$desc;
-		}
-		$error = $msg;
+	$error = is_object($msg) ? $msg->getMessage() : $msg;
+	$trace = is_object($msg) ? $msg->getTrace() : debug_backtrace();
+	if(is_object($msg) && is_array($trace)){
+		$lastAt = array('file'=>$msg->getFile(),'line'=>$msg->getLine());
+		$trace = array_merge(array($lastAt),$trace);
 	}
-	
-	write_log($desc.';'.$error."\n".get_caller_msg()."\n".json_encode($GLOBALS['in']),'error');
-    if(defined('GLOBAL_DEBUG') && !GLOBAL_DEBUG ){
-		$error = "<div class='desc'>$desc</div>".$error;
-        $error = str_replace(BASIC_PATH,'./',$error); //去除路径前缀;
-        think_error_parse($error);
-        show_tips($error,'',0,'',false);
-    }else{
-		if(is_object($msg)){ //系统错误或警告;
-			$trace =  get_caller_trace($msg->getTrace());
-			$trace[] = $desc.$error;
-			pr($trace);
-		}else{
-			pr_trace($desc.$error);
-		}
-	}
-	exit;
+	$trace = get_caller_trace($trace,false);
+	write_log($error."\n".get_caller_msg_parse($trace)."\n".json_encode($GLOBALS['in']),'error');
+    if(defined('GLOBAL_DEBUG') && GLOBAL_DEBUG ){$trace[] = $error;pr($trace);exit;}
+    
+	$desc  = is_array($trace) ? implode("\n",array_slice($trace,-2)) : '';
+	$desc  = preg_replace("/{\w+}#/",'',$desc);
+	think_error_parse($error);
+	$error = "<div class='desc'>".$error."</div>";
+	$error = $error.'<div style="border-top:1px dotted #eee;"><code>'.$desc.'</code></div>';
+	$error = $error.'<div style="color:#ccc;font-size:12px;"><code>['.think_system_info().']</code></div>';
+	show_tips($error,'',0,'',false);
 }
 
 function think_error_parse(&$error){
@@ -92,23 +72,26 @@ function think_error_parse(&$error){
         'Access denied'         => LNG('ERROR_DB_XS_DENNIED'),
         'Unknown database'      => LNG('ERROR_DB_NOT_EXIST'),
     );
-    $errMsg = '';
+    $errMsg = LNG('explorer.systemError');
     // $errMsg = '数据库操作异常，请检查对应服务及相关配置。';
     foreach($errList as $key => $msg) {
         if(stripos($error, $key) !== false) {
             $errMsg = $msg; break;
         }
     }
-    if ($errMsg) $error .= '<br/></br/>' . $errMsg;
-	
-	// 加入 系统版本/php版本/数据库类型;
-	$version = php_uname('s').' '.php_uname('r').'/'.PHP_VERSION;
+    $error .= '<br/>' . $errMsg;
+}
+
+// 加入 系统版本/php版本/数据库类型;
+function think_system_info(){
+	$version = php_uname('s').' '.php_uname('r');
 	$dbType  = _get($GLOBALS['config'],'database.DB_TYPE','');
 	if($dbType == 'pdo'){
 		$dsn = explode(':',_get($GLOBALS['config'],'database.DB_DSN',''));
 		$dbType = 'pdo.'.$dsn[0];
 	}
-	$error .= '<div style="color:#ccc;font-size:12px;">['.$version.'/'.$dbType.']</div>';
+	$kodVersion = KOD_VERSION.'.'.KOD_VERSION_BUILD;
+	return $version.'/'.PHP_VERSION.'/'.$dbType.'/'.$kodVersion;
 }
 
 /**
@@ -379,7 +362,7 @@ function think_trace($value = '[think]', $label = '', $level = 'DEBUG', $record 
 		$index = $index < 10 ? '0'.$index.'' : $index.'';
 		$_trace[$keyList][$index] = $timeShow.'['.$useTime.'s]: '.substr($info,0,-21);
 		
-		$trace = array_slice(get_caller_info(),4,-2); // 5ms 每个;
+		$trace = array_slice(get_caller_info(),4,-1); // 5ms 每个;
 		$_trace[$keyTrace][$index]= array_merge(array($timeShow.'['.$useTime.'s]: ',$info),$trace);
 	}
 	if ($record){write_log($info,$level);}
