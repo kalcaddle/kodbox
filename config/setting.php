@@ -160,7 +160,7 @@ $config['databaseDefault'] = array(
 	'DB_DEPLOY_TYPE'        => 0, 			// 数据库部署方式:0 集中式(单一服务器),1 分布式(主从服务器)
 	'DB_RW_SEPARATE'        => false,       // 数据库读写是否分离 主从式有效
 	'DB_MASTER_NUM'         => 1, 			// 读写分离后 主服务器数量
-	'DB_SLAVE_NO'           => 0, 			// 指定从服务器序号; 开启集群和主从分离,默认host第一个为master;
+	'DB_SLAVE_NO'           => '', 			// 指定从服务器序号; 开启集群和主从分离,默认host第一个为master;
 	
 	
 	/* 主从分离,一主多从集群;

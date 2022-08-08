@@ -372,7 +372,7 @@ return array(
     "admin.group.addSub"             => "Agregar subsector",
     "admin.group.remove"             => "Eliminar departamento",
     "admin.group.switch"             => "Departamento de Migración",
-    "admin.group.swtichDesc"         => "Migrar usuarios y archivos del departamento seleccionado al departamento de destino",
+    "admin.group.swtichDesc"         => "Migre usuarios y archivos del departamento seleccionado (y sus subdepartamentos) al departamento de destino.",
     "admin.group.switchSameError"    => "El departamento de destino no puede ser el mismo que el departamento seleccionado",
     "admin.group.switching"          => "Migrando, por favor espere...",
     "admin.group.groupSwitching"     => "El departamento seleccionado está migrando",

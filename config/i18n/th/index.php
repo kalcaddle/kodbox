@@ -372,7 +372,7 @@ return array(
     "admin.group.addSub"             => "เพิ่มแผนกย่อย",
     "admin.group.remove"             => "ลบแผนก",
     "admin.group.switch"             => "กรมตรวจคนเข้าเมือง",
-    "admin.group.swtichDesc"         => "ย้ายผู้ใช้และไฟล์ภายใต้แผนกที่เลือกไปยังแผนกเป้าหมาย",
+    "admin.group.swtichDesc"         => "ย้ายผู้ใช้และไฟล์ภายใต้แผนกที่เลือก (และแผนกย่อย) ไปยังแผนกเป้าหมาย",
     "admin.group.switchSameError"    => "แผนกเป้าหมายต้องไม่เหมือนกับแผนกที่เลือก",
     "admin.group.switching"          => "กำลังย้าย โปรดรอสักครู่...",
     "admin.group.groupSwitching"     => "แผนกที่เลือกกำลังอพยพ",

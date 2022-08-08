@@ -372,7 +372,7 @@ return array(
     "admin.group.addSub"             => "إضافة القسم الفرعي",
     "admin.group.remove"             => "حذف القسم",
     "admin.group.switch"             => "قسم الهجرة",
-    "admin.group.swtichDesc"         => "قم بترحيل المستخدمين والملفات ضمن القسم المحدد إلى القسم المستهدف",
+    "admin.group.swtichDesc"         => "قم بترحيل المستخدمين والملفات التابعة للقسم المحدد (وأقسامه الفرعية) إلى القسم المستهدف.",
     "admin.group.switchSameError"    => "لا يمكن أن يكون القسم المستهدف هو نفسه القسم المحدد",
     "admin.group.switching"          => "جاري الترحيل ، يرجى الانتظار ...",
     "admin.group.groupSwitching"     => "يتم ترحيل القسم المحدد",

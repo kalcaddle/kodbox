@@ -372,7 +372,7 @@ return array(
     "admin.group.addSub"             => "Dodaj podsektor",
     "admin.group.remove"             => "Usuń dział",
     "admin.group.switch"             => "Departament Migracji",
-    "admin.group.swtichDesc"         => "Przenieś użytkowników i pliki z wybranego działu do działu docelowego",
+    "admin.group.swtichDesc"         => "Przenieś użytkowników i pliki z wybranego działu (i jego poddziałów) do działu docelowego.",
     "admin.group.switchSameError"    => "Dział docelowy nie może być taki sam, jak wybrany dział",
     "admin.group.switching"          => "Migracja, proszę czekać...",
     "admin.group.groupSwitching"     => "Wybrany dział przechodzi migrację",

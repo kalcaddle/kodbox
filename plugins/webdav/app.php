@@ -167,7 +167,7 @@ class webdavPlugin extends PluginBase{
 		$config = $this->getConfig();
 		if(empty($config['echoLog'])) return;
 		if(is_array($data)){$data = json_encode_force($data);}
-		// if($_SERVER['REQUEST_METHOD'] == 'PROPFIND' ) return;
+		if($_SERVER['REQUEST_METHOD'] == 'PROPFIND' ) return;
 		
 		$prefix = "     [S-$logIndex] ";
 		if(!$logIndex){

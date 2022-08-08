@@ -29,6 +29,11 @@
 .luckysheet-scrollbars.luckysheet-scrollbar-y{padding-bottom: 24px;}
 /* .luckysheet-grid-container{bottom: 23px;} */
 
+/* .luckysheetTableContent{
+    height: -webkit-fill-available !important;
+    top: 18px;
+} */
+
 /* 编辑模式，隐藏部分右键菜单 */
 #luckysheet-cols-rows-data .luckysheet-cols-menuitem:not(#luckysheet-delete-text) {
     display: none !important;

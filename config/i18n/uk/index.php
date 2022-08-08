@@ -372,7 +372,7 @@ return array(
     "admin.group.addSub"             => "Додайте підсектор",
     "admin.group.remove"             => "Видалити відділ",
     "admin.group.switch"             => "Відділ міграції",
-    "admin.group.swtichDesc"         => "Перенесіть користувачів і файли з вибраного відділу до цільового відділу",
+    "admin.group.swtichDesc"         => "Перенесіть користувачів і файли з вибраного відділу (і його підрозділів) до цільового відділу.",
     "admin.group.switchSameError"    => "Цільовий відділ не може збігатися з вибраним відділом",
     "admin.group.switching"          => "Переміщення, зачекайте...",
     "admin.group.groupSwitching"     => "Вибраний відділ мігрує",

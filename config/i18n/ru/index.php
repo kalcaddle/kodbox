@@ -372,7 +372,7 @@ return array(
     "admin.group.addSub"             => "Добавить подсектор",
     "admin.group.remove"             => "Удалить отдел",
     "admin.group.switch"             => "Департамент миграции",
-    "admin.group.swtichDesc"         => "Перенести пользователей и файлы из выбранного отдела в целевой отдел",
+    "admin.group.swtichDesc"         => "Перенесите пользователей и файлы из выбранного отдела (и его подотделов) в целевой отдел.",
     "admin.group.switchSameError"    => "Целевой отдел не может совпадать с выбранным отделом",
     "admin.group.switching"          => "Перенос, пожалуйста, подождите...",
     "admin.group.groupSwitching"     => "Выбранный отдел переносится",

@@ -372,7 +372,7 @@ return array(
     "admin.group.addSub"             => "Alt sektör ekle",
     "admin.group.remove"             => "Bölümü sil",
     "admin.group.switch"             => "Göç Dairesi",
-    "admin.group.swtichDesc"         => "Seçilen departman altındaki kullanıcıları ve dosyaları hedef departmana taşıyın",
+    "admin.group.swtichDesc"         => "Seçilen departman (ve alt departmanları) altındaki kullanıcıları ve dosyaları hedef departmana taşıyın.",
     "admin.group.switchSameError"    => "Hedef departman, seçilen departmanla aynı olamaz",
     "admin.group.switching"          => "Taşınıyor, lütfen bekleyin...",
     "admin.group.groupSwitching"     => "Seçilen departman taşınıyor",

@@ -304,10 +304,18 @@ class fileThumbPlugin extends PluginBase{
 	
 	
 	public function getFFmpeg(){
-		return Cache::getCall('fileThumb.getFFmpeg',60,array($this,'getFFmpegNow'));
+		return $this->getCall('fileThumb.getFFmpeg',60,array($this,'getFFmpegNow'));
 	}
 	public function getConvert(){
-		return Cache::getCall('fileThumb.getConvert',60,array($this,'getConvertNow'));
+		return $this->getCall('fileThumb.getConvert',60,array($this,'getConvertNow'));
+	}
+	// Cache::getCall
+	private function getCall($key,$timeout,$call,$args = array()){
+		$result = Cache::get($key);
+		if($result) return $result;
+		$result = call_user_func_array($call,$args);
+		Cache::set($key,$result,$timeout);
+		return $result;
 	}
 	
 	public function getFFmpegNow(){

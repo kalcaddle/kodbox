@@ -372,7 +372,7 @@ return array(
     "admin.group.addSub"             => "उप-विभाग जोड़ें",
     "admin.group.remove"             => "विभाग हटाएं",
     "admin.group.switch"             => "प्रवासन विभाग",
-    "admin.group.swtichDesc"         => "चयनित विभाग के अंतर्गत उपयोगकर्ताओं और फ़ाइलों को लक्षित विभाग में माइग्रेट करें",
+    "admin.group.swtichDesc"         => "चयनित विभाग (और उसके उप-विभागों) के तहत उपयोगकर्ताओं और फ़ाइलों को लक्षित विभाग में माइग्रेट करें।",
     "admin.group.switchSameError"    => "लक्ष्य विभाग चयनित विभाग के समान नहीं हो सकता",
     "admin.group.switching"          => "माइग्रेट हो रहा है, कृपया प्रतीक्षा करें...",
     "admin.group.groupSwitching"     => "चयनित विभाग माइग्रेट कर रहा है",

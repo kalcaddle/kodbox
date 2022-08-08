@@ -1,5 +1,6 @@
 $(function(){
     // v2.1.13
+    // TODO 载入图表支持；底部白边调整
     // 根据数据绘制表格
     var loadLuckySheet = function(exportJson){
         var allowEdit = _.get(FILE_INFO, 'canWrite') == '1' ? true : false;
@@ -8,7 +9,7 @@ $(function(){
         luckysheet.create({
             container: 'output', // 容器id
             data:exportJson.sheets,
-            // plugins: ['chart'],  // luckyexcel暂不支持导入图表
+            // plugins: ['chart'],  // luckyexcel暂不支持导入图表——解析的数据没有chart相关内容
             lang: 'zh',
             // title:exportJson.info.name,
             // userInfo:exportJson.info.name.creator,

@@ -372,7 +372,7 @@ return array(
     "admin.group.addSub"             => "Ajouter un sous-secteur",
     "admin.group.remove"             => "Supprimer le département",
     "admin.group.switch"             => "Département des migrations",
-    "admin.group.swtichDesc"         => "Migrer les utilisateurs et les fichiers du service sélectionné vers le service cible",
+    "admin.group.swtichDesc"         => "Migrez les utilisateurs et les fichiers du service sélectionné (et de ses sous-services) vers le service cible.",
     "admin.group.switchSameError"    => "Le département cible ne peut pas être le même que le département sélectionné",
     "admin.group.switching"          => "Migration, veuillez patienter...",
     "admin.group.groupSwitching"     => "Le service sélectionné est en cours de migration",

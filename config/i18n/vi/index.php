@@ -372,7 +372,7 @@ return array(
     "admin.group.addSub"             => "Thêm bộ phận phụ",
     "admin.group.remove"             => "Xóa bộ phận",
     "admin.group.switch"             => "Bộ di trú",
-    "admin.group.swtichDesc"         => "Di chuyển người dùng và tệp trong bộ phận đã chọn sang bộ phận mục tiêu",
+    "admin.group.swtichDesc"         => "Di chuyển người dùng và tệp trong bộ phận đã chọn (và các bộ phận phụ của bộ phận đó) sang bộ phận mục tiêu.",
     "admin.group.switchSameError"    => "Bộ phận mục tiêu không được giống bộ phận đã chọn",
     "admin.group.switching"          => "Đang di chuyển, vui lòng đợi ...",
     "admin.group.groupSwitching"     => "Bộ phận đã chọn đang di chuyển",

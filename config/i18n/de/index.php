@@ -372,7 +372,7 @@ return array(
     "admin.group.addSub"             => "Teilsektor hinzufügen",
     "admin.group.remove"             => "Abteilung löschen",
     "admin.group.switch"             => "Migrationsabteilung",
-    "admin.group.swtichDesc"         => "Migrieren Sie Benutzer und Dateien unter der ausgewählten Abteilung in die Zielabteilung",
+    "admin.group.swtichDesc"         => "Migrieren Sie Benutzer und Dateien unter der ausgewählten Abteilung (und ihren Unterabteilungen) in die Zielabteilung.",
     "admin.group.switchSameError"    => "Die Zielabteilung darf nicht mit der ausgewählten Abteilung identisch sein",
     "admin.group.switching"          => "Migrieren, bitte warten...",
     "admin.group.groupSwitching"     => "Die ausgewählte Abteilung wird migriert",

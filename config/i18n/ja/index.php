@@ -372,7 +372,7 @@ return array(
     "admin.group.addSub"             => "サブセクターを追加",
     "admin.group.remove"             => "部門を削除",
     "admin.group.switch"             => "移行部",
-    "admin.group.swtichDesc"         => "選択した部門のユーザーとファイルをターゲット部門に移行します",
+    "admin.group.swtichDesc"         => "選択した部門 (およびそのサブ部門) のユーザーとファイルをターゲット部門に移行します。",
     "admin.group.switchSameError"    => "対象部門を選択した部門と同じにすることはできません",
     "admin.group.switching"          => "移行中、お待ちください...",
     "admin.group.groupSwitching"     => "選択した部門が移行中です",

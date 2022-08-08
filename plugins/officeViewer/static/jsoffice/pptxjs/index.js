@@ -1,6 +1,6 @@
 $(function(){
-    // v1.21.00
-    // get min.js: node_modules/.bin/uglifyjs pptxjs.kod.js -c > pptxjs.kod.min.js
+    // v1.21.1
+    // get min.js: mammoth.js-master/node_modules/.bin/uglifyjs pptxjs.kod.js -c > pptxjs.kod.min.js
     var isWap = function(){
         return $(window.document).width() < 768;
     }

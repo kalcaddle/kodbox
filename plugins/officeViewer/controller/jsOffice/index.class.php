@@ -26,14 +26,15 @@ class officeViewerJsOfficeIndex extends Controller {
             $plugin->showTips(LNG('officeViewer.main.invalidExt'), $this->appName);
 		}
         $extList = array(
-            // 'doc'  => 'mammothjs', 
             'docx'  => 'mammothjs', 
+            'doc'   => 'mammothjs',
             'xlsx'  => 'luckysheet', // sheetjs
             'xls'   => 'luckysheet',
             'csv'   => 'luckysheet',
             'pptx'  => 'pptxjs',
-            // 'ppt'   => 'pptxjs',
+            'ppt'   => 'pptxjs',
         );
+        // doc、ppt不支持，此处为兼容某些旧格式命名的新结构（zip）文件
         $ext = $this->in['ext'];
         if(!isset($extList[$ext])) {
             $plugin->showTips(LNG('officeViewer.main.invalidExt'), $this->appName);

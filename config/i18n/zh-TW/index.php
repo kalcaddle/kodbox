@@ -372,7 +372,7 @@ return array(
     "admin.group.addSub"             => "添加子部門",
     "admin.group.remove"             => "刪除部門",
     "admin.group.switch"             => "遷移部門",
-    "admin.group.swtichDesc"         => "將所選部門下的用戶及文件，遷移至目標部門",
+    "admin.group.swtichDesc"         => "將所選部門（及其子部門）下的用戶和文件，遷移至目標部門。",
     "admin.group.switchSameError"    => "目標部門不能與已選部門相同",
     "admin.group.switching"          => "正在遷移，請稍候...",
     "admin.group.groupSwitching"     => "所選部門正在遷移中",

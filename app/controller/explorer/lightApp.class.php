@@ -57,16 +57,27 @@ class explorerLightApp extends Controller{
 		show_json($msg,!!$res);
 	}
 	
-	public function getUrlTitle(){
-		$html = curl_get_contents($this->in['url']);
-		$charset = get_charset($html);
-		if ($charset !='' && $charset !='utf-8' && function_exists("mb_convert_encoding")){
-			$html = @mb_convert_encoding($html,'utf-8',$charset);
+	public function getUrlContent(){
+		$url = $this->in['url'];
+		$header = url_header($url);
+		if(!$header){show_json(array());}
+		$contentType = $header['all']['content-type'];
+		if(is_array($contentType)){$contentType = $contentType[count($contentType) - 1];}
+		
+		if(strstr($contentType,'text/html')){
+			$content = curl_get_contents($url,30);
+			$charset = get_charset($content);
+			if($charset !='' && $charset !='utf-8' && function_exists("mb_convert_encoding")){
+				$content = @mb_convert_encoding($content,'utf-8',$charset);
+			}
+			show_json(array('html'=>$content));
 		}
-		$result = match_text($html,"<title>(.*)<\/title>");
-		if (!$result || strlen($result) == 0) {$result = $this->in['url'];}
-		$result = str_replace(array('http://',':','&','/','?'),array('','_','@','-','_'), $result);
-		show_json($result);
+		// 图片等处理;
+		if(strstr($contentType,'image')){
+			$content = curl_get_contents($url,30);
+			show_json(array("content"=>base64_encode($content),'isBase64'=>true),true);
+		}
+		show_json(array('header'=>$header));
 	}
 	private function input(){
 		$arr  = json_decode($this->in['data'],true);

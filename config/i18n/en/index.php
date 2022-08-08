@@ -372,7 +372,7 @@ return array(
     "admin.group.addSub"             => "Add sub-group",
     "admin.group.remove"             => "Delete group",
     "admin.group.switch"             => "Migration Department",
-    "admin.group.swtichDesc"         => "Migrate users and files under the selected department to the target department",
+    "admin.group.swtichDesc"         => "Migrate users and files under the selected department (and its sub-departments) to the target department.",
     "admin.group.switchSameError"    => "Target department cannot be the same as the selected department",
     "admin.group.switching"          => "Migrating, please wait...",
     "admin.group.groupSwitching"     => "The selected department is migrating",

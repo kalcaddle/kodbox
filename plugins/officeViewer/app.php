@@ -101,7 +101,13 @@ class officeViewerPlugin extends PluginBase{
 		$ext = $this->in['ext'];
 		$config = $this->getConfig();
 		$extAll = explode(',', $config[$type.'FileExt']);
-		return in_array($ext, $extAll);
+		if (in_array($ext, $extAll)) return true;
+		if ($type == 'js' && in_array($ext, array('doc', 'ppt'))) {	// 某些文件可能只是命名为旧格式，根据前2个字符(PK)区分
+			$path = $this->in['path'];
+			$prfx = IO::fileSubstr($path, 0, 2);
+			if (strtolower($prfx) == 'pk') return true;
+		}
+		return false;
 	}
 	// 各打开方式错误提示
 	public function showTips($msg, $title){

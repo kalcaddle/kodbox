@@ -25,7 +25,6 @@ class adminRepair extends Controller {
 			echoLog('异常数据清理执行中，可在后台任务管理进行中止。');
 			echoLog('请求参数done=1时，不直接删除已缺失的物理文件，可查看“物理文件不存在的数据记录”，确认需要删除后，再执行done=2进行删除。');
 			echoLog('<br>=====================================================<br>');
-			// exit;
 		}
 		if ($done == 2) {return $this->clearErrorFile();}
 		// http_close();
@@ -100,7 +99,7 @@ class adminRepair extends Controller {
 					$removeFiles[]  = $item['fileID'];
 				}
 				$total++;
-				echoLog($total.'; '.($errorNum > 0 ? $task->task['currentTitle'].';' : ''), true);
+				echoLog('['.$total.'] '.($errorNum > 0 ? $task->task['currentTitle'].';' : ''), true);
 				$task->update(1);
 			}
 			$model->removeRelevance($removeSource,$removeFiles); // 优化性能;
@@ -132,7 +131,7 @@ class adminRepair extends Controller {
 					$removeFiles[]  = $item['fileID'];
 				}
 				$total++;
-				echoLog($total.'; '.($errorNum > 0 ? $task->task['currentTitle'].';' : ''), true);
+				echoLog('['.$total.'] '.($errorNum > 0 ? $task->task['currentTitle'].';' : ''), true);
 				$task->update(1);
 			}
 			$model->removeRelevance($removeSource,$removeFiles); // 优化性能;
@@ -188,7 +187,7 @@ class adminRepair extends Controller {
 					$model->where($where)->delete();
 				}
 				$total++;
-				echoLog($total.'; '.($errorNum > 0 ? $task->task['currentTitle'].';' : ''), true);
+				echoLog('['.$total.'] '.($errorNum > 0 ? $task->task['currentTitle'].';' : ''), true);
 				$task->update(1);
 			}
 			$page ++;$list = $model->selectPage($pageNum,$page);
@@ -220,7 +219,7 @@ class adminRepair extends Controller {
 					Model('share_to')->where($where)->delete();
 				}
 				$total++;
-				echoLog($total.'; '.($errorNum > 0 ? $task->task['currentTitle'].';' : ''), true);
+				echoLog('['.$total.'] '.($errorNum > 0 ? $task->task['currentTitle'].';' : ''), true);
 				$task->update(1);
 			}
 			$page ++;$list = $model->selectPage($pageNum,$page);
@@ -247,12 +246,11 @@ class adminRepair extends Controller {
 					$errorNum ++;
 					$task->task['currentTitle'] = $errorNum .'个不存在';
 					write_log(array($taskType,$item),'sourceClear');
-					if (in_array($item['fileID'], array(441,442,502,501,517,459))) continue;
 					IO::remove($item['path']);
 					$model->where($where)->delete();
 				}
 				$total++;
-				echoLog($total.'; '.($errorNum > 0 ? $task->task['currentTitle'].';' : ''), true);
+				echoLog('['.$total.'] '.($errorNum > 0 ? $task->task['currentTitle'].';' : ''), true);
 				$task->update(1);
 			}
 			$page ++;$list = $model->selectPage($pageNum,$page);
@@ -278,8 +276,7 @@ class adminRepair extends Controller {
 		while($list && $page <= $list['pageInfo']['pageTotal']){
 			foreach ($list['list'] as $item) {
 				$total++;
-				echoLog($total.';', true);
-				if (in_array($item['fileID'], array(441,442,502,501,517,459))) continue;
+				echoLog('['.$total.']', true);
 				if( IO::exist($item['path']) ){
 					$model->resetFile($item);
 				}else{
@@ -349,7 +346,7 @@ class adminRepair extends Controller {
 					$model->where($where)->delete();
 				}
 				$total++;
-				echoLog($total.'; '.($errorNum > 0 ? $task->task['currentTitle'].';' : ''), true);
+				echoLog('['.$total.'] '.($errorNum > 0 ? $task->task['currentTitle'].';' : ''), true);
 				$task->update(1);
 			}
 			$page ++;$list = $model->selectPage($pageNum,$page);

@@ -34,8 +34,7 @@ kodReady.push(function(){
 
     // 2.插件设置
     Events.bind("plugin.config.formBefore", function(formData, options, self){
-        if (_.get(options, 'id') != 'app-config-oauth') return;
-
+        if (_.get(options, 'id') != 'app-config-{{pluginName}}') return;
         var list = [];
         var loginWith = getLoginWith();
         var logins = loginWith ? _.split(loginWith, ',') : [];
@@ -59,8 +58,8 @@ kodReady.push(function(){
         formData.loginWith.value = loginWith;
     });
     Events.bind("plugin.config.formAfter", function(self){
-        if (!self.formoauth) return;
-        var formMaker = self.formoauth;
+        var formMaker = self['form{{pluginName}}'];
+        if (!formMaker) return;
         // 可能保存失败，暂不做处理
         formMaker.bind('onSave', function(result){
             var loginWith = [];

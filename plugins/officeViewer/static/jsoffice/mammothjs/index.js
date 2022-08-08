@@ -1,7 +1,9 @@
 (function(){
     // v.1.4.20
     // 1.get browser.js: run 'make setup' or read makefile;
-    // 2.get browser.min.js: node_modules/.bin/uglifyjs mammoth.browser.kod.js -c > mammoth.browser.kod.min.js
+    // 2.get browser.min.js: mammoth.js-master/node_modules/.bin/uglifyjs mammoth.browser.kod.js -c > mammoth.browser.kod.min.js
+    // TODO 
+    // \t缩进显示无效；多个空格标签为u，宽度无效；行高度；字体替换
     // 给页面添加样式
     var pageStyle = function(value){
         $('.page-box').addClass($.isWap ? 'is-in-wap' : 'not-in-wap');

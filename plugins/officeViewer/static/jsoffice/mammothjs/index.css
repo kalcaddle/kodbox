@@ -76,3 +76,14 @@ body .page-box.fit-content #output{
     margin-bottom: 8px;
     background: #fff;
 }
+
+.page-box #output ol {
+    text-indent: 0px !important;
+    padding-inline-start: 2em;
+    list-style-type: none;
+    counter-reset: li;
+}
+.page-box #output ol li:before {
+    content: counter(li)'、';
+    counter-increment: li;
+}

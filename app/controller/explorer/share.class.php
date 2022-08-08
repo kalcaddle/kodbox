@@ -280,12 +280,12 @@ class explorerShare extends Controller{
 		$parse = KodIO::parse($path);
 		if(!$parse || $parse['type']  != KodIO::KOD_SHARE_LINK ||
 			$this->share['shareHash'] != $parse['id'] ){
-			show_json(LNG('explorer.dataError'),false);
+			show_json(LNG('common.noPermission'),false);
 		}
 		
 		$pathInfo = IO::infoFull($rootSource.$parse['param']);
 		if(!$pathInfo){
-			show_json(LNG('explorer.pathError'),false);
+			show_json(LNG('common.noPermission'),false);
 		}
 		return $pathInfo['path'];
 	}
@@ -369,6 +369,13 @@ class explorerShare extends Controller{
 			}
 			$data = Action('explorer.list')->path($path);
 		}
+
+		// 文件快捷方式处理;
+		if($data && $data['fileList']){
+			foreach($data['fileList'] as &$file){
+				$this->filterOexeContent($file);
+			}
+		}		
 		show_json($data);
 	}
 	
@@ -428,6 +435,24 @@ class explorerShare extends Controller{
 		if(is_array($theItem['createUser'])) $theItem['createUser'] = $this->filterUserInfo($theItem['createUser']);
 		if(is_array($theItem['modifyUser'])) $theItem['modifyUser'] = $this->filterUserInfo($theItem['modifyUser']);
 		return $theItem;
+	}
+	
+	private function filterOexeContent(&$theItem){
+		if($theItem['type'] != 'file' || $theItem['ext'] != 'oexe') return;
+		if(!isset($theItem['oexeContent'])) return;
+		if($theItem['oexeContent']['type'] != 'path') return;
+		
+		$rootPath = $this->share['sourceInfo']['pathDisplay'];
+		if($this->share['sourceID'] == '0'){
+			$rootPath = KodIO::clear($this->share['sourcePath']);
+			$pathDisplay = $theItem['oexeContent']['value'];
+		}else{
+			$sourceInfo  = IO::info($theItem['oexeContent']['value']);
+			$pathDisplay = $sourceInfo['pathDisplay'];
+		}
+		$path = KodIO::makePath(KodIO::KOD_SHARE_LINK,$this->share['shareHash']);
+		$pathDisplay = ltrim(substr($pathDisplay,strlen($rootPath)),'/');
+		$theItem['oexeContent']['value'] = rtrim($path,'/').'/'.$pathDisplay;
 	}
 	private function filterUserInfo($userInfo){
 		$name = !empty($userInfo['nickName']) ? $userInfo['nickName'] : $userInfo['name'];

@@ -372,7 +372,7 @@ return array(
     "admin.group.addSub"             => "하위 부서 추가",
     "admin.group.remove"             => "부서 삭제",
     "admin.group.switch"             => "이민부",
-    "admin.group.swtichDesc"         => "선택한 부서의 사용자 및 파일을 대상 부서로 마이그레이션",
+    "admin.group.swtichDesc"         => "선택한 부서(및 하위 부서) 아래의 사용자 및 파일을 대상 부서로 마이그레이션합니다.",
     "admin.group.switchSameError"    => "대상 부서는 선택한 부서와 같을 수 없습니다.",
     "admin.group.switching"          => "마이그레이션 중입니다. 잠시만 기다려 주십시오...",
     "admin.group.groupSwitching"     => "선택한 부서가 마이그레이션 중입니다.",

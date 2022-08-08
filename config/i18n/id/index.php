@@ -372,7 +372,7 @@ return array(
     "admin.group.addSub"             => "Tambahkan sub-sektor",
     "admin.group.remove"             => "Hapus departemen",
     "admin.group.switch"             => "Departemen Migrasi",
-    "admin.group.swtichDesc"         => "Migrasikan pengguna dan file di bawah departemen yang dipilih ke departemen target",
+    "admin.group.swtichDesc"         => "Migrasikan pengguna dan file di bawah departemen yang dipilih (dan sub-departemennya) ke departemen target.",
     "admin.group.switchSameError"    => "Departemen target tidak boleh sama dengan departemen yang dipilih",
     "admin.group.switching"          => "Migrasi, harap tunggu...",
     "admin.group.groupSwitching"     => "Departemen yang dipilih sedang bermigrasi",

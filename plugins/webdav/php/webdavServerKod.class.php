@@ -11,9 +11,8 @@
  */
 class webdavServerKod extends webdavServer {
 	public function __construct($DAV_PRE) {
+		$this->davPre = $DAV_PRE;
 		$this->plugin = Action('webdavPlugin');
-		$this->checkUser();
-		$this->initPath($DAV_PRE);
 		Hook::bind('show_json',array($this,'showErrorCheck'));
 	}
 
@@ -22,6 +21,9 @@ class webdavServerKod extends webdavServer {
 		if(!method_exists($this,$method)){
 			return HttpAuth::error();
 		}
+		// if($method == 'httpOPTIONS'){return self::response($this->httpOPTIONS());}
+		$this->checkUser();
+		$this->initPath($this->davPre);
 		$result = $this->$method();
 		if(!$result) return;//文件下载;
 		$this->response($result);
@@ -54,9 +56,13 @@ class webdavServerKod extends webdavServer {
 			if(substr($user['user'],0,2) == '$$'){
 				$user['user'] = rawurldecode(substr($user['user'],2));
 			}
+			// Windows下wps打开文件需要再次输入用户名密码情况; 用户名带入了电脑名称兼容(eg:'DESKTOP-E12RTST\admin:123')
+			$startPose = strrpos($user['user'],"\\"); 
+			if($startPose){$user['user'] = substr($user['user'],$startPose + 1);}
+			
     		$find = ActionCall('user.index.userInfo', $user['user'],$user['pass']);
     		if ( !is_array($find) || !isset($find['userID']) ){
-    			// $this->plugin->log(array($user,$find,$_SERVER['HTTP_AUTHORIZATION']));
+    			// $this->plugin->log(array($user,$find,$_SERVER['HTTP_AUTHORIZATION'],$GLOBALS['_SERVER']));
     			return HttpAuth::error();
     		}
     		ActionCall('user.index.loginSuccess',$find);

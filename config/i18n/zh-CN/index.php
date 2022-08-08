@@ -372,7 +372,7 @@ return array(
     "admin.group.addSub"             => "添加子部门",
     "admin.group.remove"             => "删除部门",
     "admin.group.switch"             => "迁移部门",
-    "admin.group.swtichDesc"         => "将所选部门下的用户及文件，迁移至目标部门",
+    "admin.group.swtichDesc"         => "将所选部门（及其子部门）下的用户和文件，迁移至目标部门。",
     "admin.group.switchSameError"    => "目标部门不能与已选部门相同",
     "admin.group.switching"          => "正在迁移，请稍候...",
     "admin.group.groupSwitching"     => "所选部门正在迁移中",
