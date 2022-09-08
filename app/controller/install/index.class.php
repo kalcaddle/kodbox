@@ -542,31 +542,7 @@ class installIndex extends Controller {
      * 轻应用列表初始化
      */
     public function initLightApp(){
-        $model = Model('SystemLightApp');
-		$list = $model->clear();
-		$str = file_get_contents(USER_SYSTEM.'apps.php');
-		$data= json_decode(substr($str, strlen('<?php exit;?>')),true);
-		
-		foreach ($data as $app) {
-			$type = $app['type'] == 'app' ? 'js' : $app['type'];
-			$item = array(
-				'name' 		=> $app['name'],
-				'group'		=> $app['group'],
-				'desc'		=> $app['desc'],
-				'content'	=>  array(
-					'type'		=> $type,
-					'value'		=> $app['content'],
-					'icon'		=> $app['icon'],
-					'options' => array(
-						"width"  	=> $app['width'],
-						"height" 	=> $app['height'],
-						"simple" 	=> $app['simple'],
-						"resize" 	=> $app['resize']
-					),
-				)
-			);
-			$model->add($item);
-        }
+		Action('explorer.lightApp')->initApp();
     }
 
     /**

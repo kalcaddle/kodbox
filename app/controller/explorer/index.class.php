@@ -637,18 +637,29 @@ class explorerIndex extends Controller{
 		if($this->in['zipClient'] == '1'){$this->zipDownloadClient($dataArr);return;}
 		
 		ignore_timeout();
-		$downName = $this->tmpZipName($dataArr);
-		$zipCache = TEMP_FILES;mk_dir($zipCache);
+		$zipFolder = $this->tmpZipName($dataArr);
+		$zipCache  = TEMP_FILES;mk_dir($zipCache);
 
-		$zipPath = Cache::get($downName);
+		$zipPath = Cache::get($zipFolder);
 		if($zipPath && IO::exist($zipPath) ){
-			show_json(LNG('explorer.zipSuccess'),true,$this->pathCrypt($zipPath));
+			return $this->zipDownloadStart($zipPath);
 		}
 
-		$zipPath = $this->zip($zipCache.$downName . '/');
-		Cache::set($downName, $zipPath, 3600*6);
+		$zipPath = $this->zip($zipCache.$zipFolder . '/');
+		Cache::set($zipFolder, $zipPath, 3600*6);
+		$this->zipDownloadStart($zipPath);
+	}
+	private function zipDownloadStart($zipPath){
+		if(isset($this->in['disableCache']) && $this->in['disableCache'] == '1'){
+			if(!$zipPath || !IO::exist($zipPath)) return;
+			IO::fileOut($zipPath,true);
+			// $dir = get_path_father($zipPath);
+			// if(strstr($dir,TEMP_FILES)){del_dir($dir);}
+			return;
+		}
 		show_json(LNG('explorer.zipSuccess'),true,$this->pathCrypt($zipPath));
 	}
+	
 	// 文件名加解密
 	public function pathCrypt($path, $en=true){
 		$pass = Model('SystemOption')->get('systemPassword').'encode';

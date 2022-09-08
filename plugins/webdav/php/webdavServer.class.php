@@ -44,11 +44,14 @@ class webdavServer {
 	}
 	
 	public function start(){
-	    $this->checkUser();
 		$method = 'http'.HttpHeader::method();
 		if(!method_exists($this,$method)){
-			pr($method.' not exists!;');exit;
+			return HttpAuth::error();
 		}
+		if($method == 'httpOPTIONS'){
+			return self::response($this->httpOPTIONS());
+		}
+		$this->checkUser();
 		$notCheck = array('httpMKCOL','httpPUT');
 		if( !in_array($method,$notCheck) && 
 			!$this->pathExists($this->path,true) ){
@@ -378,6 +381,8 @@ class webdavServer {
 	public function xmlGet($key){
 		static $xml = false;
 		if(!$xml){
+			// 禁用xml实体,避免xxe攻击; php8以上已废弃
+			if(PHP_VERSION_ID < 80000) {libxml_disable_entity_loader(true);}
 			$body = file_get_contents('php://input');
 			$xml = new DOMDocument();
 			$xml->loadXML($body);

@@ -28,6 +28,11 @@ class userSetting extends Controller {
 			"value"	=> array("check"=>"require"),
 		));
 		Model('UserOption')->set($data['key'],$data['value']);
+		
+		// listType,listSort 显示模式,排序方式跟随文件夹配置记录;
+		if(isset($this->in['listViewPath']) && $this->in['listViewPath']){
+			Action('explorer.listView')->dataSave($this->in);
+		}
 		show_json(LNG('explorer.settingSuccess'));
 	}
 	public function getConfig(){

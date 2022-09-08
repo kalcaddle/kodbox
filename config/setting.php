@@ -6,17 +6,18 @@
 * @license http://kodcloud.com/tools/license/license.txt
 */
 
-// header('Access-Control-Allow-Origin:*');    			// 允许的域名来源;
-// header('Access-Control-Allow-Methods:GET'); 			// 允许请求的类型
+// header('Access-Control-Allow-Origin: *');    		// 允许的域名来源;
+// header('Access-Control-Allow-Methods: *'); 			// 允许请求的类型
+// header('Access-Control-Max-Age: 1800L'); 			// 缓存时间
 // header('Access-Control-Allow-Credentials: true'); 	// 设置是否允许发送 cookies
-// header('Access-Control-Allow-Headers: Content-Type,Content-Length,Accept-Encoding,X-Requested-with, Origin');
+// header('Access-Control-Allow-Headers: Content-Type,Content-Length,Accept-Encoding,X-Requested-with, Origin, Authorization');
 
 //配置数据,可在setting_user.php中添加变量覆盖,升级后不会被替换
 $config['settings'] = array( 
 	'downloadUrlTime'	=> 0,			 	//下载地址生效时间，按秒计算，0代表不限制
 	'apiLoginToken'		=> '',			 	//设定则认为开启服务端api通信登录，同时作为加密密匙
 	'paramRewrite'		=> false,		 	//开启url 去除? 直接跟参数
-	'ioAvailed'			=> 'local,ftp,oss,qiniu,cos,s3,oos,uss,minio',		//显示的io类型，多个以','分隔
+	'ioAvailed'			=> 'local,ftp,oss,qiniu,cos,s3,oos,uss,minio,eos,eds',		//显示的io类型，多个以','分隔
 	'ioFileOutServer'	=> false,
 	'ioUploadServer'	=> false,
 	
@@ -38,6 +39,7 @@ $config['settings'] = array(
 	),
 	'fileEditLockTimeout' 	=> 1200,		// 文件编辑锁默认锁定最长时间;默认20分钟;超过了则自动解锁;
 	'fileHistoryMax'		=> 500,			// 文件历史版本默认个数,免费版3个; 大于500则认为不限制
+	'fileHistoryLocal'		=> 0,			// 本地文件是否开启历史版本;
 	'uploadFileNumberMax'	=> 0,			// 单次批量上传文件个数上限, 0不限制
 	'storeFileNumberMax'	=> 0,			// 外链分享转存文件个数上限, 0不限制
 	'shareLinkSizeMax'		=> 0,			// 分享文件/文件夹最大大小限制; 0不限制; 单位GB(float)
@@ -53,6 +55,9 @@ $config['settings']['searchMutil'] 		= 1;		// 搜索:开启批量搜索
 $config['settings']['allowSEO'] 		= 1; 		// 允许SEO收录外链分享;
 $config['settings']['systemBackup'] 	= 1; 		// 系统备份;
 $config['settings']['bigFileForce'] 	= 0; 		// 32位时强制允许大文件上传; https://demo.kodcloud.com/#s/735psg0g 
+$config['settings']['sysTempPath'] 		= TEMP_PATH;	// 系统临时目录，避免中转时data临时目录慢（如nfs挂载）
+$config['settings']['sysTempFiles'] 	= TEMP_FILES;	// 系统临时文件目录
+
 
 $config["ADMIN_ALLOW_IO"] 				= 1;		// 物理路径或io路径是否允许操作开关，仅限管理员(禁用后无法直接管理物理路径)
 $config["ADMIN_ALLOW_SOURCE"] 			= 1;		// 其他部门or用户目录操作开关，仅限管理员(是否能直接访问其他用户空间或部门空间)
@@ -73,6 +78,7 @@ $config['settings']['ioClassList'] = array(
 	'uss'				=> 'USS',
 	'minio'				=> 'MinIO',
 	'eos'				=> 'EOS',
+	'eds'				=> 'EDS',
 
 	'moss'				=> 'MOSS',
 	'nos'				=> 'NOS',
@@ -211,7 +217,7 @@ $config['settingSystemDefault'] = array(
 	'globalCss'			=> "",
 	'globalHtml'		=> "",
 
-	'newUserApp'		=> "trello,一起写office,石墨文档,ProcessOn,计算器,高德地图,icloud,OfficeConverter",
+	'newUserApp'		=> "高德地图,icloud",
 	'newUserFolder'		=> "我的文档,我的图片,我的音乐",
 	'newGroupFolder'	=> "共享资源,文档,其他",	// 新建分组默认建立文件夹
 	'groupRootName'		=> '企业网盘',				// 企业组织架构根节点
@@ -235,6 +241,10 @@ $config['settingSystemDefault'] = array(
 	'csrfProtect'		=> '1',		 	// 开启csrf保护	
 	'downloadZipClient' => '1',			// 开启前端打包压缩下载(需要能够链接外网,或https);
 	'downloadZipLimit'	=> '0',			// 文件夹打包下载限制,默认为0, 0为不限制; 为避免服务器性能消耗过大,文件夹过大时限制打包下载
+	'dragDownload'		=> '1',			// 拖拽出浏览器,自动下载(仅Chrome内核浏览器支持; edge,360...)
+	'dragDownloadZip'	=> '0',			// 是否允许多个或文件夹拖拽下载(压缩后下载. 由于没有进度,无法取消,故默认关闭)
+	'dragDownloadLimit'	=> 20,			// MB;拖拽下载文件大小限制; 为0则不限制;(压缩后下载, 由于没有进度,无法取消,故设置较低)	
+	
 	'showFileLink'		=> '1',			// 文件外链展示开关;默认开启; (关闭后,文件属性不再显示外链连接)
 	'showFileMd5'		=> '1',			// 文件md5是否展示; 默认开启; (关闭后,文件属性不再显示文件md5)
 	'systemRecycleOpen' => '0',			// 系统回收站开启关闭;
@@ -272,8 +282,10 @@ $config['settingSystemDefault'] = array(
 		array('name'=>'官网','url'=>'https://kodcloud.com',"icon"=>"ri-home-line-3",'target'=>'inline','use'=>'1')
 	),
 );
-$config['settingSystemDefault']['searchFulltext'] = 0;		// like%% 转为全文索引
-$config['settingSystemDefault']['searchFulltextForce'] = 0;	// 完整匹配; (否则会对$words进行分词,包含一部分也作为结果;会多出结果) 
+$config['settingSystemDefault']['searchFulltext'] = 0;			// like%% 转为全文索引
+$config['settingSystemDefault']['searchFulltextForce']  = 0;	// 完整匹配; (否则会对$words进行分词,包含一部分也作为结果;会多出结果) 
+$config['settingSystemDefault']['searchFulltextInnodb'] = 0;	// 是否为innodb 
+
 
 //新用户初始化默认配置
 $config['settingDefault'] = array(
@@ -288,6 +300,8 @@ $config['settingDefault'] = array(
 	'theme'				=> "auto",		// 'light','dark-mode','auto'
 	'themeImage' 		=> "",			// url/wallpage/css
 	'wall'				=> "8",			// wall picture
+	'listTypeKeep'		=> '1',			// 1|0, 为每个文件夹选择视图模式，或对所有文件夹使用相同的视图模式
+	'listSortKeep'		=> '1',			// 1|0, 为每个文件夹配置列排序顺序，或对所有文件夹使用相同的顺序
 	
 	"fileRepeat"		=> "replace",	// rename,replace,skip
 	"recycleOpen"		=> "1",			// 1 | 0 代表是否开启

@@ -1,0 +1,102 @@
+<!doctype html>
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+	<meta name="apple-mobile-web-app-capable" content="yes"/>
+	<title><?php echo clear_html($fileName);?></title>
+	<link rel="icon" href="<?php $this->url('static/images/icon.png');?>">
+	<script>var kodSdkConfig = {api:'<?php echo APP_HOST;?>'};</script>
+	<?php // if(clear_quote($fileApp) != 'pptxjs') $this->link('app/dist/sdk.js','static');?>
+	<?php $this->link('app/dist/sdk.js','static');?>
+	<?php $this->link('style/lib/font-icon/style.css','static');?>
+	<?php $this->link('static/weboffice/page.css');?>
+	<script>
+		var BASE_URL = "<?php echo $this->pluginHost.'static/';?>";
+		var BASE_URL_API = "<?php echo $this->pluginApi;?>";
+		var FILE_INFO = {
+			fileUrl:	'<?php echo clear_quote($fileUrl);?>',	// 获取url
+			fileName: 	'<?php echo clear_quote($fileName);?>', // 文件名
+			savePath:	'<?php echo clear_quote($savePath);?>', // 文件路径;有则可以直接保存;没有且canWrite则可以另存为;
+			canWrite:	'<?php echo clear_quote($canWrite);?>',	// 是否可写; 可写才能编辑;
+			fileApp:	'<?php echo clear_quote($fileApp);?>',	// 文件打开方式
+			fileExt:	'<?php echo clear_quote($fileExt);?>',	// 文件后缀
+		};
+	</script>
+</head>
+
+<!-- <style>
+	body:after{
+		position:absolute;top:0;right:0;bottom:0;left:0;z-index: 100;
+		background:url("<?php echo STATIC_PATH.'images/common/loading-page.gif';?>");
+		margin:auto;width:72px;height:72px;background-color:#eee;
+		content:"";text-align: center;transition: all 0.5s;
+		background-size:100% 100%;background-repeat: no-repeat;
+		border-radius:8px;box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+	}
+	body.page-loaded:after{visibility:hidden;opacity:0;}
+</style> -->
+
+<body class="loading">
+	<!-- <div class="loading-content"></div>	 -->
+	<div class="page-box <?php echo 'kod-' . clear_quote($fileApp) . '-box';?>">
+		<div id="output"></div>
+	</div>
+    <div id="msgbox" class="hidden">
+		<!-- <div id="title">打开失败！</div> -->
+		<div id="title">
+			<span style="font-size:20px;">Office阅读器</span>
+			<span style="font-size:14px;margin-left:5px;"> - WebOffice</span>
+		</div>
+		<div id="message"></div>
+		<div id="info"></div>
+	</div>
+
+	<?php $this->link('static/weboffice/page.js');?>
+	<?php switch(clear_quote($fileApp)) {
+		case 'mammothjs':
+			// $this->link('static/weboffice/mammothjs/mammoth.browser.kod.1.4.20--.js');
+			$this->link('static/weboffice/mammothjs/mammoth.browser.kod.1.4.20.min.js');
+			$this->link('static/weboffice/mammothjs/index.css');
+			$this->link('static/weboffice/mammothjs/index.js');
+			break;
+		case 'luckysheet':
+			$this->link('static/weboffice/luckysheet/plugins/css/pluginsCss.css');
+			$this->link('static/weboffice/luckysheet/plugins/plugins.css');
+			$this->link('static/weboffice/luckysheet/css/luckysheet.css');
+			$this->link('static/weboffice/luckysheet/assets/iconfont/iconfont.min.css');
+			$this->link('static/weboffice/luckysheet/index.css');
+			$this->link('static/weboffice/luckysheet/plugins/js/plugin.js');
+			$this->link('static/weboffice/luckysheet/luckysheet.umd.js');
+			$this->link('static/weboffice/luckysheet/luckyexcel.umd.min.js');
+			$this->link('static/weboffice/sheetjs/xlsx.core.min.js');
+			$this->link('static/weboffice/luckysheet/utils.js');
+			$this->link('static/weboffice/luckysheet/index.js');
+			break;
+		case 'pptxjs':
+			$this->link('static/weboffice/pptxjs/css/pptxjs.css');
+			$this->link('static/weboffice/pptxjs/css/nv.d3.min.css');
+			$this->link('static/weboffice/pptxjs/index.css');
+			$this->link('static/weboffice/pptxjs/js/jquery-1.11.3.min.js');
+			$this->link('static/weboffice/pptxjs/js/jszip.min.js');
+			$this->link('static/weboffice/pptxjs/js/filereader.js');
+			$this->link('static/weboffice/pptxjs/js/d3.min.js');
+			$this->link('static/weboffice/pptxjs/js/nv.d3.min.js');
+			$this->link('static/weboffice/pptxjs/js/dingbat.js');
+			$this->link('static/weboffice/pptxjs/js/pptxjs.kod.1.21.1.min.js');
+			// $this->link('static/weboffice/pptxjs/js/pptxjs.kod.1.21.1--.js');
+			$this->link('static/weboffice/pptxjs/js/divs2slides.min.js');
+			// $this->link('static/weboffice/pptxjs/js/jquery.fullscreen-min.js');
+			$this->link('static/weboffice/pptxjs/utils.js');
+			$this->link('static/weboffice/pptxjs/index.js');
+			break;
+		case 'sheetjs':
+			$this->link('static/weboffice/sheetjs/index.css');
+			$this->link('static/weboffice/sheetjs/xlsx.core.min.js');
+			// $this->link('static/weboffice/sheetjs/ppt.core.min.js');
+			$this->link('static/weboffice/sheetjs/index.js');
+			break;
+		default:break;
+	}?>
+</body>
+</html>
+

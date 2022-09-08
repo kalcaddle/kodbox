@@ -213,8 +213,9 @@ class explorerListSearch extends Controller{
 			$onlyFile 	= true;
 		}
 
+		$isLocalFile = file_exists($path);
 		$result = array('folderList'=> array(),'fileList'=> array());
-		$matchMax = 2000; $findNum = 0;
+		$matchMax = 20000; $findNum = 0;
 		foreach($list as $item){
 			check_abort_echo();
 			$isFolder = $item['folder'];
@@ -268,7 +269,7 @@ class explorerListSearch extends Controller{
 						
 			if (isset($param['words']) && $param['words'] &&
 				in_array('content',$param['option']) ){
-				if(!$this->searchFile($info,$param['words'])){
+				if(!$this->searchFile($info,$param['words'],$isLocalFile)){
 					continue; // 内容匹配; 
 				}
 			}
@@ -285,22 +286,22 @@ class explorerListSearch extends Controller{
 		return $result;
 	}
 	
-	private function searchFile(&$file,$search){
-		if($file['size'] <= 1) return false;
-		$content = Hook::trigger('explorer.listSearch.fileContentText',$file);
-		if(!is_text_file($file['ext']) && !$content) return false;
-		if($file['size'] >= 1024*1024*10 && !$content) return false;
-		
+	private function searchFile(&$file,$search,$isLocalFile){
+		if($file['size'] <= 3) return false;
 		$filePath = isset($file['filePath']) ? $file['filePath'] : $file['path'];
-		$content  = $content ? $content : IO::getContent($filePath);
-		if(!$content || strlen($content) < strlen($content)) return false;
+		if(is_text_file($file['ext']) && $isLocalFile ){
+			if($file['size'] >= 1024*1024*10) return false;
+			$content = IO::getContent($filePath);
+		}else{
+			$content = Hook::trigger('explorer.listSearch.fileContentText',$file);
+		}
+		if(!$content) return false;
 		if(!is_text_file($file['ext'])){//单行数据展示
 			$find = $this->contentSearchMatch($content,$search);
 			if($find){$file['searchContentMatch'] = $find;}
 			return $find ? true : false;
 		}
-
-		$find = content_search($content,$search,false);
+		$find = content_search($content,$search,false,505);
 		if($find){$file['searchTextFile'] = $find;}
 		return $find ? true : false;
 	}

@@ -1,0 +1,106 @@
+/* .page-box #output h1{text-align: center;}
+.page-box #output p{text-indent: 2em;} */
+.page-box #output table,
+/* .page-box #output table tr td { border:1px solid #bbb; padding: 4px;} */
+.page-box #output table tr td { border:1px solid #747474; padding: 4px; word-break: break-all;}
+.page-box #output table { border-collapse: collapse;}
+.page-box #output table.docx-table {width: 100%;}
+/* .page-box #output table { min-height: 25px; line-height: 25px; border-collapse: collapse; padding:2px;}
+.page-box #output table p{text-indent: inherit; margin: 0px;} */
+
+.page-box #output img {max-width: 100%;}
+/* .page-box #output p img {float: left;} */
+.page-box #output a {word-wrap: break-word; word-break: normal;text-decoration: none;}
+
+
+/* 行占位符 */
+.page-box #output p{margin: 0.5em 0px;word-break: break-all;}
+/* .page-box #output p{margin: 0px;}
+.page-box #output>p{margin: 0.5em 0px;} */
+/* .page-box #output p{line-height: 1.5em;} */
+.page-box #output p.blank-line{visibility: hidden;}
+.page-box #output>img{margin: 1em 0px;}
+.page-box #output p span.wd-catalog{
+    /* float: right;  */
+    text-indent: 0px;
+}
+.page-box #output .wd-catalog-line{
+    position: relative; 
+    display: flex;
+    color: currentColor;
+}
+.page-box #output .wd-catalog-line *{
+    color: currentColor;
+    text-indent: 0;
+}
+.page-box #output .wd-catalog-line .dot{
+    flex: 1;
+    border-bottom: 2px dotted rgba(0, 0, 0, 0.8);
+    display: inline-block;
+    margin: 0 5px 8px;
+}
+
+.page-box.is-in-wap #output {padding: 40px 20px;}
+.page-box.not-in-wap #output {padding: 100px 140px;}
+/* .page-box.not-in-wap {width: 80%; margin: 0px auto; } */
+.page-box.not-in-wap {width: 80%; max-width: 960px; margin: 0px auto; }
+@media (min-width: 960px) and (max-width: 1080px) {
+    .page-box.not-in-wap #output{padding: 80px 120px;}
+}
+@media (min-width: 768px) and (max-width: 960px) {
+    .page-box.not-in-wap {width: 84%;}
+    .page-box.not-in-wap #output{padding: 60px 80px;}
+}
+@media (min-width: 560px) and (max-width: 768px) {
+    .page-box.not-in-wap {width: 88%;}
+    .page-box.not-in-wap #output{padding: 40px 50px;}
+}
+@media (max-width: 560px) {
+    .page-box.not-in-wap {width: 100%;}
+    .page-box.not-in-wap #output{padding: 20px;}
+    /* 内容为空 */
+    .page-box.no-content{
+        /* left: 8px !important;
+        right: 8px; */
+        left: 0px !important;
+        right: 0px;
+        transform: inherit !important;
+        width: inherit !important;
+    }
+}
+
+.page-box {
+    position: absolute;
+    bottom: 8px;
+    top: 8px;
+    left: 50%;
+    transform: translate(-50%);
+    height: inherit;
+}
+.page-box.is-in-wap {
+    width: 100%;
+}
+.fit-content{
+    height: -moz-fit-content;
+    height: -webkit-fit-content;
+    height: fit-content;
+}
+
+body .page-box.fit-content {
+    background: none;
+}
+body .page-box.fit-content #output{
+    margin-bottom: 8px;
+    background: #fff;
+}
+
+.page-box #output ol {
+    text-indent: 0px !important;
+    padding-inline-start: 2em;
+    list-style-type: none;
+    counter-reset: li;
+}
+.page-box #output ol li:before {
+    content: counter(li)'、';
+    counter-increment: li;
+}

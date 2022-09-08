@@ -19,7 +19,7 @@ class explorerLightApp extends Controller{
 	 */
 	public function get() {
 		$group = Input::get('group','require','all');
-		$list  = $this->model->listData();
+		$list  = $this->model->listData(false,'id');
 		$result = array();
 		foreach ($list as $item) {
 			if($item['group'] == $group || $group == 'all'){
@@ -70,12 +70,12 @@ class explorerLightApp extends Controller{
 			if($charset !='' && $charset !='utf-8' && function_exists("mb_convert_encoding")){
 				$content = @mb_convert_encoding($content,'utf-8',$charset);
 			}
-			show_json(array('html'=>$content));
+			show_json(array('html'=>$content,'header'=>$header));
 		}
 		// 图片等处理;
 		if(strstr($contentType,'image')){
 			$content = curl_get_contents($url,30);
-			show_json(array("content"=>base64_encode($content),'isBase64'=>true),true);
+			show_json(array("content"=>base64_encode($content),'isBase64'=>true,'header'=>$header),true);
 		}
 		show_json(array('header'=>$header));
 	}
@@ -85,5 +85,54 @@ class explorerLightApp extends Controller{
 			show_json(LNG('explorer.error'),false);
 		}
 		return $arr;
+	}
+	
+	 /**
+     * 轻应用列表初始化
+     */
+    public function initApp(){
+		$this->clearOldApps();
+		$str = file_get_contents(USER_SYSTEM.'apps.php');
+		$data= json_decode(substr($str, strlen('<?php exit;?>')),true);
+		$data = array_reverse($data);
+		foreach ($data as $app) {
+			$type = $app['type'] == 'app' ? 'js' : $app['type'];
+			$item = array(
+				'name' 		=> $app['name'],
+				'group'		=> $app['group'],
+				'desc'		=> $app['desc'],
+				'content'	=>  array(
+					'type'		=> $type,
+					'value'		=> $app['content'],
+					'icon'		=> $app['icon'],
+					'options' => array(
+						"width"  	=> $app['width'],
+						"height" 	=> $app['height'],
+						"simple" 	=> $app['simple'],
+						"resize" 	=> $app['resize']
+					),
+				)
+			);
+			if(isset($app['openType'])){
+				$item['content']['options']['openType'] = $app['openType'];
+			}
+			if( $this->model->findByName($item['name']) ){
+				$this->model->update($item['name'],$item);
+			}else{
+				$this->model->add($item);
+			}
+        }
+    }
+	private function clearOldApps(){
+		// $this->model->clear();
+		$clearOld = array(
+			"豆瓣电台","365日历",
+			'Kingdom Rush','Vector Magic','中国象棋','天气',"iqiyi影视",
+			'计算器','音悦台','黑8对决','Web PhotoShop','一起写office',
+			"微信","百度DOC",'百度随心听',"腾讯canvas","pptv直播","搜狐影视",
+		);
+		foreach($clearOld as $app){
+			$this->model->remove($app);
+		}
 	}
 }

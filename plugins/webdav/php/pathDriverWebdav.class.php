@@ -35,7 +35,9 @@ class PathDriverWebdav extends PathDriverBase {
 		while($parent && $parent != '/' && !$this->exist($parent)){
 			$name   = get_path_this($parent);
 			$parent = get_path_father($parent);
+			// 避免 'test/'类型路径parent为test的情况;
 			$add[] = array($parent,$name);
+			if(count(explode('/',trim($parent,'/'))) == 1){break;}
 		}
 		$add = array_reverse($add);
 		for($i=0; $i < count($add); $i++) {
@@ -254,6 +256,9 @@ class PathDriverWebdav extends PathDriverBase {
 			$arr  = json_decode(base64_decode($extendData),true);
 			$result = array_merge($result,$arr ? $arr:array());
 		}
+		if(is_array($result['pageInfo']) && $result['pageInfo']['pageNum'] < 100){
+			unset($result['pageInfo']);
+		}
 		// pr($data,$result);exit;
 		return $result;
 	}
@@ -323,6 +328,9 @@ class PathDriverWebdav extends PathDriverBase {
 		$info['type'] = $prop['resourcetype'] == '' ? 'file':'folder';
 		$info['name'] = $info['name'] ? $info['name']:'/';
 		$info['path'] = $this->getPathOuter($info['path']);
+		$mimeType = $prop['getcontenttype'];
+		if($mimeType){$info['type'] = ($mimeType == 'httpd/unix-directory') ? 'folder':'file';}
+		
 		$info['_infoSimple'] = true;
 		if($info['type'] == 'file'){
 			$info['ext'] = get_path_ext($info['name']);

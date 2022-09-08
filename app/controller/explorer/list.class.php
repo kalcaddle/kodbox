@@ -50,6 +50,7 @@ class explorerList extends Controller{
 		}
 		$this->parseData($data,$path,$pathParse,$current);
 		$data = Hook::filter('explorer.list.path.parse',$data);
+		Action('explorer.listView')->listDataSet($data);
 
 		if($thePath) return $data;
 		show_json($data);
@@ -102,7 +103,7 @@ class explorerList extends Controller{
 		$folderCount= count($data['folderList']);
 		$totalNum	= $fileCount + $folderCount;
 		$pageNum 	= intval($pageNum);
-		$pageNum	= $pageNum <= 5 ? 5 : ($pageNum >= $pageNumMax ? $pageNumMax : $pageNum);
+		$pageNum	= $pageNum <= 50 ? 50 : ($pageNum >= $pageNumMax ? $pageNumMax : $pageNum);
 		$pageTotal	= ceil( $totalNum / $pageNum);
 		$page		= intval( isset($in['page'])?$in['page']:1);
 		$page		= $page <= 1 ? 1  : ($page >= $pageTotal ? $pageTotal : $page);
@@ -536,7 +537,14 @@ class explorerList extends Controller{
 		if($pathInfo['ext'] != 'oexe' || $pathInfo['size'] > $maxSize) return $pathInfo;
 		if(isset($pathInfo['oexeContent'])) return $pathInfo;
 
-		$content = IO::getContent($pathInfo['path']);
+		// 文件读取缓存处理; 默认缓存7天;
+		$pathHash = KodIO::hashPath($pathInfo);
+		$content  = Cache::get($pathHash);
+		if(!$content){
+			$content = IO::getContent($pathInfo['path']);
+			Cache::set($pathHash,$content,3600*24*7);
+		}
+		
 		$pathInfo['oexeContent'] = json_decode($content,true);
 		if( $pathInfo['oexeContent']['type'] == 'path' && 
 			isset($pathInfo['oexeContent']['value']) ){

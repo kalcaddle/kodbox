@@ -21,6 +21,6 @@
 			"desc":"{{LNG['admin.plugin.authDesc']}}",
 			"require":1
 		},
-        "sep001":"<div class='info-alert'>{{LNG['client.meta.desc']}}</div>"
+        "sep001":"<div class='info-alert'>{{LNG['client.meta.desc']}}</div>{{LNG['client.meta.setting']}}"
 	}
 }

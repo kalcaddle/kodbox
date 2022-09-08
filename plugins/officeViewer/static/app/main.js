@@ -13,9 +13,15 @@ kodReady.push(function(){
 		// 暂不屏蔽
 		_.delay(function(){
 			kodApp.remove('officeLive');
-			kodApp.remove('googleDocs');
 			kodApp.remove('yzOffice');
 		},100);
+	});
+
+	// wb支持的格式禁止修改
+	Events.bind('plugin.config.formAfter', function(_this){
+		if (!_this['form{{pluginName}}']) return;
+		_this['form{{pluginName}}'].$('.item-wbFileExt .setting-content').css('pointer-events','none');
+		return;
 	});
 });
 

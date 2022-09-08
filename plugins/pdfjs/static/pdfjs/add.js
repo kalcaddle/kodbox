@@ -65,6 +65,7 @@ $(document).ready(function (){
 		clearInterval(checkTimer);
 		pdfLoaded();
 		enablePinchZoom();
+		searchAuto();
 		setTimeout(function(){
 			if(pdfOptions.canDownload == '1'){
 				$('.print,.download').show();
@@ -78,6 +79,17 @@ $(document).ready(function (){
 			$('.print,.download').remove();
 		},500);
 	},50);
+	
+	var searchAuto = function(){
+		var args = $.getUrlParam('args') || '';
+		args = jsonDecode(urlDecode(args));
+		if(typeof(args) != 'object' || !args.search) return;
+		
+		$("#viewFind").trigger('click');
+		$("#findInput").val(args.search);
+		$('[for="findHighlightAll"]').trigger('click');
+		setTimeout(function(){$("#findInput").focus();},500);
+	}
 	
 	var changeFullscreen = function(change){
 		var doc = document.documentElement;

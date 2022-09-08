@@ -4,6 +4,7 @@ return array(
 	'client.meta.title'					=> "System Settings",
 	'client.meta.desc'					=> "PC Client",
 	'client.menu'						=> "Client and App",
+	'client.meta.setting'				=> "<a target='self' link-href='./#admin/storage/client' class='kui-btn mt-10 kui-btn-blue'>Setting</a>",
 	
 	'client.option.openTips'			=> "Not support open with client",
 	'client.option.backupOpen'			=> "Turn on the synchronization function",

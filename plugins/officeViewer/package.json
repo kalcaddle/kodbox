@@ -2,7 +2,7 @@
 	"id":"officeViewer",
 	"name":"{{LNG['officeViewer.meta.name']}}",
 	"title":"{{LNG['officeViewer.meta.title']}}",
-	"version":"1.13",
+	"version":"1.14",
 	"category":"file",
 	"source":{
 		"icon":"{{pluginHost}}static/images/icon.png"
@@ -12,16 +12,13 @@
 		"copyright":"kodcloud",
 		"homePage":"http://kodcloud.com"
 	},
-	"meta":{
-		"needNetwork": 1
-	},
 	"networkDesc": "{{LNG['officeViewer.meta.netwrokDesc']}}",
 	"configItem":{
 		"formStyle":{
 			"className":"form-box-title-left",
 			"tabs":{
 				"{{LNG['admin.setting.base']}}":"pluginAuth,sep001,openWith,fileSort,fileExt",
-				"{{LNG['officeViewer.meta.service']}}":"openType,openTypeDesc,sep002,jsOpen,jsFileExt,lbSoffice,lbFileExt,olApiServer,olFileExt,ggDesc,ggApiServer,ggFileExt,yzFileExt"
+				"{{LNG['officeViewer.meta.service']}}":"openType,sep002,wbDesc,wbFileExt,lbDesc,lbSoffice,lbFileExt,olDesc,olApiServer,olFileExt,yzDesc,yzFileExt"
 			},
 			"loadFile":"{{pluginHost}}static/libreoffice/check.js"
 		},
@@ -53,50 +50,45 @@
 			"display":"{{LNG['admin.plugin.fileExt']}}",
 			"desc":"{{LNG['admin.plugin.fileExtDesc']}}",
 			"className": "hidden",
-			"value":"doc,docx,docm,dot,dotx,dotm,rtf,xls,xlsx,xlt,xlsb,xlsm,csv,ppt,pptx,pps,ppsx,pptm,potm,ppam,potx,ppsm,odt,ods,odp,ott,ots,otp,wps,wpt"
+			"value":"doc,docx,xls,xlsx,ppt,pptx,csv"
 		},
 
 		"openType":{
 			"type":"segment",
-			"value":"js",
+			"value":"wb",
 			"display":"{{LNG['officeViewer.meta.openType']}}",
 			"info":{
-				"js":"{{LNG['officeViewer.meta.allType']}}",
+				"wb":"{{LNG['officeViewer.webOffice.name']}}",	// WebOffice->自动解析
 				"lb":"LibreOffice",
 				"ol":"OfficeLive",
-				"gg":"{{LNG['officeViewer.googleDocs.name']}}",
 				"yz":"{{LNG['officeViewer.yzOffice.name']}}"
 			},
 			"switchItem":{
-				"js":"openTypeDesc,jsOpen,jsFileExt",
-				"lb":"lbSoffice,lbFileExt",
-				"ol":"olApiServer,olFileExt",
-				"gg":"ggDesc,ggApiServer,ggFileExt",
-				"yz":"yzFileExt"
+				"wb":"wbDesc,wbFileExt",
+				"lb":"lbDesc,lbSoffice,lbFileExt",
+				"ol":"olDesc,olApiServer,olFileExt",
+				"yz":"yzDesc,yzFileExt"
 			}
-		},
-		"openTypeDesc":{
-			"type":"html",
-			"display":"",
-			"desc":"{{LNG['officeViewer.meta.allTypeDesc']}}"
 		},
 		"sep002":"<hr/>",
 
-		"jsOpen":{
-			"type":"switch",
-			"value":"1",
-			"display":"{{LNG['officeViewer.jsOffice.name']}}",
-			"desc":"{{LNG['officeViewer.jsOffice.desc']}}",
-			"switchItem":{"0":"","1":"jsFileExt"}
+		"wbDesc":{
+			"type":"html",
+			"display":"{{LNG['officeViewer.meta.instruction']}}",
+			"desc":"{{LNG['officeViewer.webOffice.desc']}}"
 		},
-		
-		"jsFileExt":{
+		"wbFileExt":{
 			"type":"tags",
 			"display":"{{LNG['admin.plugin.fileExt']}}",
 			"desc":"{{LNG['admin.plugin.fileExtDesc']}}",
-			"value":"docx,xls,xlsx,csv,pptx"
+			"value":"doc,docx,xls,xlsx,ppt,pptx,csv"
 		},
 
+		"lbDesc":{
+			"type":"html",
+			"display":"{{LNG['officeViewer.meta.instruction']}}",
+			"desc":"{{LNG['officeViewer.libreOffice.desc']}}"
+		},
 		"lbSoffice":{
 			"type":"input",
 			"value":"",
@@ -111,6 +103,11 @@
 			"value":"doc,docx,ods,xls,xlsx,odt,ppt,pps,pptx,odp,rtf,csv,tsv"
 		},
 
+		"olDesc":{
+			"type":"html",
+			"display":"{{LNG['officeViewer.meta.instruction']}}",
+			"desc":"{{LNG['officeViewer.officeLive.desc']}}"
+		},
 		"olApiServer":{
 			"type":"input",
 			"value":"https://view.officeapps.live.com/op/embed.aspx?src=",
@@ -125,25 +122,11 @@
 			"value":"doc,docx,docm,dot,dotx,dotm,rtf,xls,xlsx,xlt,xlsb,xlsm,csv,ppt,pptx,pps,ppsx,pptm,potm,ppam,potx,ppsm,odt,ods,odp,ott,ots,otp,wps,wpt"
 		},
 
-		"ggDesc":{
+		"yzDesc":{
 			"type":"html",
 			"display":"{{LNG['officeViewer.meta.instruction']}}",
-			"desc":"{{LNG['officeViewer.googleDocs.desc']}}"
+			"desc":"{{LNG['officeViewer.yzOffice.desc']}}"
 		},
-		"ggApiServer":{
-			"type":"input",
-			"value":"https://docs.google.com/viewer?url=",
-			"display":"",
-			"className": "hidden",
-			"require":1
-		},
-		"ggFileExt":{
-			"type":"tags",
-			"display":"{{LNG['admin.plugin.fileExt']}}",
-			"desc":"{{LNG['admin.plugin.fileExtDesc']}}",
-			"value":"doc,docx,rtf,xls,xlsx,wps,ppt,pptx,pps,.odt,ods,odp,ott,ots,otp,dxf,ps,eps,xps,psd,tif,tiff,bmp,svg,pages,ai,ttf"
-		},
-
 		"yzFileExt":{
 			"type":"tags",
 			"display":"{{LNG['admin.plugin.fileExt']}}",

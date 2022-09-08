@@ -4,8 +4,8 @@ if(!function_exists('gzinflate')){
     show_tips("不支持gzinflate ,<br/>请安装php-zlib 扩展后再试");exit;
 }
 function allowCROS(){
-	$allowMethods = 'GET, POST, OPTIONS, DELETE, HEAD, MOVE, COPY, PUT, MKCOL';
-	$allerHeaders = 'ETag, Content-Type, Content-Length, Accept-Encoding, X-Requested-with, Origin';
+	$allowMethods = 'GET, POST, OPTIONS, DELETE, HEAD, MOVE, COPY, PUT, MKCOL, PROPFIND, PROPPATCH, LOCK, UNLOCK';
+	$allerHeaders = 'ETag, Content-Type, Content-Length, Accept-Encoding, X-Requested-with, Origin, Authorization';
 	header('Access-Control-Allow-Origin: *');    				// 允许的域名来源;
 	header('Access-Control-Allow-Methods: '.$allowMethods); 	// 允许请求的类型
 	header('Access-Control-Allow-Headers: '.$allerHeaders);		// 允许请求时带入的header

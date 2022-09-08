@@ -87,13 +87,23 @@ class explorerListRecent extends Controller{
 		return $result;
 	}
 	private function listRecentWith($timeType,&$result){
-		$where = array(
+		$userID = USER_ID;
+		$where  = array(
 			'targetType'	=> SourceModel::TYPE_USER,
-			'targetID'		=> USER_ID,
+			'targetID'		=> $userID,
 			'isFolder'		=> 0,
 			'isDelete'		=> 0,
 			'size'			=> array('>',0),
 		);
+		// 内部协作分享,修改上传内容; 普通用户可能没有权限进入处理;
+		if($GLOBALS['isRoot']){
+			if(in_array($timeType,array('createTime','modifyTime')) ){
+				unset($where['targetID']);
+				$where['targetType'] = array('in',array(SourceModel::TYPE_USER,SourceModel::TYPE_GROUP));
+			}
+			if($timeType == 'createTime'){$where['createUser'] = $userID;}
+			if($timeType == 'modifyTime'){$where['modifyUser'] = $userID;}
+		}
 		$where[$timeType] = array('>',time() - 3600*24*60);//2个月内
 
 		$maxNum = 50;	//最多150项

@@ -4,6 +4,7 @@ return array(
 	'client.meta.title'					=> "系统功能配置增强",
 	'client.meta.desc'					=> "PC客户端设置; 其他扩展设置增强.",
 	'client.menu'						=> "客户端及App",
+	'client.meta.setting'				=> "<a target='self' link-href='./#admin/storage/client' class='kui-btn mt-10 kui-btn-blue'>去配置</a>",
 	
 	'client.option.openTips'			=> "当前文件您没有下载权限,不支持本地打开!",	
 	'client.option.backupOpen'			=> "开启同步功能",

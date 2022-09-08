@@ -7,6 +7,7 @@ class adminerPlugin extends PluginBase{
 		$this->hookRegist(array('user.commonJs.insert'=> 'adminerPlugin.echoJs'));
 	}
 	public function echoJs(){
+		if(_get($GLOBALS,'isRoot') != 1) return;
 		$this->echoFile('static/main.js');
 	}
 }

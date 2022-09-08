@@ -173,6 +173,9 @@ class userView extends Controller{
 		if(file_exists($file)){
 			$content = file_get_contents($file);
 		}
+		if(!preg_match("/^[0-9a-zA-Z_.]+$/",$_GET['callback'])){
+			die("calllback error!");
+		}
 		echo $_GET['callback'].'("'.base64_encode($content).'")';
 	}
 	

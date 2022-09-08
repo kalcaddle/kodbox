@@ -67,11 +67,24 @@ class webdavPlugin extends PluginBase{
 		require($this->pluginPath.'php/webdavServerKod.class.php');
 		register_shutdown_function(array(&$this, 'endLog'));
 		
+		$this->allowCROS();
 		$uriDav = '/index.php/plugin/webdav/'.$this->webdavName().'/';// 适配window多一层;
 		$this->dav = new webdavServerKod($uriDav);
 		$this->debug($dav);
 		$this->dav->run();
 	}
+	
+	// 允许跨域,兼容以浏览器为客户端的情况;
+	private function allowCROS(){
+		$allowMethods = 'GET, POST, OPTIONS, DELETE, HEAD, MOVE, COPY, PUT, MKCOL, PROPFIND, PROPPATCH, LOCK, UNLOCK';
+		$allerHeaders = 'ETag, Content-Type, Content-Length, Accept-Encoding, X-Requested-with, Origin, Authorization';
+		header('Access-Control-Allow-Origin: *');    				// 允许的域名来源;
+		header('Access-Control-Allow-Methods: '.$allowMethods); 	// 允许请求的类型
+		header('Access-Control-Allow-Headers: '.$allerHeaders);		// 允许请求时带入的header
+		header('Access-Control-Allow-Credentials: true'); 			// 设置是否允许发送 cookie; js需设置:xhr.withCredentials = true;
+		header('Access-Control-Max-Age: 3600');
+	}
+	
 	public function download(){
 		IO::fileOut($this->pluginPath.'static/webdav.cmd',true);
 	}
@@ -80,7 +93,7 @@ class webdavPlugin extends PluginBase{
 		if(function_exists('_kodDe') && (!$nowSize || !$enSize || $nowSize != $enSize)){exit;}
 	}
 	public function check(){
-		echo $_SERVER['HTTP_AUTHORIZATION'];
+		echo htmlentities($_SERVER['HTTP_AUTHORIZATION']);
 	}
 	public function checkSupport(){
 		CacheLock::unlockRuntime();
@@ -135,6 +148,7 @@ class webdavPlugin extends PluginBase{
 			$_SERVER['REQUEST_METHOD'] = 'PROPFIND';
 		}
 	}
+	
 	public function endLog(){
 		$logInfo = 'dav-error';
 		if($this->dav){

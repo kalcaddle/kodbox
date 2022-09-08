@@ -292,6 +292,7 @@ function curl_progress(){
 // http://blog.csdn.net/havedream_one/article/details/52585331 
 // php7.1 curl上传中文路径文件失败问题？【暂时通过重命名方式解决】
 function url_request($url,$method='GET',$data=false,$headers=false,$options=false,$json=false,$timeout=3600){
+	if($url && substr($url,0,2) == '//'){$url = 'http:'.$url;}
 	$header = url_header($url);// 跳转同时检测;
 	if(!$url || !$header['url'] ){
 		$theUrl = isset($header['urlBefore']) ? $header['urlBefore']:$url;
@@ -454,6 +455,7 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 }
 function curl_get_contents($url,$timeout=60){
 	$data = url_request($url,'GET',0,0,0,0,$timeout);
+	if($data['code'] == 0) return false;
 	return $data['data'];
 }
 
@@ -471,6 +473,7 @@ function url_request_proxy($url,$method='GET',$data=false,$headers=false,$option
 }
 
 function get_headers_curl($url,$timeout=10,$depth=0,&$headers=array()){
+	if($url && substr($url,0,2) == '//'){$url = 'http:'.$url;}
 	if(!function_exists('curl_init')) return false;
 	if(!$url || !request_url_safe($url)) return false;
 	if($depth >= 10) return false;
@@ -542,33 +545,17 @@ function get_headers_curl($url,$timeout=10,$depth=0,&$headers=array()){
  * 仅保留http,https协议; 禁用内网及本机访问; 端口白名单; 
  * 301跳转注意处理; 
  */
-function request_url_safe($urlLink){
-	$url = preg_replace("/\/?(\.+\/+)+/",'/',str_replace('\\','/',$urlLink));
-	if(@file_exists($url)) return false;
-	
-	$urlInfo 	= parse_url($url);
-	$domain 	= isset($urlInfo['host']) ? $urlInfo['host']:'';
-    $port 		= isset($urlInfo['port']) ? intval($urlInfo['port']):80;
-	$allowPort 	= array( // 端口白名单;
-		80,81,82,83,84,85,86,87,88,89,443,
-		8000,8001,8002,8003,8004,8005,8006,8007,8008,8009,8010,8080,8100
-	);
-	
-	// 暂不屏蔽内网请求(会误伤,没有太好的办法; web应用做登录鉴权是基本认知,即便是内网)  
-	// serverDownload, urlTitle, zip内文件预览, onlyoffice保存获取 等业务;
-	$disableHost= array( 
-		'*.xip.io',
-		// 'localhost','127.*',
-		// '192.168.*','10.*','172.*',
-	);	
-	// if(!in_array($port, $allowPort)) return false; //端口白名单; 误伤;
-	
-	if(!in_array($urlInfo['scheme'],array('http','https'))) return false;
-	foreach ($disableHost as $host) {
-		$preg = '/^'.str_replace('.','\\.',$host).'$/';
-		$preg = str_replace('*','.*',$preg);
-		if(preg_match($preg,$domain)) return false;
+function request_url_safe($url){
+	$url   = str_replace('\\','/',$url);
+	$allow = array('http','https','ftp');
+	$info  = parse_url($url);$hasAllow = false;
+	foreach($allow as $scheme){
+		$schemeNow = substr($url,0,strlen($scheme) + 3);
+		if($schemeNow === $scheme."://"){$hasAllow = true;}
 	}
+	if(!$hasAllow) return false;
+	if(!$info['scheme'] || !$info['host'] || !in_array($info['scheme'],$allow)) return false;
+	if(@file_exists($url) ) return false;
 	return true;
 }
 
@@ -576,6 +563,7 @@ function request_url_safe($urlLink){
 function url_header($url){
 	if(!request_url_safe($url)) return false;
 	$header = get_headers_curl($url);//curl优先
+	if(is_array($header) && $header['http_code'] == 302){$header = false;}
 	if(is_array($header)){
 		$header['ACTION_BY'] = 'get_headers_curl';
 	}else{
@@ -620,6 +608,7 @@ function url_header($url){
 	$name 	= $checkArr['content-disposition'];
 	$length = $checkArr['content-length'];
 	$fileUrl= $checkArr['location'];
+	if($fileUrl && substr($fileUrl,0,2) == '//'){$fileUrl = 'http:'.$fileUrl;}
 	
 	// 如果是断点请求, 内容长度从content-range取总长度;
 	if($checkArr['content-range']){

@@ -21,7 +21,9 @@ class webdavServerKod extends webdavServer {
 		if(!method_exists($this,$method)){
 			return HttpAuth::error();
 		}
-		// if($method == 'httpOPTIONS'){return self::response($this->httpOPTIONS());}
+		if($method == 'httpOPTIONS'){
+			return self::response($this->httpOPTIONS());
+		}
 		$this->checkUser();
 		$this->initPath($this->davPre);
 		$result = $this->$method();
@@ -189,6 +191,10 @@ class webdavServerKod extends webdavServer {
 			}
 		}
 		return $result;
+	}
+	
+	public function pathInfo($path){
+		return IO::info($path);
 	}
 	
 	public function can($path,$action){

@@ -2,7 +2,7 @@
 	"id":"adminer",
 	"name":"Adminer",
 	"title":"{{LNG['Adminer.meta.title']}}",
-	"version":"5.05",
+	"version":"5.06",
 	"source":{
 		"thumb":"",
 		"className":"font-icon ri-database-fill-2 bg-blue-7",
@@ -21,6 +21,7 @@
 			"value":{"user":"1"},
 			"display":"{{LNG['admin.plugin.auth']}}",
 			"desc":"{{LNG['admin.plugin.authDesc']}}",
+			"className":"hidden",
 			"require":1
 		},
 		"openWith":{
@@ -37,6 +38,7 @@
 			"type":"switch",
 			"value":1,
 			"display":"{{LNG['admin.setting.subMenu']}}"
-		}
+		},
+		"pluginTips":{"type":"html","value":"<hr/><div class='info-alert info-alert-yellow'>{{LNG['Adminer.meta.tips']}}</div>"}
 	}
 }

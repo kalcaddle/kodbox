@@ -1,0 +1,161 @@
+
+
+.slide {
+	position: relative;
+	border: 1px solid #333;
+	border-radius: 10px;
+	overflow: hidden;
+	margin-bottom: 50px;
+	margin-left: auto;
+  	margin-right: auto;
+}
+
+.slide div.block {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	line-height: 1;
+}
+
+.slide div.content {
+	display: flex;
+	flex-direction: column;
+}
+.slide div.diagram-content{
+	display: flex;
+	flex-direction: column;
+}
+
+.slide div.content-rtl {
+	display: flex;
+	flex-direction: column;
+	direction: rtl; 
+}
+.slide .pregraph-rtl{
+	direction: rtl; 
+}
+.slide .pregraph-ltr{
+	direction: ltr; 
+}
+.slide .pregraph-inherit{
+	direction: inherit; 
+}
+.slide .slide-prgrph{
+	width: 100%;
+	/* overflow-wrap:break-word;
+  	word-wrap: break-word;  */
+  
+	/* word-break: break-word; */
+	/* unicode-bidi: bidi-override; */
+	/* hyphens: auto;
+	overflow-wrap: break-word; */
+	
+}
+
+.slide .line-break-br::before{
+  content: "\A";
+  white-space: pre;
+}
+.slide div.v-up {
+	justify-content: flex-start;
+}
+.slide div.v-mid {
+	justify-content: center;
+}
+.slide div.v-down {
+	justify-content: flex-end;
+}
+
+.slide div.h-left {
+	justify-content: flex-start;
+	align-items: flex-start;
+	text-align: left;
+}
+.slide div.h-left-rtl {
+	justify-content: flex-end;
+	align-items: flex-end;
+	text-align: left;
+}
+.slide div.h-mid {
+	justify-content: center;
+	align-items: center;
+	text-align: center;
+}
+.slide div.h-right {
+	justify-content: flex-end;
+	align-items: flex-end;
+	text-align: right;
+}
+.slide div.h-right-rtl {
+	justify-content: flex-start;
+	align-items: flex-start;
+	text-align: right;
+}
+
+.slide div.h-just,
+.slide div.h-dist {
+	text-align: justify;
+}
+
+
+.slide div.up-left {
+	justify-content: flex-start;
+	align-items: flex-start;
+	text-align: left;
+}
+.slide div.up-center {
+	justify-content: flex-start;
+	align-items: center;
+}
+.slide div.up-right {
+	justify-content: flex-start;
+	align-items: flex-end;
+}
+.slide div.center-left {
+	justify-content: center;
+	align-items: flex-start;
+	text-align: left;
+}
+.slide div.center-center {
+	justify-content: center;
+	align-items: center;
+}
+.slide div.center-right {
+	justify-content: center;
+	align-items: flex-end;
+}
+.slide div.down-left {
+	justify-content: flex-end;
+	align-items: flex-start;
+	text-align: left;
+}
+.slide div.down-center {
+	justify-content: flex-end;
+	align-items: center;
+}
+.slide div.down-right {
+	justify-content: flex-end;
+	align-items: flex-end;
+}
+
+
+.slide li.slide {
+	margin: 10px 0px;
+	font-size: 18px;
+}
+
+.slide table {
+	position: absolute;
+}
+
+.slide svg.drawing {
+	position: absolute;
+	overflow: visible;
+}
+/*
+#pptx-thumb {
+	min-width: 240px;
+	height: 180px;
+}
+*/

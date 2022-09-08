@@ -6,6 +6,12 @@
 class officeViewerPlugin extends PluginBase{
 	function __construct(){
 		parent::__construct();
+		$this->appList = array(
+			'wb' => 'webOffice',
+			'lb' => 'libreOffice',
+			'ol' => 'officeLive',
+			'yz' => 'yzOffice',
+		);
 	}
 	public function regist(){
 		$this->hookRegist(array(
@@ -16,62 +22,33 @@ class officeViewerPlugin extends PluginBase{
 		$this->echoFile('static/app/main.js');
 	}
 
+	// 保存配置时重置支持的文件格式
 	public function onSetConfig($config) {
-		$type = $config['openType'];
-		$config['fileExt'] = $config[$type . 'FileExt'];
-		if($type != 'js') return $config;
-		// js方式，取合集
-		$ext = array();
-		foreach(array('js', 'lb', 'ol', 'gg', 'yz') as $k) {
-			$ext[] = $config[$k . 'FileExt'];
+		$openType = $config['openType'];
+		if ($openType == 'js') {	// 兼容旧版
+			$openType = 'wb';
+			$config['openType'] = $openType;
 		}
-		$ext = explode(',', implode(',', $ext));
-		$ext = implode(',', array_unique($ext));
+		$ext = 'doc,docx,xls,xlsx,ppt,pptx,csv';
+		if (isset($config[$openType . 'FileExt'])) {
+			$ext = $config[$openType . 'FileExt'];
+		}
 		$config['fileExt'] = $ext;
 		return $config;
 	}
 
 	// 入口
 	public function index(){
-		$action = array(
-			'js' => 'jsOffice',
-			'lb' => 'libreOffice',
-			'ol' => 'officeLive',
-			'gg' => 'googleDocs',
-			'yz' => 'yzOffice',
-		);
 		$config = $this->getConfig();
-		$type = isset($config['openType']) ? $config['openType'] : '';
-		if(!$type || !isset($action[$type])) {
-			show_tips(LNG('officeViewer.main.invalidType'));
-		}
-		// 单一方式，(js表示全部)
-		if($type != 'js') {
-			return $this->fileOut($action[$type]);
-		};
-		// 全部，各方式依次执行
-		// 1.js解析
-		$app = $action['js'];
-		if($this->allowExt('js') && $config['jsOpen'] == '1') {
+		$openType = isset($config['openType']) ? $config['openType'] : '';
+		if ($openType == 'js') $openType = 'wb';	// 兼容旧版
+		$types = $openType == 'wb' ? array_keys($this->appList) : array($openType);
+		// 按顺序依次调用
+		foreach ($this->appList as $type => $app) {
+			if (!in_array($type, $types) || !$this->allowExt($type)) continue;
+			if ($type == 'lb' && !$this->action($app)->getSoffice()) continue;
+			if ($type == 'ol' && !$this->isNetwork()) continue;	// officelive，文件需为域名地址
 			return $this->fileOut($app);
-		}
-		// 2.libreOffice
-		$app = $action['lb'];
-		if($this->allowExt('lb') && $this->action($app)->getSoffice()){
-			return $this->fileOut($app);
-		}
-		// 3.officelive，文件需为域名地址
-		if($this->allowExt('ol') && $this->isNetwork()) {
-			return $this->fileOut($action['ol']);
-		}
-		// 4.googledocs，文件为外网地址，可为ip
-		if($this->allowExt('gg') && $this->isNetwork(false)) {
-			// 需在前端访问google，这里无法检测
-			return $this->fileOut($action['gg']);
-		}
-		// 5.永中
-		if($this->allowExt('yz')) {
-			return $this->fileOut($action['yz']);
 		}
 		show_tips(LNG('officeViewer.main.invalidType'));
 	}
@@ -101,13 +78,14 @@ class officeViewerPlugin extends PluginBase{
 		$ext = $this->in['ext'];
 		$config = $this->getConfig();
 		$extAll = explode(',', $config[$type.'FileExt']);
-		if (in_array($ext, $extAll)) return true;
-		if ($type == 'js' && in_array($ext, array('doc', 'ppt'))) {	// 某些文件可能只是命名为旧格式，根据前2个字符(PK)区分
+		if (!in_array($ext, $extAll)) return false;
+		// 某些文件可能只是命名为旧格式，根据前2个字符(PK)区分
+		if ($type == 'wb' && in_array($ext, array('doc', 'ppt'))) {
 			$path = $this->in['path'];
 			$prfx = IO::fileSubstr($path, 0, 2);
-			if (strtolower($prfx) == 'pk') return true;
+			return strtolower($prfx) == 'pk' ? true : false;
 		}
-		return false;
+		return true;
 	}
 	// 各打开方式错误提示
 	public function showTips($msg, $title){
@@ -153,39 +131,23 @@ class officeViewerPlugin extends PluginBase{
 	}
 
 	/**
-	 * 前端解析模板
-	 * @param [type] $app
+	 * 加载模板文件
+	 * @param [type] $assign
+	 * @param [type] $template	'static/weboffice/template.html'
 	 * @return void
 	 */
-	public function showJsOffice($app){
-		$path   = $this->in['path'];
-		$assign = array(
-			"fileUrl"	=>'','savePath'	=>'','canWrite'	=>false,
-			'fileName'	=> $this->in['name'],
-			'fileApp'	=> $app, 'fileExt' => $this->in['ext']
-		);
-		if($path){
-			if(substr($path,0,4) == 'http'){
-				$assign['fileUrl'] = $path;
-			}else{
-				$assign['fileUrl']  = $this->filePathLink($path);
-				if(ActionCall('explorer.auth.fileCanWrite',$path)){
-					$assign['savePath'] = $path;
-					$assign['canWrite'] = true;
-				}
-			}
-			$assign['fileUrl'] .= "&name=/".$assign['fileName'];
-		}
+	public function displayTpl($assign, $template){
 		$this->assign($assign);
-		$this->display($this->pluginPath.'static/jsoffice/template.html');
+		$this->display($this->pluginPath.$template);
 	}
 
 	/**
-	 * libreOffice服务检测模板
+	 * 引入模板文件
+	 * @param [type] $template
 	 * @return void
 	 */
-	public function checkLibreOffice(){
-		include($this->pluginPath.'static/libreoffice/check.html');
+	public function includeTpl($template){
+		include($this->pluginPath.$template);
 	}
 }
 

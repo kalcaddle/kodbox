@@ -8,11 +8,12 @@ class webdavClient {
 		$this->options 	= $options;
 		$this->header  	= array();
 		
-		$rootFolder 	= isset($options['basePath']) ? $this->encodeUrl($options['basePath']):'';
-		$baseUrl    	= rtrim($options['host'],'/').'/'.ltrim($rootFolder,'/');
-		$urlInfo    	= parse_url($baseUrl);
-		$this->baseUrl  = $baseUrl;
-		$this->basePath = KodIO::clear($urlInfo['path']);
+		$this->basePath = isset($options['basePath']) ? '/'.trim($options['basePath'],'/').'/' : '/';
+		$this->basePath = '/'.ltrim(KodIO::clear($this->basePath),'/');
+		$this->baseUrl  = rtrim($options['host'],'/').'/';
+		$urlInfo = parse_url($this->baseUrl);
+		$this->baseUrlPath = '/'.ltrim(KodIO::clear($urlInfo['path']),'/');
+		
 		$this->basicAuth= "Basic ".base64_encode($options['user'].":".$options['password']);
 		$this->plugin 	= Action('webdavPlugin');
 		$GLOBALS['requestFrom'] = 'webdav';
@@ -20,7 +21,21 @@ class webdavClient {
 	
 	public function check(){
 		$data = $this->propfind('/');
-		$this->patchCheck();
+		$data['status'] = array_key_exists('response',$data['data']);
+		
+		// 不同CURLOPT_HTTPAUTH 账号密码加解密处理; CURLAUTH_DIGEST
+		$authHeader = _get($data,'header.WWW-Authenticate');$authCheck  = 'Digest';
+		if(!$data['status'] && substr($authHeader,0,strlen($authCheck)) == $authCheck){
+			$this->lastRequest = false;
+			$this->options['authType'] = 'Digest';
+			$data = $this->propfind('/');
+			
+			$data['status'] = array_key_exists('response',$data['data']);
+			$GLOBALS['in']['config'] = json_encode($this->options,true);
+		}
+
+		// trace_log(array($data,$this->options('/'),$this->options));
+		$this->patchCheck();		
 		return $data;
 	}
 	// 存储options返回头DAV字段;(标记支持项)
@@ -87,16 +102,17 @@ class webdavClient {
 	}
 	
 	public function uriToPath($uri){
-		$urlInfo = parse_url($uri);
-		$path    = KodIO::clear($urlInfo['path']);
-		$path = substr($uri,strlen($this->basePath));
-		$path = rawurldecode($path);
-		return $path;
+		if(substr($uri,0,strlen($this->baseUrl)) == $this->baseUrl){
+			$path = substr($uri,strlen($this->baseUrl));
+		}else{
+			$path = substr($uri,strlen($this->baseUrlPath));
+		}
+		return '/'.ltrim(rawurldecode($path),'/');
 	}
 	public function makeUrl($path){
 		$path = KodIO::clear($path);
 		$path = $this->encodeUrl($path);
-		return rtrim($this->baseUrl,'/').'/'.ltrim($path,'/');
+		return $this->baseUrl.ltrim($path,'/');
 	}
 	public function encodeUrl($path){
 		if(!is_string($path) || !$path) return '';
@@ -119,6 +135,7 @@ class webdavClient {
 	public function send($method,$requestUrl,$body=false,$putFileInfo=false,$getFileInfo=false,$timeout=3600){
 		$lastRequest = $method.';'.$requestUrl;
 		if($method == 'PROPFIND' && $this->lastRequest == $lastRequest){
+			$this->header = array();
 			return $this->lastRequestData;
 		}
 
@@ -129,14 +146,19 @@ class webdavClient {
 	}
 	
 	private function _send($method,$requestUrl,$body=false,$putFileInfo=false,$getFileInfo=false,$timeout=3600){
-		$this->setHeader('Authorization',$this->basicAuth);
 		$this->cookieSet();
-
 		if($body){$body = '<?xml version="1.0" encoding="UTF-8" ?>'.$body;}
-		if(!request_url_safe($requestUrl)) return false;
+		if(!request_url_safe($requestUrl)){$this->header = array();return false;}
 		$ch = curl_init($requestUrl);
+		if($this->options['authType'] == 'Digest'){
+			curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC | CURLAUTH_DIGEST);
+			curl_setopt($ch, CURLOPT_USERPWD, $this->options['user'].":".$this->options['password']);
+		}else{
+			$this->setHeader('Authorization',$this->basicAuth);
+			curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
+		}
+		
 		curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
-        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_ANY);
 		curl_setopt($ch, CURLOPT_HEADER,1);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
@@ -172,6 +194,8 @@ class webdavClient {
 		$result = $this->parseResult($code,$responseBody,$responseHeader,$headerSet);
 		$this->sendLog($result,$method,$requestUrl,$headerSet);
 		$this->cookieSave($result);
+		// trace_log([$requestUrl,$method,$result]);
+		
 		return $result;
 	}
 	
@@ -285,8 +309,75 @@ class webdavClient {
 		$key = 'webdav_cookie_'.md5($this->basicAuth);
 		Cache::set($key,$data);
 	}
-
+	
+	
 	public static function xmlParse($xml){
+		$doc = new DOMDocument();
+		$doc->loadXML($xml);
+		$root = $doc->documentElement;
+		$result = self::domNodeToArray($root);
+		$result = self::xmlParseKey($result);
+		return $result;
+	}
+	public static function domNodeToArray($node){
+		$output = array();
+		switch ($node->nodeType) {
+			case 4: // XML_CDATA_SECTION_NODE
+			case 3: // XML_TEXT_NODE
+				$output = trim($node->textContent);
+				break;
+			case 1: // XML_ELEMENT_NODE
+				for ($i = 0, $m = $node->childNodes->length; $i < $m; $i++) {
+					$child = $node->childNodes->item($i);
+					$v = self::domNodeToArray($child);
+					if (isset($child->tagName)) {
+						$t = $child->tagName;
+						if (!isset($output[$t])) {
+							$output[$t] = array();
+						}
+						if (is_array($v) && empty($v)) {$v = '';}
+						$output[$t][] = $v;
+					} elseif ($v || $v === '0') {
+						$output = (string) $v;
+					}
+				}
+				if ($node->attributes->length && !is_array($output)) { // has attributes but isn't an array
+					$output = array('@content' => $output); // change output into an array.
+				}
+				if (is_array($output)) {
+					if ($node->attributes->length) {
+						$a = array();
+						foreach ($node->attributes as $attrName => $attrNode) {
+							$a[$attrName] = (string) $attrNode->value;
+						}
+						$output['@attributes'] = $a;
+					}
+					foreach ($output as $t => $v) {
+						if ($t !== '@attributes' && is_array($v) && count($v) === 1) {
+							$output[$t] = $v[0];
+						}
+					}
+				}
+				break;
+		}
+		return $output;
+	}
+	private static function xmlParseKey($arr){
+		$result = array();
+		foreach ($arr as $key => $value) {
+			if(is_string($key) && strstr($key,':')){
+				$keyArr = explode(':',$key);
+				$key = $keyArr[count($keyArr) - 1];
+			}
+			if(is_array($value)){$value = self::xmlParseKey($value);}
+			$result[$key] = $value;
+		}
+		return $result;
+	}
+	
+	
+
+	public static function xmlParse2($xml){
 		$parse = simplexml_load_string($xml);
 		if($parse === false) return array();
 		$namespace = $parse->getNamespaces(true);
@@ -294,8 +385,14 @@ class webdavClient {
 		$namespace[''] = '';
 		$result = array();
 		foreach($namespace as $key=>$v){
-			$children = $parse->children($key,true);
+			// $children = $parse->children($key,true); // 多个命名空间会丢失部分的情况
+			$children = $parse->children($v);
 			self::objectToArr($children,$result);
+		}
+		//$parse->children($v) 第一项多一层情况处理;
+		if(isset($result['response'][0][0])){ 
+			unset($result['response'][0]);
+			$result['response'] = array_values($result['response']);
 		}
 		return $result;
 	}

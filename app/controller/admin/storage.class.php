@@ -84,14 +84,23 @@ class adminStorage extends Controller {
 		show_json($result);
 	}
 	private function removeDone($data){
-		$cnt = Model('File')->where(array('ioType' => $data['id']))->count();
-		// 有文件先返回结果，再执行迁移任务
+		$id = $data['id'];
+		// 备份数据没有数据库记录，需单独处理
+		$backup	= Model('Backup')->listData();
+		$backup = array_to_keyvalue($backup,'','io');
+		if (in_array($id, $backup)) {
+			show_json(LNG('admin.storage.delStoreTips'), false);
+		}
+		// 有file记录先返回结果，再执行迁移任务
+		$cnt = Model('File')->where(array('ioType' => $id))->count();
 		if($cnt) {
+			$info = $this->model->listData($id);
+			$this->model->checkConfig($info);
 			echo json_encode(array('code'=>true,'data'=>'OK'));
 			http_close();
-			$res = $this->model->removeWithFile($data['id'], $data['action']);
+			$res = $this->model->removeWithFile($id, $data['action']);
 		}else{
-			$res = $data['action'] == 'remove' ? $this->model->remove($data['id']) : true;
+			$res = $data['action'] == 'remove' ? $this->model->remove($id) : true;
 		}
 		$msg = $res ? LNG('explorer.success') : LNG('explorer.error');
 		show_json($msg,!!$res,true);

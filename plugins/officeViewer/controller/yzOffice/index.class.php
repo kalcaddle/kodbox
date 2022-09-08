@@ -91,16 +91,25 @@ class officeViewerYzOfficeIndex extends Controller {
     private function fileOutLink($app, $link){
         $res = url_request($link);
 		$data = json_decode($res['data'], true);
-        // 没有错误(字符串decode结果为null)，且set-cookie不为空（正常为viewpath=xxx，过期的为空），直接输出
+
+        // 没有错误(字符串decode结果为null)，且set-cookie不为空（正常为viewpath=xxx，过期的为空），直接输出；否则删除缓存重新加载
         if(!$data && (!empty($res['header']['Set-Cookie']) || !empty($res['header']['set-cookie']))) {
-            header('Location:' . $link);
+            // header('Location:' . $link);
         } else {
             $app->clearCache();
             $this->fileLink($link, true);
-            // $this->index();
-            $msg = isset($data['message']) ? $data['message'] : LNG('officeViewer.yzOffice.linkExpired');
-            $this->plugin->showTips($msg . LNG('officeViewer.main.tryAgain'), $this->appName);
+            $link = this_url();
+            // 最多重复运行3s，避免意外死循环
+            $key = md5($link);
+            $time = Cache::get($key);
+            if ($time && (timeFloat() - $time) > 3) {
+                Cache::remove($key);
+                $msg = isset($data['message']) ? $data['message'] : LNG('officeViewer.yzOffice.linkExpired');
+                $this->plugin->showTips($msg.LNG('officeViewer.main.tryAgain'), $this->appName);
+            }
+            Cache::get($key, timeFloat());
         }
+        header('Location:' . $link);
     }
 
 	public function task(){

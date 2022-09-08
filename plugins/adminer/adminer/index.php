@@ -2,7 +2,7 @@
 
 // 登录认证;
 include('../../../app/api/KodSSO.class.php');
-KodSSO::check('adminer');
+KodSSO::check('user:admin');//'adminer'  'user:admin'
 
 // X-Frame-Options 去除不允许ifram限制;
 function adminer_object() {

@@ -30,7 +30,7 @@ class officeViewerlibreOfficeIndex extends Controller {
         $path = $plugin->filePath($this->in['path']);
 		$info = IO::info($path);
 		$ext  = $info['ext'];
-		
+
 		// 转换文件已存在，直接输出
 		$fileHash = KodIO::hashPath($info);
 		$convName = "libreOffice_{$ext}_{$fileHash}.pdf";
@@ -112,8 +112,9 @@ class officeViewerlibreOfficeIndex extends Controller {
     //linux 注意修改获取bin文件的权限问题;
 	public function check(){
         $bin = $this->in['soffice'];
+		$plugin = Action($this->pluginName);
         if(!empty($bin)) {
-            Action($this->pluginName)->setConfig(array('lbSoffice' => $bin));
+            $plugin->setConfig(array('lbSoffice' => $bin));
         }
 		if(isset($_GET['check'])){
 			if(!function_exists('shell_exec')) {
@@ -125,7 +126,7 @@ class officeViewerlibreOfficeIndex extends Controller {
             }
             show_json($msg, !!$soffice);
 		}
-        Action($this->pluginName)->checkLibreOffice();
+        Action($this->pluginName)->includeTpl('static/libreoffice/check.html');
 	}
 
 	// 获取soffice路径
@@ -133,15 +134,16 @@ class officeViewerlibreOfficeIndex extends Controller {
         $check = 'LibreOffice';
 		$data = Action($this->pluginName)->_appConfig('lb');
         $bin = isset($data['soffice']) ? $data['soffice'] : '';
+		$bin = '"'.trim(iconv_system($bin)).'"';	// win路径空格处理
         $result = $this->checkBin($bin,$check);
         return $result ? $bin : false;
     }
     private function checkBin($bin,$check){
-		// $result = shell_exec($bin.' --help 2>&1');
-		$result = shell_exec($bin.' --help');
-		if(strstr($result,$check)){
-			return true;
-		}
-		return false;
+		$code = Cache::get($bin);
+		if ($code) return $code;
+		$result = shell_exec($bin.' --help');	// ' 2>&1'
+		$code = strstr($result,$check) ? true : false;
+		Cache::set($bin, $code);
+		return $code;
 	}
 }

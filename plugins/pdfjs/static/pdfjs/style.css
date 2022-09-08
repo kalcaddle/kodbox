@@ -165,3 +165,6 @@ body{background: #eeeef4;}
 html[dir='ltr'] .outlineWithDeepNesting > .outlineItem, html[dir='ltr'] .outlineItem > .outlineItems{
 	margin-left: 10px;
 }
+.textLayer ::selection{background: rgba(0,0,255, 0.2);}
+.textLayer .highlight.selected {background-color: rgba(0,255,0,0.5);}
+.textLayer .highlight {background-color: rgba(180, 0, 170,0.6);}

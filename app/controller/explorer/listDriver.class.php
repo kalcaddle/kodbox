@@ -101,6 +101,7 @@ class explorerListDriver extends Controller{
 		$langKey = 'admin.storage.'.strtolower($storage['driver']);
 		$info['ioType'] = LNG($langKey) != $langKey ? LNG($langKey) : $storage['driver'];
 		$info['ioDriver'] = $storage['driver'];
+		$info['ioIsSystem'] = (isset($storage['default']) && $storage['default'] == 1);
 
 		// 根目录;
 		if( !trim($parse['param'],'/') || $isFavPath ){

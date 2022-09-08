@@ -760,44 +760,36 @@ function file_search($path,$search,$is_case){
 }
 
 // 文本搜索；返回行及关键词附近行
-function content_search($content,$search,$is_case){
+function content_search(&$content,$search,$is_case,$max_count=1000,$is_utf8=false){
 	$strpos = 'stripos';//是否区分大小写
 	if( $is_case) $strpos = 'strpos';
-	if( $strpos($content,"\0") > 0 ){// 不是文本文档
-		return false;
-	}
-	$charset = get_charset($content);
-	//搜索关键字为纯英文则直接搜索；含有中文则转为utf8再搜索，为兼容其他文件编码格式
-	$notAscii = preg_match("/[\x7f-\xff]/", $search);
-	if($notAscii && !in_array($charset,array('utf-8','ascii'))){
-		$content = iconv_to($content,$charset,'utf-8');
+	if( $strpos($content,"\0") > 0 ){return false;}// 不是文本文档
+	if(!$is_utf8){
+		//搜索关键字为纯英文则直接搜索；含有中文则转为utf8再搜索，为兼容其他文件编码格式
+		$charset  = get_charset($content);
+		$notAscii = preg_match("/[\x7f-\xff]/", $search);
+		if($notAscii && !in_array($charset,array('utf-8','ascii'))){
+			$content = iconv_to($content,$charset,'utf-8');
+		}
 	}
 	//文件没有搜索到目标直接返回
 	if ($strpos($content,$search) === false) return false;
-
 	$pose = 0; 
 	$fileSize = strlen($content);
 	$arr_search = array(); // 匹配结果所在位置
 	while ( $pose !== false) {
 		$pose = $strpos($content,$search, $pose);
-		if($pose !== false){
-			$arr_search[] = $pose;
-			$pose ++;
-		}else{
-			break;
-		}
+		if($pose === false){break;}
+		$arr_search[] = $pose;$pose ++;
+		if(count($arr_search) >= $max_count){break;}
 	}
 
 	$arr_line = array();
 	$pose = 0;
-	while ( $pose !== false) {
+	while($pose !== false) {
 		$pose = strpos($content, "\n", $pose);
-		if($pose !== false){
-			$arr_line[] = $pose;
-			$pose ++;
-		}else{
-			break;
-		}
+		if($pose === false){break;}
+		$arr_line[] = $pose;$pose ++;		
 	}
 	$arr_line[] = $fileSize;//文件只有一行而且没有换行，则构造虚拟换行
 	$result = array();//  [2,10,22,45,60]  [20,30,40,50,55]
@@ -829,9 +821,8 @@ function content_search($content,$search,$is_case){
 			}
 
 			$result[] = array('line'=>$line+1,'str'=>$line_str);
-			if(++$i >= $len_search ){
-				break;
-			}
+			if(count($result) >= $max_count) return $result;
+			if(++$i >= $len_search ){break;}
 		}
 	}
 	return $result;

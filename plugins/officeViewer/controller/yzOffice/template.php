@@ -16,8 +16,8 @@
 			font-size:13px;color:#666;
 		}
 		.app-icon{text-align: center;position: absolute;width: 100%;top:40%;margin-top: -150px;}
-		.app-icon img{max-height: 150px;}
-		.app-icon .app-name{font-size:16px;color:#222;}
+		.app-icon img{max-height: 150px; width: 96px;}
+		.app-icon .app-name{font-size:16px;color:#222;margin-top:5px;}
 		.load-status{margin: 20px auto;}
 		.load-status .progress{
 			width:300px;height:30px;margin: 10px auto;position: relative;
