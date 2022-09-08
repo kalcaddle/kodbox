@@ -47,6 +47,43 @@
 		"simple": 0,
 		"resize": 1
 	},
+	"zhihu": {
+		"type": "url",
+		"content": "https://www.zhihu.com/",
+		"group": "tools",
+		"name": "知乎",
+		"desc": "有问题,就会有答案",
+		"icon": "zhihu.svg",
+		"width": "90%",
+		"height": "80%",
+		"simple": 0,
+		"resize": 1
+	},
+	"douban": {
+		"type": "url",
+		"content": "https://www.douban.com/",
+		"group": "tools",
+		"name": "豆瓣",
+		"desc": "豆瓣",
+		"icon": "douban.svg",
+		"width": "90%",
+		"height": "80%",
+		"simple": 0,
+		"resize": 1
+	},
+	"weibo": {
+		"type": "url",
+		"content": "https://weibo.com/",
+		"group": "tools",
+		"name": "微博",
+		"desc": "微博",
+		"icon": "weibo.svg",
+		"width": "90%",
+		"height": "80%",
+		"simple": 0,
+		"resize": 1
+	},
+	
 	"icloud": {
 		"type": "url",
 		"content": "https://www.icloud.com/",

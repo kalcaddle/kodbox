@@ -67,7 +67,7 @@ class explorerIndex extends Controller{
 	}
 	
 	public function desktopApp(){
-		$desktopApps = include(USER_SYSTEM.'desktop_app.php');
+		$desktopApps = include(BASIC_PATH.'data/system/desktop_app.php');
 		$desktopApps['myComputer']['value'] = MY_HOME;
 		foreach ($desktopApps as $key => &$item) {
 			if($item['menuType'] == 'menu-default-open'){
