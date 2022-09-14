@@ -279,5 +279,5 @@ kodReady.push(function(){
 		}
 		dialog.$main.find('.btn-confirm').bind('click',function(){loginConfirm(true);});
 		dialog.$main.find('.btn-cancel').bind('click',function(){loginConfirm();});
-	}
+	};
 });

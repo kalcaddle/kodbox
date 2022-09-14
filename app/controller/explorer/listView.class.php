@@ -128,20 +128,20 @@ class explorerListView extends Controller{
 		if(count($listData) >= $numberMax){
 			$listData = array_slice($listData,count($listData) - $numberMax + 1,$numberMax - 1,true);
 		}
+		// trace_log(array($path,$storePath,$value));
 		$listData[$storePath] = $value;
 		Model("UserOption")->set($listType,$listData,'folderInfo');
 	}
 	
 	private function parseStorePath($path){
 		$pathParse = KodIO::parse($path);
-		$driver    = IO::init($path);
 		$thePath   = rtrim($path,'/').'/';
 		if($pathParse['type'] == '') return $thePath;
 		if($pathParse['type'] == KodIO::KOD_SOURCE) return $pathParse['id'];
-		
-		$sourceID = _get($driver->pathParse,'shareInfo.sourceID');
-		if($sourceID && $sourceID != '0') return $sourceID;
+		if($pathParse['type'] == KodIO::KOD_SHARE_ITEM){
+			$shareInfo = Model('Share')->getInfo($pathParse['id']);
+			if($shareInfo && $shareInfo['sourceID'] != '0') return trim($pathParse['param'],'/');
+		}
 		return $thePath;
 	}
-	
 }

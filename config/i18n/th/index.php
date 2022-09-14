@@ -1123,6 +1123,7 @@ return array(
     "common.skip"                    => "ข้าม",
     "common.nextStep"                => "ขั้นตอนต่อไป",
     "common.start"                   => "เริ่มต้น",
+    "common.stop"                    => "หยุด",
     "common.set"                     => "ตั้งค่า",
     "common.cancel"                  => "ยกเลิก",
     "common.save"                    => "บันทึก",

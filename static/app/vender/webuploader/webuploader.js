@@ -1542,11 +1542,11 @@
 				dnd.on('filesAccept',function(items){
 					return me.owner.trigger( 'filesAccept', items );
 				});
-				dnd.on( 'add-file-sync', function(fileQueen,file) {
-					me.owner.request('add-file-sync',[fileQueen,file]);
+				dnd.on( 'add-file-sync', function(fileListArray,file) {
+					me.owner.request('add-file-sync',[fileListArray,file]);
 				});
-				dnd.on( 'add-file-end', function( fileQueen ) {
-					me.owner.request('add-file-end',[fileQueen]);
+				dnd.on( 'add-file-end', function( fileListArray ) {
+					me.owner.request('add-file-end',[fileListArray]);
 				});
 				
     
@@ -1645,11 +1645,11 @@
 				paste.on( 'filesAccept', function( files ) {
 					me.owner.trigger('filesAccept',files);
 				});
-				paste.on( 'add-file-sync', function(fileQueen,file) {
-					me.owner.request('add-file-sync',[fileQueen,file]);
+				paste.on( 'add-file-sync', function(fileListArray,file) {
+					me.owner.request('add-file-sync',[fileListArray,file]);
 				});
-				paste.on( 'add-file-end', function( fileQueen ) {
-					me.owner.request('add-file-end',[fileQueen]);
+				paste.on( 'add-file-end', function( fileListArray ) {
+					me.owner.request('add-file-end',[fileListArray]);
 				});
                 paste.init();
     
@@ -1816,7 +1816,7 @@
 							
 							// changed by warlee; 添加事件; 异步添加处理添加文件;
 							me.trigger( 'filesAccept',files);
-							var fileQueen = [];//具体修改在 fileAddSync中过滤筛查后添加
+							var fileListArray = [];//具体修改在 fileAddSync中过滤筛查后添加
 							var indexAt   = 0;
 							var add = function(){
 								var step = 200;//每step个;异步处理;
@@ -1824,12 +1824,12 @@
 									var file = files[i];
 									file = new File( me.getRuid(), file );
 									file._refer = opts.container;
-									me.trigger('add-file-sync',fileQueen,file);//addFileSync
+									me.trigger('add-file-sync',fileListArray,file);//addFileSync
 								}
 								indexAt = i;
 								if(indexAt >= files.length){
 									clearTimeout(addTimer);
-									me.trigger('add-file-end',fileQueen);//addFileEnd
+									me.trigger('add-file-end',fileListArray);//addFileEnd
 									return;
 								}
 								addTimer = setTimeout(add,1);
@@ -2020,11 +2020,11 @@
 					picker.on( 'filesAccept', function( files ) {
                         me.owner.trigger('filesAccept',files);
 					});
-					picker.on( 'add-file-sync', function(fileQueen,file) {
-						me.owner.request('add-file-sync',[fileQueen,file]);
+					picker.on( 'add-file-sync', function(fileListArray,file) {
+						me.owner.request('add-file-sync',[fileListArray,file]);
 					});
-					picker.on( 'add-file-end', function( fileQueen ) {
-						me.owner.request('add-file-end',[fileQueen]);
+					picker.on( 'add-file-end', function( fileListArray ) {
+						me.owner.request('add-file-end',[fileListArray]);
 					});
 					
 					
@@ -3098,17 +3098,17 @@
 			// 异步方式加入;add by warlee; 
 			// 处理子文件内容过多的情况;
 			// add-file-sync
-			addFileSync:function(fileQueen,file){
+			addFileSync:function(fileListArray,file){
 				var theFile = this._addFile(file);
 				if( theFile ){
-					fileQueen.push(theFile);
+					fileListArray.push(theFile);
 				}
 			},
 			//add-file-end
-			addFileEnd:function(fileQueen){
+			addFileEnd:function(fileListArray){
 				var me = this;
-				if(fileQueen.length <= 0) return;
-				me.owner.trigger( 'filesQueued',fileQueen);
+				if(fileListArray.length <= 0) return;
+				me.owner.trigger( 'filesQueued',fileListArray);
 				if ( me.options.auto ) {
 					setTimeout(function() {
 						me.request('start-upload');
@@ -4964,9 +4964,9 @@
 					me.trigger('add-file-end',results);
 				});
 			},
-			addFile:function(file,fileQueen,ruid){
+			addFile:function(file,fileListArray,ruid){
 				var theFile = new File(ruid,file );
-				this.trigger('add-file-sync',fileQueen,theFile);
+				this.trigger('add-file-sync',fileListArray,theFile);
 			},
 
             _traverseDirectoryTree: function( entry, results,ruid) {
@@ -5093,12 +5093,12 @@
 					// this.trigger( 'paste', allowed );
 					
 					// add by warlee; 异步处理;
-					var fileQueen = [];
+					var fileListArray = [];
 					this.trigger( 'filesAccept', allowed );
 					for ( i = 0;i < allowed.length; i++ ) {
-						this.trigger( 'add-file-sync',fileQueen,allowed[i]);
+						this.trigger( 'add-file-sync',fileListArray,allowed[i]);
 					}
-					this.trigger( 'add-file-end', fileQueen );
+					this.trigger( 'add-file-end', fileListArray );
                 }
             },
     

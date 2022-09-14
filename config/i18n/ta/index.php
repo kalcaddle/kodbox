@@ -1123,6 +1123,7 @@ return array(
     "common.skip"                    => "தவிர்",
     "common.nextStep"                => "அடுத்த படி",
     "common.start"                   => "தொடங்கும்",
+    "common.stop"                    => "இடைநிறுத்தம்",
     "common.set"                     => "அமைக்கவும்",
     "common.cancel"                  => "ரத்து",
     "common.save"                    => "சேமி",

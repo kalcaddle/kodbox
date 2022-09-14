@@ -1123,6 +1123,7 @@ return array(
     "common.skip"                    => "Passer",
     "common.nextStep"                => "Prochaine étape",
     "common.start"                   => "Début",
+    "common.stop"                    => "pause",
     "common.set"                     => "Mettre en place",
     "common.cancel"                  => "Annuler",
     "common.save"                    => "Enregistrer",

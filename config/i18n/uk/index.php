@@ -1123,6 +1123,7 @@ return array(
     "common.skip"                    => "Пропустити",
     "common.nextStep"                => "Наступний крок",
     "common.start"                   => "Старт",
+    "common.stop"                    => "пауза",
     "common.set"                     => "Налаштуйте",
     "common.cancel"                  => "Скасувати",
     "common.save"                    => "Зберегти",

@@ -1123,6 +1123,7 @@ return array(
     "common.skip"                    => "छोड़ें",
     "common.nextStep"                => "अगला कदम",
     "common.start"                   => "शुरू करना",
+    "common.stop"                    => "रोकना",
     "common.set"                     => "सेट करें",
     "common.cancel"                  => "रद्द",
     "common.save"                    => "सहेजें",

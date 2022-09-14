@@ -1123,6 +1123,7 @@ return array(
     "common.skip"                    => "Bỏ qua",
     "common.nextStep"                => "Bước tiếp theo",
     "common.start"                   => "Bắt đầu",
+    "common.stop"                    => "tạm ngừng",
     "common.set"                     => "Thiết lập",
     "common.cancel"                  => "Hủy bỏ",
     "common.save"                    => "Lưu lại",

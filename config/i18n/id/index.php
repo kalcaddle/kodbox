@@ -1123,6 +1123,7 @@ return array(
     "common.skip"                    => "Lewati",
     "common.nextStep"                => "Langkah selanjutnya",
     "common.start"                   => "Mulai",
+    "common.stop"                    => "berhenti sebentar",
     "common.set"                     => "Siapkan",
     "common.cancel"                  => "Batalkan",
     "common.save"                    => "Simpan",

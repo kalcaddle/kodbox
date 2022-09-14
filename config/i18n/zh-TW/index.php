@@ -1123,6 +1123,7 @@ return array(
     "common.skip"                    => "跳過",
     "common.nextStep"                => "下一步",
     "common.start"                   => "開始",
+    "common.stop"                    => "暫停",
     "common.set"                     => "設置",
     "common.cancel"                  => "取消",
     "common.save"                    => "保存",

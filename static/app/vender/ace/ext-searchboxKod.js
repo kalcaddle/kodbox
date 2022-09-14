@@ -385,8 +385,8 @@ ace.define("ace/ext/searchboxKod", ["require", "exports", "module", "ace/lib/dom
 		});
 
 		//搜索历史记录
-		this.historySearch  = new DataQueen(30,'historySearch');
-		this.historyReplace = new DataQueen(30,'historyReplace');
+		this.historySearch  = new DataQueue(30,'historySearch');
+		this.historyReplace = new DataQueue(30,'historyReplace');
 		this.$searchBarKb.addCommands([{
 				name: "toggleRegexpMode",
 				bindKey: {

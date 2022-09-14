@@ -1123,6 +1123,7 @@ return array(
     "common.skip"                    => "スキップする",
     "common.nextStep"                => "次のステップ",
     "common.start"                   => "開始する",
+    "common.stop"                    => "一時停止",
     "common.set"                     => "設定する",
     "common.cancel"                  => "キャンセルする",
     "common.save"                    => "保存する",

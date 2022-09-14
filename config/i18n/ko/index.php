@@ -1123,6 +1123,7 @@ return array(
     "common.skip"                    => "건너 뛰기",
     "common.nextStep"                => "다음 단계",
     "common.start"                   => "시작",
+    "common.stop"                    => "정지시키다",
     "common.set"                     => "설정",
     "common.cancel"                  => "취소",
     "common.save"                    => "저장",

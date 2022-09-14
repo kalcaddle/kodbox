@@ -1123,6 +1123,7 @@ return array(
     "common.skip"                    => "Atla",
     "common.nextStep"                => "Bir sonraki adım",
     "common.start"                   => "başlamak",
+    "common.stop"                    => "Duraklat",
     "common.set"                     => "Ayarla",
     "common.cancel"                  => "iptal edildi",
     "common.save"                    => "Kaydet",
