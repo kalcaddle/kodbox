@@ -49,6 +49,12 @@ class KodSSO{
 		if(!$token) return false;
 		$timeStart = microtime(true);
 		$uri = 'user/sso/apiCheckToken&accessToken='.$token.'&appName='.$appName;
+		$cacheData = self::cacheGet(md5($uri));
+		if(is_array($cacheData)){
+			self::cacheSet(md5($uri),$cacheData,3600);
+			return $cacheData;
+		}
+		
 		$res = '';
 		$phpBin = self::phpBin();
 		if($phpBin && function_exists('shell_exec')){
@@ -56,7 +62,7 @@ class KodSSO{
 			$command = $phpBin.' '.$BASIC_PATH.'index.php '.escapeshellarg($uri);
 			$res = shell_exec($command);
 		}
-		if(!$res || substr(trim($res),0,1) != '[' ){ // 避免命令行调用返回错误的问题; 
+		if(!$res || substr(trim($res),0,1) != '{' ){ // 避免命令行调用返回错误的问题; 
 			$context = stream_context_create(array(
 				'http'	=> array('timeout' => 2,'method'=>"GET"),
 				"ssl" 	=> array("verify_peer"=>false,"verify_peer_name"=>false)
@@ -67,6 +73,7 @@ class KodSSO{
 		$userInfo = @json_decode($res,true);
 		if( $userInfo && is_array($userInfo) ){
 			if(isset($userInfo['code']) && $userInfo['code'] == '10001') return false;
+			self::cacheSet(md5($uri),$userInfo,3600);
 			return $userInfo;
 		}
 		if(!strstr($res,'[error]:')){echo $res;exit;}
@@ -194,4 +201,36 @@ class KodSSO{
 		}
 		return $path;
 	}
+	
+
+	
+	// 缓存读写处理;
+	public static function cacheSet($key, $value, $cacheTime = 600){
+        $file  = self::cacheFile($key);
+		$content = "<?php exit;?>".serialize($value);
+        if(file_put_contents($file,$content,LOCK_EX)){
+			@touch($file,intval(time() + $cacheTime));
+			clearstatcache();
+            return true;
+        }
+        @unlink($file);
+        return false;
+    }
+    public static function cacheGet($key){
+		$file = self::cacheFile($key);
+        if(file_exists($file) && filemtime($file) < time()){
+            @unlink($file);return false;
+        }
+        $str = @file_get_contents($file);
+        $str = substr($str,strlen("<?php exit;?>"));
+		return unserialize($str);
+    }
+	public static function cacheFile($key){
+		$BASIC_PATH = str_replace('\\','/',dirname(dirname(dirname(__FILE__)))).'/';
+		$logPath = $BASIC_PATH.'data/temp/_cache/';
+		@mkdir($logPath, 0777, true);
+		
+		$key = str_replace(array("/",'\\','?'),"_",$key);
+        return $logPath."cache_api_".$key.'.php';
+    }
 }

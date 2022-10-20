@@ -24,7 +24,7 @@ class GetInfo{
 			$obj = new getID3();
 		}
 		if(!$info || $info['type'] != 'file') return;
-		if(!self::support($info['ext']) || isset($info['fileInfoMore']) ) return;
+		if(!self::support($info['ext'])) return;
 
 		$theFile = 'kodio://'.$info['path']; // 地址处理;
 		$fileType = $info['ext'];

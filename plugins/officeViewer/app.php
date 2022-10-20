@@ -22,7 +22,18 @@ class officeViewerPlugin extends PluginBase{
 		$this->echoFile('static/app/main.js');
 	}
 
-	// 保存配置时重置支持的文件格式
+	// 重置支持的文件格式
+	public function onChangeStatus($status){
+		if($status != '1') return;
+		$config = $this->getConfig();
+		if ($config['openType'] != 'js') return;
+
+		$update = array(
+			'openType' => 'wb',
+			'fileExt' => 'doc,docx,xls,xlsx,ppt,pptx,csv',
+		);
+		$this->setConfig($update);
+	}
 	public function onSetConfig($config) {
 		$openType = $config['openType'];
 		if ($openType == 'js') {	// 兼容旧版

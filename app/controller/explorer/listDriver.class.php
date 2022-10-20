@@ -104,7 +104,8 @@ class explorerListDriver extends Controller{
 		$info['ioIsSystem'] = (isset($storage['default']) && $storage['default'] == 1);
 
 		// 根目录;
-		if( !trim($parse['param'],'/') || $isFavPath ){
+		$thePath = trim($parse['param'],'/');
+		if( (!$thePath && $thePath !== '0') || $isFavPath ){
 			$info['name'] = $storage['name'];
 			if($isFavPath){
 			    $info['name'] = $info['sourceInfo']['favName'];

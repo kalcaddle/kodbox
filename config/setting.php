@@ -11,6 +11,7 @@
 // header('Access-Control-Max-Age: 1800L'); 			// 缓存时间
 // header('Access-Control-Allow-Credentials: true'); 	// 设置是否允许发送 cookies
 // header('Access-Control-Allow-Headers: Content-Type,Content-Length,Accept-Encoding,X-Requested-with, Origin, Authorization');
+// header("X-Frame-Options: ALLOWALL");
 
 //配置数据,可在setting_user.php中添加变量覆盖,升级后不会被替换
 $config['settings'] = array( 
@@ -39,13 +40,14 @@ $config['settings'] = array(
 	),
 	'fileEditLockTimeout' 	=> 1200,		// 文件编辑锁默认锁定最长时间;默认20分钟;超过了则自动解锁;
 	'fileHistoryMax'		=> 500,			// 文件历史版本默认个数,免费版3个; 大于500则认为不限制
-	'fileHistoryLocal'		=> 0,			// 本地文件是否开启历史版本;
+	'fileHistoryLocal'		=> 1,			// 本地文件是否开启历史版本;
 	'uploadFileNumberMax'	=> 0,			// 单次批量上传文件个数上限, 0不限制
 	'storeFileNumberMax'	=> 0,			// 外链分享转存文件个数上限, 0不限制
 	'shareLinkSizeMax'		=> 0,			// 分享文件/文件夹最大大小限制; 0不限制; 单位GB(float)
 	'unzipFileSizeMax'  	=> 0,			// 文件解压压缩包大小限制; 0-不限制; 单位GB(float)
 	'zipFileSizeMax'  		=> 0,			// 文件(夹)压缩大小限制;   0-不限制; 单位GB(float)
 	'groupCompany'			=> 0,			// 二级部门为子公司,独立部门;
+	'shareLinkExpireTime'	=> 0,			// 外链分享过期时间，单位天（n天后过期）
 	
 	'staticPath'		=> APP_HOST."static/",	//静态文件目录,可以配置到cdn;
 	'kodApiServer'		=> "https://api.kodcloud.com/?", //QQ微信登录/邮件发送/插件-列表等 
@@ -57,6 +59,7 @@ $config['settings']['systemBackup'] 	= 1; 		// 系统备份;
 $config['settings']['bigFileForce'] 	= 0; 		// 32位时强制允许大文件上传; https://demo.kodcloud.com/#s/735psg0g 
 $config['settings']['sysTempPath'] 		= TEMP_PATH;	// 系统临时目录，避免中转时data临时目录慢（如nfs挂载）
 $config['settings']['sysTempFiles'] 	= TEMP_FILES;	// 系统临时文件目录
+$config['settings']['fileViewLog'] 		= 0;		// 操作日志-文件预览
 
 
 $config["ADMIN_ALLOW_IO"] 				= 1;		// 物理路径或io路径是否允许操作开关，仅限管理员(禁用后无法直接管理物理路径)
@@ -195,7 +198,7 @@ $config['settings']['appType'] = array(
 $config['defaultPlugins'] = array(
 	'adminer','DPlayer','imageExif','jPlayer','photoSwipe','picasa','pdfjs',
 	'simpleClock','client','webodf','webdav','toolsCommon','oauth','fileThumb',
-	'yzOffice','officeViewer',
+	'yzOffice','officeViewer','msgWarning',
 );
 
 //初始化系统配置
@@ -270,8 +273,8 @@ $config['settingSystemDefault'] = array(
 		"openRegist"		=> "0",			// 开放注册
 		"checkRegist" 		=> "0",			// 注册审核
 		"sizeMax" 			=> "0",			// 默认空间大小
-		"roleID" 			=> "2",			// 默认角色
-		"groupInfo" 		=> '{"1":"2"}',	// 默认部门
+		"roleID" 			=> "",			// 默认角色
+		"groupInfo" 		=> '{"1":""}',	// 默认部门
 		"allowPhone"		=> "1",			// 允许手机号绑定,找回密码;
 	),
 	'allowNickNameRpt'	=> false,			// 允许用户昵称重复

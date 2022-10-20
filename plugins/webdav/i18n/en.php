@@ -27,7 +27,7 @@ return array(
 	'webdav.help.mac'			=> "<b>Mac:</b>  Right click [Finder] —— connect to the server —— paste the above WebDAV address, click Connect —— enter the account password",
 	'webdav.help.others'		=> "<b>Other clients and systems</b>:Specify the address as the above WebDAV address and the account password as your login account. The basic process is similar
 	<br/>Android,iOS:<a href='http://www.estrongs.com/' target='_blank'>ES File Explorer</a>",",",
-	'webdav.help.windowsTips'	=> "For the first use, you need to cancel the upload and HTTP restrictions. After downloading this file, double-click to run it",
+	'webdav.help.windowsTips'	=> "For the first use, you need to cancel the upload and http restrictions. After downloading this file, click Run as an administrator.",
 	
 	'webdav.config.tab1'				=> 'WebDAV Server',
 	'webdav.config.tab2'				=> 'Mount webdav',	

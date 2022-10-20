@@ -471,6 +471,7 @@ class explorerList extends Controller{
 	// 文件详细信息处理;
 	public function pathInfoMore(&$pathInfo){
 		if(!GetInfo::support($pathInfo['ext'])) return $pathInfo;
+		if($pathInfo['targetType'] == 'system') return $pathInfo;
 		
 		$infoKey  = 'fileInfoMore';
 		$cacheKey = 'fileInfo.'.md5($pathInfo['path'].'@'.$pathInfo['size'].$pathInfo['modifyTime']);
@@ -496,7 +497,8 @@ class explorerList extends Controller{
 		}
 		
 		// 异步延迟获取;
-		if(!isset($pathInfo[$infoKey])){
+		$fileHash = $fileID ? $fileID : $cacheKey;
+		if(!isset($pathInfo[$infoKey]) || $pathInfo[$infoKey]['etag'] != $fileHash){
 			$args = array($pathInfo['path'],$cacheKey,$fileID);// 异步任务处理;
 			$desc = '[pathInfoMore]'.$pathInfo['name'];
 			$key  ='pathInfoMoreParse-'.($fileID ? $fileID : $cacheKey);
@@ -521,10 +523,11 @@ class explorerList extends Controller{
 		$infoMore = isset($infoFull[$infoKey]) ? $infoFull[$infoKey]:false;
 		
 		if(!$infoMore) return;
+		$infoMore['etag'] = $fileID ? $fileID : $cacheKey;
 		if($fileID){
 			Model("File")->metaSet($fileID,$infoKey,json_encode($infoMore));
 		}else{
-			Cache::set($cacheKey,$infoMore,3600*24*20);
+			Cache::set($cacheKey,$infoMore,3600*24*30);
 		}
 		return $infoMore;
 	}

@@ -622,7 +622,7 @@ class adminServer extends Controller {
 			show_json(LNG('admin.setting.recDbFileErr'), false);
 		}
 		// 检测结果直接返回
-		if(Input::get('check', null, false)) {
+		if(Input::get('check', null, false) && $type == 'mysql') {
 			$dbname = 'kod_rebuild_test';
 			// 如果没有权限，这里会直接报错
 		    $res = Model()->db()->execute("create database `{$dbname}`");

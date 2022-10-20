@@ -65,9 +65,8 @@ kodReady.push(function(){
 					return core.openWindow(link);
 				}
 				var list = [{
-					url:link,
+					url:link,path:path,ext:ext,
 					name:name,//zip内文件播放
-					ext:ext
 				}];
 				loadMyPlayer(function(player){
 					player.play(list);
@@ -128,7 +127,7 @@ kodReady.push(function(){
 			if(!app.pathAction.auth.canRead(item)) return; //必须有读取权限;
 			list.push({
 				url:core.path2url(item.path),
-				name:item.name,
+				name:item.name,path:item.path,
 				ext:item.ext
 			});
 		});

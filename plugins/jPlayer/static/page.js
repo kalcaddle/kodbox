@@ -12,7 +12,7 @@ define(function(require, exports) {
 		var size  = {width:'70%',height:'60%'};
 		if(playerType == MUSIC){
 			template = musicTemplate;
-			size  = {width:'320px',height:'420px'};
+			size  = {width:'360px',height:'500px'};
 		}
 		var dialog = $.dialog({
 			id:playerType+'-dialog',
@@ -88,7 +88,7 @@ define(function(require, exports) {
 		var media = {
 			'extType':key,
 			'title':item['name'],
-			'url':item['url'],
+			'url':item['url'],path:item.path,
 			'solution' : (ext=='flv' || ext == 'f4v') ? "flash" : "html,flash"
 		}
 		media[key] = item['url'];
@@ -136,6 +136,14 @@ define(function(require, exports) {
 		$playerBox.find('audio').attr('autoplay','autoplay').removeAttr('muted');
 		// plaryer.mute(false);//取消静音;兼容android;
 		if(window.kodApp && kodApp.mediaAutoPlay === false){player.jPlayer("pause");}
+		if(window.kodApp && kodApp.videoLoadSmall && isMovie){
+			// kodApp.videoLoadSmall(media.path,kodApp,$playerBox,function(normalSrc,size){
+			// 	if(!normalSrc){return;}
+			// 	media[media.extType] = normalSrc;
+			// 	player.jPlayer("setMedia",media);player.jPlayer("play");
+			// });
+		}
+		
 
 		//移动端;微信,safari等屏蔽了自动播放;首次点击页面触发播放;
 		//$playerBox.find('.aui-content').one("touchstart mousedown",play);
@@ -224,16 +232,30 @@ define(function(require, exports) {
 		var playCurrent = 0;
 		var player = null;
 		var loopType  = 'circle';//circle,rand
+		
+		// 播放列表记录; 按用户区分; 如果为外链分享则按外链分享id区分;
+		var storeList = function(setValue){
+			var storeKey  = 'jplayerMusicList';var _storeKey = storeKey;
+			if(window.G && window.G.user && window.G.user.userID){storeKey += '-user-'+G.user.userID;}
+			if(window.App && window.App.shareID){storeKey = _storeKey + '-share-'+App.shareID;}
 
+			// console.error(103,storeKey,playList,LocalData.getConfig(storeKey,[]));
+			if(setValue){return LocalData.setConfig(storeKey,playList);}
+			var listData = LocalData.getConfig(storeKey,[]);
+			if(!listData || !listData.length){listData = [];}
+			return listData;
+		}
+		
 		var insert = function(thePlayer,list){
+			if(playList.length == 0){playList = storeList();}
 			player = thePlayer;
-			var oldLength = playList.length;
+			var findIndex = -1;
 			for (var i = 0; i < list.length; i++) {//插入后默认播放列表的最后一个
 				var exists = false;
 				var find  = 0;
 				for (find = 0; find < playList.length; find++) {
 					if(playList[find]['url'] == list[i]['url']){
-						exists = true;
+						exists = true;findIndex = find;
 						break;
 					}
 				}
@@ -250,11 +272,9 @@ define(function(require, exports) {
 				}
 				playList.push( getMedia(list[i]));
 			}
-			if(playList.length == oldLength){
-				return false;//有重复对应处理
-			}
-			playCurrent = playList.length-1;
+			playCurrent = (findIndex == -1) ? (playList.length-1) : findIndex;
 			updateView(true);
+			storeList(true);
 			return playList[playCurrent];
 		}
 		var playIndex = function(index){
@@ -291,6 +311,7 @@ define(function(require, exports) {
 			playList.splice(index,1);
 			playIndex(index);
 			updateView(true);
+			storeList(true);
 		}
 		var download = function(index){
 			var media = playList[index];
@@ -345,6 +366,7 @@ define(function(require, exports) {
 				stopPP(e);
 				return false;
 			});
+			// $.hoverAnimate({el:'.play-list .item',delegate:$playBox});
 		}
 		var updateView = function(resetList){
 			var $playBox = $(player).parents('.jPlayer');
@@ -352,7 +374,7 @@ define(function(require, exports) {
 				var html = '';
 				$.each(playList,function(i,val){
 					html += 
-					'<li class="item">\
+					'<li class="item ripple-item">\
 						<span class="name">'+val.title+'</span>\
 						<div class="action-right">\
 							<span class="download"><i class="font-icon ri-download-fill-2"></i></span>\

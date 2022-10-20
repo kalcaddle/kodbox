@@ -32,6 +32,7 @@ class userIndex extends Controller {
 		$this->loginCheck();
 		Model('Plugin')->init();
 		Action('filter.index')->trigger();
+		if(!defined('USER_ID')){define('USER_ID','');}
 	}
 	public function shutdownEvent(){
 		TaskQueue::addSubmit();		// 结束后有任务时批量加入

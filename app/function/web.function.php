@@ -458,6 +458,13 @@ function curl_get_contents($url,$timeout=60){
 	if($data['code'] == 0) return false;
 	return $data['data'];
 }
+function file_get_contents_nossl($url){
+	$options = array('ssl'	=> array(
+		'verify_peer'		=> false, 
+		'verify_peer_name'	=> false
+	));
+	return file_get_contents($url, false, stream_context_create($options));
+}
 
 function url_request_proxy($url,$method='GET',$data=false,$headers=false,$options=false,$json=false,$timeout=3600){
 	if(!is_array($headers)){$headers = array();}

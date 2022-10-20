@@ -34,7 +34,7 @@ $(function(){
         $('body').bind('keydown', function (e) {
             // ctrl+s
             if (e.keyCode == 83 && (e.ctrlKey || e.metaKey)) {
-                Tips.tips('暂不支持内容保存！', 'warning')
+                Tips.tips('不支持内容编辑，请选择其他方式！', 'warning', 3000);
                 return false;
             }
         });

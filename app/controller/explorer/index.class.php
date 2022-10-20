@@ -337,7 +337,7 @@ class explorerIndex extends Controller{
 		if($info && $info['type'] == 'file'){ //父目录为文件;
 			show_json(LNG('explorer.success'),true,IO::pathFather($info['path']));
 		}
-				
+		
 		$result = IO::mkdir($this->in['path'],$repeat);
 		$errorLast = IO::getLastError(LNG('explorer.error'));
 		$msg = !!$result ? LNG('explorer.success') : $errorLast;
@@ -778,9 +778,8 @@ class explorerIndex extends Controller{
 		if($isDownload && !Action('user.authRole')->authCanDownload()){
 			show_json(LNG('explorer.noPermissionAction'),false);
 		}
-		if ($isDownload) {
-			Hook::trigger('explorer.fileDownload', $this->in['path']);
-		}
+		if ($isDownload) Hook::trigger('explorer.fileDownload', $path);
+		Hook::trigger('explorer.fileOut', $path);
 		if(isset($this->in['type']) && $this->in['type'] == 'image'){
 			$info = IO::info($path);
 			$imageThumb = array('jpg','png','jpeg','bmp');
@@ -815,6 +814,7 @@ class explorerIndex extends Controller{
 		$dist = $info['path'];
 		ActionCall('explorer.auth.canView',$dist);// 再次判断新路径权限;
 		$this->updateLastOpen($dist);
+		Hook::trigger('explorer.fileOut', $dist);
 		IO::fileOut($dist,false);
 	}
 	

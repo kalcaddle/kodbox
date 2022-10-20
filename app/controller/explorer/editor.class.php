@@ -93,6 +93,7 @@ class explorerEditor extends Controller{
 		if(!$pathInfo || $pathInfo['type'] == 'folder'){
 			return show_json(LNG('common.pathNotExists'),false);
 		}
+		Hook::trigger('explorer.fileGet', $path);
 		$contentInfo = $this->contentPage($path,$pathInfo['size']);
 		$content 	 = $contentInfo['content'];
 		if(isset($this->in['charset']) && $this->in['charset']){

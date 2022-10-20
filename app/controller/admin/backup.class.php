@@ -35,7 +35,7 @@ class adminBackup extends Controller{
 		// 最近一条备份记录
 		if(Input::get('last', null, 0)) {
 			$last = $this->model->lastItem();
-			if($last && $last['name'] != date('Ymd')) $last = null;
+			// if($last && $last['name'] != date('Ymd')) $last = null;
 			show_json($last);
 		}
 		$data	= $this->model->config();		// 备份配置信息
@@ -82,7 +82,7 @@ class adminBackup extends Controller{
 		$driver = KodIO::defaultDriver();
 		$backup['io'] = $driver['id'];
 		$backup['content'] = 1;
-		$backup['enable'] = 1;
+		// $backup['enable'] = 1;
 		Model('SystemOption')->set('backup', $backup);
 		$update = array('enable' => 1);
 		Model('SystemTask')->update($data['id'], $update);

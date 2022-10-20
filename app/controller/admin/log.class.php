@@ -7,13 +7,22 @@ class adminLog extends Controller{
         $this->model = Model('SystemLog');
     }
 
+    // 操作类型列表
+    private function typeListAll(){
+        $typeList = $this->model->typeListAll();
+        if (_get($GLOBALS, 'config.settings.fileViewLog') != 1) {
+            unset($typeList['file.view']);
+        }
+        return $typeList;
+    }
+
     /**
      * 操作类型列表
      * this.actions()
      * @return void
      */
     public function typeList(){
-        $typeList = $this->model->typeListAll();
+        $typeList = $this->typeListAll();
         $list = array(
             'all'   => array('id' => 'all',  'text' => LNG('common.all')),
             'file'  => array('id' => 'file', 'text' => LNG('admin.log.typeFile')),
@@ -134,9 +143,9 @@ class adminLog extends Controller{
      * @param boolean $data
      * @return void
      */
-    public function log($data=false){
+    public function add($data=false){
         if (isset($this->in['disableLog']) && $this->in['disableLog'] == '1') return;
-        $typeList = $this->model->typeListAll();
+        $typeList = $this->typeListAll();
         if(!isset($typeList[ACTION])) return;
 		if($GLOBALS['loginLogSaved'] ==1) return;
         $actionList = array(
@@ -151,17 +160,14 @@ class adminLog extends Controller{
                 $func = array('fav.add', 'fav.del', 'index.fileOut', 'index.fileDownload', 'index.zipDownload');
                 if(!in_array($act, $func)) return;
                 if (in_array(ACT, array('fileOut', 'fileDownload'))) { // 多线程下载，或某些浏览器会请求多次
-                    if (!$this->checkDownload()) return;
+                    if (!$this->checkHttpRange()) return;
                 } else if (ACT == 'zipDownload') {
                     if (isset($this->in['zipClient']) && $this->in['zipClient'] == '1') {
                         $data = false;  // 前端压缩下载会返回列表，故下方以$this->in赋值
                     }
                 }
             }
-            if(!is_array($data)) {
-                $data = $this->in;
-                unset($data['URLremote'], $data['URLrouter'], $data['HTTP_DEBUG_URL'], $data['CSRF_TOKEN'], $data[str_replace(".", "/", ACTION)]);
-            }
+            if(!is_array($data)) $data = $this->filterIn();
         }
         // 第三方绑定
         if(ACTION == 'user.index.loginSubmit'){
@@ -172,16 +178,26 @@ class adminLog extends Controller{
     }
 
     /**
-     * 检测下载
+     * 过滤in中多余参数
+     * @return void
+     */
+    private function filterIn(){
+        $in = $this->in;
+        unset($in['URLrouter'],$in['URLremote'],$in['HTTP_DEBUG_URL'],$in['CSRF_TOKEN'],$in['accessToken'],$in[str_replace(".", "/", ACTION)]);
+        return $in;
+    }
+
+    /**
+     * 检测range传输——预览、下载
      * 无range：小文件不传，大文件可能有多个请求，前期不传——60s差不多能完成（60s内多次下载也只记一次）
      * 有range：浏览器下载多次请求时，可能是start或end与size相近（size-1），end-start>1，此时在无range请求时记录
      * @return void
      */
-    private function checkDownload(){
+    private function checkHttpRange(){
         if (!isset($_SERVER['HTTP_RANGE'])) {
             $key = md5(json_encode($this->in));
             if (Cache::get($key)) return false;
-            Cache::set($key, 60);
+            Cache::set($key, 1, 60);
             return true;
         }
         $start = $end = 0;
@@ -218,7 +234,7 @@ class adminLog extends Controller{
     public function userLog(){
         $userID = Input::get('userID', 'int');
         // 获取文件操作类型
-		$typeList = $this->model->typeListAll();
+		$typeList = $this->typeListAll();
 		$types = array();
 		foreach($typeList as $key => $value) {
 			if(strpos($key, 'file.') === 0) $types[] = $key;
@@ -261,4 +277,110 @@ class adminLog extends Controller{
         if(empty($res)) show_json(array());
         show_json($res['list'], true, $res['pageInfo']);
     }
+
+    /**
+     * hook绑定
+     * @return void
+     */
+    public function hookBind(){
+        // 账号管理：删除操作只有id，没有名称，故提前获取
+        if (MOD == 'admin' && ACT == 'remove') {
+            if (!isset($this->in['name'])) {
+                switch (ST) {
+                    case 'group':
+                        $info = Model('Group')->getInfoSimple($this->in['groupID']);
+                        break;
+                    case 'member':
+                        $info = Model('User')->getInfoSimple($this->in['userID']);
+                        break;
+                    case 'auth':
+                    case 'role':
+                        $table = ST == 'auth' ? 'Auth' : 'SystemRole';
+                        $info = Model($table)->listData($this->in['id']);
+                    break;
+                }
+                $name = !empty($info['nickName']) ? $info['nickName'] : $info['name'];
+                $this->in['name'] = $name;
+            }
+        }
+        // 退出时在请求出记录，其他在出执行结果后记录
+        if (ACTION == 'user.index.logout') {
+            $user = Session::get('kodUser');
+            if (!$user) return;
+            $data = array(
+                'code' => true,
+                'data' => array(
+                    'userID'    => $user['userID'], 
+                    'name'      => $user['name'],
+                    'nickName'  => $user['nickName'],
+                )
+            );
+            return $this->autoLog($data);
+        }
+        Hook::bind('show_json', array($this, 'autoLog'));
+        Hook::bind('explorer.fileDownload', array($this, 'autoLog'));
+
+        // 开启了文件预览日志
+        // explorer.index.fileout
+        // explorer.editor.fileget
+        // explorer.share.fileout
+        // explorer.share.file      // 主要用于外链（如用户头像），排除
+        // explorer.history.fileout
+        if (_get($GLOBALS, 'config.settings.fileViewLog') == 1) {
+            Hook::bind('plugin.fileView',  array($this, 'fileViewLog'));
+            Hook::bind('explorer.fileOut', array($this, 'fileViewLog'));
+            Hook::bind('explorer.fileGet', array($this, 'fileViewLog'));
+        }
+    }
+    // 通用日志
+    public function autoLog($data){
+        if (isset($data['code']) && !$data['code']) return false;
+        if (!isset($data['data']) || !is_array($data)) {
+            $data = array('data' => $data);
+        }
+        // $info = isset($data['info']) ? $data['info'] : null;
+        $this->add($data['data']);
+    }
+    // 文件预览日志
+    public function fileViewLog($path){
+        if (MOD == 'plugin' && ACT != 'index') return;
+        if (strtolower(ACT) == 'fileout') {
+            // 下载
+            $in = $this->in;
+            if (isset($in['download']) && $in['download'] == 1) return;
+            // 图片缩略图
+            if(isset($in['type']) && $in['type'] == 'image'){
+                if (isset($in['width']) && $in['width'] == '250') return;
+            }
+            // 该参数由插件打开时filePathLink调用fileOut追加，排除
+            if (isset($in['et'])) return;
+        }
+        if (!$this->checkHttpRange()) return;
+
+        // 获取文件信息，写入日志
+        $parse = KodIO::parse($path);
+		if ($parse['type'] != KodIO::KOD_SOURCE || !$parse['id']) {
+            // 查看历史记录
+            $parse = KodIO::parse($this->in['path']);
+            if ($parse['type'] != KodIO::KOD_SOURCE || !$parse['id']) return;
+            // $name = $this->in['name'];   // 追加给pathName，在前端并不显示
+        }
+		$sourceID = $parse['id'];
+		$sourceInfo = Model("Source")->sourceInfo($sourceID);
+        if(!$sourceInfo || $sourceInfo['targetType'] == SourceModel::TYPE_SYSTEM) return;
+
+        // 参考sourceEvent.addSystemLog
+        $data = array(
+			"sourceID"		=> $sourceID,
+			"sourceParent"  => $sourceInfo['parentID'],
+			"sourceTarget"  => $sourceID,
+			'pathName'		=> $sourceInfo['name'],
+			'pathDisplay'	=> !empty($sourceInfo['pathDisplay']) ? $sourceInfo['pathDisplay'] : '',
+			"userID" 		=> USER_ID,
+			"type" 			=> 'view',
+			"desc"		    => $this->filterIn(),
+		);
+		Model('SystemLog')->addLog('file.view', $data);	
+    }
+
 }

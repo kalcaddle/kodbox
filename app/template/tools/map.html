@@ -1,39 +1,52 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="initial-scale=1.0, user-scalable=no, width=device-width">
-    <link rel="stylesheet" href="https://a.amap.com/jsapi_demos/static/demo-center/css/demo-center.css" />
-    <title>地图显示</title>
-    <style>html, body,#container {width: 100%;height: 100%;}</style>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+	<style type="text/css">
+		body, html,#allmap {width: 100%;height: 100%;overflow: hidden;margin:0;font-family:"微软雅黑";}
+	</style>
+	<!-- <script type="text/javascript" src="//api.map.baidu.com/api?v=3.0&ak=ApltgmqghwNL1xDycvMZ7LS2Ly2LS6IZ"></script> -->
+	<script type="text/javascript" src="//api.map.baidu.com/api?type=webgl&v=1.0&ak=ApltgmqghwNL1xDycvMZ7LS2Ly2LS6IZ"></script>
+	<title>地图显示</title>
+	<style>
+		.BMap_bubble_pop{padding:0 !important;height: 152px;}
+		.BMap_bubble_top{height: 100% !important;}
+		.BMap_bubble_title{height: 100% !important;padding: 10px;box-sizing:border-box;}
+		.BMap_bubble_center{display: none;}
+		.BMap_bubble_title img{width: 100%;height: 100%;object-fit: cover;border-radius:4px;}
+	</style>
 </head>
 <body>
-<div id="container"></div>
-<script src="https://webapi.amap.com/maps?v=1.4.15&key=e07ffdf58c8e8672037bef0d6cae7d4a"></script>
-<script>
-
+	<div id="allmap"></div>
+</body>
+</html>
+<script type="text/javascript">
 	function _GET(key){
        var query = window.location.search.substring(1);
        var vars = query.split("&");
        for (var i=0;i<vars.length;i++) {
 			var pair = vars[i].split("=");
-			if(pair[0] == key){return pair[1];}
+			if(pair[0] == key){return window.decodeURIComponent(pair[1]);}
        }
        return false;
 	}
-	var mapObj = new AMap.Map("container",{resizeEnable:true});//viewMode:'3D',pitch:60
-	var position = new AMap.LngLat(_GET('longitude'),_GET('latitude'));
-	mapObj.setZoomAndCenter(13, position);
-
-	var marker = new AMap.Marker();
-	marker.setPosition(position);
-	marker.setMap(mapObj);
-	mapObj.plugin(["AMap.ToolBar","AMap.OverView","AMap.Scale"], function(){
-		mapObj.addControl(new AMap.ToolBar);
-		mapObj.addControl(new AMap.Scale);
-		mapObj.addControl(new AMap.OverView);
-	});
+	// var BMap = BMapGL;
+	var map = new BMapGL.Map("allmap");
+	var point = new BMapGL.Point(_GET('longitude'),_GET('latitude'));
+	map.centerAndZoom(point, 15);
+	map.enableScrollWheelZoom(true);//开启鼠标滚轮缩放
+	map.addControl(new BMapGL.ScaleControl());
+	map.addControl(new BMapGL.MapTypeControl());
+	var marker = new BMapGL.Marker(new BMapGL.Point(_GET('longitude'),_GET('latitude')));
+	map.addOverlay(marker);
+	
+	var imageSrc = _GET('src');
+	if(imageSrc){
+		var infoWindow = new BMapGL.InfoWindow("",{width:80,height:120,title:'<img src="'+imageSrc+'">'});
+		map.openInfoWindow(infoWindow, point);
+		marker.addEventListener('click', function () {
+			map.openInfoWindow(infoWindow, point);
+		});
+	}
 </script>
-</body>
-</html>

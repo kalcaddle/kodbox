@@ -284,8 +284,9 @@ class installIndex extends Controller {
                 // 删除数据表
                 $res = $db->query("SELECT table_name FROM information_schema.`TABLES` WHERE table_schema='{$dbName}'");
                 foreach($res as $value){
-                    $sql = "drop table `{$value['table_name']}`";
-                    $db->execute($sql);
+                    $table = !empty($value['table_name']) ? strtolower($value['table_name']) : '';
+                    if (!$table) continue;
+                    $db->execute("drop table if exists `{$table}`");
                 }
             }
         }else{
@@ -608,7 +609,7 @@ class installIndex extends Controller {
             'administrator' => 1,
             'auth' => 'explorer.add,explorer.upload,explorer.view,explorer.download,explorer.share,explorer.remove,explorer.edit,explorer.move,explorer.serverDownload,explorer.search,explorer.unzip,explorer.zip,user.edit,user.fav,admin.index.dashboard,admin.index.setting,admin.index.loginLog,admin.index.log,admin.index.server,admin.role.list,admin.role.edit,admin.job.list,admin.job.edit,admin.member.list,admin.member.userEdit,admin.member.groupEdit,admin.auth.list,admin.auth.edit,admin.plugin.list,admin.plugin.edit,admin.storage.list,admin.storage.edit,admin.autoTask.list,admin.autoTask.edit',
             'label' => 'label-green-deep',
-            'sort' => 0,
+            'sort' => 2,
         );
         $groupOwner = array (
             'name' => LNG('admin.role.group'),
@@ -624,7 +625,7 @@ class installIndex extends Controller {
             'system' => 1,
             'auth' => 'explorer.add,explorer.upload,explorer.view,explorer.download,explorer.share,explorer.remove,explorer.edit,explorer.move,explorer.serverDownload,explorer.search,explorer.unzip,explorer.zip,user.edit,user.fav',
             'label' => 'label-blue-normal',
-            'sort' => 2,
+            'sort' => 0,
         );
 		Model('SystemRole')->add($defaultUser);
 		Model('SystemRole')->add($groupOwner);

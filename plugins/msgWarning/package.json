@@ -1,0 +1,32 @@
+{
+	"id":"msgWarning",
+	"name":"{{LNG['msgWarning.meta.name']}}",
+	"title":"{{LNG['msgWarning.meta.title']}}",
+	"version":"1.03",
+	"category":"tools",
+	"source":{
+		"className":"font-icon ri-volume-vibrate-fill bg-red-6"
+	},
+	"description":"{{LNG['msgWarning.meta.desc']}}",
+	"auther":{
+		"copyright":"kodcloud",
+		"homePage":"http://kodcloud.com"
+	},
+	"configItem":{
+		"formStyle":{
+			"className":"form-box-title-block"
+		},
+		"pluginAuth":{
+			"type":"userSelect",
+			"value":{"user":1},
+			"display":"{{LNG['admin.plugin.auth']}}",
+			"desc":"{{LNG['admin.plugin.authDesc']}}",
+			"className":"hidden",
+			"require":1
+		},
+		"sep001":{
+			"display":"",
+			"value":"{{LNG['msgWarning.config.setDesc']}}"
+		}
+	}
+}

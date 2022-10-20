@@ -83,7 +83,7 @@ $(document).ready(function (){
 	var searchAuto = function(){
 		var args = $.getUrlParam('args') || '';
 		args = jsonDecode(urlDecode(args));
-		if(typeof(args) != 'object' || !args.search) return;
+		if(!args || typeof(args) != 'object' || !args.search) return;
 		
 		$("#viewFind").trigger('click');
 		$("#findInput").val(args.search);

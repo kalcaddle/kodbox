@@ -114,8 +114,9 @@ define(function(require, exports) {
 				gallery.loadFinished = true;
 			}
 		});
+		var imageCount = imageList.items.length;
 		gallery.listen('close', function(){
-			if(imageList>=3){$('.pswp__item').not('.current').find('img').remove();}
+			if(imageCount>=3){$('.pswp__item').not('.current').find('img').remove();}
 			setTimeout(function(){
 				$(gallery.container).find('.pswp__zoom-wrap').fadeOut(200);
 			},300);
@@ -133,11 +134,17 @@ define(function(require, exports) {
 		gallery.init();
 		gallery.listen('bindEvents',imageRotateAuto);
 		
-		// 最后一个处理;
-		if(imageList.items.length == imageList.index + 1){
+		// 最后一个处理; 缩放位置异常还原;
+		if(imageCount >= 3 && imageCount == imageList.index + 1){
+			setTimeout(function(){gallery.next();gallery.prev();},600);
+		}
+		
+		// 两种图片时,打开最后一个加载完成异常情况处理;
+		if(imageCount == 2 && imageList.index == 1){
 			setTimeout(function(){
-				gallery.next();gallery.prev();
-			},400);
+				var $img = $('.pswp__container .pswp__item:eq(2) .pswp__img:not(.pswp__img--placeholder)');
+				if($img.length){$img.appendTo('.pswp__container .pswp__item:eq(0) .pswp__zoom-wrap');}
+			},500);
 		}
 		
 		// 删除;

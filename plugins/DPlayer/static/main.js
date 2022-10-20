@@ -3,7 +3,7 @@ kodReady.push(function(){
 		appList.push({
 			name:'{{package.id}}',
 			title:'{{package.name}}',
-			ext:"{{config.fileExt}}",
+			ext:"{{config.fileExt}}"+',magnet',
 			sort:"{{config.fileSort}}",
 			icon:'{{pluginHost}}static/images/icon.png',
 			callback:function(path,ext,name){
@@ -15,7 +15,7 @@ kodReady.push(function(){
 					autoSubtitle:"{{config.subtitle}}",
 				};
 				var appStatic = "{{pluginHost}}static/";
-				requireAsync(appStatic+'page.js',function(play){
+				requireAsync(appStatic+'page.js'+"?v={{package.version}}",function(play){
 					play(appStatic,vedio);
 				});
 			}
@@ -23,5 +23,5 @@ kodReady.push(function(){
 	});
 	
 	// 磁力链接支持播放; magnet文件扩展名,内容为磁力链接url;
-	$.addStyle(".x-item-icon.x-magnet{background-image:url('{{staticPath}}images/file_icon/icon_file/utorrent.png');}");
+	$.addStyle("i.x-item-icon.x-magnet{background-image:url('{{staticPath}}images/file_icon/icon_file/utorrent.png');}");
 });

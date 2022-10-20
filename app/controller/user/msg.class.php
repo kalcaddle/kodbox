@@ -45,7 +45,6 @@ class userMsg extends Controller {
 			'type'		 => $data['action'],
 			'input'		 => $data['input'], // 邮箱or手机
             'language'	 => i18n::getType(),
-            // 'signature'	 => Model('SystemOption')->get('systemName')
             'config'     => isset($data['config']) ? $data['config'] : array()
 		);
         $res = Hook::trigger('send.sms.before', $data);
@@ -73,7 +72,6 @@ class userMsg extends Controller {
 			'type'      => $data['action'],
 			'input'     => $data['input'], // 邮箱or手机
             'language'  => i18n::getType(),
-            // 'signature' => Model('SystemOption')->get('systemName'),
             'config'    => isset($data['config']) ? $data['config'] : ''
         );
         if(!$data['config']) unset($data['config']);
@@ -130,11 +128,6 @@ class userMsg extends Controller {
     public function emailContent($data){
         $system = _get($data, 'config.system', array());
         if (!$system['icon']) $system['icon'] = 'https://api.kodcloud.com/static/images/icon/fav.png';
-        if (request_url_safe($system['icon'])) {    // 网络图片转base64
-            $imageInfo = getimagesize($system['icon']);
-            $imageData = 'data:' . $imageInfo['mime'] . ';base64,' . chunk_split(base64_encode(curl_get_contents($system['icon'])));
-            $system['icon'] = $imageData;
-        }
         if (!$system['name']) $system['name'] = Model('SystemOption')->get('systemName');
         if (!$system['desc']) $system['desc'] = Model('SystemOption')->get('systemDesc');
 

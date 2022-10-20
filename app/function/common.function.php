@@ -276,16 +276,23 @@ function check_code($code){
 
 // 立即输出内容到页面; $replace 为true时不作为后续输出
 function echoLog($log,$replace=false){
-	static $isClean   = false;
-	static $logBefore = '';
+	static $isClean    = false;
+	static $logBefore  = '';
+	static $timeBefore = false;
 	if(!$isClean){
 		ob_end_clean();
 		ignore_timeout();
 		header('X-Accel-Buffering: no');
 		$isClean = true;
 	}
+	
+	$timeDelay  = 0.05;// 临时替换的输出内容, 50ms内只输出一次;
+	$timeAt     = timeFloat();
+	if($timeBefore && $replace && ($timeAt - $timeBefore) < $timeDelay){return;}
+	$timeBefore = $timeAt;
+	
 	$timeStyle  = '<span style="display:inline-block;width:100px;font-size:14px;color:#888;">';
-	$textStyle  = '<span style="display:inline-block;font-size:14px;color:#471dff;">';
+	$textStyle  = '<span style="display:inline-block;font-size:14px;color:#0084fe;">';
 	$timeFloat 	= explode(".",mtime());
 	$timeNow 	= date("H:i:s.",time()).substr($timeFloat[1],0,3);
 	$logNow 	= $timeStyle.$timeNow."</span>".$textStyle.$log.'</span><br/>';
@@ -1107,7 +1114,12 @@ function show_json($data=false,$code = true,$info=''){
 	}
 	check_abort(); // hook之后检测处理; task缓存保持;
 	
-	ob_get_clean();
+	@ob_get_clean();
+	if(	isset($_SERVER['HTTP_ACCEPT_ENCODING']) && 
+		strstr($_SERVER['HTTP_ACCEPT_ENCODING'],'gzip')){
+		@ob_start('ob_gzhandler');// 自动开启gzip;
+	}
+	
 	if(!headers_sent()){
 		header("X-Powered-By: kodbox.");
 		header('Content-Type: application/json; charset=utf-8');

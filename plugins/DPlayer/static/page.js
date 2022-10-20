@@ -1,4 +1,4 @@
-define(function(require, exports) {
+define(function(require, exports){
 	var playStart = function(vedioInfo){
 		var $target = createDialog(vedioInfo.name);
 		var typeArr = {
@@ -17,10 +17,10 @@ define(function(require, exports) {
 			autoplay:true,
 			lang: 'zh-cn',
 			//flv仅支持 H.264+AAC编码 https://github.com/Bilibili/flv.js/issues/47
-			video: {
-				url:vedioInfo.url,
-				type:type
-			},
+			video: {url:vedioInfo.url,type:type},
+			airplay:true,
+			chromecast:false,
+			mutex:false, //是否互斥, true=同时只播放一个视频
 			pluginOptions: {
 				flvjs: {},
 				webtorrent: {},
@@ -37,10 +37,97 @@ define(function(require, exports) {
 			]
 		};
 		loadSubtitle(playerOption,vedioInfo);
+		
+		if(window.kodApp && kodApp.videoLoadSmall){
+			playerOption.video = {
+				quality: [
+					{url:vedioInfo.url,type:'mp4',name:LNG['fileThumb.video.normal']},
+					{url:vedioInfo.url,type:type,name:LNG['fileThumb.video.before']},
+				],
+				defaultQuality: 1,
+				thumbnails:API_HOST+'plugin/fileThumb/videoPreview&path='+urlEncode(vedioInfo.path),
+			};
+		};
+		if(window.G && window.G.lang && G.lang.indexOf('zh') == -1){playerOption.lang = 'en';}
+		
 		var player = new DPlayer(playerOption);
-		player.play();
+		player.play();window.dplayer = player;
+		$target.data('dplayer',player).attr('tabindex','1');
 		$target.find('video').attr('autoplay','autoplay').removeAttr('muted');
+		
+		var noticeDelay = false;
+		functionHook(player,'seek',function(setTime){//console.error(1112,arguments)
+			var change = (Math.abs(player.video.currentTime - setTime)).toFixed(0);
+			if(change == '0'){
+				player.disableNotice = true;clearTimeout(noticeDelay);
+				noticeDelay = setTimeout(function(){player.disableNotice = false;},500);
+			}
+		});
+		functionHook(player,'notice',function(){//console.error(111,arguments)
+			if(player.disableNotice) return false;
+			if(arguments[1] == -1){arguments[1] = 500;}
+			return arguments;
+		});
+		
 		if(window.kodApp && kodApp.mediaAutoPlay === false){player.pause();}
+		if(window.kodApp && kodApp.videoLoadSmall){
+			$target.find('.dplayer-quality').hide();
+			kodApp.videoLoadSmall(vedioInfo.path,kodApp,$target,function(normalSrc,size,autoPlayFast){
+				if(!normalSrc){return;}
+				// console.error(111,arguments);
+				$target.find('.dplayer-quality-item[data-index="0"]').attr('title',size.now);
+				$target.find('.dplayer-quality-item[data-index="1"]').attr('title',size.before).addClass("selected");
+				$target.find('.dplayer-quality-item').attr('title-timeout','100');
+				$target.find('.dplayer-quality').show();
+				player.options.video.quality[0].url = normalSrc;
+				player.disableNotice = true;clearTimeout(noticeDelay);
+				noticeDelay = setTimeout(function(){player.disableNotice = false;},2000);
+				
+				// 是否自动切换为流畅模式;ie11 切换视频黑屏;
+				if(autoPlayFast){player.switchQuality(0);}
+			});
+			
+			// 视频预览处理;
+			var previewWidth = 150;var pickCount = 300;var rowCount = 10;
+			var previewMove  = player.controller.thumbnails.move;	
+			player.controller.thumbnails.move = function(offsetX){
+				var imageHeight = (player.video.videoHeight / player.video.videoWidth) * previewWidth;
+				var totalTime   = player.video.duration || 0;
+				if(!totalTime || !imageHeight || totalTime <= 30){
+					$(this.container).css({display:'none'});return;
+				}
+				
+				imageHeight = Math.ceil(imageHeight); // 处理为偶数;
+				if(imageHeight % 2 != 0){imageHeight = imageHeight - 1;}
+								
+				// pickCount = parseInt(totalTime); //每秒生成1张图;
+				var hoverTime = player.video.duration * (offsetX / player.template.playedBarWrap.offsetWidth);
+				hoverTime = Math.ceil(hoverTime);
+				var index = parseInt(hoverTime / (totalTime / pickCount));
+				var pose  = ((index % rowCount) * previewWidth) + 'px -'+ (parseInt(index / rowCount) * imageHeight) + 'px';
+				var style = {
+					'background-size':'auto','background-color':'transparent',
+					'background-position':pose,'border-radius':'2px',
+					// 'box-shadow:':'0px 5px 20px rgba(0,0,0,0.5)',
+					left:Math.min(Math.max(offsetX - this.container.offsetWidth / 2, -10), this.barWidth - 150) + 'px',
+					width:previewWidth+'px',
+					height:parseInt(imageHeight)+'px',
+					top:parseInt(-imageHeight + 2) + 'px',
+				};
+				$(this.container).css(style);
+				// console.error(123,[hoverTime,totalTime,index,(totalTime / pickCount)],style,this);
+			}
+		}
+		
+		// 切换视频时,销毁之前播放器;
+		functionHook(player.template.videoWrap,'removeChild',function(dom){
+			videoDestory(dom,player);
+		});
+		player.on('quality_start',function(){
+			var index = player.qualityIndex;
+			$target.find('.dplayer-quality-item').removeClass('selected');
+			$target.find('.dplayer-quality-item[data-index="'+index+'"]').addClass('selected');
+		});
 		
 		var dialog = $target.parents('.dplayer-dialog').data('artDialog');
 		var playerResize = playerDialogResize($target,dialog,false);
@@ -60,6 +147,12 @@ define(function(require, exports) {
 		//移动端;微信,safari等屏蔽了自动播放;首次点击页面触发播放;
 		// $target.find('.dplayer-video-wrap').one("touchstart mousedown",play);
 	}
+	
+	// 切换视频或关闭播放器,销毁处理, 避免继续网络请求;
+	var videoDestory = function(video,player){
+		if(!video || !video.pause) return;
+		video.pause();video.src="";video.load();player.play();
+	}
 
 	/**
 	 * 根据视频尺寸,自动调整窗口尺寸及位置,确保视频能够完整显示
@@ -67,7 +160,7 @@ define(function(require, exports) {
 	 * 1. 对话框全屏后才加载完成, 不处理尺寸;
 	 * 2. 对话框全屏后才加载完成,再次还原窗口时处理视频尺寸; 
 	 */
-	 var playerDialogResize = function($player,dialog,animate){
+	var playerDialogResize = function($player,dialog,animate){
 		var isReset  = false;
 		if(!dialog) return;
 		
@@ -98,7 +191,8 @@ define(function(require, exports) {
 				setTimeout(function(){dialog.$main.removeClass(maxClass);},350);
 			}
 			dialog.size(vWidth,vHeight).position(left,top);
-			// console.error(202,[vWidth,vHeight],[left,top],dialog.$main.attr('class'));
+			dialog._width = vWidth;dialog._height = vHeight;
+			// console.error(202,[vWidth,vHeight],[left,top],dialog,dialog.$main.attr('class'));
 		}
 
 		var clickMaxBefore = _.bind(dialog._clickMax,dialog);
@@ -114,7 +208,7 @@ define(function(require, exports) {
 	
 	var loadSubtitle = function(playerOption,vedioInfo){
 		var pathModel = _.get(window,'kodApp.pathAction.pathModel');
-		// console.log(101,subtitle,vedioInfo,pathModel);
+		// console.log(101,vedioInfo,pathModel);
 		if(vedioInfo.autoSubtitle != '1' || !pathModel) return;
 		
 		var fileName = vedioInfo.name+'.vtt'
@@ -143,7 +237,11 @@ define(function(require, exports) {
 			resize:true,
 			padding:0,
 			fixed:true,
-			close:function(){}
+			close:function(){
+				var player = dialog.DOM.wrap.find(".Dplayer").data('dplayer');
+				if(player){videoDestory(player.video,player);player.destroy();}
+				if(window.kodApp){kodApp.trigger('vedioOnClose');}
+			}
 		});
 		dialog.DOM.wrap.addClass('dplayer-dialog');
 		return dialog.DOM.wrap.find(".Dplayer");

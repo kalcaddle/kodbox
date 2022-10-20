@@ -320,6 +320,7 @@ class explorerShare extends Controller{
 		} 
 		$path = $this->parsePath($path);
 		$isDownload = isset($this->in['download']) && $this->in['download'] == 1;
+		Hook::trigger('explorer.fileOut', $path);
 		if(isset($this->in['type']) && $this->in['type'] == 'image'){
 			$info = IO::info($path);
 			$imageThumb = array('jpg','png','jpeg','bmp');

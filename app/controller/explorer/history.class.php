@@ -85,6 +85,7 @@ class explorerHistory extends Controller{
 	public function fileOut(){
 		$fileInfo = $this->fileInfo();
 		$isDownload = isset($this->in['download']) && $this->in['download'] == 1;
+		Hook::trigger('explorer.fileOut', $fileInfo['path']);
 		if(isset($this->in['type']) && $this->in['type'] == 'image'){
 			return IO::fileOutImage($fileInfo['path'],$this->in['width']);
 		}

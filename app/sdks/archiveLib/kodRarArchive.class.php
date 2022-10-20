@@ -59,7 +59,7 @@ class kodRarArchive {
 		$result = shell_exec($cmd);
 		//debug_out($cmd,$result);
 		if(!strstr($result,'Copyright')){
-			return array('code'=>false,'data'=>'[shell_exec error!] No Result,文件内容损坏或不支持该文件解析! ');
+			return array('code'=>false,'data'=>'[shell_exec error!] No Result!<br>'.LNG('explorer.unzipRarTips'));
 		}
 		return array('code'=>true,'data'=>$result);
 	}
@@ -167,7 +167,7 @@ class kodRarArchive {
 
 		preg_match('/--------  ----\n([\d\D]*)\n-----------/i', $result['data'], $match);
 		if(!is_array($match) || strlen($match[1]) < 10){
-			return array('code'=>false,'data'=>'Match Nothing Content!');
+			return array('code'=>false,'data'=>'Match Nothing Content!<br>'.LNG('explorer.unzipRarTips'));
 		}
 
 		//windows  :...D...   93691   82633  88%  2016-12-09 02:20  396CC62C  000/a/32486963.png
@@ -179,7 +179,7 @@ class kodRarArchive {
 			count($matchItem) != 6 ||
 			count($matchItem[0]) == 0
 			){
-			return array('code'=>false,'data'=>'Match Nothing Item!');
+			return array('code'=>false,'data'=>'Match Nothing Item!<br>'.LNG('explorer.unzipRarTips'));
 		}
 		
 		$itemArr = array();
@@ -210,7 +210,7 @@ class kodRarArchive {
 		
 		preg_match('/-----------\n([\d\D]*)\n--------------/i', $result['data'], $match);
 		if(!is_array($match) || strlen($match[1]) < 10){
-			return array('code'=>false,'data'=>'Match Nothing Content!');
+			return array('code'=>false,'data'=>'Match Nothing Content!<br>'.LNG('explorer.unzipRarTips'));
 		}
 
 		//2017-03-08 11:22:16 .....    10727     9385  000\test11.docx
@@ -221,7 +221,7 @@ class kodRarArchive {
 			count($matchItem) != 6 ||
 			count($matchItem[0]) == 0
 			){
-			return array('code'=>false,'data'=>'Match Nothing Item!');
+			return array('code'=>false,'data'=>'Match Nothing Item!<br>'.LNG('explorer.unzipRarTips'));
 		}
 		
 		$itemArr = array();

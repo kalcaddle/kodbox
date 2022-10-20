@@ -144,7 +144,7 @@ function ActionCall($action){
 	return ActionApply($action,$args);
 }
 
-function ActionCallApi($uri,$param=''){
+function ActionCallApi($uri,$param='',$allowExec=true){
 	$paramStr = $param;
 	if(is_array($param)){
 		$paramStr = '';
@@ -158,7 +158,7 @@ function ActionCallApi($uri,$param=''){
 	$uri = str_replace('.','/',$uri).'&accessToken='.$token.$paramStr;
 	$res = '';
 	$phpBin = phpBinCommand();
-	if($phpBin && function_exists('shell_exec')){
+	if($allowExec && $phpBin && function_exists('shell_exec')){
 		$command = $phpBin.' '.BASIC_PATH.'index.php '.escapeshellarg($uri);
 		$res = shell_exec($command);
 	}

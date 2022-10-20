@@ -16,7 +16,7 @@
 .dialog-simple.my-jPlayer.movie-player-dialog.dialog-max .aui-header {top:0px;background:transparent;}
 .dialog-simple.my-jPlayer.movie-player-dialog .aui-title{background:#000;filter: alpha(opacity=50);opacity:0.5;}
 .dialog-simple.my-jPlayer.movie-player-dialog .jPlayer-movie .controls{bottom:0px;}
-
+.jPlayer a:hover{border:none;text-decoration: none;}
 
 /*.dialog-simple.my-jPlayer.movie-player-dialog .dialog-mouse-in .jPlayer-movie .controls{display:block !important;}*/
 .jPlayer-movie {
@@ -680,6 +680,7 @@
 	background-repeat: no-repeat;
 	background-position: 95% 13px;
 }
+.jPlayer-music{user-select: none;}
 /*隐藏列表*/
 .hide-play-list .aui-main{height:155px !important;}
 .hide-play-list .jPlayer-music{min-height:inherit;}

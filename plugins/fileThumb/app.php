@@ -43,18 +43,39 @@ class fileThumbPlugin extends PluginBase{
 		Cache::remove('fileThumb.getConvert');
 		if(isset($_GET['check'])){
 			$convert = $this->getConvert();
-			$ffmpeg  = $this->getFFmpeg();
-			$result  = $convert && $ffmpeg;
-			$message = $result ? 'ok': '检测失败:<br/>';
-			if(!$convert){
-				$message .= "$convert convert调用失败，检测是否安装该软件，或是否有执行权限;<br/>";
-			}
-			if(!$ffmpeg){
-				$message .= "$ffmpeg ffmpeg调用失败，检测是否安装该软件，或是否有执行权限;<br/>";
-			}
-			show_json($message,$result);
+            $ffmpeg  = $this->getFFmpegFind();
+            $ffmpegSupport = $ffmpeg ? $this->ffmpegSupportCheck($ffmpeg) : false;
+            $result  = $convert && $ffmpeg && $ffmpegSupport;
+            if($ffmpeg && !$this->ffmpegSupportCheck($ffmpeg)){$result = false;}
+            $message = $result ? 'ok;': LNG('fileThumb.check.faild').':<br/>';
+            if(!$convert){
+                $message .= "$convert convert ".LNG('fileThumb.check.error').";<br/>";
+            }
+            if(!$ffmpeg){
+                $message .= "$ffmpeg ffmpeg".LNG('fileThumb.check.error').";<br/>";
+            }
+            if($ffmpeg && !$ffmpegSupport){
+                $message .= 'ffmpeg not support muxer:image2; please install again!';
+            }
+            show_json($message,$result);
 		}
 		include($this->pluginPath.'static/check.html');
+	}
+	
+	// 标清视频;
+	public function videoSmall(){
+		if(!$this->getFFmpeg()) return;
+		@include_once($this->pluginPath.'lib/VideoResize.class.php');
+		@include_once($this->pluginPath.'lib/TaskConvert.class.php');
+		$video = new videoResize();
+		$video->start($this);
+	}
+	
+	public function videoPreview(){
+		if(!$this->getFFmpeg()) return;
+		@include_once($this->pluginPath.'lib/VideoResize.class.php');
+		$video = new videoResize();
+		$video->videoPreview($this);
 	}
 
 	// 本地文件:local,io-local, {{kod-local}}全量生成;
@@ -76,25 +97,25 @@ class fileThumbPlugin extends PluginBase{
 		
 		$localFile = $this->localFile($path);
 		$movie = '3gp,avi,mp4,m4v,mov,mpg,mpeg,mpe,mts,m2ts,wmv,ogv,webm,vob,flv,f4v,mkv,rmvb,rm';
-		$isVedio = in_array($ext,explode(',',$movie));
+		$isVideo = in_array($ext,explode(',',$movie));
 		
 		// 过短的视频封面图,不指定时间;
-		$vedioThumbTime = true;
-		if( $isVedio && is_array($info['fileInfoMore']) && 
+		$videoThumbTime = true;
+		if( $isVideo && is_array($info['fileInfoMore']) && 
 			isset($info['fileInfoMore']['playtime']) &&
 			floatval($info['fileInfoMore']['playtime']) <= 3 ){
-			$vedioThumbTime = false;
+			$videoThumbTime = false;
 		}
 
 		// del_file($thumbFile);
-		if( $isVedio ){
+		if( $isVideo ){
 			// 不是本地文件; 切片后获取:mp4,mov,mpg,webm,f4v,ogv,avi,mkv,wmv;(部分失败)
 			if(!$localFile){
 				$localTemp = $thumbFile.'.'.$ext;
 				$localFile = $localTemp;
 				file_put_contents($localTemp,IO::fileSubstr($path,0,1024*600));
 			}
-			$this->thumbVedio($localFile,$thumbFile,$size,$vedioThumbTime);
+			$this->thumbVideo($localFile,$thumbFile,$videoThumbTime);
 		} else {
 			if(!$localFile){
 				// $localTemp = $localFile，可能会转换失败，为避免重新下载，不删除临时文件
@@ -132,9 +153,8 @@ class fileThumbPlugin extends PluginBase{
 		return $size;
 	}
 	
-	
 	// 获取文件 hash
-	private function localFile($path){
+	public function localFile($path){
 		$pathParse = KodIO::parse($path);
 		if(!$pathParse['type']) return $path;
 		
@@ -179,10 +199,10 @@ class fileThumbPlugin extends PluginBase{
 		imagedestroy($im);
 	}
 
-	private function thumbVedio($file,$cacheFile,$maxSize,$vedioThumbTime){
+	private function thumbVideo($file,$cacheFile,$videoThumbTime){
 		$command = $this->getFFmpeg();
 		if(!$command){
-			echo "Ffmpeg 软件未找到，请安装后再试";
+			echo "Ffmpeg ".LNG("fileThumb.check.notFound");
 			return false;
 		}
 		$tempPath = $cacheFile;
@@ -192,7 +212,7 @@ class fileThumbPlugin extends PluginBase{
 		}
 
 		$maxWidth = 800;
-		$timeAt   = $vedioThumbTime ? '-ss 00:00:03' : '';
+		$timeAt   = $videoThumbTime ? '-ss 00:00:03' : '';
 		$script   = $command.' -i "'.$file.'" -y -f image2 '.$timeAt.' -vframes 1 '.$tempPath;
 		shell_exec($script);
 		if(!file_exists($tempPath)) return;
@@ -200,29 +220,6 @@ class fileThumbPlugin extends PluginBase{
 		move_path($tempPath,$cacheFile);
 		$cm = new ImageThumb($cacheFile,'file');
 		$cm->prorate($cacheFile,$maxWidth,$maxWidth);
-		// $seconds = $this->thumbVedioSeconds($command,$file);
-	}
-	
-	//给视频缩略图加上时长;
-	private function thumbVedioTag($command,$vedio,$file){
-		$convert = $this->getConvert();
-		$seconds = $this->thumbVedioSeconds($command,$vedio);
-		if($seconds > 3600){
-			$text = sprintf('%02d:%02d:%02d',$seconds/3600,($seconds%3600)/60,$seconds%60);
-		}else{
-			$text = sprintf('%02d:%02d',($seconds%3600)/60,$seconds%60);
-		}
-		$script = $convert.' '.$file.' -undercolor "#00000080" -fill "#ffffff" -pointsize 26 -gravity SouthEast -annotate +10+10 "'.$text.'" '.$file;
-		shell_exec($script);
-	}
-	private function thumbVedioSeconds($command,$vedio){
-		$result  = shell_exec($command.' -i "'.$vedio.'" 2>&1');
-		$seconds = 0;
-		if (preg_match("/Duration: (.*?), start: (.*?), bitrate:/", $result, $match)) {
-			$total = explode(':', $match[1]);
-			$seconds = $total[0] * 3600 + $total[1] * 60 + $total[2] + $match[2]; // 转换为秒
-		}
-		return $seconds;
 	}
 
 	// imagemagick  -density 100 //耗时间,暂时去除
@@ -239,7 +236,7 @@ class fileThumbPlugin extends PluginBase{
 	public function thumbImageCreate($file,$cacheFile,$maxSize,$ext){
 		$command = $this->getConvert();
 		if(!$command){
-			echo "ImageMagick 软件未找到，请安装后再试";
+			echo "ImageMagick ".LNG("fileThumb.check.notFound");
 			return false;
 		}
 		$param = "-auto-orient -alpha off -quality 90 -size {$maxSize}x{$maxSize}";
@@ -312,13 +309,25 @@ class fileThumbPlugin extends PluginBase{
 	// Cache::getCall
 	private function getCall($key,$timeout,$call,$args = array()){
 		$result = Cache::get($key);
-		if($result) return $result;
+		if($result || $result === '') return $result;
+		
 		$result = call_user_func_array($call,$args);
+		$result = $result ? $result : '';
 		Cache::set($key,$result,$timeout);
 		return $result;
 	}
 	
-	public function getFFmpegNow(){
+	public function ffmpegSupportCheck($ffmpeg){
+        $out = shell_exec($ffmpeg.' -v 2>&1');
+        if(strstr($out,'--disable-muxer=image2')){return false;}
+        return true;
+    }
+    public function getFFmpegNow(){
+        $ffmpeg = $this->getFFmpegFind();
+        if(!$ffmpeg) return false;
+        return $this->ffmpegSupportCheck($ffmpeg) ? $ffmpeg:false;
+	}
+	public function getFFmpegFind(){
 		$check  = 'options';
 		$config = $this->getConfig();
 		if( $this->checkBin($config['ffmpegBin'],$check) ){
@@ -408,27 +417,5 @@ class fileThumbPlugin extends PluginBase{
 	private function checkBin($bin,$check){
 		$result = shell_exec($bin.' --help');
 		return stripos($result,$check) > 0 ? true : false;
-	}
-	private function findBinPath($bin,$check){
-		$isWin = $GLOBALS['config']['systemOS'] == 'windows';
-		$path  = false;
-		if ($isWin) {
-			exec('where '.escapeshellarg($bin),$output);
-			foreach ($output as $line) {
-				if (stripos($line,$check) !== false) {
-					$path = escapeshellarg($line).'/'.$bin.'.exe';
-					break;
-				}
-			}
-		} else {
-			exec('which '.$bin,$output,$status);
-			if ($status == 0) {
-				$path = $bin;
-				if($output[0]){
-					$path = $output[0].'/'.$bin;
-				}
-			}
-		}
-		return $path;
 	}
 }

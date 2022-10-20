@@ -32,8 +32,8 @@ class ImageThumb {
 
 		$info = '';
 		$this->imgData = GetImageSize($srcFile, $info);
-		$this->srcW = imageSX($this->im);
-		$this->srcH = imageSY($this->im);
+		$this->srcW = intval(imageSX($this->im));
+		$this->srcH = intval(imageSY($this->im));
 		return $this;
 	}
 	

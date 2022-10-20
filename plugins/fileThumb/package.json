@@ -2,10 +2,10 @@
 	"id":"fileThumb",
 	"name":"{{LNG['fileThumb.meta.name']}}",
 	"title":"{{LNG['fileThumb.meta.title']}}",
-	"version":"1.64",
+	"version":"1.81",// 2022.10.13
 	"category":"file,media",
 	"source":{
-		"className":"x-item-icon x-psd"
+		"icon":"{{pluginHost}}static/icon.png"
 	},
 	"description":"{{LNG['fileThumb.meta.desc']}}",
 
@@ -15,7 +15,11 @@
 	},
 	"configItem":{
 		"formStyle":{
-			"loadFile":"{{pluginHost}}static/check.js"
+			"loadFile":"{{pluginHost}}static/check.js",
+			"tabs":{
+				"{{LNG['admin.setting.base']}}":"pluginAuth,imagickBin,ffmpegBin,sep001,fileSort,fileExt,fileThumb",
+				"{{LNG['fileThumb.video.title']}}":"videoConvertDesc,videoConvert,videoConvertLimit,videoConvertLimitTo,videoConvertTask,videoConvertType,sep003,videoPlayType"
+			}
 		},
 		"pluginAuth":{
 			"type":"userSelect",
@@ -27,21 +31,21 @@
 		"imagickBin":{
 			"type":"input",
 			"value":"convert",
-			"display":"imageMagick路径",
+			"display":"imageMagick {{LNG['explorer.file.path']}}",
 			"require":1,
-			"desc":"用于psd,ttf,ps,gta等缩略图"
+			"desc":"psd,ttf,ps,gta {{LNG['fileThumb.config.use']}}"
 		},
 		"ffmpegBin":{
 			"type":"input",
 			"value":"ffmpeg",
-			"display":"ffmpegBin路径",
+			"display":"ffmpegBin {{LNG['explorer.file.path']}}",
 			"require":1,
-			"desc":"用于ps,ai,pdf等文件缩略图<br/><br/>
-					<button class='btn btn-success check-psd-server mr-10'>连接测试</button>
-					<button class='btn btn-link check-psd-help' >服务部署手册</button>"
+			"desc":"ps,ai,pdf {{LNG['fileThumb.config.use']}}<br/><br/>
+					<button class='btn btn-success check-psd-server mr-10'>{{LNG['fileThumb.config.test']}}</button>
+					<button class='btn btn-link check-psd-help' >{{LNG['fileThumb.config.help']}}</button>"
 		},
 
-		"sep001":"<h4>文件关联设置:</h4>",
+		"sep001":"<h4>{{LNG['fileThumb.config.file']}}:</h4>",
 		"fileSort":{
 			"type":"number",
 			"display":"{{LNG['admin.plugin.fileSort']}}",
@@ -61,6 +65,52 @@
 			"value":"psd,psb,ps,ps2,ps3,tif,tiff,tga,tst,plt,ai,jpe,dds,crw,3fr,fff,ppm,mef,mos,mdc,iiq,eps,
 			,pdf,xps,heic,ttf,
 			,3gp,avi,mp4,m4v,mov,mpg,mpeg,mpe,mts,m2ts,wmv,ogv,webm,vob,flv,f4v,mkv,rmvb,rm"
-		}
+		},
+		
+		"videoConvertDesc":"<h4>{{LNG['fileThumb.video.title']}}</h4>
+		<div class='info-alert info-alert-blue mt-10'>{{LNG['fileThumb.config.convertTips']}}</div>",
+		"videoConvert":{
+			"type":"switch",
+			"value":"0",
+			"display":"{{LNG['fileThumb.config.videoOpen']}}",
+			"desc":"{{LNG['fileThumb.config.videoOpenDesc']}}",
+			"switchItem":{"1":"videoConvertLimit,videoConvertLimitTo,videoConvertTask,videoConvertType,sep003,videoPlayType"}
+		},
+		"videoConvertLimit":{
+			"type":"number",
+			"value":"50","titleRight":"MB",
+			"display":"{{LNG['fileThumb.config.videoSizeLimit']}}",
+			"desc":"{{LNG['fileThumb.config.videoSizeLimitDesc']}}"
+		},
+		"videoConvertLimitTo":{
+			"type":"number",
+			"value":"10","titleRight":"GB",
+			"display":"{{LNG['fileThumb.config.videoSizeLimitTo']}}",
+			"desc":"{{LNG['fileThumb.config.videoSizeLimitToDesc']}}"
+		},
+		"videoConvertTask":{
+			"type":"number",
+			"value":"5",
+			"display":"{{LNG['fileThumb.config.videoTaskLimit']}}",
+			"desc":"{{LNG['fileThumb.config.videoTaskLimitDesc']}}"
+		},
+		"videoConvertType":{
+			"type":"tags",
+			"value":"3gp,avi,mp4,m4v,mov,mpg,mpeg,mpe,mts,m2ts,wmv,ogv,webm,vob,flv,f4v,mkv,rmvb,rm",
+			"display":"{{LNG['fileThumb.config.videoTypeLimit']}}",
+			"desc":"{{LNG['fileThumb.config.videoTypeLimitDesc']}}"
+		},
+		
+		"sep003":"<hr/>",
+		"videoPlayType":{
+			"type":"segment",
+			"value":"normal",
+			"display":"{{LNG['fileThumb.config.playType']}}",
+			"info":{
+				"normal":"{{LNG['fileThumb.video.normal']}}",
+				"before":"{{LNG['fileThumb.video.before']}}",
+			},
+			"desc":"{{LNG['fileThumb.config.playTypeDesc']}}"
+		},
 	}
 }
