@@ -19,7 +19,7 @@ class explorerList extends Controller{
 		parent::__construct();
 		$this->model = Model("Source");
 	}
-	public function path($thePath = false){		
+	public function path($thePath = false){
 		$path     = $thePath ? $thePath : $this->in['path'];
 		$path     = $path != '/' ? rtrim($path,'/') : '/';//路径保持统一;
 		$path	  = $path == '{io:systemRecycle}' ? IO_PATH_SYSTEM_RECYCLE:$path;

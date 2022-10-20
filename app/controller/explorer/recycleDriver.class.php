@@ -16,7 +16,7 @@ class explorerRecycleDriver extends Controller{
 		$beforePath = get_path_father($path);
 		
 		$recycleName  = '.recycle/user_'.USER_ID.'/';
-		$recycleLocal = rtrim(DATA_PATH,'/').'/'.$recycleName;
+		$recycleLocal = rtrim(DATA_PATH,'/').'/'.$this->localRecycleFolder().'/user_'.USER_ID.'/';
 		if(!$pathParse['type']){// 物理路径
 			$recyclePath = $recycleLocal;
 			return $this->moveToRecycle($path,$recyclePath,$beforePath);
@@ -149,6 +149,7 @@ class explorerRecycleDriver extends Controller{
 		return $toPath;
 	}
 	private function listData(){
+		$this->localRecycleFolder();
 		$list = Model("UserOption")->get('recycleList','recycle');
 		return $list ? json_decode($list,true):array();
 	}
@@ -159,5 +160,36 @@ class explorerRecycleDriver extends Controller{
 			show_json(LNG('explorer.recycleClearForce'),false);
 		}
 		Model("UserOption")->set('recycleList',$listData,'recycle');
+	}
+	
+	// 物理路径回收站文件名处理(安全优化, 隐藏文件夹名,避免被遍历)
+	private function localRecycleFolder(){
+		// Model("SystemOption")->set('recycleFolder','');return '.recycle';//debug;
+		$recycleFolder = Model("SystemOption")->get('recycleFolder');
+		if($recycleFolder) return $recycleFolder;
+		
+		$recycleFolder = '.recycle_'.rand_string(8);
+		$recycleLocal  = DATA_PATH.$recycleFolder.'/';
+		
+		// =====1.35前版本兼容处理;====
+		$recycleBefore= DATA_PATH.'.recycle/';
+		$list = Model("UserOption")->get('recycleList','recycle');
+		$list = $list ? json_decode($list,true):array();
+		$listNew = array();
+		foreach ($list as $path => $beforeAt){
+			$newPath = $path;
+			if(substr($path,0,strlen($recycleBefore)) == $recycleBefore){
+				$newPath = $recycleLocal.substr($path,strlen($recycleBefore));
+			}
+			$listNew[$newPath] = $beforeAt;
+		}
+		Model("UserOption")->set('recycleList',json_encode($listNew),'recycle');
+		@rename($recycleBefore,get_path_father($recycleBefore).'/'.$recycleFolder);
+		// =====兼容end====
+
+		IO::mkdir($recycleLocal);
+		file_put_contents($recycleLocal.'index.html','');
+		Model("SystemOption")->set('recycleFolder',$recycleFolder);
+		return $recycleFolder;
 	}
 }
