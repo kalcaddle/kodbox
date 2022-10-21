@@ -101,6 +101,9 @@ define(function(require, exports){
 			player.controller.thumbnails.move = function(offsetX){
 				var imageHeight = (player.video.videoHeight / player.video.videoWidth) * previewWidth;
 				var totalTime   = player.video.duration || 0;
+				if(player.thumbNeedRotate){
+					imageHeight = (player.video.videoWidth / player.video.videoHeight) * previewWidth;
+				}
 				if(!totalTime || !imageHeight || totalTime <= 30){
 					$(this.container).css({display:'none'});return;
 				}
@@ -122,6 +125,16 @@ define(function(require, exports){
 					height:parseInt(imageHeight)+'px',
 					top:parseInt(-imageHeight + 2) + 'px',
 				};
+				
+				// 缩略图方向旋转处理;
+				if(player.thumbNeedRotate){
+					style.width 	= parseInt(previewWidth)+'px';
+					style.height	= parseInt(imageHeight)+'px';
+					style.left		= Math.min(Math.max(offsetX - this.container.offsetWidth / 2, -10), this.barWidth - 150) + 'px',
+					style.top		= parseInt(-imageHeight + 2 - 0.5*(previewWidth - imageHeight)) + 'px';
+					style.transform = 'rotate(90deg)';
+				}
+				
 				$(this.container).css(style);
 				// console.error(123,[hoverTime,totalTime,index,(totalTime / pickCount)],style,this);
 			}
@@ -138,7 +151,7 @@ define(function(require, exports){
 		});
 		
 		var dialog = $target.parents('.dplayer-dialog').data('artDialog');
-		var playerResize = playerDialogResize($target,dialog,false);
+		var playerResize = playerDialogResize($target,dialog,player,false);
 		player.on('loadeddata',playerResize);
 		$(player.container).trigger('click');// 自动焦点; 视频操作快捷键响应;
 		
@@ -168,7 +181,7 @@ define(function(require, exports){
 	 * 1. 对话框全屏后才加载完成, 不处理尺寸;
 	 * 2. 对话框全屏后才加载完成,再次还原窗口时处理视频尺寸; 
 	 */
-	var playerDialogResize = function($player,dialog,animate){
+	var playerDialogResize = function($player,dialog,player,animate){
 		var isReset  = false;
 		if(!dialog) return;
 		
@@ -211,8 +224,35 @@ define(function(require, exports){
 				resetSize();
 			},350); //尺寸调整动画完成后处理;
 		}
-		return function(){resetSize(true);};
+		return function(){
+			thumbDirection($player,player);
+			resetSize(true);
+		};
 	};
+	
+	// 缩略图方向处理; 跟随视频方向矫正;
+	var thumbDirection = function($player,player){
+		var src = player.options.video.thumbnails;
+		var dom = '<img src="'+src+'" />';
+		if(!src || player.thumbDirectionFinished) return;
+		
+		player.thumbDirectionFinished = true;
+		var isEqal  = function(a,b){
+			return Math.abs(a - b) <= 0.01 ? true : false;
+		}
+		$(dom).bind('load',function(){
+			var width = this.width,height = this.height;
+			var iWidth = width / 10, iHeight = height / 30;	
+			var vWidth  = player.video.videoWidth;
+			var vHeight = player.video.videoHeight;
+			//console.log(222,[vWidth,vHeight],[iWidth,iHeight],player);
+			
+			if(isEqal(vWidth / vHeight,iWidth / iHeight) ) return;
+			if(!isEqal(vWidth / vHeight,iHeight / iWidth)) return;// 旋转后比例相等;
+			player.thumbNeedRotate = true;
+		});
+	}
+	
 	
 	var loadSubtitle = function(playerOption,vedioInfo){
 		var pathModel = _.get(window,'kodApp.pathAction.pathModel');
