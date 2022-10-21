@@ -71,7 +71,7 @@ class msgWarningPlugin extends PluginBase{
      * @return void
      */
     public function defaultDriver(){
-        $key    = $this->pluginName .'_'. __FUNCTION__;
+        $key    = $this->pluginName .'_defaultDriver';
         $cache  = Cache::get($key);
         if ($cache) return $cache;
 
@@ -101,11 +101,12 @@ class msgWarningPlugin extends PluginBase{
      * @return void
      */
     public function systemDriver(){
-        $key    = $this->pluginName .'_'. __FUNCTION__;
+        $key    = $this->pluginName .'_systemDriver';
         $cache  = Cache::get($key);
-        if ($cache) return $cache;
-        $data   = $this->driverInfo();
+        if($cache) return $cache;
+		$data = $this->driverInfo(DATA_PATH);
         if (!$data) return false;
+		
         Cache::set($key, $data, 60*3);
         return $data;
     }
@@ -115,39 +116,13 @@ class msgWarningPlugin extends PluginBase{
      * @param string $path
      * @return void
      */
-    private function driverInfo($path = '') {
-        $data = array();
-        // 未指定路径，获取系统盘
-        if (!$path) {
-            $path = $GLOBALS['config']['systemOS'] == 'windows' ? 'C:/' : '/';
-            if (function_exists('exec')) {
-                if ($path == '/') {
-                    exec('df -k /', $out);
-                } else {
-                    exec('wmic logicaldisk get caption,freespace,size', $out);
-                }
-                if (!empty($out[1])) {
-                    $line = array_values(array_filter(explode(' ', $out[1])));
-                    if ($path == '/') {
-                        $sizeMax    = intval($line[1]) * 1024;
-                        $sizeFree   = intval($line[3]) * 1024;
-                    } else {
-                        // $path       = $line[0].'/';
-                        $sizeMax    = intval($line[2]);
-                        $sizeFree   = intval($line[1]);
-                    }
-                    $data['sizeMax'] = $sizeMax;
-                    $data['sizeUse'] = $sizeMax - $sizeFree;
-                    return $data;
-                }
-            }
-            if (!file_exists($path)) return false;  // 系统盘不检查写权限
-        } else {
-            if(!file_exists($path) || !path_writeable($path)) return false;
-        }
-        $data['sizeMax'] = $sizeMax = @disk_total_space($path);
-        $data['sizeUse'] = $sizeMax - @disk_free_space($path);
-        return $data;
+    private function driverInfo($path) {
+		if(!file_exists($path)) return false;
+		$sizeMax = @disk_total_space($path);
+		return array(
+			'sizeMax'	=> $sizeMax,
+			'sizeUse'	=> $sizeMax - @disk_free_space($path),
+		);
     }
 
     // 待提醒消息详情
@@ -183,13 +158,9 @@ class msgWarningPlugin extends PluginBase{
         // 2.磁盘空间
         $sysDriver = $this->systemDriver();     // 系统盘
         $defDriver = $this->defaultDriver();    // 默认存储
-        // if (!$sysDriver) {   // 系统路径异常时不提示
-        //     $root = $GLOBALS['config']['systemOS'] == 'windows' ? 'C:/' : '/';
-        //     $data['disk'][] = sprintf(LNG('msgWarning.main.msgSysPathErr'), $root);
-        // }
         if ($sysDriver) {
             $sizeFree = ($sysDriver['sizeMax'] - $sysDriver['sizeUse']);
-            if ($sizeFree < 1024*1024*1024*10) {    // 暂时固定为10GB
+            if ($sysDriver['sizeMax'] > 0 && $sizeFree < 1024*1024*1024*2) {    // 暂时固定为10GB
                 $size = size_format($sizeFree);
                 $data['disk'][] = sprintf(LNG('msgWarning.main.msgSysSizeErr'), $size);
             }
@@ -198,7 +169,7 @@ class msgWarningPlugin extends PluginBase{
             $data['disk'][] = sprintf(LNG('msgWarning.main.msgDefPathErr'), APP_HOST.'#admin/storage/index');
         } else {
             $sizeFree = ($defDriver['sizeMax'] - $defDriver['sizeUse']);
-            if ($sizeFree < 1024*1024*1024*10) {
+            if ($sysDriver['sizeMax'] > 0 && $sizeFree < 1024*1024*1024*2) {
                 $size = size_format($sizeFree);
                 $data['disk'][] = sprintf(LNG('msgWarning.main.msgDefSizeErr'), $size);
             }
@@ -212,5 +183,4 @@ class msgWarningPlugin extends PluginBase{
         if ($ret) return $data;
         show_json($data);
     }
-
 }

@@ -27,7 +27,7 @@ return array(
 	'msgWarning.config.targetDesc' 	=> "The selected target user must be bound with a valid specified sending method.",
 
 	'msgWarning.main.tipsTitle' 	=> 'Running Warning',
-	'msgWarning.main.msgSysOK' 		=> 'The system is normal! ',
+	'msgWarning.main.msgSysOK' 		=> 'The system is normal!',
 	'msgWarning.main.msgPwdErr' 	=> 'You are using the initial password, please change the password as soon as possible to ensure security;',
 	'msgWarning.main.msgEmlErr' 	=> 'You have not yet bound your email address, please bind your email address as soon as possible in order to ensure normal functions such as notification or password retrieval;',
 	'msgWarning.main.msgSysPathErr' => 'The server system path is abnormal(the root directory "%s" must have read permission, or enable the exec function);',
@@ -36,8 +36,8 @@ return array(
 	'msgWarning.main.msgDefSizeErr' => 'The system <a href="%s" style="padding:0px;text-decoration:none;">default storage</a> space is insufficient (%s);',
 	'msgWarning.main.setNow' 		=> 'set now',
 	'msgWarning.main.msgSysErr' 	=> 'The server usage rate of %s continued to exceed %s (currently %s) in the past %s minutes. To avoid affecting the normal use of the system, please check and optimize the relevant configuration. ',
-	'msgWarning.main.msgEmpty' 		=> 'Empty! ',
-	'msgWarning.main.msgFmtErr' 	=> 'Format error! ',
+	'msgWarning.main.msgEmpty' 		=> 'Empty!',
+	'msgWarning.main.msgFmtErr' 	=> 'Format error!',
 
 	'msgWarning.main.taskTitle' 	=> 'message warning',
 	'msgWarning.main.taskDesc' 		=> 'System usage message warning, this task comes from the [Message Warning] plugin',
