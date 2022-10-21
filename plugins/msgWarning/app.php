@@ -76,16 +76,16 @@ class msgWarningPlugin extends PluginBase{
         if ($cache) return $cache;
 
         $driver = KodIO::defaultDriver();
-        // 检查存储是否正常
-        $driver['config'] = json_encode($driver['config']);
+        $driverConfig = $driver['config'];
+        $driver['config'] = json_encode($driverConfig);
         $check = Model('Storage')->checkConfig($driver, true);
         if ($check !== true) return false;
 
 		// 默认为本地存储，且大小不限制，则获取所在磁盘的实际大小
 		if(strtolower($driver['driver']) == 'local' && $driver['sizeMax'] == '0') {
-			$path = realpath($driver['config']['basePath']);
+			$path = realpath($driverConfig['basePath']);
 			$data = $this->driverInfo($path);
-            if (!$data) return false;
+            if(!$data) return false;
 		} else {
             $sizeUse = Model('File')->where(array('ioType' => $driver['id']))->sum('size');
             $data = array(

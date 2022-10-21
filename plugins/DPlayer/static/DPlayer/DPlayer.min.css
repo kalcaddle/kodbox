@@ -10,6 +10,7 @@
 .Dplayer .dplayer-notice-list .dplayer-notice{display: block;}
 .dplayer-subtitle{display: block !important;}
 .dplayer-quality-item.selected {background: rgba(255,255,255,0.2);}
+.dplayer-setting-speed-item.selected {background: rgba(255,255,255,0.2);}
 .artDialog.dialog-simple.dplayer-dialog .aui-outer .aui-title{border-radius: 3px 3px 0 0;}
 .artDialog.dialog-simple.dplayer-dialog .aui-outer{overflow: visible;}
 .dplayer-controller .dplayer-icons.dplayer-comment-box .dplayer-comment-setting-box label {

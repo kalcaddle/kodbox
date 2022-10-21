@@ -69,6 +69,14 @@ define(function(require, exports){
 			return arguments;
 		});
 		
+		// 速度切换状态标记;
+		$target.find('.dplayer-setting-speed-item[data-speed="1"]').addClass('selected');
+		functionHook(player,'speed',function(speed){
+			$target.find('.dplayer-setting-speed-item.selected').removeClass('selected');
+			$target.find('.dplayer-setting-speed-item[data-speed="'+speed+'"]').addClass('selected');
+			return arguments;
+		});
+		
 		if(window.kodApp && kodApp.mediaAutoPlay === false){player.pause();}
 		if(window.kodApp && kodApp.videoLoadSmall){
 			$target.find('.dplayer-quality').hide();
