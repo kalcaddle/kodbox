@@ -55,7 +55,7 @@ kodReady.push(function(){
 					delay = setTimeout(request,timeout);return;
 				}
 				if(runInfo.status == status.STATUS_IGNORE){runInfo.msg = '';}
-				tips(runInfo.msg);
+				tips(runInfo.msg,runInfo);
 				success(false);
 			}});
 		};
@@ -68,7 +68,7 @@ kodReady.push(function(){
 		kodApp.bind('vedioOnClose',onClose);
 		
 		var $progress = false;
-		var tips = function(message){
+		var tips = function(message,runInfo){
 			if($progress){
 				$progress.hide().fadeOut(200,function(){
 					$progress.remove();$progress = false;
@@ -76,10 +76,15 @@ kodReady.push(function(){
 				onClose();
 			}
 			if(!message) return;
+			
+			var tipsTime = 2500;
 			var $tips = $('<div class="video-show-tips"></div>').insertAfter($target);
-			$tips.html(message).hide().fadeIn(300).delay(2500).fadeOut(300,function(){
-				$tips.remove();
-			});
+			if(runInfo && runInfo.status == status.STATUS_ERROR){
+				$tips.css({'background':'rgb(255,100,100,0.5)'});
+				tipsTime = 6000;console.warn(message);
+			}
+			$tips.html(message).hide().fadeIn(300);
+			$tips.delay(tipsTime).fadeOut(300,function(){$tips.remove();});
 		};
 		var tipsProgress = function(title,info){
 			if(!$progress){

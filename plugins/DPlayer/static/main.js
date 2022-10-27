@@ -7,7 +7,7 @@ kodReady.push(function(){
 			sort:"{{config.fileSort}}",
 			icon:'{{pluginHost}}static/images/icon.png',
 			callback:function(path,ext,name){
-				var vedio = {
+				var video = {
 					url:core.path2url(path,true),
 					name:name,
 					path:path,
@@ -16,7 +16,7 @@ kodReady.push(function(){
 				};
 				var appStatic = "{{pluginHost}}static/";
 				requireAsync(appStatic+'page.js'+"?v={{package.version}}",function(play){
-					play(appStatic,vedio);
+					play(appStatic,video);
 				});
 			}
 		});

@@ -10,6 +10,14 @@
  * 播放处理: 开启了转码时,播放时请求该文件标清视频(已完成返回标清视频链接;首次触发转码;进行中则获取进度;任务繁忙情况);
  * 
  * test: http://127.0.0.1/kod/kodbox/?plugin/fileThumb/videoSmall&path={source:3801668}
+ * 视频压制ffmpeg参数: https://www.bilibili.com/read/cv5804639/
+ * ffmpeg参数说明: https://github.com/fujiawei-dev/ffmpeg-generator/blob/master/docs/vfilters.md
+ * 部分服务器处理视频转码绿色条纹花屏问题(兼容处理)
+ * 		图片缩放指定转码算法 -sws_flags, 默认为bilinear, ok=accurate_rnd,neighbor,bitexact(neighbor会有锯齿)
+ * 		https://www.sohu.com/a/551562728_121066035 
+ * 		https://www.cnblogs.com/acloud/archive/2011/10/29/sws_scale.html
+ * 		https://github.com/hemanthm/ffmpeg-soc/blob/376d5c5f13/libswscale/options.c
+ * 		https://blog.csdn.net/Randy009/article/details/51523331
  */
 class videoResize {
 	const STATUS_SUCCESS	= 2;	//成功;
@@ -35,7 +43,6 @@ class videoResize {
 				$result['msg']  = LNG('fileThumb.video.STATUS_SUCCESS');
 				$result['data'] = $plugin->pluginApi.'videoSmall&play=1&path='.rawurlencode($path);
 				$result['data'] = Action('explorer.share')->link($sourcePath);
-				
 				$result['size'] = array(
 					'before'	=> size_format($fileInfo['size']),
 					'now'		=> size_format(IO::size($sourcePath)),
@@ -43,7 +50,7 @@ class videoResize {
 				// if($_GET['play'] == '1'){IO::fileOut($sourcePath);exit;}
 				break;
 			case self::STATUS_IGNORE:$result['msg'] = LNG('fileThumb.video.STATUS_IGNORE');break;
-			case self::STATUS_ERROR:$result['msg'] = LNG('fileThumb.video.STATUS_ERROR');break;
+			case self::STATUS_ERROR:$result['msg'] = $this->convertError($taskID);break;
 			case self::STATUS_RUNNING:
 				$result['msg']  = LNG('fileThumb.video.STATUS_RUNNING');
 				$result['data'] = Task::get($taskID);
@@ -72,19 +79,29 @@ class videoResize {
 		$config 	= $plugin->getConfig('fileThumb');
 		$isVideo   	= in_array($fileInfo['ext'],explode(',',$config['videoConvertType']));
 		$fileSizeMax = floatval($config['videoConvertLimitTo']); //GB; 为0则不限制
+		$fileSizeMin = floatval($config['videoConvertLimit']); //GB; 为0则不限制
 		if(IO::fileNameExist($cachePath, $tempFileName)){return self::STATUS_SUCCESS;}
+		
+		$pathDisplay = isset($fileInfo['pathDisplay']) ? $fileInfo['pathDisplay'] : $fileInfo['path'];
 		if( !$isVideo || 
 		    !is_array($fileInfo['fileInfoMore']) ||
 			!isset($fileInfo['fileInfoMore']['playtime']) ||
-			strstr($fileInfo['pathDisplay'],'/systemPath/systemTemp/plugin/fileThumb/') ||
+			strstr($pathDisplay,'/systemPath/systemTemp/plugin/fileThumb/') ||
+			strstr($pathDisplay,'/tmp/fileThumb') ||
+			strstr($pathDisplay,TEMP_FILES) ||
 			($fileSizeMax > 0.01 && $fileInfo['size'] > 1024 * 1024 * 1024 * $fileSizeMax) ||
-			$fileInfo['size'] < 1024 * 1024 * intval($config['videoConvertLimit']) ){
+			($fileSizeMin > 0.01 &  $fileInfo['size'] < 1024 * 1024 * $fileSizeMin) ){
 			return self::STATUS_IGNORE;
 		}
 		
 		$command = $plugin->getFFmpeg();
 		if(!$command || !function_exists('proc_open') || !function_exists('shell_exec')){
+			$this->convertError($taskID,LNG('fileThumb.video.STATUS_ERROR').'(3501)');
 			return self::STATUS_ERROR;//Ffmpeg 软件未找到，请安装后再试
+		}
+		if(!$this->convertSupport($command)){
+			$this->convertError($taskID,'ffmpeg not support libx264; please repeat install'.'(3502)');
+			return self::STATUS_ERROR;//Ffmpeg 转码解码器不支持;
 		}
 		
 		// 过短的视频封面图,不指定时间;
@@ -92,6 +109,7 @@ class videoResize {
 		if(Cache::get($taskID) == 'error'){return self::STATUS_ERROR;}; //是否已经转码
 		if( !$localFile ){
 			Cache::set($taskID,'error',60);
+			$this->convertError($taskID,'localFile move error!'.'(3503)');
 			return self::STATUS_IGNORE;
 		}
 		
@@ -110,7 +128,7 @@ class videoResize {
 		
 		// https://www.ruanyifeng.com/blog/2020/01/ffmpeg.html
 		ignore_timeout();
-		$quality 	= 'scale=-2:480 -b:v 1024k';//480:-2 -2:480 限制码率
+		$quality 	= 'scale=-2:480 -b:v 1000k -maxrate 1000k -sws_flags accurate_rnd';//480:-2 -2:480 限制码率; 缩放图片处理
 		$timeStart 	= time();// 画质/速度: medium/ultrafast/fast
 		$logFile 	= $tempPath.'.log';@unlink($logFile);//-vf scale=480:-2 -b:v 1024k -maxrate 1000k -threads 2
 		$args 		= '-c:a copy -preset medium -vf '.$quality.' -c:v libx264 1>'.$logFile.' 2>&1';
@@ -137,7 +155,8 @@ class videoResize {
 		$logFile = $tempPath.'.log';// 5s没有更新则结束;
 		usleep(300*1000);// 运行后,等待一段时间再读取信息;
 		
-		$pid  = $this->processFind(get_path_this($tempPath));
+		$tempName = get_path_this($tempPath);
+		$pid  = $this->processFind($tempName);
 		$data = $this->progressGet($logFile);
 		$args = array($tempPath,$fileInfo,$cachePath,$timeStart,$pid);
 		$task = new TaskConvert($fileInfo['taskID'],'videoResize',$data['total'],LNG("fileThumb.video.title"));
@@ -150,8 +169,9 @@ class videoResize {
 			$data = $this->progressGet($logFile);clearstatcache();
 			if($data['total'] && $data['finished'] == $data['total']){break;}
 			if(time() - @filemtime($logFile) >= 5){break;}
+			if(!$this->processFind($tempName)){break;} //进程已不存在; 转码报错或者意外终止或者其他情况的进程终止;
 
-			$task->task['taskFinished'] = number_format($data['finished'],2);
+			$task->task['taskFinished'] = round($data['finished'],3);
 			$task->update(0);
 			$this->log(sprintf('%.1f',$data['finished'] * 100 / $data['total']).'%',true);
 			Cache::set($fileInfo['taskID'],'running',60);
@@ -185,24 +205,47 @@ class videoResize {
 	}	
 	
 	public function convertFinished($tempPath,$fileInfo,$cachePath,$timeStart,$pid){
-		$logFile = $tempPath.'.log';
-		$data = $this->progressGet($logFile);
+		$logFile 	= $tempPath.'.log';
+		$data 		= $this->progressGet($logFile);
+		$output 	= @file_get_contents($logFile);
 		@unlink($logFile);
 		$this->processKill($pid);
 		$this->convertClear($fileInfo['taskID']);
-		if($data['total'] && $data['total'] == $data['finished'] && file_exists($tempPath)){
+		
+		$runError  = true;
+		$errorTips = 'Run error!';
+		if( preg_match("/(Error .*)/",$output,$match) || 
+			preg_match("/(Unknown encoder .*)/",$output,$match) ||
+			preg_match("/(Invalid data found .*)/",$output,$match) ||
+			preg_match("/(No device available .*)/",$output,$match)
+		){
+			$errorTips = '[ffmpeg error] '.$match[0].';<br/>see log[data/temp/log/videoconvert/xx.log]';
+		}
+		if( preg_match("/frame=\s+(\d+)/",$output,$match)){
+			$errorTips = 'Stoped!';
+			$runError  = false;
+		}
+		$logEnd  = "";
+		$logTime = 'time='.(time() - $timeStart);	
+		if($data['total'] && intval($data['total']) == intval($data['finished']) && file_exists($tempPath)){
+			$runError = true;
 			$destPath = IO::move($tempPath,$cachePath);
 			$checkStr = IO::fileSubstr($destPath,0,10);
 			if($checkStr && strlen($checkStr) == 10){
-				$this->log('[end] '.$fileInfo['name'].'; finished; time='.(time() - $timeStart));
+				$this->log('[end] '.$fileInfo['name'].'; finished Success; '.$logTime.$logEnd);
 				return;
 			}
-			$this->log('[end] '.$fileInfo['name'].'; move error; time='.(time() - $timeStart));
 			IO::remove($destPath,false);
+			$this->log('[end] '.$fileInfo['name'].'; move error; '.$logTime.$logEnd);
+			$errorTips = 'Move temp file error!';
 		}
+		
 		@unlink($tempPath);
 		Cache::set($fileInfo['taskID'],'error',5);
-		$this->log('[end] '.$fileInfo['name'].'; killed; time='.(time() - $timeStart));
+		$this->convertError($fileInfo['taskID'],$errorTips);
+		$logAdd = $runError ? "\n".trim($output) : '';
+		$this->log('[end] '.$fileInfo['name'].';'.$errorTips.'; '.$logTime.$logAdd.$logEnd);
+		// $this->log('[end] '.$output);
 	}
 	
 	public function convertAdd($taskID){
@@ -235,6 +278,7 @@ class videoResize {
 		foreach ($taskList as $taskID=>$key){
 			Task::kill($taskID);
 			Cache::remove($taskID);
+			$this->convertError($taskID,-1);
 		}
 		Cache::remove('fileThumb-videoResizeList');
 		Cache::remove('fileThumb-videoResizeCount');
@@ -246,6 +290,17 @@ class videoResize {
 			if(!$pid){break;}
 			$count ++;
 		}
+	}
+	private function convertError($taskID,$content=""){
+		$key = 'fileThumb-videoResizeError-'.$taskID;
+		if($content === -1){return Cache::remove($key);}
+		if(!$content){return Cache::get($key);}
+		Cache::set($key,$content,600);
+	}
+	private function convertSupport($ffmpeg){
+		$out = shell_exec($ffmpeg.' -v 2>&1');
+		if(!strstr($out,'--enable-libx264')){return false;}
+		return true;
 	}
 	
 	// 通过命令行及参数查找到进程pid; 兼容Linux,window,mac
@@ -275,6 +330,7 @@ class videoResize {
 	
 	
 
+	// ================================== 生成视频预览图 ==================================
 	// 生成视频预览图; 平均截取300张图(小于30s的视频不截取)
 	public function videoPreview($plugin){
 		$pickCount = 300;// 总共截取图片数(平均时间内截取)
@@ -304,7 +360,8 @@ class videoResize {
 		$sizeW = 150;
 		$tile  = '10x'.ceil($pickCount / 10).''; 
 		$scale = 'scale='.$sizeW.':-2'; //,pad='.$sizeW.':'.$sizeH.':-1:-1 -q:v 1~5 ;质量从最好到最差;
-		$cmd = 'ffmpeg -y -i "'.$localFile.'" -vf "fps='.$fps.','.$scale.',tile='.$tile.'" -q:v 4 -an "'.$tempPath.'"';
+		$args  = '-sws_flags accurate_rnd -q:v 4 -an'; //更多参数; 设置图片缩放算法(不设置缩小时可能产生绿色条纹花屏);
+		$cmd = 'ffmpeg -y -i "'.$localFile.'" -vf "fps='.$fps.','.$scale.',tile='.$tile.'" '.$args.' "'.$tempPath.'"';
 		$this->log('[videoPreview start] '.$fileInfo['name'].';size='.size_format($fileInfo['size']),0,0);$timeStart = timeFloat();
 		$this->log('[videoPreview run] '.$cmd,0,0);
 		@shell_exec($cmd);//pr($cmd);exit;

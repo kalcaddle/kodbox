@@ -131,7 +131,7 @@ $config['cache'] = array(
 	'sessionType'	=> 'file',	//缓存方式 database/file/redis/memcached
 	'sessionTime'	=> 3600*4,	//session失效时间 
     'cacheType'		=> 'file',	//缓存方式 database/file/redis/memcached
-	'lockTimeout'	=> 15,		//并发锁获取超时时间 15s;
+	'lockTimeout'	=> 20,		//并发锁获取超时时间 20s;
 	'cacheTime'		=> 3600*5,	//缓存默认时间;
 	    
     'file'	=> array('path' => TEMP_PATH.'_cache/'),

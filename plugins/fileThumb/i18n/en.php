@@ -22,7 +22,7 @@ return array(
 	'fileThumb.config.videoSizeLimitTo'		=> 'Maximum transcoding file',
 	'fileThumb.config.videoSizeLimitToDesc'	=> 'This value of the file will not be transcoded. If it is 0, there is no restriction',
 	'fileThumb.config.videoTaskLimit'		=> 'Concurrency limit',
-	'fileThumb.config.videoTaskLimitdesc'	=> 'Maximum number of transcoding tasks allowed at the same time',
+	'fileThumb.config.videoTaskLimitDesc'	=> 'Maximum number of transcoding tasks allowed at the same time',
 	'fileThumb.config.videoTypeLimit'		=> 'File format',
 	'fileThumb.config.videoTypeLimitDesc'	=> 'Transcoding only when the file format is specified',
 	'fileThumb.config.playType'				=> 'Default quality',

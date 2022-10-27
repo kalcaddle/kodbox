@@ -1,6 +1,6 @@
 define(function(require, exports){
-	var playStart = function(vedioInfo){
-		var $target = createDialog(vedioInfo.name);
+	var playStart = function(videoInfo){
+		var $target = createDialog(videoInfo.name);
 		var typeArr = {
 			'f4v' : 'flv',
 			'f4a' : 'flv',
@@ -8,7 +8,7 @@ define(function(require, exports){
 			'aac' : 'mp3',
 			'ogg' : 'oga',
 		};
-		var type = typeArr[vedioInfo.ext] || vedioInfo.ext;
+		var type = typeArr[videoInfo.ext] || videoInfo.ext;
 		var playerOption = {
 			container:$target.get(0),
 			preload: 'none',
@@ -17,7 +17,8 @@ define(function(require, exports){
 			autoplay:true,
 			lang: 'zh-cn',
 			//flv仅支持 H.264+AAC编码 https://github.com/Bilibili/flv.js/issues/47
-			video: {url:vedioInfo.url,type:type},
+			video: {url:videoInfo.url,type:type},
+			videoPath:videoInfo.path,
 			airplay:true,
 			chromecast:false,
 			mutex:false, //是否互斥, true=同时只播放一个视频
@@ -36,16 +37,16 @@ define(function(require, exports){
 				}
 			]
 		};
-		loadSubtitle(playerOption,vedioInfo);
+		loadSubtitle(playerOption,videoInfo);
 		
 		if(window.kodApp && kodApp.videoLoadSmall){
 			playerOption.video = {
 				quality: [
-					{url:vedioInfo.url,type:'mp4',name:LNG['fileThumb.video.normal']},
-					{url:vedioInfo.url,type:type,name:LNG['fileThumb.video.before']},
+					{url:videoInfo.url,type:'mp4',name:LNG['fileThumb.video.normal']},
+					{url:videoInfo.url,type:type,name:LNG['fileThumb.video.before']},
 				],
 				defaultQuality: 1,
-				thumbnails:API_HOST+'plugin/fileThumb/videoPreview&path='+urlEncode(vedioInfo.path),
+				thumbnails:API_HOST+'plugin/fileThumb/videoPreview&path='+urlEncode(videoInfo.path),
 			};
 		};
 		if(window.G && window.G.lang && G.lang.indexOf('zh') == -1){playerOption.lang = 'en';}
@@ -77,10 +78,19 @@ define(function(require, exports){
 			return arguments;
 		});
 		
+		// 拖动进度条过程中,一直显示时间及预览图(不仅限hover在进度条上, 简单处理方式:加大进度条容器高度)
+		$target.find('.dplayer-bar-wrap').bind('mousedown touchstart',function(e){
+			var $bar = $(this);
+			$bar.addClass('on-draging').css({height:$target.height()+'px'});
+			$(document).one('mouseup touchend',function(){
+				$bar.removeClass('on-draging').css({height:''});
+			});
+		});
+		
 		if(window.kodApp && kodApp.mediaAutoPlay === false){player.pause();}
 		if(window.kodApp && kodApp.videoLoadSmall){
 			$target.find('.dplayer-quality').hide();
-			kodApp.videoLoadSmall(vedioInfo.path,kodApp,$target,function(normalSrc,size,autoPlayFast){
+			kodApp.videoLoadSmall(videoInfo.path,kodApp,$target,function(normalSrc,size,autoPlayFast){
 				if(!normalSrc){return;}
 				// console.error(111,arguments);
 				$target.find('.dplayer-quality-item[data-index="0"]').attr('title',size.now);
@@ -133,6 +143,9 @@ define(function(require, exports){
 					style.left		= Math.min(Math.max(offsetX - this.container.offsetWidth / 2, -10), this.barWidth - 150) + 'px',
 					style.top		= parseInt(-imageHeight + 2 - 0.5*(previewWidth - imageHeight)) + 'px';
 					style.transform = 'rotate(90deg)';
+					if($target.find('.dplayer-bar-wrap').hasClass('on-draging')){//拖拽时处理;
+						style['margin-bottom'] = 0.5 * (previewWidth - imageHeight) + 'px';
+					}
 				}
 				
 				$(this.container).css(style);
@@ -225,6 +238,7 @@ define(function(require, exports){
 			},350); //尺寸调整动画完成后处理;
 		}
 		return function(){
+			playHistoryKeep(player,false); // 首次加载-定位到上次播放位置
 			thumbDirection($player,player);
 			resetSize(true);
 		};
@@ -253,14 +267,51 @@ define(function(require, exports){
 		});
 	}
 	
-	
-	var loadSubtitle = function(playerOption,vedioInfo){
-		var pathModel = _.get(window,'kodApp.pathAction.pathModel');
-		// console.log(101,vedioInfo,pathModel);
-		if(vedioInfo.autoSubtitle != '1' || !pathModel) return;
+	// 关闭时记录播放位置; 或首次载入时自动跳转到上次播放位置;
+	var playHistoryKeep = function(player,isSave){
+		var videoPath = player.options.videoPath || '';
+		if(!videoPath || !player.video || !player.video.duration) return;
+		if(isSave){
+			var totalTime = parseInt(player.video.duration);
+			var setTime   = parseInt(player.video.currentTime);
+			setTime = (setTime <= 5 || setTime > (totalTime - 5) ) ? 0 : setTime;
+			// console.log('playSave:',setTime);
+			return storeList(videoPath,setTime);
+		}
 		
-		var fileName = vedioInfo.name+'.vtt'
-		var subtitle = pathModel.fileOutBy(vedioInfo.path,fileName);
+		// 播放上次关闭时的进度;
+		var setTime = storeList(videoPath,false);
+		if(!setTime || player.playHistoryKeepFinished) return;
+		player.playHistoryKeepFinished = true;
+		player.seek(setTime);
+		// console.log('playSeek:',setTime);
+		setTimeout(function(){player.notice(timeShow(setTime));},300);
+	}
+	
+	// 播放进度记录或获取; setTime=false时为取出进度; setTime为0则删除该条数据,大于0则保存进度;
+	var storeList = function(videoPath,setTime){
+		var storeKey  = 'dPlayerPlayList',maxNumber = 100;
+		var listData  = LocalData.getConfig(storeKey,[]);
+		var theItem   = _.find(listData,{path:videoPath});
+		if(setTime === false){return theItem ? theItem.time : false;} // 获取;
+		
+		// 记录;已存在则先删除该项,再添加到最后;
+		if(theItem){ _.remove(listData,theItem);}
+		if(listData.length >= maxNumber){
+			listData = listData.slice(listData.length - maxNumber + 1);
+		}
+		if(setTime && setTime > 0){listData.push({path:videoPath,time:setTime});}
+		LocalData.setConfig(storeKey,listData);
+		// console.error('storeList:',listData);
+	};
+	
+	var loadSubtitle = function(playerOption,videoInfo){
+		var pathModel = _.get(window,'kodApp.pathAction.pathModel');
+		// console.log(101,videoInfo,pathModel);
+		if(videoInfo.autoSubtitle != '1' || !pathModel) return;
+		
+		var fileName = videoInfo.name+'.vtt'
+		var subtitle = pathModel.fileOutBy(videoInfo.path,fileName);
 		playerOption.subtitle = {
 			url: subtitle,
 			type: 'webvtt',
@@ -287,7 +338,10 @@ define(function(require, exports){
 			fixed:true,
 			close:function(){
 				var player = dialog.DOM.wrap.find(".Dplayer").data('dplayer');
-				if(player){videoDestory(player.video,player);player.destroy();}
+				if(player){
+					playHistoryKeep(player,true);
+					videoDestory(player.video,player);player.destroy();
+				}
 				if(window.kodApp){kodApp.trigger('vedioOnClose');}
 			}
 		});
@@ -296,32 +350,32 @@ define(function(require, exports){
 	}
 	
 	// 磁力链接支持播放
-	var playVedioStart = function(vedioInfo){
-		if(vedioInfo.ext != 'magnet'){
-			return playStart(vedioInfo);;
+	var playVedioStart = function(videoInfo){
+		if(videoInfo.ext != 'magnet'){
+			return playStart(videoInfo);;
 		}
 		// 磁力链接支持播放; magnet文件扩展名; 内容为磁力链接url;
-		$.get(vedioInfo.url,function(data){
+		$.get(videoInfo.url,function(data){
 			if(data && _.startsWith(data,'magnet:')){
-				vedioInfo.url = data;
-				vedioInfo.ext = 'webtorrent';
-				playStart(vedioInfo);
+				videoInfo.url = data;
+				videoInfo.ext = 'webtorrent';
+				playStart(videoInfo);
 			}
 		});
 	}
 
-	var playReady = function(appStatic,vedioInfo){
+	var playReady = function(appStatic,videoInfo){
 		var tips = Tips.loadingMask();
 		requireAsync([
 			appStatic+'DPlayer/lib/flv.min.js',
 			appStatic+'DPlayer/lib/hls.min.js',
 			appStatic+'DPlayer/lib/webtorrent.min.js',
 			appStatic+'DPlayer/lib/dash.all.min.js',
-			appStatic+'DPlayer/DPlayer.min.css',
+			appStatic+'DPlayer/DPlayer.min.css?v=1.39',
 			appStatic+'DPlayer/DPlayer.min.js',
 		],function(){
 			tips.close();
-			playVedioStart(vedioInfo);
+			playVedioStart(videoInfo);
 		});
 	}
 	return playReady;

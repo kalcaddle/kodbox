@@ -55,7 +55,7 @@ class fileThumbPlugin extends PluginBase{
                 $message .= "$ffmpeg ffmpeg".LNG('fileThumb.check.error').";<br/>";
             }
             if($ffmpeg && !$ffmpegSupport){
-                $message .= 'ffmpeg not support muxer:image2; please install again!';
+                $message .= 'ffmpeg not support muxer:image2 or libx264; please install again!';
             }
             show_json($message,$result);
 		}

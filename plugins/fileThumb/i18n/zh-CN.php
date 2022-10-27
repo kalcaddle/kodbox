@@ -23,7 +23,7 @@ return array(
 	'fileThumb.config.videoSizeLimitTo'		=> '最大转码文件',
 	'fileThumb.config.videoSizeLimitToDesc'	=> '大于此值不进行转码,为0则不限制',
 	'fileThumb.config.videoTaskLimit'		=> '并发限制',
-	'fileThumb.config.videoTaskLimitdesc'	=> '最大允许同时进行转码的任务数',
+	'fileThumb.config.videoTaskLimitDesc'	=> '最大允许同时进行转码的任务数',
 	'fileThumb.config.videoTypeLimit'		=> '文件格式',
 	'fileThumb.config.videoTypeLimitDesc'	=> '指定文件格式才转码',
 	'fileThumb.config.videoTypeLimitDesc'	=> '指定文件格式才转码',

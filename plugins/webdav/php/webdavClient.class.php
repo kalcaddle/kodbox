@@ -21,7 +21,11 @@ class webdavClient {
 	
 	public function check(){
 		$data = $this->propfind('/');
-		$data['status'] = array_key_exists('response',$data['data']);
+		if(is_array($data['data'])){
+			$data['status'] = array_key_exists('response',$data['data']);
+		}else{
+			$data['status'] = false;
+		}
 		
 		// 不同CURLOPT_HTTPAUTH 账号密码加解密处理; CURLAUTH_DIGEST
 		$authHeader = _get($data,'header.WWW-Authenticate');$authCheck  = 'Digest';
@@ -30,7 +34,11 @@ class webdavClient {
 			$this->options['authType'] = 'Digest';
 			$data = $this->propfind('/');
 			
-			$data['status'] = array_key_exists('response',$data['data']);
+			if(is_array($data['data'])){
+				$data['status'] = array_key_exists('response',$data['data']);
+			}else{
+				$data['status'] = false;
+			}
 			$GLOBALS['in']['config'] = json_encode($this->options,true);
 		}
 
