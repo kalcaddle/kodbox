@@ -68,7 +68,7 @@ class explorerIndex extends Controller{
 	
 	public function desktopApp(){
 		$desktopApps = include(BASIC_PATH.'data/system/desktop_app.php');
-		$desktopApps['myComputer']['value'] = MY_HOME;
+		$desktopApps['myComputer']['value'] = MY_HOME;// {source:home} 不指定打开文件夹,打开最后所在文件夹;
 		foreach ($desktopApps as $key => &$item) {
 			if($item['menuType'] == 'menu-default-open'){
 				$item['menuType'] = 'menu-default';

@@ -47,7 +47,16 @@ class fileThumbPlugin extends PluginBase{
             $ffmpegSupport = $ffmpeg ? $this->ffmpegSupportCheck($ffmpeg) : false;
             $result  = $convert && $ffmpeg && $ffmpegSupport;
             if($ffmpeg && !$this->ffmpegSupportCheck($ffmpeg)){$result = false;}
-            $message = $result ? 'ok;': LNG('fileThumb.check.faild').':<br/>';
+            $message = $result ? 'ok;': LNG('fileThumb.check.faild').'<br/>';
+			if(!$result){
+				$error = '';
+				$check = array('shell_exec','proc_open','proc_close','exec');
+				foreach ($check as $method) {
+					if(!function_exists($method)){$error .= $method .' ';}
+				}
+				if($error){$message = $message.'['.trim($error).'] is disabled(please allow it)<br/>';}
+			}
+			
             if(!$convert){
                 $message .= "$convert convert ".LNG('fileThumb.check.error').";<br/>";
             }
@@ -155,8 +164,13 @@ class fileThumbPlugin extends PluginBase{
 	
 	// 获取文件 hash
 	public function localFile($path){
+		$io = IO::init($path);
 		$pathParse = KodIO::parse($path);
 		if(!$pathParse['type']) return $path;
+		if(is_array($io->pathParse) && isset($io->pathParse['truePath'])){ //协作分享处理;
+			if(file_exists($io->pathParse['truePath'])) return $io->pathParse['truePath'];
+			return false;
+		}
 		
 		$fileInfo = IO::info($path);
 		if($fileInfo['fileID']){

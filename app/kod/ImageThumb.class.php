@@ -42,6 +42,7 @@ class ImageThumb {
 		// if(!Cache::get('fileThumb.getConvert')){};// 使用fileThumb插件转换; 
 		// 速度对比 2000x2000=>300x300  gd:220ms; imagemagick:360ms; new Imagick: 280ms;
 		$cm = new ImageThumb($from,'file');
+		if(!$cm) return;
 		$cm->prorate($to,$width,$height);
 	}
 	

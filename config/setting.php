@@ -302,7 +302,7 @@ $config['settingDefault'] = array(
 	'soundOpen'			=> "0",			// 操作音效
 	'theme'				=> "auto",		// 'light','dark-mode','auto'
 	'themeImage' 		=> "",			// url/wallpage/css
-	'wall'				=> "8",			// wall picture
+	'wall'				=> "4",			// wall picture
 	'listTypeKeep'		=> '1',			// 1|0, 为每个文件夹选择视图模式，或对所有文件夹使用相同的视图模式
 	'listSortKeep'		=> '1',			// 1|0, 为每个文件夹配置列排序顺序，或对所有文件夹使用相同的顺序
 	
