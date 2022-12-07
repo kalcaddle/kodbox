@@ -250,14 +250,10 @@ class oauthBindIndex extends Controller {
 		$userID = $res['info'];
 
 		// 2.更新账户名、密码置为空
-		// Model('User')->startTrans();	// TODO 出现了事务嵌套，原因未知
-		$update = array(
-			'name' 		=> strtoupper($prev) . '1' . str_pad($userID, 8, 0, STR_PAD_LEFT),
-			'password'	=> ''
-		);
+		$update = array('name' => strtoupper($prev) . '1' . str_pad($userID, 8, 0, STR_PAD_LEFT));
+		Model('User')->where(array("userID"=>$userID))->save(array('password'=>''));// 密码置空
 		Model('User')->userEdit($userID, $update);
 		Model('User')->metaSet($userID, 'passwordSalt','');
-		// Model('User')->commit();
 
 		// 3.写入用户meta信息
 		if (!$this->bindSave($data, $userID)) {

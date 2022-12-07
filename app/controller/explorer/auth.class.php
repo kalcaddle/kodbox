@@ -73,8 +73,21 @@ class explorerAuth extends Controller {
 				$this->checkAuthArray('edit');
 				break;
 			case 'explorer.index.pathcopyto':
-				$this->checkAuthArray('download');
-				$this->canRead($this->in['path']);
+				$data = json_decode($this->in['dataArr'],true);
+				if(!is_array($data)){
+					return $this->errorMsg('param error:dataArr!');
+				}
+				
+				// $this->checkAuthArray('download');
+				// 来源文档权限检测: 有编辑权限或者下载权限;
+				$this->isShowError = false;$errorNum = 0;
+				foreach ($data as $item) {
+					$result = $this->can($item['path'],'download') || $this->can($item['path'],'remove');
+					$errorNum = $result ? $errorNum: ($errorNum+1);
+				}
+				$this->isShowError = true;
+				if($errorNum){$this->errorMsg($this->lastError ? $this->lastError : LNG('explorer.noPermissionAction'),1007);}
+				$this->canWrite($this->in['path']);
 				break;
 			case 'explorer.index.pathcuteto':
 				$this->checkAuthArray('edit');
@@ -94,7 +107,7 @@ class explorerAuth extends Controller {
 					$this->isShowError = true;
 					if($errorNum == count($authTypeArr)){
 						$msg = $this->lastError ? $this->lastError : LNG('explorer.noPermissionAction');
-						$this->errorMsg($msg,1005);
+						$this->errorMsg($msg,1007);
 					}
 				}
 				break;

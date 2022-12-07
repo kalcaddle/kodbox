@@ -269,6 +269,11 @@ $config['settingSystemDefault'] = array(
 	'emailType'			=> "0",			// 邮件方式
 	'email'				=> "",			// 自定义邮箱服务器配置信息
 	
+	'sourceSecret'			=> '0',
+	'sourceSecretSetUser'	=> '',
+	'sourceSecretMaxID'		=> '0',
+	'sourceSecretList'		=> '[{"id":"","title":"A-绝密","style":"#E64A19","auth":""},{"id":"","title":"B-机密","style":"#FF5722","auth":""},{"id":"","title":"C-秘密","style":"#E57754","auth":""}]',
+	
 	'regist'			=> array(			// 用户注册
 		"openRegist"		=> "0",			// 开放注册
 		"checkRegist" 		=> "0",			// 注册审核
@@ -340,8 +345,8 @@ $config['editorDefault'] = array(
 $config['settings']['sourceMeta'] = array(
 	'configItem'	=> array(
 		'defaultShow'	=> 'user_sourceAlias', 					 					 //默认显示的key;
-		'fileAllow'		=> 'user_sourceAlias,user_fileEncodeType,user_sourceNumber,user_sourceParticipant', //文件支持的key
-		'folderAllow'	=> 'user_sourceAlias,user_fileEncodeType,user_sourceParticipant',					 //文件夹支持的key
+		'fileAllow'		=> 'user_sourceAlias,user_sourceNumber,user_sourceParticipant', //文件支持的key
+		'folderAllow'	=> 'user_sourceAlias,user_sourceParticipant',					 //文件夹支持的key
 	),
 	'user_sourceAlias' => array(
 		"type"		=> "fileSelect",
@@ -355,17 +360,6 @@ $config['settings']['sourceMeta'] = array(
 			"valueShowKey"	=> 'name',		// 显示名称;
 			"title"		=> "关联文件(附件)", // 对话框标题;		
 			"authCheck"	=> "read",			// read,write或空;默认为可写入;
-		),
-	),
-	'user_fileEncodeType' => array(
-		"type"		=> "select",
-		"value"		=> "",
-		"display" 	=> "文件密级",
-		"info"		=> array(
-			""  => '---',
-			"A"	=> "A-绝密",
-			"B"	=> "B-机密",
-			"C"	=> "C-秘密",
 		),
 	),
 	//扩展;

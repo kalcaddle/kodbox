@@ -2022,7 +2022,7 @@ class getID3
 				}
 				break;
 		}
-		$BitrateUncompressed = $this->info['video']['resolution_x'] * $this->info['video']['resolution_y'] * $this->info['video']['bits_per_sample'] * $FrameRate;
+		$BitrateUncompressed = intval($this->info['video']['resolution_x']) * intval($this->info['video']['resolution_y']) * intval($this->info['video']['bits_per_sample']) * intval($FrameRate);
 
 		$this->info['video']['compression_ratio'] = $BitrateCompressed / $BitrateUncompressed;
 		return true;

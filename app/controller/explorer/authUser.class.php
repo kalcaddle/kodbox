@@ -57,6 +57,12 @@ class explorerAuthUser extends Controller {
 		if(!$shareInfo['sourcePath'] && $shareInfo['sourceID'] != '0'){
 			$shareInfo['sourcePath'] = KodIO::make($shareInfo['sourceID']);
 		}
+		
+		// 系统分享;则不检测;
+		$isSystemSource 	= '/systemPath/systemSource/';
+		$pathDisplay 		= _get($shareInfo,'sourceInfo.pathDisplay');
+		$isSystem 			= _get($shareInfo,'sourceInfo.targetType') == 'system';
+		if(substr($pathDisplay,0,strlen($isSystemSource)) == $isSystemSource && $isSystem) return true;
 		return $this->can($shareInfo['sourcePath'],'share',$shareInfo['userID']);
 	}
 	

@@ -692,7 +692,7 @@ function dir_list($path){
  * is_content 表示是否搜索文件内容;默认不搜索
  * is_case  表示区分大小写,默认不区分
  */
-function path_search($path,$search,$is_content=false,$file_ext='',$is_case=false){
+function path_search($path,$search,$is_content=false,$file_ext='',$isCase=false){
 	$result = array();
 	$result['fileList'] = array();
 	$result['folderList'] = array();
@@ -701,7 +701,7 @@ function path_search($path,$search,$is_content=false,$file_ext='',$is_case=false
 	$ext_arr = explode("|",$file_ext);
 	recursion_dir($path,$dirs,$files,-1,0);
 	$strpos = 'stripos';//是否区分大小写
-	if ($is_case) $strpos = 'strpos';
+	if ($isCase) $strpos = 'strpos';
 	$result_num = 0;
 	$result_num_max = 2000;//搜索文件内容，限制最多匹配条数
 	foreach($files as $f){
@@ -719,7 +719,7 @@ function path_search($path,$search,$is_content=false,$file_ext='',$is_case=false
 		//搜索内容则不搜索文件名
 		if ($is_content) {
 			if(!is_text_file($ext)) continue; //在限定中或者不在bin中
-			$search_info = file_search($f,$search,$is_case);
+			$search_info = file_search($f,$search,$isCase);
 			if($search_info !== false){
 				$result_num += count($search_info['searchInfo']);
 				$result['fileList'][] = $search_info;
@@ -747,10 +747,10 @@ function path_search($path,$search,$is_content=false,$file_ext='',$is_case=false
 }
 
 // 文件搜索；返回行及关键词附近行
-function file_search($path,$search,$is_case){
+function file_search($path,$search,$isCase){
 	if(@filesize($path) >= 1024*1024*20) return false;
 	$content = file_get_contents($path);
-	$result  = content_search($content,$search,$is_case);
+	$result  = content_search($content,$search,$isCase);
 	unset($content);
 	if(!$result) return false;
 
@@ -760,11 +760,11 @@ function file_search($path,$search,$is_case){
 }
 
 // 文本搜索；返回行及关键词附近行
-function content_search(&$content,$search,$is_case,$max_count=1000,$is_utf8=false){
+function content_search(&$content,$search,$isCase,$maxCount=1000,$isUtf8=false){
 	$strpos = 'stripos';//是否区分大小写
-	if( $is_case) $strpos = 'strpos';
+	if( $isCase) $strpos = 'strpos';
 	if( $strpos($content,"\0") > 0 ){return false;}// 不是文本文档
-	if(!$is_utf8){
+	if(!$isUtf8){
 		//搜索关键字为纯英文则直接搜索；含有中文则转为utf8再搜索，为兼容其他文件编码格式
 		$charset  = get_charset($content);
 		$notAscii = preg_match("/[\x7f-\xff]/", $search);
@@ -776,53 +776,50 @@ function content_search(&$content,$search,$is_case,$max_count=1000,$is_utf8=fals
 	if ($strpos($content,$search) === false) return false;
 	$pose = 0; 
 	$fileSize = strlen($content);
-	$arr_search = array(); // 匹配结果所在位置
+	$arrSearch = array(); // 匹配结果所在位置
 	while ( $pose !== false) {
 		$pose = $strpos($content,$search, $pose);
 		if($pose === false){break;}
-		$arr_search[] = $pose;$pose ++;
-		if(count($arr_search) >= $max_count){break;}
+		$arrSearch[] = $pose;$pose ++;
+		if(count($arrSearch) >= $maxCount){break;}
 	}
 
-	$arr_line = array();
+	$arrLine = array();
 	$pose = 0;
 	while($pose !== false) {
 		$pose = strpos($content, "\n", $pose);
 		if($pose === false){break;}
-		$arr_line[] = $pose;$pose ++;		
+		$arrLine[] = $pose;$pose ++;		
 	}
-	$arr_line[] = $fileSize;//文件只有一行而且没有换行，则构造虚拟换行
+	$arrLine[] = $fileSize;//文件只有一行而且没有换行，则构造虚拟换行
 	$result = array();//  [2,10,22,45,60]  [20,30,40,50,55]
-	$len_search = count($arr_search);
-	$len_line 	= count($arr_line);
-	for ($i=0,$line=0; $i < $len_search && $line < $len_line; $line++) {
-		while ( $arr_search[$i] <= $arr_line[$line]) {
+	$lenSearch = count($arrSearch);
+	$lenLine 	= count($arrLine);
+	for ($i=0,$line=0; $i < $lenSearch && $line < $lenLine; $line++) {
+		while ( $arrSearch[$i] <= $arrLine[$line]) {
 			//行截取字符串
-			$cur_pose = $arr_search[$i];
-			$from = $line == 0 ? 0:$arr_line[$line-1];
-			$to = $arr_line[$line];
-			$len_max = 300;
-			if( $to - $from >= $len_max){ //长度过长处理
-				$from = $cur_pose - 20;
-				$from = $from <= 0 ? 0 : $from;
-				$to   = $from + $len_max;
-				//中文避免截断；（向前 向后找到分隔符后终止）
-				$token = array("\r","\n"," ","\t",",","/","#","_","[","]","(",")","+","-","*","/","=","&");
-				while (!in_array($content[$from],$token) && $from >= 0) {
-					$from -- ;
-				}
-				while (!in_array($content[$to],$token) && $to <= $fileSize) {
-					$to ++ ;
-				}
+			$curPose = $arrSearch[$i];
+			$curMin  = $curPose - 50 <= 0 ? 0 : $curPose - 50;
+			$curMax  = $curPose + 100 >= $fileSize ? $fileSize : $curPose + 100;
+			$from    = $curPose; $to = $curPose + strlen($search);
+			
+			//中文避免截断（向前 向后找到分隔符后终止） //  '，','、',
+			$token = array("\r","\n"," ","\t",",","/","#","_","[","]","+","-","*","/","=","&",'。');
+			while($from > $curMin){
+				$chrFind = false;$strTemp = substr($content,$from,5);
+				foreach($token as $chr){if(strstr($strTemp,$chr)){$chrFind = true;break;} }
+				if($chrFind){$from++;break;}; $from--;
 			}
-			$line_str = substr($content,$from,$to - $from);
-			if($strpos($line_str,$search) === false){ //截取乱码避免
-				$line_str = $search;
+			while($to < $curMax){
+				$chrFind = false;$strTemp = substr($content,$to,5);
+				foreach($token as $chr){if(strstr($strTemp,$chr)){$chrFind = true;break;} }
+				if($chrFind){$to += 5;break;}; $to++;
 			}
-
-			$result[] = array('line'=>$line+1,'str'=>$line_str);
-			if(count($result) >= $max_count) return $result;
-			if(++$i >= $len_search ){break;}
+			// $from = $curMin;$to = $curMax;
+			$lineStr = utf8Repair(substr($content,$from,$to - $from));
+			$result[] = array('line'=>$line+1,'str'=>trim($lineStr),[$curPose,$from,$to]);
+			if(count($result) >= $maxCount) return $result;
+			if(++$i >= $lenSearch ){break;}
 		}
 	}
 	return $result;

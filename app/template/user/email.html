@@ -1,37 +1,42 @@
+<style>
+	.kod-email-content table{border: 1px solid rgba(150,150,150,0.2);border-collapse:collapse;width:100%;}
+	.kod-email-content table thead{background:rgba(150,150,150, 0.1);font-weight:600;}
+	.kod-email-content table td,table th{border: 1px solid rgba(150,150,150,0.4);word-break:break-all;padding: 2px 8px;}
+</style>
 
-<div style="margin:0px; padding:0px; font-size:14px; color:#333; font-family:'宋体',arial,sans-serif;">
-    <center>
-        <div style="margin:10px auto 20px; width:500px; background:#fff; box-shadow:0 0 10px #b1b1b1; text-align:left;">
+<div class="kod-email-content">
+	<div style="margin:10px auto 20px;border-radius:5px;background:#fff; box-shadow:0 0 10px #b1b1b1; text-align:left;">
+		<div style="margin:0 40px; color:#999; border-bottom:1px dotted #DDD; padding:40px 0 30px; font-size:13px; text-align:center;">
+			<a href="https://kodcloud.com/" style="text-decoration:none;display:inline-flex;" one-link-mark="yes">
+				<img src="<?php echo $data['system']['icon']; ?>" alt="KodCloud" style="width:64px;height:64px;">
+				<span style="line-height:24px; margin-left:15px; height:64px; overflow:hidden; text-align:left; max-width: 360px;">
+					<span style="color:#555; font-size:20px; margin-top:12px; display:inline-block;">
+						<?php echo $data['system']['name']; ?></span><br/>
+					<span style="color:#999"><?php echo $data['system']['desc']; ?></span>
+				</span>
+			</a>
+		</div>
+		
+		<div style="padding:30px 40px 40px; min-height:280px;">
+			<p style="margin:0px; margin-bottom:20px;"><?php echo $data['dear']; ?></p>
+			<?php if($data['type'] == 'code') { ?>
+				<p style="margin:0px;"><?php echo $data['text']; ?></p>
+				<p style="margin:0px; text-align:center; margin-top:40px;">
+					<span style="padding:8px 16px;border-radius:3px;text-align:center;text-decoration:none;background-color:#ecf4fb;color:#1890ff;font-size:18px; font-weight:700; letter-spacing:2px; margin:0;white-space:nowrap;display:inline-block;"><?php echo $data['code'];?></span>
+				</p>
+			<?php 
+				} else if ($data['type'] == 'notice') {
+					foreach($data['text'] as $line) {
+						if(strstr($line,'<')){echo $line;continue;}
+						echo '<p style="margin:0px;">'.$line.'</p>';
+					}
+				} 
+			?>
+		</div>
 
-            <div style="margin:0 40px; color:#999; border-bottom:1px dotted #DDD; padding:40px 0 30px; font-size:13px; text-align:center;">
-                <a href="https://kodcloud.com/" style="text-decoration:none;display:inline-flex;" one-link-mark="yes">
-                    <img src="<?php echo $data['system']['icon']; ?>" alt="KodCloud" style="width:64px;height:64px;">
-                    <span style="line-height:24px; margin-left:15px; height:64px; overflow:hidden; text-align:left; max-width: 360px;">
-                        <span style="color:#555; font-size:20px; margin-top:12px; display:inline-block;"><?php echo $data['system']['name']; ?></span><br/>
-                        <span style="color:#999"><?php echo $data['system']['desc']; ?></span>
-                    </span>
-                </a>
-            </div>
-
-            <div style="padding:30px 40px 40px; min-height:280px;">
-                <p style="margin:0px; margin-bottom:20px;"><?php echo $data['dear']; ?></p>
-                <?php if($data['type'] == 'code') { ?>
-                    <p style="margin:0px;"><?php echo $data['text']; ?></p>
-                    <p style="margin:0px; text-align:center; margin-top:40px;">
-                        <span style="padding:8px 16px;border-radius:3px;text-align:center;text-decoration:none;background-color:#ecf4fb;color:#1890ff;font-size:18px; font-weight:700; letter-spacing:2px; margin:0;white-space:nowrap;display:inline-block;"><?php echo $data['code'];?></span>
-                    </p>
-                <?php } else if ($data['type'] == 'notice') { ?>
-                    <?php foreach($data['text'] as $line) { ?>
-                        <p style="margin:0px;"><?php echo $line; ?></p>
-                    <?php } ?>
-                <?php } ?>
-            </div>
-
-            <div style="padding:20px 40px 40px;">
-                <p><?php echo $data['system']['name']; ?></p>
-                <p><?php echo $data['date']; ?></p>
-            </div>
-
-        </div>
-    </center>
+		<div style="padding:20px 40px 40px;">
+			<p><?php echo $data['system']['name']; ?></p>
+			<p><?php echo $data['date']; ?></p>
+		</div>
+	</div>
 </div>

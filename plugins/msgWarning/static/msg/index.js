@@ -6,6 +6,7 @@ ClassBase.define({
     // 显示异常信息
     showTips: function(){
         if ($('.kui-notify .msg-warning-tips').length) return;
+		if (!this.request) return;
         var self = this;
         this.request.requestSend('plugin/msgWarning/message', {}, function(result){
             if (!result || !result.code || _.isString(result.data)) return;

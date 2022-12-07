@@ -77,7 +77,7 @@ kodReady.push(function(){
 		makeQrcode();
 		setTimeout(function(){
 			dialog.$main.find('.disable-event').removeClass('disable-event')
-		},1000);
+		},100);
 		return dialog;
 	}
 		

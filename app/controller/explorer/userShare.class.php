@@ -90,6 +90,7 @@ class explorerUserShare extends Controller{
 				$notExist[] = $shareItem['shareID'];
 				continue;
 			}
+			$info['sharePath'] = KodIO::makeShare($shareItem['shareID'],$info['sourceID']);
 			$info['shareInfo'] = $shareItem;
 			$key = $info['type'] == 'folder' ? 'folderList':'fileList';
 			$this->shareTarget($info,$shareItem);
@@ -346,7 +347,7 @@ class explorerUserShare extends Controller{
 		$userName = $user['nickName'] ? $user['nickName']:$user['name'];
 		$displayUser = '['.$userName.']'.LNG('common.share').'-'.$sourceRoot['name'];
 		if($share['userID'] == USER_ID){
-			$displayUser = '['.LNG('explorer.toolbar.myShare').']-'.$sourceRoot['name'];
+			$displayUser = $sourceRoot['name'];
 			$source['sourceInfo']['selfShareInfo'] = $sourceRoot;
 		}
 		if($sourceRoot['targetType'] == 'group'){

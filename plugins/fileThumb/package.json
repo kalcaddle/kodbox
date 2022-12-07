@@ -2,7 +2,7 @@
 	"id":"fileThumb",
 	"name":"{{LNG['fileThumb.meta.name']}}",
 	"title":"{{LNG['fileThumb.meta.title']}}",
-	"version":"1.83",// 2022.10.31
+	"version":"1.85",// 2022.12.2
 	"category":"file,media",
 	"source":{
 		"icon":"{{pluginHost}}static/icon.png"
@@ -42,6 +42,7 @@
 			"require":1,
 			"desc":"ps,ai,pdf {{LNG['fileThumb.config.use']}}<br/><br/>
 					<button class='btn btn-success check-psd-server mr-10'>{{LNG['fileThumb.config.test']}}</button>
+					<button class='btn btn-default convert-stop-all mr-10'>Stop All</button>
 					<button class='btn btn-link check-psd-help' >{{LNG['fileThumb.config.help']}}</button>"
 		},
 

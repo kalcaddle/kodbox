@@ -241,6 +241,9 @@ class getid3_tiff extends getid3_handler
 			$gps['computed']['altitude'] = $directionMultiplier * $gps['GPSAltitude'];
 		}
 		$exif['GPS']  = $gps;$info['exif'] = $exif;
+		
+		$info['exif']['EXIF'] = is_array($info['exif']['EXIF']) ? $info['exif']['EXIF']:array();
+		$info['exif']['IFD0'] = is_array($info['exif']['IFD0']) ? $info['exif']['IFD0']:array();// php8兼容	
 		$info['exif']['EXIF'] = array_merge($info['exif']['EXIF'],$info['exif']['IFD0']);
 		$info['exif']['IFD0'] = $info['exif']['EXIF'];
 		if(!isset($info['video']['resolution_x'])){

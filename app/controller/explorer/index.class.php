@@ -19,7 +19,7 @@ class explorerIndex extends Controller{
 		}
 		$result = array();
 		for ($i=0; $i < count($fileList); $i++){// 处理掉无权限和不存在的内容;
-			if(!Action('explorer.auth')->fileCan($fileList[$i]['path'],'show')) continue;
+			if(!Action('explorer.auth')->can($fileList[$i]['path'],'show')) continue;
 			
 			$itemInfo = $this->itemInfo($fileList[$i]);
 			if($itemInfo){$result[] = $itemInfo;}
@@ -115,6 +115,7 @@ class explorerIndex extends Controller{
 		}
 
 		$info = IO::info($data['path']);
+		$this->sourceSecretApply($meta,$info);
 		if($info && $info['sourceID']){
 			foreach ($meta as $key => $value) {
 				if( !$this->metaKeyCheck($key,$value,$info) ){
@@ -143,6 +144,35 @@ class explorerIndex extends Controller{
 		}
 		return in_array($key,$metaKeys);
 	}
+	
+	// 文档密级处理;
+	private function sourceSecretApply(&$meta,$pathInfo){
+		$key = 'user_sourceSecret';
+		if(!isset($meta[$key])) return;
+		$sourceSecret = $meta[$key].'';
+		unset($meta[$key]);
+		// Model('SourceSecret')->clear(); //清除所有 debug;
+		// Model("SystemOption")->set(array('sourceSecretList'=>'','sourceSecretMaxID'=>''));
+		
+		// 检测支持: 是否开启密级;自己是否为系统管理员或密级管理者; 是否为部门文档;
+		$systemOption = Model("SystemOption")->get();
+		if($pathInfo['targetType'] != 'group') return;
+		if($systemOption['sourceSecret'] != '1') return;
+		$allowUser  = explode(',',$systemOption['sourceSecretSetUser']);
+		if(!$GLOBALS['isRoot'] && !in_array(USER_ID,$allowUser)) return;
+		
+		$sourceID = $pathInfo['sourceID'];
+		$model = Model('SourceSecret');
+		$find  = $model->findByKey('sourceID',$sourceID);
+		$data  = array('sourceID'=>$sourceID,'typeID'=>$sourceSecret,'createUser'=>USER_ID);
+		if($sourceSecret){
+			if($find){$model->update($find['id'],$data);}
+			if(!$find){$model->insert($data);}
+		}else{
+			if($find){$model->remove($find['id']);}
+		}
+	}
+	
 
 	// 清除文件缩略图
 	private function thumbClear(){

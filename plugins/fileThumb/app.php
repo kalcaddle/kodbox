@@ -41,6 +41,15 @@ class fileThumbPlugin extends PluginBase{
 	public function check(){
 		Cache::remove('fileThumb.getFFmpeg');
 		Cache::remove('fileThumb.getConvert');
+		if(isset($_GET['action']) && $_GET['action'] == 'stopAll'){
+		    // 清除所有任务;
+            @include_once($this->pluginPath.'lib/VideoResize.class.php');
+    		@include_once($this->pluginPath.'lib/TaskConvert.class.php');
+    		$video = new videoResize();
+    		$video->stopAll();
+    		$video->log("Success !");
+    		return;
+		}
 		if(isset($_GET['check'])){
 			$convert = $this->getConvert();
             $ffmpeg  = $this->getFFmpegFind();

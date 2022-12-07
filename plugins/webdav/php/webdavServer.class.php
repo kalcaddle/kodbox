@@ -384,6 +384,7 @@ class webdavServer {
 			// 禁用xml实体,避免xxe攻击; php8以上已废弃
 			if(PHP_VERSION_ID < 80000) {libxml_disable_entity_loader(true);}
 			$body = file_get_contents('php://input');
+			if(!$body) return '';
 			$xml = new DOMDocument();
 			$xml->loadXML($body);
 		}

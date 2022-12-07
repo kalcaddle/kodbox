@@ -122,7 +122,7 @@ class videoResize {
 		if(Cache::get($taskID) == 'running') return self::STATUS_RUNNING;
 		$runTaskMax   = intval($config['videoConvertTask']);
 		$runTaskCount = intval(Cache::get('fileThumb-videoResizeCount'));
-		if($runTaskCount > $runTaskMax) return self::STATUS_LIMIT;
+		if($runTaskCount >= $runTaskMax) return self::STATUS_LIMIT;
 		if($_GET['noOutput'] == '1'){http_close();} // 默认输出;
 		$this->convertAdd($taskID);
 		
@@ -131,7 +131,7 @@ class videoResize {
 		$quality 	= 'scale=-2:480 -b:v 1000k -maxrate 1000k -sws_flags accurate_rnd';//480:-2 -2:480 限制码率; 缩放图片处理
 		$timeStart 	= time();// 画质/速度: medium/ultrafast/fast
 		$logFile 	= $tempPath.'.log';@unlink($logFile);//-vf scale=480:-2 -b:v 1024k -maxrate 1000k -threads 2
-		$args 		= '-c:a copy -preset medium -vf '.$quality.' -c:v libx264 1>'.$logFile.' 2>&1';
+		$args 		= '-c:a copy -preset medium -vf '.$quality.' -strict -2 -c:v libx264 1>'.$logFile.' 2>&1';
 		$script 	= $command.' -y -i "'.$localFile.'" '.$args.' "'.$tempPath.'"';
 		
 		// 后台运行
@@ -172,14 +172,16 @@ class videoResize {
 			if(!$this->processFind($tempName)){break;} //进程已不存在; 转码报错或者意外终止或者其他情况的进程终止;
 
 			$task->task['taskFinished'] = round($data['finished'],3);
+			CacheLock::lock("video-process-update");
 			$task->update(0);
+			CacheLock::unlock("video-process-update");
 			$this->log(sprintf('%.1f',$data['finished'] * 100 / $data['total']).'%',true);
 			Cache::set($fileInfo['taskID'],'running',60);
 			usleep(300*1000);//300ms;
 		}
 		$task->end();$task->onKill();
 	}
-	private function log($log,$clear=false,$show=true){
+	public function log($log,$clear=false,$show=true){
 	    if($show){echoLog($log,$clear);}
 		if(!$clear){write_log($log,'videoConvert');}
 	}
@@ -225,7 +227,7 @@ class videoResize {
 			$errorTips = 'Stoped!';
 			$runError  = false;
 		}
-		$logEnd  = "";
+		$logEnd  = get_caller_msg();
 		$logTime = 'time='.(time() - $timeStart);	
 		if($data['total'] && intval($data['total']) == intval($data['finished']) && file_exists($tempPath)){
 			$runError = true;
@@ -245,7 +247,7 @@ class videoResize {
 		$this->convertError($fileInfo['taskID'],$errorTips);
 		$logAdd = $runError ? "\n".trim($output) : '';
 		$this->log('[end] '.$fileInfo['name'].';'.$errorTips.'; '.$logTime.$logAdd.$logEnd);
-		// $this->log('[end] '.$output);
+		$this->log('[end] '.$output);
 	}
 	
 	public function convertAdd($taskID){

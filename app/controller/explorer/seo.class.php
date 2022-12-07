@@ -83,6 +83,7 @@ class explorerSeo extends Controller{
 	
 	// 分享列表;
 	private function shareList(){
+		if(!defined('USER_ID')){define('USER_ID',0);}
 		$title = LNG('explorer.share.linkTo');
 		I18n::set('title',$title.' - ');
 		$model = Model('Share');

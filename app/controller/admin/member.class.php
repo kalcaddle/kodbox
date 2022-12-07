@@ -25,8 +25,10 @@ class adminMember extends Controller{
 		if(isset($data['userID']) && $data['userID'] == '1') {
 			show_json(LNG('admin.member.editNoAuth'), false);
 		}
+		
+		$roleInfo = Model('SystemRole')->listData($data['roleID']);
 		if(!in_array(ACTION, array('admin.member.add', 'admin.member.edit'))) return;
-		if($data['roleID'] != '1') return;
+		if($roleInfo['administrator'] != 1) return; // 1为系统管理员
 		show_json(LNG('admin.member.editNoAuth'), false);
 	}
 

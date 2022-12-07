@@ -15,7 +15,7 @@ class Html{
 		// $config->set('URI.SafeIframeRegexp', '%^https://(*)%');
 		
 		// 设置保留的标签
-		$config->set('HTML.Allowed','*[id|style|class|title|type|border|width|height|alt|data|data-exp|contenteditable|aria-hidden],div,b,strong,i,em,a[href],ul,ol,ol[start],li,p,br,span,img[src],pre,hr,code,h1,h2,h3,h4,h5,h6,blockquote,del,table,thead,tbody,tr,th,td,s,sub,sup,mark,wbr,nav,article,aside,header,footer,ins,del,address,hgrop,figure,figcaption,video[src|controls|posterh],source[src],iframe[frameborder|src|allowfullscreen|scrolling]');
+		$config->set('HTML.Allowed','*[id|style|class|title|type|border|width|height|alt|data|data-exp|contenteditable|aria-hidden],div,b,strong,i,em,a[href],ul,ol,ol[start],li,p,br,span,img[src],pre,hr,code,h1,h2,h3,h4,h5,h6,blockquote,del,table,thead,tbody,tr,th,td,s,sub,sup,wbr,nav,article,aside,header,footer,ins,del,address,hgrop,figure,figcaption,video[src|controls|posterh],source[src],iframe[frameborder|src|allowfullscreen|scrolling]');
 		// 不限制css的key;
 		// $config->set('CSS.AllowedProperties','font,font-size,font-weight,font-style,font-family,margin,width,height,text-decoration,padding-left,padding-top,padding-right,padding-top,padding-bottom,line-height,color,background-color,text-align,border-collapse,list-style-type,list-style');
 		$config->set('HTML.TargetBlank', TRUE);

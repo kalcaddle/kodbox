@@ -118,6 +118,14 @@ function get_host() {
 	}else if(isset($_SERVER['HTTP_X_FORWARDED_SERVER'])){
 		$host  = $_SERVER['HTTP_X_FORWARDED_SERVER'];
 	}
+	
+	// 如果域名相同 则根据referer自适应https;
+	if(isset($_SERVER['HTTP_REFERER'])){
+		$urlInfo = parse_url($_SERVER['HTTP_REFERER']);
+		if($urlInfo['host'] == trim($host,'/')){
+			if($httpType == 'http' && $urlInfo['scheme'] == 'https'){$httpType = 'https';}
+		}
+	}
 	return $httpType.'://'.trim($host,'/').'/';
 }
 // current request url
@@ -251,7 +259,7 @@ function curl_progress_start($curl){
 	// 	return $GLOBALS['curlCacheResult'][$curlInfo['url']];
 	// }
 }
-function curl_progress_end($curl,$curlResult=false){
+function curl_progress_end($curl,&$curlResult=false){
 	$GLOBALS['curlKodLastTime'] = 0;
 	$GLOBALS['curlKodLast'] = false;
 	Hook::trigger('curl.progressEnd',$curl);
@@ -264,10 +272,15 @@ function curl_progress_end($curl,$curlResult=false){
 	think_trace(" ".$curlInfo['url'].";".$runInfo.$runTime,'','CURL');
 	
 	$httpCode = $curlInfo['http_code'];
+	$errorMessage = '';
 	if($curlResult && $httpCode < 200 || $httpCode >= 300){
 		$errorMessage = "curl error code=".$httpCode.'; '.curl_error($curl);		
 		$GLOBALS['curl_request_error'] = array('message'=>$errorMessage,'url'=> $curlInfo['url'],'code'=>$httpCode);
 		write_log("[CURL] ".$curlInfo['url'].";$errorMessage;");
+	}
+	if(GLOBAL_DEBUG){
+		$response = strlen($curlResult) > 1000 ? substr($curlResult,0,1000).'...':$curlResult;
+		write_log("[CURL] code=".$httpCode.';'.$curlInfo['url'].";$errorMessage \n".$response,'curl');
 	}
 }
 function curl_progress(){
@@ -560,6 +573,7 @@ function request_url_safe($url){
 		$schemeNow = substr($url,0,strlen($scheme) + 3);
 		if($schemeNow === $scheme."://"){$hasAllow = true;}
 	}
+	if(strstr($url,'../')) return false;
 	if(!$hasAllow) return false;
 	if(!$info['scheme'] || !$info['host'] || !in_array($info['scheme'],$allow)) return false;
 	if(@file_exists($url) ) return false;

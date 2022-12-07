@@ -43,7 +43,7 @@ class ImageThumb {
 		// 速度对比 2000x2000=>300x300  gd:220ms; imagemagick:360ms; new Imagick: 280ms;
 		$cm = new ImageThumb($from,'file');
 		if(!$cm) return;
-		$cm->prorate($to,$width,$height);
+		return $cm->prorate($to,$width,$height);
 	}
 	
 	public static function image($file){
@@ -102,6 +102,10 @@ class ImageThumb {
 	// 生成按比例缩放的缩图
 	function prorate($toFile, $toW, $toH){
 		$toW = intval($toW);$toH = intval($toH);
+		$this->srcH = intval($this->srcH);
+		$this->srcW = intval($this->srcW);
+		if(!$toW || !$toH || !$this->srcW || !$this->srcH) return false;
+		
 		$toWH = $toW / $toH;
 		$srcWH = $this->srcW / $this->srcH;
 		if ($toWH<=$srcWH) {

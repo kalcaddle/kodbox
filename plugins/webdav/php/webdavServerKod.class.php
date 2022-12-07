@@ -368,17 +368,31 @@ class webdavServerKod extends webdavServer {
 			if(!$this->can($path,'edit')) return false;
 			$destFile = rtrim($dest,'/').'/'.$io->pathThis($destURL);
 			$this->plugin->log("edit=$destFile;exists=".intval($this->pathExists($destFile)));
-			$fromExt = get_path_ext($pathUrl);
-			$toExt   = get_path_ext($destURL);
-			$officeExt = array('doc','docx','xls','xlsx','ppt','pptx');
+
 			/**
-			 * office 编辑保存最后落地时处理（导致历史记录丢失）； 
+			 * office 编辑保存最后落地时处理（导致历史记录丢失）
+			 * window下文件保存处理(office文件保存时 file=>file.tmp 不做该操作,避免历史版本丢失)
+			 * 
 			 * 0. 上传~tmp1601041332501525796.TMP //锁定,上传,解锁;
 			 * 1. 移动 test.docx => test~388C66.tmp 				// 改造,识别到之后不进行移动重命名;
 			 * 2. 移动 ~tmp1601041332501525796.TMP => test.docx; 	// 改造;目标文件已存在则更新文件;删除原文件;
 			 * 3. 删除 test~388C66.tmp  
+			 * 
+			 * window + raidrive + wps编辑
+			 *      delete ~$file.docx
+             *      put    ~$file.docx
+             *      put    ~tmpxxx.TMP
+             *      delete ~$file.docx
+             *      move   file.docx   file~xxx.tmp
+             *      move   ~tmpxxx.TMP file.docx
+             *      delete file~xxx.tmp
 			 */
-			if( $this->isWindows() && $toExt == 'tmp' && in_array($fromExt,$officeExt) ){
+			$fromFile 	= $io->pathThis($pathUrl);
+			$toFile 	= $io->pathThis($destURL);
+			$fromExt 	= get_path_ext($pathUrl);
+			$toExt   	= get_path_ext($destURL);// 误判情况: 将xx/aa.docx 移动到xx/aa~xxx.tmp会失败;
+			$officeExt 	= array('doc','docx','xls','xlsx','ppt','pptx');
+			if( $toExt == 'tmp' && in_array($fromExt,$officeExt) && strstr($toFile,'~')){
 				$result =  IO::mkfile($destFile);
 			    $this->plugin->log("move mkfile=$path;$pathUrl;$destURL;result=".$result);
 			    return $result;
@@ -416,8 +430,5 @@ class webdavServerKod extends webdavServer {
 		if(!$this->can($path,'download')) return false;
 		if(!$this->can($dest,'edit')) return false;
 		return IO::copy($path,$dest);
-	}
-	private function isWindows(){
-	    return stristr($_SERVER['HTTP_USER_AGENT'],'Microsoft-WebDAV-MiniRedir');
 	}
 }

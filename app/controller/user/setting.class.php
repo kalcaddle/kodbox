@@ -199,7 +199,7 @@ class userSetting extends Controller {
 		$salt = Input::get('salt',null, 0);
 		// 密码为空则不检查原密码
 		$info = Model('User')->getInfoSimple($this->user['userID']);
-		if(isset($info['password']) && empty($info['password'])) {
+		if(empty($info['password'])) {
 			return !$salt ? $newpwd : $this->decodePwd($newpwd);
 		} 
 		$oldpwd = Input::get('oldpwd','require');

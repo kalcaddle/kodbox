@@ -7,13 +7,13 @@ body.mce-content-body{
 	position: absolute;
     left: 0;top: 0;right: 0;bottom: 0;
     border: 0;
-    margin: 0;padding:10px 10px;
+    margin: 0;padding:5px 5px;
     box-sizing: border-box;
 }
 
 .mce-content-body p,.article-content-body p{
-	margin: 0.65em 0;
-    line-height: 1.5em;
+	margin: 0.3em 0;
+    line-height: 1.4em;
 }
 .mce-content-body hr,.article-content-body hr{
     border: none;
@@ -38,7 +38,7 @@ body.mce-content-body{
     padding:0.2em 1em 0.2em 0.3em;
 }
 
-.mce-content-body ul{padding-left:2em;}
+.mce-content-body ul{padding-left:2em;margin: 0.5em 0;}
 .mce-content-body table th,
 .mce-content-body .mce-item-table table th,
 .article-content-body table th,

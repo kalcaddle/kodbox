@@ -167,7 +167,8 @@ class explorerList extends Controller{
 		$sourceArr = array();$pathArr = array();
 		foreach ($data['fileList'] as $file){
 			if($file['sourceID']){
-				if($file['modifyTime'] <= $file['createTime']) continue; // 修改时间小于等于创建时间时无历史版本;
+				// 修改时间小于等于创建时间时无历史版本; 忽略判断, 上传文件保留最后修改时间;
+				// if($file['modifyTime'] <= $file['createTime']) continue; 
 				$sourceArr[]  = $file['sourceID'];
 			}
 			if(!$file['sourceID'] && $file['isWriteable']){$pathArr[] = $file['path'];}

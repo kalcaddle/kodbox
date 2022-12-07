@@ -31,8 +31,9 @@ class adminPlugin extends Controller{
 		//同步用户的插件，只允许开启一个；其他的开启时自动提示;
 		Hook::trigger("pluginApp.changeStatus",$app,$status);
 		$eventAsync = 'pluginApp.changeStatus.userAsync';
+		$appConfig = $this->model->loadList($app);
+		if(!$appConfig){return show_json(LNG('admin.plugin.disabled').' ('.$app.')',false);}
 		if($status){
-			$appConfig = $this->model->loadList($app);
 			if( is_array($appConfig['regiest']) && 
 				isset($appConfig['regiest'][$eventAsync]) ){
 				Hook::trigger($eventAsync,$app);

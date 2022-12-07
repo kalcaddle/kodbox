@@ -189,6 +189,7 @@ class webdavPlugin extends PluginBase{
 			$data   = $_SERVER['REQUEST_METHOD'].':'.$_SERVER['REQUEST_URI'].";".$this->serverInfo('').$data;
 		}
 		write_log($prefix.$data,'webdav');
+		//write_log($GLOBALS['__SERVER'],'webdav');
 	}
 	public function clientLog($data){
 		static $logIndex = 0;

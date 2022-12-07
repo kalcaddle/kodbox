@@ -294,6 +294,10 @@ class explorerListSearch extends Controller{
 			$content = IO::getContent($filePath);
 		}else{
 			$content = Hook::trigger('explorer.listSearch.fileContentText',$file);
+			if(!$content && is_text_file($file['ext'])){
+				if($file['size'] >= 1024*1024*10) return false;
+				$content = IO::getContent($filePath);
+			}
 		}
 		if(!$content) return false;
 		if(!is_text_file($file['ext'])){//单行数据展示
