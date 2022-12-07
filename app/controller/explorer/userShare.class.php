@@ -342,6 +342,12 @@ class explorerUserShare extends Controller{
 		}
 		$source['path'] = KodIO::makeShare($share['shareID'],$pathAdd);
 		$source['path'] = KodIO::clear($source['path']);
+		
+		if($source['auth'] && $share['sourceID'] != '0'){
+			$listData = array($source);
+			Model('Source')->_listAppendAuthSecret($listData);
+			$source = $listData[0];
+		}
 
 		// 分享者名字;
 		$userName = $user['nickName'] ? $user['nickName']:$user['name'];
