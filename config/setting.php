@@ -522,6 +522,7 @@ $config['authRoleAction']= array(
 	'explorer.share'		=> array('explorer.userShare'=>'add,edit,del'),
 	'explorer.remove'		=> array('explorer.index'=>'pathDelete,recycleDelete,recycleRestore'),
 	'explorer.edit'			=> array(
+		'explorer.userShareTarget' => 'save',
 		'explorer.index'	=> 'setDesc,setMeta,setAuth,fileSave,pathRename,zip,unzip',
 		'explorer.editor'	=> 'fileSave',
 		'explorer.history'	=> 'get,remove,clear,rollback,setDetail,fileOut',

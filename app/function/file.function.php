@@ -774,18 +774,29 @@ function content_search(&$content,$search,$isCase,$maxCount=1000,$isUtf8=false){
 	}
 	//文件没有搜索到目标直接返回
 	if ($strpos($content,$search) === false) return false;
-	$pose = 0; 
-	$fileSize = strlen($content);
-	$arrSearch = array(); // 匹配结果所在位置
-	while ( $pose !== false) {
-		$pose = $strpos($content,$search, $pose);
-		if($pose === false){break;}
-		$arrSearch[] = $pose;$pose ++;
-		if(count($arrSearch) >= $maxCount){break;}
-	}
 
-	$arrLine = array();
-	$pose = 0;
+	$fileSize   = strlen($content);
+	$arrSearch  = array();$pose = 0;  // 匹配结果所在位置
+	$searchLen  = strlen($search);
+	// 通过分割方式快速得到数组,加速处理; 比一次strpos快(去除最后一项)
+	$arraySplit = explode(strtolower($search),strtolower($content));
+	$arraySplitCount = count($arraySplit);
+	foreach ($arraySplit as $i => $chunk){
+		if(count($arrSearch) >= $maxCount){break;}
+		if($i == $arraySplitCount - 1){break;}
+		$arrSearch[] = strlen($chunk) + $pose;
+		$pose = $pose + strlen($chunk) + $searchLen;
+	}
+	
+	// $arrSearch  = array();$pose = 0;
+	// while ( $pose !== false) {
+	// 	$pose = stripos($content,$search, $pose);
+	// 	if($pose === false){break;}
+	// 	$arrSearch[] = $pose;$pose ++;
+	// 	if(count($arrSearch) >= $maxCount){break;}
+	// }
+
+	$arrLine = array();$pose = 0;
 	while($pose !== false) {
 		$pose = strpos($content, "\n", $pose);
 		if($pose === false){break;}
@@ -794,30 +805,29 @@ function content_search(&$content,$search,$isCase,$maxCount=1000,$isUtf8=false){
 	$arrLine[] = $fileSize;//文件只有一行而且没有换行，则构造虚拟换行
 	$result = array();//  [2,10,22,45,60]  [20,30,40,50,55]
 	$lenSearch = count($arrSearch);
-	$lenLine 	= count($arrLine);
+	$lenLine   = count($arrLine);
 	for ($i=0,$line=0; $i < $lenSearch && $line < $lenLine; $line++) {
 		while ( $arrSearch[$i] <= $arrLine[$line]) {
-			//行截取字符串
-			$curPose = $arrSearch[$i];
-			$curMin  = $curPose - 50 <= 0 ? 0 : $curPose - 50;
-			$curMax  = $curPose + 100 >= $fileSize ? $fileSize : $curPose + 100;
-			$from    = $curPose; $to = $curPose + strlen($search);
+			$curPose = $arrSearch[$i];//行截取字符串
+			$lenLeft = 80;$lenRight = 120;$curFrom = $curPose + $searchLen;
+			$curMin  = $curPose - $lenLeft <= 0 ? 0 : $curPose - $lenLeft;
+			$curMax  = $curFrom + $lenRight >= $fileSize ? $fileSize : $curFrom + $lenRight;
+			$from    = $curMin; $to = $curMax;
 			
 			//中文避免截断（向前 向后找到分隔符后终止） //  '，','、',
-			$token = array("\r","\n"," ","\t",",","/","#","_","[","]","+","-","*","/","=","&",'。');
-			while($from > $curMin){
-				$chrFind = false;$strTemp = substr($content,$from,5);
-				foreach($token as $chr){if(strstr($strTemp,$chr)){$chrFind = true;break;} }
-				if($chrFind){$from++;break;}; $from--;
+			$token = array("\r","\n",'。');
+			$strLeft =  substr($content,$curMin,($curPose - $curMin));
+			$strRight = substr($content,$curFrom,$lenRight);
+			foreach($token as $char){
+				$leftFind    = strrpos($strLeft,$char);
+				$rightFind   = strpos($strRight,$char);
+				if($leftFind  !== false){$from = max($from, $curMin + $leftFind + strlen($char));}
+				if($rightFind !== false){$to   = min($to, $curFrom + $rightFind + strlen($char));}
 			}
-			while($to < $curMax){
-				$chrFind = false;$strTemp = substr($content,$to,5);
-				foreach($token as $chr){if(strstr($strTemp,$chr)){$chrFind = true;break;} }
-				if($chrFind){$to += 5;break;}; $to++;
-			}
-			// $from = $curMin;$to = $curMax;
+			
+			// $lineStr = substr($content,$from,$to - $from);
 			$lineStr = utf8Repair(substr($content,$from,$to - $from));
-			$result[] = array('line'=>$line+1,'str'=>trim($lineStr),[$curPose,$from,$to]);
+			$result[] = array('line'=>$line+1,'str'=>trim($lineStr));
 			if(count($result) >= $maxCount) return $result;
 			if(++$i >= $lenSearch ){break;}
 		}

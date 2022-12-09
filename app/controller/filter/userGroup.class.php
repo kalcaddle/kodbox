@@ -129,8 +129,10 @@ class filterUserGroup extends Controller{
 			$groupID = $groupArray ? $groupArray[0]:false;
 			$GLOBALS['in'][$check['group']] = $groupID;
 			if($action == 'admin.group.get'){
-				$items = Model('Group')->listByID($groupArray);
-				show_json(array('list'=>$items,'pageInfo'=>array()),true);
+				// 普通用户选择用户(内部协作,权限设置); 加入最近使用;及自己常用保存;
+				Action("admin.group")->get();
+				// $items = Model('Group')->listByID($groupArray);
+				// show_json(array('list'=>$items,'pageInfo'=>array()),true);
 			}
 		}
 		
