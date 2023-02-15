@@ -44,7 +44,7 @@ class officeViewerlibreOfficeIndex extends Controller {
             $localFile = $plugin->pluginLocalFile($path);	// 下载到本地文件
         }
         $this->convert2pdf($localFile,$tempFile,$ext);
-	
+
 		if(@file_exists($tempFile)){
 			$cachePath  = IO::move($tempFile,$plugin->cachePath);
 			Cache::set('libreOffice_pdf_'.$fileHash,'yes');
