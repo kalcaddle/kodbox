@@ -35,7 +35,6 @@ class officeViewerlibreOfficeIndex extends Controller {
 		$fileHash = KodIO::hashPath($info);
 		$convName = "libreOffice_{$ext}_{$fileHash}.pdf";
 		$tempFile = TEMP_FILES . $convName;
-		//$tempFile = iconv("UTF-8","GB2312",$tempFile);
 		if($sourceID = IO::fileNameExist($plugin->cachePath, $convName)){
 			return $this->fileView(KodIO::make($sourceID),$convName);
 		}
@@ -83,7 +82,7 @@ class officeViewerlibreOfficeIndex extends Controller {
         $tname = substr(end(explode('/', $file)), 0, -strlen('.'.$ext));
         $tfile = $fpath . $tname . '.' . $fname;    // 源文件名.filename.pdf
 
-        if(!file_exists(iconv("UTF-8","GBK",$tfile))){
+        if(!file_exists($tfile)){
             write_log('cmmand error: '.$script."\n".$out,'error');
         }
 		move_path($tfile,$cacheFile);
