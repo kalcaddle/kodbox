@@ -147,5 +147,4 @@ class officeViewerlibreOfficeIndex extends Controller {
 		Cache::set($bin, $code);
 		return $code;
 	}
-}
-
+} 
