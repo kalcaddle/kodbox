@@ -81,7 +81,6 @@ class officeViewerlibreOfficeIndex extends Controller {
 
         $tname = substr(end(explode('/', $file)), 0, -strlen('.'.$ext));
         $tfile = $fpath . $tname . '.' . $fname;    // 源文件名.filename.pdf
-
         if(!file_exists($tfile)){
             write_log('cmmand error: '.$script."\n".$out,'error');
         }
