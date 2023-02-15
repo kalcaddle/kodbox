@@ -35,6 +35,7 @@ class officeViewerlibreOfficeIndex extends Controller {
 		$fileHash = KodIO::hashPath($info);
 		$convName = "libreOffice_{$ext}_{$fileHash}.pdf";
 		$tempFile = TEMP_FILES . $convName;
+		//$tempFile = iconv("UTF-8","GB2312",$tempFile);
 		if($sourceID = IO::fileNameExist($plugin->cachePath, $convName)){
 			return $this->fileView(KodIO::make($sourceID),$convName);
 		}
@@ -44,7 +45,6 @@ class officeViewerlibreOfficeIndex extends Controller {
             $localFile = $plugin->pluginLocalFile($path);	// 下载到本地文件
         }
         $this->convert2pdf($localFile,$tempFile,$ext);
-
 		if(@file_exists($tempFile)){
 			$cachePath  = IO::move($tempFile,$plugin->cachePath);
 			Cache::set('libreOffice_pdf_'.$fileHash,'yes');
@@ -71,17 +71,19 @@ class officeViewerlibreOfficeIndex extends Controller {
 		$tempPath = $cacheFile;
 		if($GLOBALS['config']['systemOS'] == 'linux' && is_writable('/tmp/')){
 			mk_dir('/tmp/libreOffice');
-			$tempPath = '/tmp/libreOffice/'.rand_string(15).'.pdf';
+			$tempPath = '/tmp/libreOffice'.rand_string(15).'.pdf';
 		}
         $fname = get_path_this($tempPath);
         $fpath = get_path_father($tempPath);
+
         // 转换类型'pdf'改为'新文件名.pdf'，会生成'源文件名.新文件名.pdf'
-        $script = $command . ' --headless --invisible --convert-to '.$fname.' "'.$file.'" --outdir '.$fpath;
+        $script = 'export HOME=/tmp/libreOffice && ' . $command . ' --headless --invisible --convert-to '.$fname.' "'.$file.'" --outdir '.$fpath;
 		$out = shell_exec($script);
 
-        $tname = basename(get_path_this($file), '.'.$ext);
+        $tname = substr(end(explode('/', $file)), 0, -strlen('.'.$ext));
         $tfile = $fpath . $tname . '.' . $fname;    // 源文件名.filename.pdf
-        if(!file_exists($tfile)){
+
+        if(!file_exists(iconv("UTF-8","GBK",$tfile))){
             write_log('cmmand error: '.$script."\n".$out,'error');
         }
 		move_path($tfile,$cacheFile);
