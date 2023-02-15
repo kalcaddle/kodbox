@@ -148,4 +148,3 @@ class officeViewerlibreOfficeIndex extends Controller {
 		return $code;
 	}
 }
-
