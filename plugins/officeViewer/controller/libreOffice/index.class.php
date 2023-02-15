@@ -70,7 +70,7 @@ class officeViewerlibreOfficeIndex extends Controller {
 		$tempPath = $cacheFile;
 		if($GLOBALS['config']['systemOS'] == 'linux' && is_writable('/tmp/')){
 			mk_dir('/tmp/libreOffice');
-			$tempPath = '/tmp/libreOffice'.rand_string(15).'.pdf';
+			$tempPath = '/tmp/libreOffice/'.rand_string(15).'.pdf';
 		}
         $fname = get_path_this($tempPath);
         $fpath = get_path_father($tempPath);
