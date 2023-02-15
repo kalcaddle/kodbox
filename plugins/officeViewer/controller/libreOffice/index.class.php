@@ -44,6 +44,7 @@ class officeViewerlibreOfficeIndex extends Controller {
             $localFile = $plugin->pluginLocalFile($path);	// 下载到本地文件
         }
         $this->convert2pdf($localFile,$tempFile,$ext);
+	
 		if(@file_exists($tempFile)){
 			$cachePath  = IO::move($tempFile,$plugin->cachePath);
 			Cache::set('libreOffice_pdf_'.$fileHash,'yes');
@@ -74,7 +75,6 @@ class officeViewerlibreOfficeIndex extends Controller {
 		}
         $fname = get_path_this($tempPath);
         $fpath = get_path_father($tempPath);
-
         // 转换类型'pdf'改为'新文件名.pdf'，会生成'源文件名.新文件名.pdf'
         $script = 'export HOME=/tmp/libreOffice && ' . $command . ' --headless --invisible --convert-to '.$fname.' "'.$file.'" --outdir '.$fpath;
 		$out = shell_exec($script);
