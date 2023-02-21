@@ -76,10 +76,10 @@ class officeViewerlibreOfficeIndex extends Controller {
         $fname = get_path_this($tempPath);
         $fpath = get_path_father($tempPath);
         // 转换类型'pdf'改为'新文件名.pdf'，会生成'源文件名.新文件名.pdf'
-        $script = $command . ' --headless --invisible --convert-to '.$fname.' "'.$file.'" --outdir '.$fpath;
+        $script = 'export HOME=/tmp/libreOffice && ' . $command . ' --headless --invisible --convert-to '.$fname.' "'.$file.'" --outdir '.$fpath;
 		$out = shell_exec($script);
 
-        $tname = basename(get_path_this($file), '.'.$ext);
+        $tname = substr(end(explode('/', $file)), 0, -strlen('.'.$ext));
         $tfile = $fpath . $tname . '.' . $fname;    // 源文件名.filename.pdf
         if(!file_exists($tfile)){
             write_log('cmmand error: '.$script."\n".$out,'error');
