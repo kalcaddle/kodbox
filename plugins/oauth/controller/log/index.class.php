@@ -10,14 +10,22 @@ class oauthLogIndex extends Controller {
 
 	// 写入日志
 	public function logAdd($action, $data = array()){
-        if (!in_array($action, array('bind', 'unbind', 'bindApi'))) return;
-        if($action != 'unbind' && $GLOBALS['loginLogSaved'] == 1) return;
+        // 用户注册
+        if ($action == 'regist') {
+            $type = 'user.regist.'.$action;
+            $userID = $data['userID'];
+        } else { // 绑定相关
+            if (!in_array($action, array('bind', 'unbind', 'bindApi'))) return;
+            if($action != 'unbind' && $GLOBALS['loginLogSaved'] == 1) return;
+            $type = 'user.bind.'.$action;
+            $userID = defined('USER_ID') ? USER_ID : 0;
+        }
 		// 写入日志
 		$data['ip'] = get_client_ip();
         $insert = array(
             "sessionID" => Session::sign(),
-            "userID"    => USER_ID ? USER_ID : 0,
-            'type'      => 'user.bind.'.$action,
+            "userID"    => $userID,
+            'type'      => $type,
             "desc"      => json_encode($data)
         );
         Model('SystemLog')->add($insert);

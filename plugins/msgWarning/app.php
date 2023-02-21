@@ -150,7 +150,7 @@ class msgWarningPlugin extends PluginBase{
             $data['user'][] = LNG('msgWarning.main.msgEmlErr');
         }
         if (!empty($data['user'])) {
-            $style = '';
+            $style = !$ret ? 'margin-left:5px;' : ''; 
             $setLink = '<a style="'.$style.'padding:0px;text-decoration:none;" link-href="#setting/user/account">'.LNG('msgWarning.main.setNow').'</a >';
             $data['user'][count($data['user'])-1] = end($data['user']) . $setLink;
         }
@@ -165,13 +165,14 @@ class msgWarningPlugin extends PluginBase{
                 $data['disk'][] = sprintf(LNG('msgWarning.main.msgSysSizeErr'), $size);
             }
         }
+        $drvUrl = APP_HOST.'#admin/storage/index';
         if (!$defDriver) {
-            $data['disk'][] = sprintf(LNG('msgWarning.main.msgDefPathErr'), APP_HOST.'#admin/storage/index');
+            $data['disk'][] = sprintf(LNG('msgWarning.main.msgDefPathErr'), $drvUrl);
         } else {
             $sizeFree = ($defDriver['sizeMax'] - $defDriver['sizeUse']);
             if ($sysDriver['sizeMax'] > 0 && $sizeFree < 1024*1024*1024*2) {
                 $size = size_format($sizeFree);
-                $data['disk'][] = sprintf(LNG('msgWarning.main.msgDefSizeErr'), $size);
+                $data['disk'][] = sprintf(LNG('msgWarning.main.msgDefSizeErr'), $drvUrl, $size);
             }
         }
 

@@ -431,4 +431,22 @@ class webdavServerKod extends webdavServer {
 		if(!$this->can($dest,'edit')) return false;
 		return IO::copy($path,$dest);
 	}
+	
+	// 文件编辑锁添加或移除;(office/wps: 打开编辑时会添加; 保存时会添加/解除; 关闭文件时会解锁)
+	public function fileLock($path){
+		$info = $this->fileLockCheck($path);if(!$info) return;
+		Model("Source")->metaSet($info['sourceID'],'systemLock',USER_ID);
+		Model("Source")->metaSet($info['sourceID'],'systemLockTime',time());		
+	}
+	public function fileUnLock($path){
+		$info = $this->fileLockCheck($path);if(!$info) return;
+		Model("Source")->metaSet($info['sourceID'],'systemLock',null);
+		Model("Source")->metaSet($info['sourceID'],'systemLockTime',null);
+	}
+	private function fileLockCheck($path){
+		$info = IO::infoFull($path);
+		if(!$info || !$info['sourceID'] || !defined('USER_ID')) return;
+		if(!$this->can($path,'edit')) return;
+		return $info;
+	}
 }

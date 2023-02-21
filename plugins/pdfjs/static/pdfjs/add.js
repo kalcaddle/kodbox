@@ -1,11 +1,8 @@
 /**
  * kod处理;
  * https://github.com/mozilla/pdf.js
- *  
- * 版本更新(当前v2.10.377): web/viewer.js 中加入配置合并;   搜索"warlee"
- * AppOptions.setAll(window.pdfOptions || {});//add by warlee;
- * 
- * 
+
+ * 版本更新（v2.10.377->v2.5.207）：v2.5.207以上在钉钉中显示乱码
  * 问题修复:https://github.com/mozilla/pdf.js/pull/13698/files
  */
 (function(){

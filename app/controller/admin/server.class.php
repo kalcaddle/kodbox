@@ -546,7 +546,9 @@ class adminServer extends Controller {
 
 		$taskCrt = new Task('db.new.table.create', $type, 0, LNG('admin.setting.dbCreate'));
 		// 3.表结构写入目标库
-		// TODO 这里其实应该从当前库导出表结构，并创建
+		// TODO 这里其实应该从当前库导出表结构并创建；相互转换有点困难
+		// $sql = 'show create table `xxx`';	// mysql
+		// $sql = 'SELECT sql FROM sqlite_master WHERE type="table" AND name = "xxx"';	// sqlite
         $file = CONTROLLER_DIR . "install/data/{$type}.sql";
         $manageNew->createTable($file, $taskCrt);
 		$tableNew = $dbNew->getTables();

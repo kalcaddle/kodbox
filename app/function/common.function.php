@@ -593,17 +593,30 @@ function array_field_key($array,$field){
 function array_filter_by_field($array,$field,$value){
 	$result = array();
 	if(!is_array($array) || !$array) return $result;
-	foreach ($array as $key => $val) {
-		if($val[$field] == $value){
-			if(is_int($key)){
-				$result[] = $val;
-			}else{
-				$result[$key] = $val;
-			}
+	foreach ($array as $key => $val){
+		if($val[$field] != $value) continue;
+		if(is_int($key)){
+			$result[] = $val;
+		}else{
+			$result[$key] = $val;
 		}
 	}
 	return $result;
 }
+function array_remove_by_field($array,$field,$value){
+	$result = array();
+	if(!is_array($array) || !$array) return $result;
+	foreach ($array as $key => $val) {
+		if($val[$field] == $value) continue;
+		if(is_int($key)){
+			$result[] = $val;
+		}else{
+			$result[$key] = $val;
+		}
+	}
+	return $result;
+}
+
 function array_find_by_field($array,$field,$value){
 	if(!is_array($array) || !$array) return null;
 	foreach ($array as $val) {

@@ -2,7 +2,7 @@
 	"id":"webdav",
 	"name":"{{LNG['webdav.meta.name']}}",
 	"title":"{{LNG['webdav.meta.title']}}",
-	"version":"1.52",
+	"version":"1.53",
 	"source":{
 		"className":" font-icon ri-hard-drive-fill-2 bg-yellow-6",
 		"icon":""
@@ -47,7 +47,7 @@
 		},
 		"pathAllow":{
 			"type":"segment",
-			"value":"all",
+			"value":"all","className":"style-simple",
 			"display":"{{LNG['webdav.config.pathAllow']}}",
 			"info":{
 				"all":"<i class='ri-node-tree font-icon'></i>{{LNG['webdav.config.pathAllowAll']}}",

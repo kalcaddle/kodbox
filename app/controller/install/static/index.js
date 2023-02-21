@@ -138,7 +138,7 @@
             _.each(errs, function(value, i){
                 errMsg.push((i+1)+'.'+$table.find("."+value+">span:eq(0)").text());
             });
-            Tips.tips(errMsg.join('<br/>'), false, 5000);
+            Tips.tips(errMsg.join('<br/>'), false, 3000);
         });
     }
 

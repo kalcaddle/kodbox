@@ -8,6 +8,7 @@
  */
 
 class commentIndex extends Controller {
+	private $model;
 	public function __construct(){
 		parent::__construct();
 		$this->model = Model("Comment");
@@ -22,7 +23,7 @@ class commentIndex extends Controller {
 	 */
 	public function listData(){
 		$data = Input::getArray(array(
-			"targetType"	=> array("check"=>"in","param"=>CommentModel::$TYPEALL),
+			"targetType"	=> array("check"=>"number"),
 			"targetID"		=> array("check"=>"number"),
 			
 			"idFrom"		=> array("check"=>"number","default"=>0),
@@ -43,15 +44,33 @@ class commentIndex extends Controller {
 	*/
 	public function add(){
 		$data = Input::getArray(array(
-			"targetType"	=> array("check"=>"in","param"=>CommentModel::$TYPEALL),
-			"targetID"      => array("check"=>"require"),
+			"targetType"	=> array("check"=>"number"),
+			"targetID"      => array("check"=>"number"),
 			"content"       => array("check"=>"require"),
-			
-			"title"         => array("default"=>""),
 			"pid"           => array("check"=>"number","default"=>0),
 		));
 		$data['userID'] = USER_ID;
 		$result = $this->model->addComment($data);
+		show_json($result,true);
+	}
+	
+	// 目标本身点赞用户列表
+	public function starUserList(){
+		$data = Input::getArray(array(
+			"targetType"	=> array("check"=>"number"),
+			"targetID"      => array("check"=>"number"),
+		));
+		$result = $this->model->addComment($data);
+		show_json($result,true);
+	}
+	
+	// 评论编辑;
+	public function edit(){
+		$data = Input::getArray(array(
+			"id"			=> array("check"=>"number"),
+			"content"       => array("check"=>"require"),
+		));
+		$result = $this->model->edit($data['id'],$data['continue']);
 		show_json($result,true);
 	}
 
@@ -73,11 +92,37 @@ class commentIndex extends Controller {
 		show_json($result,!!$result);
 	}
 	
+	// 直接点赞目标对象;(点赞文章or文件)
+	public function starTarget(){
+		$data = Input::getArray(array(
+			"targetType"	=> array("check"=>"number"),
+			"targetID"      => array("check"=>"number"),
+		));
+		$result = $this->model->starTarget($data['targetType'],$data['targetID']);
+		show_json($result,true);
+	}
+	// 直接点赞目标对象;(点赞文章or文件); {count:xx,userList:[{},...]}
+	public function starTargetUserList(){
+		$data = Input::getArray(array(
+			"targetType"	=> array("check"=>"number"),
+			"targetID"      => array("check"=>"number"),
+		));
+		$result = $this->model->starTargetUserList($data['targetType'],$data['targetID']);
+		show_json($result,true);
+	}
+	
+	// 获取评论点赞信息; {count:xx,userList:[{},...]}
+	public function prasiseUserList(){
+		$id = Input::get("id","number");
+		$result = $this->model->prasiseUserList($id);
+		show_json($result,true);
+	}
+	
+	
 	/**
 	 * 查询用户评论
 	 * 
 	 * 通用请求参数:sortField|sortType; page|pageNum
-	 * CommentModel::TYPE_SHARE|TYPE_SOURCE|TYPE_USER|TYPE_GROUP
 	 */
 	public function listByUser(){
 		$userID = Input::get("userID","number");

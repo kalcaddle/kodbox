@@ -260,6 +260,13 @@ class oauthBindIndex extends Controller {
 			return array('code' => false, 'data' => LNG('user.bindUpdateError'));
 		}
 		$this->addUser = true;
+		$data = array_merge($param, array(
+			'userID'	=> $userID,
+			'name'		=> $update['name'],
+			'password'	=> '',
+			'type'		=> $type
+		));
+		Action($this->pluginName)->logAdd('regist', $data);
 		return array('code' => true, 'data' => $userID);
 	}
 	// 获取昵称

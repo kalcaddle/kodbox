@@ -25,14 +25,23 @@ class CommentAuth extends Controller {
 	public function autoCheck(){
 		switch(strtolower(ACTION)){
 			case 'comment.index.listdata':
+			case 'comment.index.prasiseuserlist':
+			case 'comment.index.startargetuserlist':
 				$this->canView($this->in['targetType'],$this->in['targetID']);
 				break;
 			case 'comment.index.add':
+			case 'comment.index.startarget':
 				$this->canEdit($this->in['targetType'],$this->in['targetID']);
 				break;
 			case 'comment.index.remove':
 				$info = $this->info($this->in['id']);
+				$this->checkSelf($info,'remove');
 				$this->canRemove($info['targetType'],$info['targetID'],$info);
+				break;
+			case 'comment.index.edit':
+				$info = $this->info($this->in['id']);
+				$this->checkSelf($info,'edit');
+				$this->canEdit($info['targetType'],$info['targetID']);
 				break;
 			case 'comment.index.prasise':
 				$info = $this->info($this->in['id']);
@@ -65,8 +74,24 @@ class CommentAuth extends Controller {
 		$this->checkPathAuth($targetType,$targetID,'remove',$info);
 	}
 	
+	// 检测是否为操作自己的数据; 编辑自己的评论,删除自己的评论;
+	// 第三方业务, 可以自定义checkSelf是否允许自己编辑或删除; 允许谁编辑或删除(默认允许自己编辑或删除)
+	private function checkSelf($info,$action='edit'){
+		if($this->checkHook('comment.checkSelf',$info['targetType'],$info['targetID'],$action)) return true;
+		if($info['userID'] == USER_ID) return true;
+		if(_get($GLOBALS,'isRoot')) return true;
+		show_json(LNG('explorer.noPermissionAction'),false);
+	}
+	private function checkHook($event,$targetType,$targetID,$param=''){
+		$checkKey = $event.'.'.$targetType.'.'.$targetID.'.'.$param;
+		$GLOBALS[$checkKey] = false;
+		Hook::trigger($event,$targetType,$targetID,$param);
+		if($GLOBALS[$checkKey]) return true;
+	}
+	
 	// 目前只允许对文档,分享发表评论;
 	private function checkType($targetType,$targetID){
+		if($this->checkHook('comment.checkType',$targetType,$targetID,'')) return true;		
 		$allowType 	= array(
 			CommentModel::TYPE_SOURCE,
 			CommentModel::TYPE_SHARE,
@@ -80,6 +105,7 @@ class CommentAuth extends Controller {
 	
 	// 文档or内部分享评论权限检测;
 	private function checkPathAuth($targetType,$targetID,$action,$param = false){
+		if($this->checkHook('comment.checkAuth',$targetType,$targetID,$action)) return true;
 		$typePath 	= array(
 			CommentModel::TYPE_SOURCE,
 			CommentModel::TYPE_SHARE,

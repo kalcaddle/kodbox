@@ -30,7 +30,7 @@ class fileThumbPlugin extends PluginBase{
 
 		$param  = '&path='.rawurlencode($pathInfo['path']);
 		$param .= '&etag='.$pathInfo['size'].'_'.$pathInfo['modifyTime'];
-		$pathInfo['fileThumb'] = APP_HOST.'?plugin/fileThumb/cover'.$param.'&size=250';
+		$pathInfo['fileThumb'] = APP_HOST.'?plugin/fileThumb/cover'.$param.'&size=360';
 		if(in_array($pathInfo['ext'],$supportView)){
 			$pathInfo['fileShowView'] = APP_HOST.'?plugin/fileThumb/cover'.$param.'&size=1200';
 		}
@@ -262,14 +262,17 @@ class fileThumbPlugin extends PluginBase{
 			echo "ImageMagick ".LNG("fileThumb.check.notFound");
 			return false;
 		}
-		$param = "-auto-orient -alpha off -quality 90 -size {$maxSize}x{$maxSize}";
+		$size  = $maxSize.'x'.$maxSize;
+		$param = "-auto-orient -alpha off -quality 90 -size ".$size;
 		switch ($ext){
 			case 'eps':
 			case 'psb':
 			case 'psd':
 			case 'ps'://ps,ai,pdf; ==> window:缺少组件;mac:命令行可以执行，但php执行有问题
-			case 'ai':
-			case 'pdf':$file.= '[0]';break;
+			case 'ai':$file.= '[0]';break;
+			case 'pdf':$file.= '[0]';
+				$param = "-auto-orient -alpha remove -alpha off -quality 90 -size ".$size." -background white";
+				break; // pdf 生成缩略图透明背景变为黑色问题处理;
 			
 			/**
 			 * 生成doc/docx封面; or转图片;
@@ -293,14 +296,14 @@ class fileThumbPlugin extends PluginBase{
 			case 'bmp':
 			case 'jpe':
 			case 'jpeg':
-			case 'jpg':$param   = "-resize {$maxSize}x{$maxSize}";break;
-			case 'heic':;$param = "-resize {$maxSize}x{$maxSize}";break;
+			case 'jpg':$param   = "-resize ".$size;break;
+			case 'heic':;$param = "-resize ".$size;break;
 			
 			default:
 				$dng = 'dng,cr2,erf,raf,kdc,dcr,mrw,nrw,nef,orf,pef,x3f,srf,arw,sr2';
 				$dng = $dng.',3fr,crw,dcm,fff,iiq,mdc,mef,mos,plt,ppm,raw,rw2,srw,tst';
 				if(in_array($ext,explode(',',$dng))){
-					$param = "-resize {$maxSize}x{$maxSize}";
+					$param = "-resize ".$size;
 					$file = 'rgb:'.$file.'[0]';
 				}
 				break;

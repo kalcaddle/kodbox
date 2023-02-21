@@ -229,6 +229,10 @@ define(function(require, exports){
 			// console.error(202,[vWidth,vHeight],[left,top],dialog,dialog.$main.attr('class'));
 		}
 
+		setTimeout(function(){
+			$('.dplayer-mobile').addClass('dplayer-hide-controller');
+		},3000);
+		
 		var clickMaxBefore = _.bind(dialog._clickMax,dialog);
 		dialog._clickMax = function(){
 			clickMaxBefore();

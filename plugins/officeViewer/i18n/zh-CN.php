@@ -26,13 +26,13 @@ return array(
 	"officeViewer.main.invalidExt"				=> "不支持的文件格式",
 
 	"officeViewer.webOffice.name"				=> "自动解析",
-	"officeViewer.webOffice.desc"				=> "选择【自动解析】时，将按顺序打开（打开方式无效时自动切换）；<br/>如希望解析风格统一，或支持更多格式，可选择其他打开方式。",
+	"officeViewer.webOffice.desc"				=> "选择【自动解析】时，如当前方式不支持解析，将自动切换为下一种；<br/>如希望解析风格统一，或支持更多格式，可选择其他某一种打开方式。",
 
 	"officeViewer.libreOffice.desc"				=> "<div style='margin-top:3px;'>通过服务器上的LibreOffice，将文件转换为pdf格式，实现文件预览。</div>",
-	"officeViewer.libreOffice.checkError"		=> "LibreOffice调用失败，检测是否安装该软件，或是否有执行权限",
-	"officeViewer.libreOffice.sofficeError"		=> "LibreOffice服务异常，请检查后再试",
-	"officeViewer.libreOffice.convertError"		=> "文件转换失败，请检查服务是否正常",
-	"officeViewer.libreOffice.execDisabled"		=> "[shell_exec]函数被禁用，请开启后重试",
+	"officeViewer.libreOffice.checkError"		=> "LibreOffice调用失败，检测是否安装该软件，或是否有执行权限。",
+	"officeViewer.libreOffice.sofficeError"		=> "LibreOffice服务异常，请检查后再试。",
+	"officeViewer.libreOffice.convertError"		=> "转换失败，请检查文件或Office服务是否正常。",
+	"officeViewer.libreOffice.execDisabled"		=> "[shell_exec]函数被禁用，请开启后重试。",
 	"officeViewer.libreOffice.path"				=> "LibreOffice路径",
 	"officeViewer.libreOffice.pathDesc"			=> "<br/>
 		<span style='margin: 5px 0px;margin-bottom:0px;display: inline-block;'>LibreOffice路径为安装目录下的soffice路径，请根据安装自行填写。</span> <br/>

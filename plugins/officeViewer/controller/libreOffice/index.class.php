@@ -43,7 +43,12 @@ class officeViewerlibreOfficeIndex extends Controller {
 		if(!$localFile){
             $localFile = $plugin->pluginLocalFile($path);	// 下载到本地文件
         }
+		// 后缀名异常时（webdav为tmp）会转换失败
+		if (get_path_ext($localFile) != $ext) {
+			$localFile = $localFileNew = IO::copyFile($localFile, $localFile.'.'.$ext);
+		}
         $this->convert2pdf($localFile,$tempFile,$ext);
+		if (isset($localFileNew)) del_file($localFileNew);
 
 		if(@file_exists($tempFile)){
 			$cachePath  = IO::move($tempFile,$plugin->cachePath);
@@ -76,7 +81,8 @@ class officeViewerlibreOfficeIndex extends Controller {
         $fname = get_path_this($tempPath);
         $fpath = get_path_father($tempPath);
         // 转换类型'pdf'改为'新文件名.pdf'，会生成'源文件名.新文件名.pdf'
-        $script = 'export HOME=/tmp/libreOffice && ' . $command . ' --headless --invisible --convert-to '.$fname.' "'.$file.'" --outdir '.$fpath;
+		$export = 'export HOME=/tmp/libreOffice && ';
+        $script = $export.$command . ' --headless --invisible --convert-to '.$fname.' "'.$file.'" --outdir '.$fpath;
 		$out = shell_exec($script);
 
         $tname = substr(end(explode('/', $file)), 0, -strlen('.'.$ext));

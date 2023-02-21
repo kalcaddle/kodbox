@@ -31,12 +31,6 @@ class installIndex extends Controller {
     }
 
     public function check(){
-        if(!defined('STATIC_PATH')){
-            define('STATIC_PATH',$GLOBALS['config']['settings']['staticPath']);
-        }
-        if(!defined('INSTALL_PATH')){
-            define('INSTALL_PATH', './app/controller/install/');
-        }
         // 判断是否需要安装
         if($this->installCheck()) return;
 		if(ACTION == 'user.view.call'){exit;}
@@ -74,10 +68,16 @@ class installIndex extends Controller {
         exit;
     }
     private function installCheck(){
+        if(!defined('STATIC_PATH')){
+            define('STATIC_PATH',$GLOBALS['config']['settings']['staticPath']);
+        }
+        if(!defined('INSTALL_PATH')){
+            define('INSTALL_PATH', './app/controller/install/');
+        }
         // 1.setting_user.php、install.lock、数据库配置都存在，已安装；
         // 2.setting_user.php、数据库配置存在，install.lock不存在，重置管理员密码
         if(@file_exists($this->userSetting)) {
-            if($this->dbDefault(true)) {
+            if($this->defDbConfig(true)) {
                 if(@file_exists($this->installLock)) return true;
                 @touch($this->installFastLock);
             }
@@ -87,7 +87,10 @@ class installIndex extends Controller {
     }
     // 一键安装
     private function installFast(){
-        $data = array('installFast' => 0, 'installAuto' => '');
+        $data = array(
+            'installFast' => 0,     // 1:已配置数据库;2:已填写管理员账号
+            'installAuto' => ''     // 管理员账号：admin|admin
+        );
         if(!@file_exists($this->installFastLock) || !@file_exists($this->userSetting)) {
             return $data;
         }
@@ -118,9 +121,28 @@ class installIndex extends Controller {
     }
     // 全自动安装
     public function auto(){
+        if (isset($this->in['action']) && $this->in['action'] == 'db') return;  // 避免自动安装死循环
         $data = $this->installFast();
-        if($data['installFast'] != 2) return;
+        if (!$data['installFast']) return;
 
+        // 1.根据setting_user.php初始化数据库——saveDb
+        $config = $this->defDbConfig();
+        if (empty($config)) return;
+        $this->in = array_merge($config, array('action'=>'db'));
+        $GLOBALS['NOT_SAVE_DB_SET'] = true;
+        $res = ActionCallHook('install.index.save');
+        unset($GLOBALS['NOT_SAVE_DB_SET']);
+        if (!$res['code']) {
+            // 数据库已存在，且有表，当做自行导入的kod库（暂不做对比检测）
+            if (!isset($res['info']) || $res['info'] != 10001) {
+                show_json($res['data'], false);
+            }
+        }
+
+        // 2.没有管理员账号，返回
+        if ($data['installFast'] == 1) return;
+
+        // 3.有管理员账号，提交最后一步
         $data = explode('|', $data['installAuto']);
         $this->in = array(
             'name'      => $data[0],
@@ -130,8 +152,12 @@ class installIndex extends Controller {
         $this->save();
     }
 
-    // 获取数据库默认配置信息
-    public function dbDefault($return=false){
+    /**
+     * 获取数据库默认配置信息
+     * @param boolean $return false:表单数据;true:db配置数据
+     * @return void
+     */
+    public function defDbConfig($return=false){
         $data = array();
         // 1.获取文件数据
         if(!$dbConfig = $this->config['database']) return $data;
@@ -176,7 +202,7 @@ class installIndex extends Controller {
     // 环境检测
     public function env(){
         if(isset($this->in['db']) && $this->in['db'] == 1) {
-            $data = $this->dbDefault();
+            $data = $this->defDbConfig();
             show_json($data);
         }
         $env = array(
@@ -226,6 +252,7 @@ class installIndex extends Controller {
     private function saveDb(){
         // 1.1 获取db配置信息
         $data = $this->dbConfig();
+        if (isset($dat['code']) && !$data['code']) return $data;
         $dbName = $data['DB_NAME'];
         $cacheType = Input::get('cacheType', 'in', null, array('file', 'redis', 'memcached'));
 
@@ -250,7 +277,7 @@ class installIndex extends Controller {
         // 判断所需缓存配置是否有效——redis、memcached
         if(in_array($cacheType, array('redis', 'memcached'))){
             if(!extension_loaded($cacheType)){
-                show_json(sprintf(LNG('common.env.invalidExt'), "[php-{$cacheType}]"), false);
+                return show_json(sprintf(LNG('common.env.invalidExt'), "[php-{$cacheType}]"), false);
             }
             $type = ucfirst($cacheType);
             $handle = new $type();
@@ -263,9 +290,9 @@ class installIndex extends Controller {
                     $conn = $handle->addServer($host, $port);
                     if($conn && !$handle->getStats()) $conn = false;
                 }
-                if(!$conn) show_json(sprintf(LNG('admin.install.cacheError'),"[{$cacheType}]"), false);
+                if(!$conn) return show_json(sprintf(LNG('admin.install.cacheError'),"[{$cacheType}]"), false);
             }catch(Exception $e){
-                show_json(sprintf(LNG('admin.install.cacheConnectError'),"[{$cacheType}]"), false);
+                return show_json(sprintf(LNG('admin.install.cacheConnectError'),"[{$cacheType}]"), false);
             }
         }
 
@@ -276,16 +303,16 @@ class installIndex extends Controller {
                 $db->execute("create database `{$dbName}`");
             }
             $db->execute("use `{$dbName}`");
-            $tableCnt = $db->execute("show tables from `{$dbName}`");
-            if(!empty($tableCnt)){
+            $tables = $db->getTables($dbName);
+            if (!empty($tables)) {
                 if(empty($this->in['del_table'])){
-                    show_json(LNG('admin.install.ifDelDb'), false, 10001);
+                    return show_json(LNG('admin.install.ifDelDb'), false, 10001);
                 }
                 // 删除数据表
-                $res = $db->query("SELECT table_name FROM information_schema.`TABLES` WHERE table_schema='{$dbName}'");
-                foreach($res as $value){
-                    $table = !empty($value['table_name']) ? strtolower($value['table_name']) : '';
-                    if (!$table) continue;
+                foreach($tables as $table) {
+                    if ($table) {
+                        $table = strtolower($table);
+                    } else {continue;}
                     $db->execute("drop table if exists `{$table}`");
                 }
             }
@@ -293,47 +320,50 @@ class installIndex extends Controller {
             $db = Model()->db();
         }
 
-        // 1.5 写入配置文件：数据库、缓存
-        $data['DB_NAME'] = $dbName;
-        if($data['DB_TYPE'] == 'pdo'){
-            $dbDsn = explode(':', $data['DB_DSN']);
-            if($dbDsn[0] == 'mysql'){
-                $data['DB_DSN'] .= ';dbname=' . $data['DB_NAME'];
+        // 1.5 写入配置文件：数据库、缓存——自动安装时配置已存在，无需保存
+        if (!$GLOBALS['NOT_SAVE_DB_SET']) {
+            $data['DB_NAME'] = $dbName;
+            if($data['DB_TYPE'] == 'pdo'){
+                $dbDsn = explode(':', $data['DB_DSN']);
+                if($dbDsn[0] == 'mysql'){
+                    $data['DB_DSN'] .= ';dbname=' . $data['DB_NAME'];
+                }
+            }
+            $database = var_export($data, true);
+            $text = array(
+                "<?php ",
+                "\$config['database'] = {$database};",
+                "\$config['cache']['sessionType'] = '{$cacheType}';",
+                "\$config['cache']['cacheType'] = '{$cacheType}';"
+            );
+            if(isset($host) && isset($port)){
+                $text[] = "\$config['cache']['{$cacheType}']['host'] = '{$host}';";
+                $text[] = "\$config['cache']['{$cacheType}']['port'] = '{$port}';";
+            }
+            $file = $this->userSetting;
+            if(!@file_exists($file)) @touch($file);
+            $content = file_get_contents($file);
+            $pre = '';
+            if(stripos(trim($content),"<?php") !== false) {
+                $pre = PHP_EOL;
+                unset($text[0]);
+            }
+            $content = implode(PHP_EOL, $text);
+            if($this->dbType == 'sqlite') {
+                $content = $this->sqliteFilter($content);
+            }
+            if(!file_put_contents($file,$pre.$content, FILE_APPEND)) {
+                $msg = LNG('admin.install.dbSetError');
+                $tmp = explode('<br/>', LNG('common.env.pathPermissionError'));
+                $msg .= "<br/>" . $tmp[0];
+                return show_json($msg, false, 10000);
             }
         }
-        $database = var_export($data, true);
-        $text = array(
-            "<?php ",
-            "\$config['database'] = {$database};",
-            "\$config['cache']['sessionType'] = '{$cacheType}';",
-            "\$config['cache']['cacheType'] = '{$cacheType}';"
-        );
-        if(isset($host) && isset($port)){
-            $text[] = "\$config['cache']['{$cacheType}']['host'] = '{$host}';";
-            $text[] = "\$config['cache']['{$cacheType}']['port'] = '{$port}';";
-        }
-        $file = $this->userSetting;
-        if(!@file_exists($file)) @touch($file);
-        $content = file_get_contents($file);
-		$pre = '';
-		if(stripos(trim($content),"<?php") !== false) {
-            $pre = PHP_EOL;
-            unset($text[0]);
-        }
-        $content = implode(PHP_EOL, $text);
-        if($this->dbType == 'sqlite') {
-            $content = $this->sqliteFilter($content);
-        }
-        if(!file_put_contents($file,$pre.$content, FILE_APPEND)) {
-            $msg = LNG('admin.install.dbSetError');
-            $tmp = explode('<br/>', LNG('common.env.pathPermissionError'));
-            $msg .= "<br/>" . $tmp[0];
-            show_json($msg, false, 10000);
-		}
 
         // 1.6 创建数据表
-        $this->createTable($db);
-        show_json(LNG('explorer.success'));
+        $res = $this->createTable($db);
+        if (isset($res['code']) && !$res['code']) return $res;
+        return show_json(LNG('explorer.success'));
     }
     private function sqliteFilter($content) {
 		$replaceFrom = "'DB_NAME' => '".USER_SYSTEM;
@@ -353,7 +383,7 @@ class installIndex extends Controller {
     private function createTable($db){
         $dbFile = INSTALL_PATH . "data/{$this->dbType}.sql";
 		if (!@file_exists($dbFile)) {
-			show_json(LNG('admin.install.dbFileError'), false);
+			return show_json(LNG('admin.install.dbFileError'), false);
 		}
 		$content = file_get_contents($dbFile);
 		if($this->dbType == 'mysql') {
@@ -413,7 +443,7 @@ class installIndex extends Controller {
             (isset($data['db_dsn']) && stripos($data['db_dsn'], 'sqlite') === 0)) {
                 del_file($data['db_name']);
             }
-            show_json(sprintf(LNG('admin.install.dbTypeError'),$dbType), false);
+            return show_json(sprintf(LNG('admin.install.dbTypeError'),$dbType), false);
         }
         if($init['db_type'] != 'pdo') $init['db_type'] = $dbType;
 
@@ -464,8 +494,7 @@ class installIndex extends Controller {
             'name' => array('check' => 'require'),
             'password' => array('check' => 'require')
         ));
-        think_config($GLOBALS['config']['databaseDefault']);
-        think_config($GLOBALS['config']['database']);
+        $this->checkDbInit();
 
         $userID = 1;
         if(Model('User')->find($userID)) {
@@ -479,6 +508,50 @@ class installIndex extends Controller {
         $this->admin = $data;
         $this->init();
     }
+    // （检查）数据库初始化
+    private function checkDbInit(){
+        think_config($GLOBALS['config']['databaseDefault']);
+        // think_config($GLOBALS['config']['database']);
+        $data = $GLOBALS['config']['database'];
+        // 获取数据库类型，配置数据库信息（不指定数据库）
+        $type = $data['DB_TYPE'];
+        $dbName = $data['DB_NAME'];
+        switch ($data['DB_TYPE']) {
+            case 'pdo':
+                $dsn = explode(':', $data['DB_DSN']);
+                $type = $dsn[0];
+                $dsn = explode(';', $data['DB_DSN']);
+                $GLOBALS['config']['database']['DB_DSN'] = $dsn[0];  // 去掉数据库名
+                break;
+            case 'mysql':
+            case 'mysqli':
+                $type = 'mysql';
+                $GLOBALS['config']['database']['DB_NAME'] = '';
+                break;
+            case 'sqlite3':
+                $type = 'sqlite';
+                break;
+        }
+        think_config($GLOBALS['config']['database']);
+        // 判断数据库（表）是否存在
+        $db = Model()->db();
+        if ($type == 'sqlite') {
+            $tables = $db->getTables();
+            if (empty($tables) || !in_array('user', $tables)) {
+                show_json(LNG('admin.install.dbError'), false);
+            }
+        }
+        $exist = $db->execute("show databases like '{$dbName}'");
+        if (!$exist) show_json(LNG('ERROR_DB_NOT_EXIST'), false);
+        $db->execute("use `{$dbName}`");
+        $tables = $db->getTables();
+        if (empty($tables) || !in_array('user', $tables)) {
+            show_json(LNG('admin.install.dbTableError'), false);
+        }
+        // 重新配置数据库信息
+        $GLOBALS['config']['database'] = $data;
+        think_config($GLOBALS['config']['database']);
+    }
 
     /**
      * 初始化数据
@@ -491,13 +564,11 @@ class installIndex extends Controller {
         $this->initLightApp();
         $this->initPluginList();
 
-        $GLOBALS['SHOW_JSON_NOT_EXIT'] = 1;
         $this->addGroup();
         $this->addAuth();
         $this->roleID = $this->getRoleID();
 		$this->addUser();
 		KodIO::initSystemPath();
-        $GLOBALS['SHOW_JSON_NOT_EXIT'] = 0;
 
         @touch($this->installLock);
         del_file($this->installFastLock);
@@ -569,7 +640,6 @@ class installIndex extends Controller {
         );
         $res = ActionCallHook('admin.group.add');
         if(!$res['code']){
-            $GLOBALS['SHOW_JSON_NOT_EXIT'] = 0;
             show_json(LNG('admin.install.defGroupError'), false);
         }
     }

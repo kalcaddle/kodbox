@@ -118,46 +118,6 @@ body{background: #eeeef4;}
 	font-size: 18px;margin-left: -1px;
 }
 
-.toolbarButton#sidebarToggle:before{content:"\eadd"}
-.toolbarButton#secondaryToolbarToggle:before{content:"\ef3e";}
-.toolbarButton.findPrevious:before{content:"\ea78";}
-.toolbarButton.findNext:before{content:"\ea4e";}
-.toolbarButton.pageUp:before{content:"\ea76";}
-.toolbarButton.pageDown:before{content:"\ea4c";}
-.toolbarButton.zoomOut:before{content:"\f1af";}
-.toolbarButton.zoomIn:before{content:"\ea13";}
-.toolbarButton.presentationMode::before,
-.secondaryToolbarButton.presentationMode::before{content:"\ed9c";}
-.toolbarButton.print::before,
-.secondaryToolbarButton.print::before{content:"\f029";}
-.toolbarButton.openFile::before,
-.secondaryToolbarButton.openFile::before{content:"\ed54";}
-.toolbarButton.download::before,
-.secondaryToolbarButton.download:before{content:"\ec53";}
-.toolbarButton.bookmark::before,
-.secondaryToolbarButton.bookmark:before{content:"\eae3";}
-#viewThumbnail.toolbarButton:before{content:"\ed9e";}
-#viewOutline.toolbarButton:before{content:"\eeba";}
-#viewAttachments.toolbarButton:before{content:"\ea84";}
-#viewLayers.toolbarButton:before{content:"\f181";}
-#currentOutlineItem.toolbarButton:before{content:"\eebd";}
-#viewFind.toolbarButton:before{content:"\f0d1";}
-.secondaryToolbarButton.firstPage:before{content:"\ea29";}
-.secondaryToolbarButton.lastPage:before{content:"\ea24";}
-.secondaryToolbarButton.rotateCcw:before{content:"\eb95";}
-.secondaryToolbarButton.rotateCw:before{content:"\ea3c";}
-.secondaryToolbarButton.selectTool:before{content:"\ec5e";}
-.secondaryToolbarButton.handTool:before{content:"\ec60";}
-.secondaryToolbarButton.scrollVertical:before{content:"\ea62";}
-.secondaryToolbarButton.scrollHorizontal:before{content:"\ea73";}
-.secondaryToolbarButton.scrollWrapped:before{content:"\ee8d";}
-.secondaryToolbarButton.spreadNone:before{content:"\eced";}
-.secondaryToolbarButton.spreadOdd:before{content:"\ee8d";}
-.secondaryToolbarButton.spreadEven:before{content:"\eadb";}
-.secondaryToolbarButton.documentProperties:before{content:"\ee59";}
-.treeItemToggler:before{content:"\ef40";}
-.treeItemToggler.treeItemsHidden:before{content:"\ef3d";}
-
 .overlayButton {padding: 2px 2em 3px 2em;cursor: pointer;}
 .doorHanger:after, .doorHangerRight:after {
 	border-bottom-color:#818a9a;

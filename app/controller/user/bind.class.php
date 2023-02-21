@@ -8,13 +8,9 @@
  */
 
 class userBind extends Controller {
-	const BIND_META_INFO = 'Info';
-	const BIND_META_UNIONID = 'Unionid';
-
 	public function __construct() {
 		parent::__construct();
 	}
-
 	/**
 	 * 发送信息(验证码)-短信、邮件	当前只有个人设置绑定使用,暂时只记为绑定
 	 */

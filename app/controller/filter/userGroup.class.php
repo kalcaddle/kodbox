@@ -127,12 +127,17 @@ class filterUserGroup extends Controller{
 		if(!$check['group']) return;
 		if(!$groupID || $groupID == 'root'){
 			$groupID = $groupArray ? $groupArray[0]:false;
-			$GLOBALS['in'][$check['group']] = $groupID;
 			if($action == 'admin.group.get'){
-				// 普通用户选择用户(内部协作,权限设置); 加入最近使用;及自己常用保存;
-				Action("admin.group")->get();
-				// $items = Model('Group')->listByID($groupArray);
-				// show_json(array('list'=>$items,'pageInfo'=>array()),true);
+				if(isset($this->in['rootParam'])){
+					// 普通用户选择用户(内部协作,权限设置); 加入最近使用;及自己常用保存;
+					// 前端拉取;范围=用户所在部门可见最大范围+部门根目录针对该用户为管理者情况(文档管理员);
+					$GLOBALS['in'][$check['group']] = $groupID;
+					Action("admin.group")->get(); 
+				}else{
+					// 后台部门管理员;获取能管理的部门;
+					$items = Model('Group')->listByID($groupArray);
+					show_json(array('list'=>$items,'pageInfo'=>array()),true);
+				}
 			}
 		}
 		
