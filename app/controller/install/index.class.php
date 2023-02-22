@@ -535,18 +535,16 @@ class installIndex extends Controller {
         think_config($GLOBALS['config']['database']);
         // 判断数据库（表）是否存在
         $db = Model()->db();
-        if ($type == 'sqlite') {
-            $tables = $db->getTables();
-            if (empty($tables) || !in_array('user', $tables)) {
-                show_json(LNG('admin.install.dbError'), false);
-            }
+        if ($type != 'sqlite') {
+            $exist = $db->execute("show databases like '{$dbName}'");
+            if (!$exist) show_json(LNG('ERROR_DB_NOT_EXIST'), false);
+            $db->execute("use `{$dbName}`");
         }
-        $exist = $db->execute("show databases like '{$dbName}'");
-        if (!$exist) show_json(LNG('ERROR_DB_NOT_EXIST'), false);
-        $db->execute("use `{$dbName}`");
+        // sqlite可直接调用该方法，无论库文件是否存在
         $tables = $db->getTables();
         if (empty($tables) || !in_array('user', $tables)) {
-            show_json(LNG('admin.install.dbTableError'), false);
+            $msg = $type == 'sqlite' ? 'dbError' : 'dbTableError';
+            show_json(LNG('admin.install.'.$msg), false);
         }
         // 重新配置数据库信息
         $GLOBALS['config']['database'] = $data;
