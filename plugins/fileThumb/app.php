@@ -441,6 +441,7 @@ class fileThumbPlugin extends PluginBase{
 		return false;
 	}
 	private function checkBin($bin,$check){
+		if(!function_exists('shell_exec')) return false;
 		$result = shell_exec($bin.' --help');
 		return stripos($result,$check) > 0 ? true : false;
 	}

@@ -631,6 +631,7 @@ return array(
     "admin.storage.delErrTips"       => "成功:%s; 失败:%s，请重试或手动迁移",
     "admin.storage.delLocTips"       => "请至少保留一个本地存储",
     "admin.storage.delStoreTips"     => "该存储中包含备份数据，请处理后再进行操作！",
+    "admin.storage.name"             => "存储名称",
     "admin.storage.nameDesc"         => "存储名称，用于区分不同存储",
     "admin.storage.path"             => "存储目录",
     "admin.storage.pathLocDesc"      => "文件存储目录，请确保所填写目录具有读写权限",

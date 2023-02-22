@@ -631,6 +631,7 @@ return array(
     "admin.storage.delErrTips"       => "Correcto:%s; Fallo:%s, intente nuevamente o migre manualmente",
     "admin.storage.delLocTips"       => "Mantenga al menos una tienda local",
     "admin.storage.delStoreTips"     => "Este almacenamiento contiene datos de copia de seguridad, procéselos antes de continuar.",
+    "admin.storage.name"             => "nombre de almacenamiento",
     "admin.storage.nameDesc"         => "Nombre de almacenamiento para distinguir el almacenamiento diferente",
     "admin.storage.path"             => "Directorio de almacenamiento",
     "admin.storage.pathLocDesc"      => "Directorio de almacenamiento de archivos, asegúrese de que el directorio lleno tenga permisos de lectura y escritura",

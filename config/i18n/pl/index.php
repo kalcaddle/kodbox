@@ -631,6 +631,7 @@ return array(
     "admin.storage.delErrTips"       => "Sukces:%s; Błąd:%s, spróbuj ponownie lub ręcznie migruj",
     "admin.storage.delLocTips"       => "Zachowaj co najmniej jeden lokalny sklep",
     "admin.storage.delStoreTips"     => "Ten magazyn zawiera dane kopii zapasowej, przetwórz je przed kontynuowaniem!",
+    "admin.storage.name"             => "nazwa magazynu",
     "admin.storage.nameDesc"         => "Nazwa pamięci, aby odróżnić inną pamięć",
     "admin.storage.path"             => "Katalog pamięci",
     "admin.storage.pathLocDesc"      => "Katalog przechowywania plików, upewnij się, że wypełniony katalog ma uprawnienia do odczytu i zapisu",

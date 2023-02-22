@@ -59,7 +59,18 @@ class adminBackup extends Controller{
 		$id		= Input::get('id',null,null);
 		$result	= $this->model->listData($id);
 		$info	= $id ? $this->model->process() : array();
+		if (!$id) $this->_getDataApply($result);
 		show_json($result,true, $info);
+	}
+	// 追加备份所在存储，便于识别管理
+	private function _getDataApply(&$data){
+		if (empty($data)) return;
+		$list = Model('Storage')->listData();
+		$list = array_to_keyvalue($list, 'id', 'name');
+		foreach ($data as &$item) {
+			$io = $item['io'];
+			$item['ioName'] = isset($list[$io]) ? $list[$io] : '0';
+		}
 	}
 
 	/**

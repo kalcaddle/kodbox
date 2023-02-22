@@ -631,6 +631,7 @@ return array(
     "admin.storage.delErrTips"       => "Berhasil:%s; Kegagalan:%s, silakan coba lagi atau bermigrasi secara manual",
     "admin.storage.delLocTips"       => "Harap simpan setidaknya satu toko lokal",
     "admin.storage.delStoreTips"     => "Penyimpanan ini berisi data cadangan, harap proses sebelum melanjutkan!",
+    "admin.storage.name"             => "nama penyimpanan",
     "admin.storage.nameDesc"         => "Nama penyimpanan untuk membedakan penyimpanan yang berbeda",
     "admin.storage.path"             => "Direktori penyimpanan",
     "admin.storage.pathLocDesc"      => "Direktori penyimpanan file, harap pastikan bahwa direktori yang diisi memiliki izin baca dan tulis",

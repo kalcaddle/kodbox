@@ -631,6 +631,7 @@ return array(
     "admin.storage.delErrTips"       => "نجاح:%s ؛ فشل:%s ، يرجى المحاولة مرة أخرى أو الترحيل يدويًا",
     "admin.storage.delLocTips"       => "يرجى الاحتفاظ بمتجر محلي واحد على الأقل",
     "admin.storage.delStoreTips"     => "يحتوي هذا التخزين على بيانات نسخ احتياطي ، يرجى معالجتها قبل المتابعة!",
+    "admin.storage.name"             => "اسم التخزين",
     "admin.storage.nameDesc"         => "اسم التخزين لتمييز التخزين المختلفة",
     "admin.storage.path"             => "دليل التخزين",
     "admin.storage.pathLocDesc"      => "دليل تخزين الملفات ، يرجى التأكد من أن الدليل المعبأ لديه أذونات للقراءة والكتابة",

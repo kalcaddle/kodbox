@@ -631,6 +631,7 @@ return array(
     "admin.storage.delErrTips"       => "Erfolg:%s; Fehler:%s, versuchen Sie es erneut oder migrieren Sie manuell",
     "admin.storage.delLocTips"       => "Bitte bewahren Sie mindestens ein Geschäft vor Ort auf",
     "admin.storage.delStoreTips"     => "Dieser Speicher enthält Sicherungsdaten, bitte bearbeiten Sie diese, bevor Sie fortfahren!",
+    "admin.storage.name"             => "Speichername",
     "admin.storage.nameDesc"         => "Speichername zur Unterscheidung verschiedener Speicher",
     "admin.storage.path"             => "Speicherverzeichnis",
     "admin.storage.pathLocDesc"      => "Stellen Sie sicher, dass das ausgefüllte Verzeichnis über Lese- und Schreibrechte verfügt",

@@ -631,6 +631,7 @@ return array(
     "admin.storage.delErrTips"       => "Success:%s; Failure:%s, please try again or manually migrate",
     "admin.storage.delLocTips"       => "Please keep at least one local store",
     "admin.storage.delStoreTips"     => "This storage contains backup data, please process it before proceeding!",
+    "admin.storage.name"             => "Storage name",
     "admin.storage.nameDesc"         => "Storage name to distinguish different storage",
     "admin.storage.path"             => "Directory",
     "admin.storage.pathLocDesc"      => "File storage directory, please ensure it has write permissions",

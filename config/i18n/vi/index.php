@@ -631,6 +631,7 @@ return array(
     "admin.storage.delErrTips"       => "Thành công:%s; Thất bại:%s, vui lòng thử lại hoặc di chuyển thủ công",
     "admin.storage.delLocTips"       => "Vui lòng giữ ít nhất một cửa hàng địa phương",
     "admin.storage.delStoreTips"     => "Bộ nhớ này chứa dữ liệu sao lưu, vui lòng xử lý trước khi tiếp tục!",
+    "admin.storage.name"             => "tên lưu trữ",
     "admin.storage.nameDesc"         => "Tên lưu trữ để phân biệt lưu trữ khác nhau",
     "admin.storage.path"             => "Thư mục lưu trữ",
     "admin.storage.pathLocDesc"      => "Thư mục lưu trữ tệp, vui lòng đảm bảo rằng thư mục đã điền có quyền đọc và ghi",

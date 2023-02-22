@@ -631,6 +631,7 @@ return array(
     "admin.storage.delErrTips"       => "Succès:%s; échec:%s, veuillez réessayer ou migrer manuellement",
     "admin.storage.delLocTips"       => "Veuillez conserver au moins un magasin local",
     "admin.storage.delStoreTips"     => "Ce stockage contient des données de sauvegarde, veuillez les traiter avant de continuer !",
+    "admin.storage.name"             => "nom de stockage",
     "admin.storage.nameDesc"         => "Nom de stockage pour distinguer différents stockage",
     "admin.storage.path"             => "Répertoire de stockage",
     "admin.storage.pathLocDesc"      => "Répertoire de stockage de fichiers, veuillez vous assurer que le répertoire rempli dispose des autorisations de lecture et d'écriture.",

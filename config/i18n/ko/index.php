@@ -631,6 +631,7 @@ return array(
     "admin.storage.delErrTips"       => "성공 : %s; 실패 : %s, 다시 시도하거나 수동으로 마이그레이션하십시오.",
     "admin.storage.delLocTips"       => "하나 이상의 지역 상점을 유지하십시오",
     "admin.storage.delStoreTips"     => "이 저장소에는 백업 데이터가 포함되어 있습니다. 계속하기 전에 처리하십시오!",
+    "admin.storage.name"             => "저장소 이름",
     "admin.storage.nameDesc"         => "다른 스토리지를 구별하기위한 스토리지 이름",
     "admin.storage.path"             => "저장 디렉토리",
     "admin.storage.pathLocDesc"      => "파일 저장 디렉토리, 채워진 디렉토리에 읽기 및 쓰기 권한이 있는지 확인하십시오",

@@ -631,6 +631,7 @@ return array(
     "admin.storage.delErrTips"       => "Êxito:%s; Falha:%s, tente novamente ou migre manualmente",
     "admin.storage.delLocTips"       => "Por favor, mantenha pelo menos uma loja local",
     "admin.storage.delStoreTips"     => "Este armazenamento contém dados de backup, processe-os antes de continuar!",
+    "admin.storage.name"             => "nome de armazenamento",
     "admin.storage.nameDesc"         => "Nome de armazenamento para distinguir diferentes armazenamentos",
     "admin.storage.path"             => "Diretório de armazenamento",
     "admin.storage.pathLocDesc"      => "Diretório de armazenamento de arquivos, verifique se o diretório preenchido possui permissões de leitura e gravação",

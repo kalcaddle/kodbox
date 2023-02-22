@@ -631,6 +631,7 @@ return array(
     "admin.storage.delErrTips"       => "成功:%s; 失敗:%s，請重試或手動遷移",
     "admin.storage.delLocTips"       => "請至少保留一個本地存儲",
     "admin.storage.delStoreTips"     => "該存儲中包含備份數據，請處理後再進行操作！",
+    "admin.storage.name"             => "存儲名稱",
     "admin.storage.nameDesc"         => "存儲名稱，用於區分不同存儲",
     "admin.storage.path"             => "存儲目錄",
     "admin.storage.pathLocDesc"      => "文件存儲目錄，請確保所填寫目錄具有讀寫權限",

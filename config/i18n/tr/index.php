@@ -631,6 +631,7 @@ return array(
     "admin.storage.delErrTips"       => "Başarılı:%s; Hata:%s, lütfen tekrar deneyin veya manuel olarak taşıyın",
     "admin.storage.delLocTips"       => "Lütfen en az bir yerel mağaza tutun",
     "admin.storage.delStoreTips"     => "Bu depolama, yedekleme verileri içerir, lütfen devam etmeden önce bunları işleyin!",
+    "admin.storage.name"             => "depolama adı",
     "admin.storage.nameDesc"         => "Farklı depolamayı ayırt etmek için depo adı",
     "admin.storage.path"             => "Depolama dizini",
     "admin.storage.pathLocDesc"      => "Dosya depolama dizini, lütfen dolu dizinin okuma ve yazma izinlerine sahip olduğundan emin olun.",

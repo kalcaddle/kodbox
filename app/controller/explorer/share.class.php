@@ -91,6 +91,7 @@ class explorerShare extends Controller{
 	
 	public function file(){
 		if(!$this->in['hash']) return;
+		if(!defined('USER_ID')){define('USER_ID',0);}
 		$pass = Model('SystemOption')->get('systemPassword');
 		$path = Mcrypt::decode($this->in['hash'],$pass);
 		if(!$path || !IO::info($path)){

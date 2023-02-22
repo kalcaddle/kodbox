@@ -631,6 +631,7 @@ return array(
     "admin.storage.delErrTips"       => "成功:%s; 失敗:%s、再試行または手動で移動してください。",
     "admin.storage.delLocTips"       => "少なくとも1つのローカルストアを保持してください",
     "admin.storage.delStoreTips"     => "このストレージにはバックアップ データが含まれています。続行する前に処理してください。",
+    "admin.storage.name"             => "ストレージ名",
     "admin.storage.nameDesc"         => "異なるストレージを区別するためのストレージ名",
     "admin.storage.path"             => "ストレージディレクトリ",
     "admin.storage.pathLocDesc"      => "ファイルストレージディレクトリ。入力されたディレクトリに読み取りおよび書き込み権限があることを確認してください",

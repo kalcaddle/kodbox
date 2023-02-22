@@ -631,6 +631,7 @@ return array(
     "admin.storage.delErrTips"       => "Operazione riuscita:%s; Errore:%s, riprovare o migrare manualmente",
     "admin.storage.delLocTips"       => "Tieni almeno un negozio locale",
     "admin.storage.delStoreTips"     => "Questa memoria contiene dati di backup, elaborali prima di procedere!",
+    "admin.storage.name"             => "nome di archiviazione",
     "admin.storage.nameDesc"         => "Nome dell'archiviazione",
     "admin.storage.path"             => "Directory",
     "admin.storage.pathLocDesc"      => "Directory dove verranno archiviati i file, assicurarsi che disponga delle autorizzazioni di lettura e scrittura",
