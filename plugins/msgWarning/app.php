@@ -170,8 +170,9 @@ class msgWarningPlugin extends PluginBase{
             $data['disk'][] = sprintf(LNG('msgWarning.main.msgDefPathErr'), $drvUrl);
         } else {
             $sizeFree = ($defDriver['sizeMax'] - $defDriver['sizeUse']);
-            if ($sysDriver['sizeMax'] > 0 && $sizeFree < 1024*1024*1024*2) {
-                $size = size_format($sizeFree);
+            if ($defDriver['sizeMax'] > 0 && $sizeFree < 1024*1024*1024*2) {
+                $size = size_format(abs($sizeFree));    // 如果调整了存储大小，这里可能为负值，format返回为空
+                if ($sizeFree < 0) $size = '-'.$size;
                 $data['disk'][] = sprintf(LNG('msgWarning.main.msgDefSizeErr'), $drvUrl, $size);
             }
         }

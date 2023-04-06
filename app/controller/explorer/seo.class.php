@@ -196,8 +196,8 @@ class explorerSeo extends Controller{
 	private function shareViewFolder($shareInfo,$pathInfo){
 		$pathPre 	= _get($shareInfo['sourceInfo'],'pathDisplay',$shareInfo['sourceInfo']['path']);
 		$list 		= IO::listPath($pathInfo['path']);
-		$fileList 	= array_sort_by($list['fileList'],'name');
-		$folderList = array_sort_by($list['folderList'],'name');
+		$fileList 	= KodSort::arraySort($list['fileList'],'name');
+		$folderList = KodSort::arraySort($list['folderList'],'name');
 		$listAll 	= array_merge($folderList,$fileList);
 		$listAll 	= array_slice($listAll,0,2000);
 				

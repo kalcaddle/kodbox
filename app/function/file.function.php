@@ -496,10 +496,8 @@ function path_haschildren($dir,$checkFile=false){
  */
 function del_file($fullpath){
 	if (!@unlink($fullpath)) { // 删除不了，尝试修改文件权限
-		@chmod($fullpath, 0777);
-		if (!@unlink($fullpath)) {
-			return false;
-		}
+		@chmod($fullpath, DEFAULT_PERRMISSIONS);
+		if (!@unlink($fullpath)) {return false;}
 	} else {
 		return true;
 	}
@@ -517,14 +515,12 @@ function del_dir($dir){
 		$fullpath = rtrim($dir, '/') . '/' . $file;
 		if (!is_dir($fullpath)) {
 			if (!@unlink($fullpath)) { // 删除不了，尝试修改文件权限
-				@chmod($fullpath, 0777);
-				if (!@unlink($fullpath)) {
-					return false;
-				}
+				@chmod($fullpath, DEFAULT_PERRMISSIONS);
+				if (!@unlink($fullpath)) {return false;}
 			}
 		} else {
 			if (!del_dir($fullpath)) {
-				@chmod($fullpath, 0777);
+				@chmod($fullpath, DEFAULT_PERRMISSIONS);
 				if (!del_dir($fullpath)) return false;
 			}
 		}
@@ -561,13 +557,13 @@ function copy_dir($source, $dest){
 			$__dest = $dest;
 		}
 		$result = copy_64($source,$__dest);
-		@chmod($__dest, 0777);
+		@chmod($__dest, DEFAULT_PERRMISSIONS);
 	}else if(is_dir($source)) {
 		if ($dest[strlen($dest)-1] == '/') {
 			$dest = $dest . basename($source);
 		}
 		if (!is_dir($dest)) {
-			@mkdir($dest,0777);
+			@mkdir($dest,DEFAULT_PERRMISSIONS);
 		}
 		if (!$dh = opendir($source)) return false;
 		while (($file = readdir($dh)) !== false) {
@@ -645,7 +641,7 @@ function move_path($source,$dest,$repeat_add='',$repeat_type='replace'){
  * @param int $mode
  * @return bool
  */
-function mk_dir($dir, $mode = 0777){
+function mk_dir($dir, $mode = 0755){
 	if (!$dir) return false;
 	if (is_dir($dir) || @mkdir($dir, $mode)){
 		return true;
@@ -841,8 +837,8 @@ function content_search(&$content,$search,$isCase,$maxCount=1000,$isUtf8=false){
  * @param  $path 文件(夹)目录
  * @return :string
  */
-function chmod_path($path,$mod=0777){
-	if (!isset($mod)) $mod = 0777;
+function chmod_path($path,$mod=0){
+	$mod = $mod == 0 ? DEFAULT_PERRMISSIONS:$mod;
 	if (!file_exists($path)) return false;
 	if (is_file($path)) return @chmod($path,$mod);
 	if (!$dh = @opendir($path)) return false;
@@ -1043,7 +1039,7 @@ function write_log($log, $type = 'default', $level = 'log'){
 	}
 	if(!file_exists($target)){
 		error_log("<?php exit;?>\n", 3,$target);
-		@chmod($target,0777);
+		@chmod($target,DEFAULT_PERRMISSIONS);
 	}
 
 	if(is_object($log) || is_array($log)){

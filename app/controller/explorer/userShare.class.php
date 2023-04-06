@@ -272,7 +272,7 @@ class explorerUserShare extends Controller{
 		}
 		
 		$shareSource = $shareInfo['sourceInfo'];
-		// 分享目标为文件,追加字内容必须是自己;
+		// 分享目标为文件,追加子内容必须是自己;
 		if( $shareSource['type'] == 'file' &&
 			$shareSource['sourceID'] != $sourceInfo['sourceID']){
 			return false; 
@@ -296,9 +296,10 @@ class explorerUserShare extends Controller{
 			if(!$sourceInfo) return false;
 			$list = IO::listPath($truePath);
 		}else{
-			$sourceInfo = Model('Source')->pathInfo($param[0]);
+			$sourceID   = $param[0] ? $param[0] : $shareInfo['sourceID'];
+			$sourceInfo = Model('Source')->pathInfo($sourceID);
 			if(!$this->shareIncludeCheck($shareInfo,$sourceInfo)) return false;
-			$list = Model('Source')->listSource(array('parentID' => $param[0]));
+			$list = Model('Source')->listSource(array('parentID' => $sourceID));
 		}
 	
 		foreach ($list as $key => &$keyList) {

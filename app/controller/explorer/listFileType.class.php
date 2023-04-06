@@ -1,5 +1,5 @@
 <?php
-/*
+/**
 * @link http://kodcloud.com/
 * @author warlee | e-mail:kodcloud@qq.com
 * @copyright warlee 2014.(Shanghai)Co.,Ltd
@@ -62,8 +62,16 @@ class explorerListFileType extends Controller{
 		$thePath = rtrim($pathParse['param'],'/');
 		$thePath = $thePath ? $thePath : $homePath;
 		if(substr($thePath,0,2) == '/{'){$thePath = substr($thePath,1);}
-		if(!Action('explorer.auth')->canView($thePath)){
-			show_json(LNG('explorer.noPermissionAction'),false);	
+		if(!Action('explorer.auth')->fileCanRead($thePath)){
+			$errorTips = LNG('explorer.noPermissionAction'); //指定目录无权限或不存在处理;
+			$destInfo  = IO::info($thePath);
+			if(!$destInfo || $destInfo['pathType'] == "{systemRecycle}"){
+				$errorTips = LNG('common.pathNotExists');
+			}
+			$result = array("fileList"=>array(),'folderList'=>array());
+			$result['current'] = $this->photoCurrent($pathParse,$thePath);
+			$result['folderTips'] = $errorTips;
+			show_json($result,true);
 		}
 		
 		$this->in['pageNum'] = 20000; // 最多查询数量;
@@ -105,9 +113,11 @@ class explorerListFileType extends Controller{
 	
 	// 数据分组
 	private function groupData(&$data,$pageNum){
+		$this->resetImageTime($data);
+		$fileList 	= array_sort_by($data['fileList'],'imageTime',true);
+
 		$groupBy 	= Input::get('photoListBy','in','month',array('year','month','day'));// 分组类型
 		$pageNum 	= $pageNum <= 100 ? 100 : $pageNum;
-		$fileList 	= $this->resetImageTime($data['fileList']);
 		$pageTotal  = ceil(count($fileList) / $pageNum);
 		$page 		= isset($this->in['page']) ? intval($this->in['page']) : 1;
 		$page 		= $page <= 1 ? 1 : ($page >= $pageTotal ? $pageTotal : $page); 
@@ -122,7 +132,7 @@ class explorerListFileType extends Controller{
 		$groupType = $groupTypeArr[$groupBy];
 		
 		foreach($listPage as $file){
-			$key = date($groupType[0],$file['modifyTime']);
+			$key = date($groupType[0],$file['imageTime']);
 			if(!isset($groupArray[$key])){
 				$timeStart = strtotime($key.$groupType[1]);
 				$timeTo    = strtotime(date('Y-m-d H:i:s',$timeStart).$groupType[2]);				
@@ -130,7 +140,7 @@ class explorerListFileType extends Controller{
 					'type' 	=> 'photo-group-'.$timeStart,
 					'title' => $key,
 					"desc"  => '', 'count'=> 0,
-					"filter"=> array('modifyTime'=>array('>'=> $timeStart,'<'=> $timeTo)),
+					"filter"=> array('imageTime'=>array('>'=> $timeStart,'<'=> $timeTo)),
 				);
 			}
 			$groupArray[$key]['count'] += 1;
@@ -143,19 +153,17 @@ class explorerListFileType extends Controller{
 	}
 	
 	// 图片时间处理, 优先级: 拍摄时间>本地最后修改时间>上传时间
-	private function resetImageTime($fileList){
-		foreach($fileList as &$file){
+	public function resetImageTime(&$data){
+		foreach($data['fileList'] as &$file){
+			$file['imageTime'] = intval($file['modifyTime']);
 			if(is_array($file['fileInfoMore']) && isset($file['fileInfoMore']['createTime'])){
-				$file['modifyTime'] = strtotime($file['fileInfoMore']['createTime']);
-				if($file['modifyTime']){continue;}
+				$file['imageTime'] = strtotime($file['fileInfoMore']['createTime']);
+				if($file['imageTime']){continue;}
 			}
 			if(is_array($file['metaInfo']) && isset($file['metaInfo']['modifyTimeLocal'])){
-				$file['modifyTime'] = intval($file['metaInfo']['modifyTimeLocal']);
-				continue;
+				$file['imageTime'] = intval($file['metaInfo']['modifyTimeLocal']);
 			}
-			// $file['imageTime'] = intval($file['modifyTime']);
+			$file['imageTime'] = intval($file['modifyTime']);
 		};unset($file);
-		$fileList = array_sort_by($fileList,'modifyTime',true);
-		return $fileList;
 	}
 }

@@ -42,7 +42,6 @@ define('FUNCTION_DIR',	LIB_DIR .'function/');		//函数库目录
 define('CLASS_DIR',		LIB_DIR .'kod/');			//工具类目录
 define('CORER_DIR',		LIB_DIR .'core/');			//核心目录
 define('SDK_DIR',		LIB_DIR .'sdks/');			//
-define('DEFAULT_PERRMISSIONS',0755);	//新建文件、解压文件默认权限，777 部分虚拟主机限制了777
 define('MEMORY_LIMIT_ON', function_exists('memory_get_usage'));
 define("TIME",time());
 define("TIME_FLOAT",microtime(true));
@@ -97,6 +96,10 @@ if(!defined('WEB_ROOT')){	define('WEB_ROOT',webroot_path(BASIC_PATH) );}
 if(!defined('APP_HOST')){	define('APP_HOST',HOST.str_replace(WEB_ROOT,'',BASIC_PATH));} //程序根目录
 
 include(BASIC_PATH.'config/setting.php');
+
+//新建文件、解压文件默认权限=755;部分虚拟主机限制了777
+if(!defined('DEFAULT_PERRMISSIONS')){define('DEFAULT_PERRMISSIONS',$config['DEFAULT_PERRMISSIONS']);}
+
 init_common();
 $config['autorun'] = array(
 	'user.index.init',

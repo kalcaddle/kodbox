@@ -119,13 +119,60 @@ class adminSetting extends Controller {
 	}
 
 	public function clearCache(){
+		if($this->clearCacheType()){return;}
 		Cache::clearTimeout();
 		Cache::deleteAll();
 		http_close();
-		del_dir(TEMP_PATH);
+		@del_dir(TEMP_PATH);
+		@del_dir('/tmp/fileThumb');
 		mk_dir(TEMP_PATH . 'log');
+		Model("File")->clearEmpty();
+		$this->removeFolder('zipView');
+		$this->removeEmptyFolder();
 		Action('explorer.attachment')->clearCache();
 		AutoTask::restart();//停止计划任务; (再次访问自动开启)
+	}
+
+	private function clearCacheType(){
+		$clearType = $this->in['type'];
+		switch($clearType){
+			case 'image':$this->removeFolder('thumb');break;
+			case 'video':$this->removeFolder('plugin/fileThumb');break;
+			case 'plugin':
+				$this->removeFolder('zipView');
+				$this->removeFolder('plugin',true);
+				break;
+			default:$clearType = false;break;
+		}
+		if(!$clearType) return;
+		$this->removeEmptyFolder();
+		return true;
+	}
+	
+	// 清理插件目录下的空文件夹;
+	private function removeEmptyFolder(){
+		$info  = IO::infoFull(IO_PATH_SYSTEM_TEMP.'plugin');
+		$where = array('parentLevel'=>array('like',$info['parentLevel'].'%'),'size'=>0);
+		$lists = Model("Source")->field('sourceID,name')->where($where)->limit(5000)->select();
+		$lists = $lists ? $lists : array();
+		foreach ($lists as $item){
+			Model("Source")->removeNow($item['sourceID'],false);
+		}
+	}
+	
+	// 清理文件夹;
+	private function removeFolder($folder,$children=false){
+		$model = Model("Source");
+		$pathInfo = IO::infoFull(IO_PATH_SYSTEM_TEMP . $folder);
+		if(!$folder || !$pathInfo || !$pathInfo['sourceID']) return;
+		if(!$children){$model->removeNow($pathInfo['sourceID'],false);return;}
+		
+		$where = array('parentID'=>$pathInfo['sourceID']);
+		$lists = $model->field("sourceID,name")->where($where)->select();
+		$lists = $lists ? $lists : array();
+		foreach ($lists as $item){
+			$model->removeNow($item['sourceID'],false);
+		}
 	}
 
 	/**

@@ -72,7 +72,8 @@ $(document).ready(function (){
 			PDFViewerApplication.eventBus._listeners['afterprint'] = [];
 			PDFViewerApplication.eventBus._listeners['beforeprint'] = [];
 			PDFViewerApplication.supportsPrinting = false;
-			window.print = function(){}
+			PDFViewerApplication.download = function(){};
+			window.print = function(){};
 			$('.print,.download').remove();
 		},500);
 	},50);

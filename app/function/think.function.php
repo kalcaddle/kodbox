@@ -15,9 +15,7 @@ function think_var_cache($name, $value = '', $path = TEMP_PATH) {
             return false !== strpos($name, '*') ? array_map("unlink", glob($filename)) : unlink($filename);
         } else {
             $dir = dirname($filename);
-            if (!is_dir($dir)){
-                mkdir($dir, 0755, true);
-            }
+            if (!is_dir($dir)){mkdir($dir, DEFAULT_PERRMISSIONS, true);}
             $_cache[$name] = $value;
             return file_put_contents($filename,"<?php \n return " . var_export($value, true) . ";");
         }

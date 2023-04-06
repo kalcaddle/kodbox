@@ -69,6 +69,10 @@ class explorerIndex extends Controller{
 	public function desktopApp(){
 		$desktopApps = include(BASIC_PATH.'data/system/desktop_app.php');
 		$desktopApps['myComputer']['value'] = MY_HOME;// {source:home} 不指定打开文件夹,打开最后所在文件夹;
+
+		if( !Action('explorer.listBlock')->pathEnable('my') ){
+			unset($desktopApps['myComputer']);
+		}
 		foreach ($desktopApps as $key => &$item) {
 			if($item['menuType'] == 'menu-default-open'){
 				$item['menuType'] = 'menu-default';
@@ -192,7 +196,7 @@ class explorerIndex extends Controller{
 				$imageMd5 = md5("{$fileInfo['name']}_{$fileInfo['path']}_{$fileInfo['size']}");
 			}
 			$thumbPath = KodIO::make($sourceID);
-			$thumbList = array(250, 1200, 3000, 5000);	// 缩略图尺寸
+			$thumbList = array(250,600,1200,2000,3000,5000);	// 缩略图尺寸
 			// 循环删除各尺寸缩略图
 			foreach ($thumbList as $width) {
 				$imageName = "{$imageMd5}_{$width}.png";
@@ -813,11 +817,15 @@ class explorerIndex extends Controller{
 		if(isset($this->in['type']) && $this->in['type'] == 'image'){
 			$info = IO::info($path);
 			$imageThumb = array('jpg','png','jpeg','bmp');
-			if ($info['size'] >= 1024*200 &&
+			$width = isset($this->in['width']) ? intval($this->in['width']) :0;
+			if(!$width || $width >= 2000){
+				$this->updateLastOpen($path);
+			}
+			if($info['size'] >= 1024*200 &&
 				function_exists('imagecolorallocate') &&
 				in_array($info['ext'],$imageThumb) 
 			){
-				return IO::fileOutImage($path,$this->in['width']);
+				return IO::fileOutImage($path,$width);
 			}
 		}
 		$this->updateLastOpen($path);

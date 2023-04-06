@@ -132,6 +132,9 @@ class userView extends Controller{
 		}
 		return APP_HOST . $link;
 	}
+	public function imageRequest(){
+		Action('user.viewImage')->request('start');
+	}
 	
 	
 	// 验证码-登录、注册、找回密码、个人设置

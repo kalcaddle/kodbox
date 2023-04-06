@@ -47,9 +47,11 @@ class explorerListBlock extends Controller{
 			$block = array_merge($item,array(
 				"path"		=> '{block:'.$type.'}/',
 				"isParent"	=> true,
-				"children"	=> $this->blockChildren($type),
 			));
-			if($block['children'] === false) continue;
+			if($block['open']){
+				$block['children'] = $this->blockChildren($type);
+				if($block['children'] === false) continue;
+			}
 			$result[] = $block;
 		}
 		return $result;
@@ -67,7 +69,7 @@ class explorerListBlock extends Controller{
 	
 	private function groupRoot(){
 		$groupArray = Action('filter.userGroup')->userGroupRoot();
-	    if (empty($groupArray[0]) || count($groupArray) != 1) return false;
+	    if (!$groupArray || empty($groupArray[0])) return false;
 	    return Model('Group')->getInfo($groupArray[0]);
 	}
 	
@@ -132,7 +134,7 @@ class explorerListBlock extends Controller{
 		return $result;
 	}
 	
-	private function pathEnable($type){
+	public function pathEnable($type){
 		$model  = Model('SystemOption');
 		$option = $model->get();
 		if( !isset($option['treeOpen']) ) return true;

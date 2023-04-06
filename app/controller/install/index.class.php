@@ -465,7 +465,7 @@ class installIndex extends Controller {
      * sqlite database文件
      */
     private function sqliteDbFile(){
-        @chmod(DATA_PATH, 0777);
+        @chmod(DATA_PATH, 0755);
         $dbFile = USER_SYSTEM . rand_string(12) . '.php';
         @touch($dbFile);
         return $dbFile;

@@ -15,16 +15,23 @@ class adminGroup extends Controller{
 
 	public function get() {
 		$data = Input::getArray(array(
-			"parentID"		=> array("check"=>"require",'default'=>0),
+			"parentID"		=> array("check"=>"require",'default'=>'0'),
 			"rootParam" 	=> array("check"=>"require",'default'=>''),
 		));
-
-		$data['parentID'] = $data['parentID'] ? $data['parentID']: '0';
 		$data['parentID'] = $data['parentID'] == 'root' ? '1' : $data['parentID'];
+		
 		if(isset($_REQUEST['rootParam']) ){
 			Model('Group')->cacheFunctionClear('getInfo',$data['parentID']);// 有缓存未更新是否有子部门及用户的问题;
-			$groupCurrent = $this->model->getInfo($data['parentID']);
-			$items = array("list"=>array($groupCurrent));
+			$items = array("list"=>array(),'pageInfo'=>array());
+			if(is_array($GLOBALS['_groupRootArray'])){
+				$items['list'] = Model('Group')->listByID($GLOBALS['_groupRootArray']);
+				foreach ($items['list'] as $i=>$val){
+					if($i == 0){continue;}
+					$items['list'][$i]['disableOpen'] = true;
+				}
+			}else{
+				$items['list'][] = $this->model->getInfo($data['parentID']);
+			}
 			if(strstr($data['rootParam'],'appendRootGroup')){
 				$items['list'][] = array(
 					"groupID" 		=> "",

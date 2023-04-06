@@ -33,7 +33,7 @@
                 if(value !== true) {
                     opt.check = 'fail';
                     opt.icons = 'error';
-                    opt.value = '<span title-timeout="100" title="sudo chmod -Rf 777 '+value+'">'+value+'</span>';
+                    opt.value = '<span title-timeout="100" title="sudo chmod -Rf 755 '+value+'">'+value+'</span>';
                 }
                 break;
             case 'php_version':

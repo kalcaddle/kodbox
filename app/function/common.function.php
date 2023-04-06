@@ -467,11 +467,24 @@ function array_get_value(&$array,$key,$default=null){
 	return $default; 
 }
 
+// 数组按照keyArr保持顺序;
+function array_sort_keep($array,$key,$keyArr){
+	$result   = array();
+	$arrayNew = array_to_keyvalue($array,$key);
+	foreach ($keyArr as $key){
+		if(!isset($arrayNew[$key.''])){continue;}
+		$result[] = $arrayNew[$key.''];
+	}
+	return $result;	
+}
+
 /**
  * 二维数组按照指定的键值进行排序，默认升序
  * 
- * @param  $keys 根据键值
- * @param  $type 升序降序 默认升序
+ * @param  $field 排序字段; 为空时按一维数组排序;
+ * @param  $type  升序降序 默认升序
+ * @param  $fieldDefault 额外排序字段(当$field相等时的第二个排序字段)
+ * 
  * @return array 
  * $array = array(
  * 		array('name'=>'手机','brand'=>'诺基亚','price'=>1050),
@@ -480,14 +493,22 @@ function array_get_value(&$array,$key,$default=null){
  * $out = array_sort_by($array,'price');
  * $out = array_sort_by($array,'info.count');
  */
-function array_sort_by($records, $field, $sortDesc=false){
+function array_sort_by($records, $field='', $orderDesc=false,$fieldMore=false){
 	if(!is_array($records) || !$records) return array();
-	$sortDesc = $sortDesc?SORT_DESC:SORT_ASC;
-	$recordsPicker = array();
-	foreach ($records as $item) {
-		$recordsPicker[] = isset($item[$field]) ? $item[$field]: _get($item,$field,0);
+	if($fieldMore && $fieldMore == $field){$fieldMore = false;}
+	if(count($records) == 1) return $records;
+	$order   = $orderDesc ? SORT_DESC : SORT_ASC;
+	$flag    = SORT_NATURAL | SORT_FLAG_CASE;//SORT_REGULAR; SORT_NATURAL | SORT_FLAG_CASE
+	$sortBy1 = array();$sortBy2 = array();
+	if(!$field){array_multisort($records,$order,$flag,$records);return $records;}
+
+	foreach ($records as $item){
+		$sortBy1[] = isset($item[$field]) ? $item[$field]: _get($item,$field,'');
+		if($fieldMore){$sortBy2[] = isset($item[$fieldMore]) ? $item[$fieldMore]: _get($item,$fieldMore,'');}
 	}
-	array_multisort($recordsPicker,$sortDesc,$records);
+		
+	if($fieldMore){ array_multisort($sortBy1,$order,$flag,$sortBy2,$order,$flag,$records);}
+	if(!$fieldMore){array_multisort($sortBy1,$order,$flag,$records);}
 	return $records;
 }
 
@@ -704,11 +725,12 @@ function array_key_max($array){
 function array_to_keyvalue($array,$key='',$contentKey=false){
 	$result = array();
 	if(!is_array($array) || !$array) return $result;
+	if(!$key){return array_column($array,$contentKey);}
+	$contentKey = $contentKey ? $contentKey : null;
+	return array_column($array,$contentKey,$key);
+
 	foreach ($array as $item) {
-		$theValue = $item;
-		if($contentKey){
-			$theValue = $item[$contentKey];
-		}
+		$theValue = $contentKey ? $item[$contentKey]:$item;
 		if($key){
 			$result[$item[$key].''] = $theValue;
 		}elseif(!is_null($theValue)){
@@ -742,7 +764,7 @@ function array_tree($array, $id, $idKey = 'id', $pidKey = 'parentid'){
 }
 
 /**
- * 迭代获取子孙树
+ * 迭代获取子孙树——必须要有根部门（pid=空）
  * @param [type] $rows
  * @param string $pid
  * @return void
@@ -757,7 +779,7 @@ function array_sub_tree($rows, $pid = 'parentid', $id = 'id') {
 		}
 	}
 	foreach ( $rows as $key => $val ) {
-		if ( $val[$pid] ) unset ( $rows[$key] );	// 根元素的parentid需为空
+		if ( $val[$pid] ) unset ( $rows[$key] );	// 根元素的parentid需为空，以此删除其他项
 	}
 	return $rows;
 }

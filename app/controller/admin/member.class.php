@@ -53,7 +53,7 @@ class adminMember extends Controller{
 	public function getByID() {
 		$id = Input::get('id','[\d,]*');
 		$result = $this->model->listByID(explode(',',$id));
-		show_json($result,true);
+		$this->showUserfilterAllow($result);
 	}
 
 	/**
@@ -66,7 +66,31 @@ class adminMember extends Controller{
 			"status"		=> array("default"=>null)
 		));
 		$result = $this->model->listSearch($data);
-		show_json($result,true);
+		$this->showUserfilterAllow($result);
+	}
+	
+	// 过滤不允许的用户信息(根据当前用户可见部门筛选)
+	private function showUserfilterAllow($list){
+		if(!is_array($GLOBALS['_groupRootArray']) || !$list || !$list['list']){
+			show_json($list,true);
+		}
+
+		$userAllow = array();
+		foreach ($list['list'] as $user){
+			$allow = false;
+			foreach ($user['groupInfo'] as $groupInfo){
+				$parents = Model('Group')->parentLevelArray($groupInfo['parentLevel']);
+				$parents[] = $groupInfo['groupID'];
+				foreach ($parents as $groupID){
+					if(in_array($groupID.'',$GLOBALS['_groupRootArray'])){$allow = true;break;}
+				}
+				if($allow){break;}
+			}
+			if($allow){$userAllow[] = $user;}
+		}
+		// pr($userAllow,$list,$GLOBALS['_groupRootArray']);exit;
+		$list['list'] = $userAllow;
+		show_json($list,true);
 	}
 	
 	/**

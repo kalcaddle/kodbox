@@ -68,6 +68,8 @@ $config['APP_HOST_LINK'] 				= APP_HOST;	// 分享链接站点url; 可在setting
 $config['PLUGIN_HOST'] 					= APP_HOST.str_replace(BASIC_PATH,'',PLUGIN_DIR);//插件url目录;
 $config['PLUGIN_HOST_CDN_APP'] 			= '';//支持配置到cdn的插件; 插件名,逗号隔开;
 $config['PLUGIN_HOST_CDN'] 				= $config['PLUGIN_HOST'];//在上面的配置插件中才使用此作为插件静态资源url;
+$config['DEFAULT_PERRMISSIONS'] 		= 0755;
+$config['DEFAULT_PERRMISSIONS_KOD'] 	= 0700; // 内部文件,nginx才能读写;
 
 // 存储类型名对应列表
 $config['settings']['ioClassList'] = array(
@@ -122,7 +124,6 @@ $config['systemOption'] = array(
 	'requestPerMinuteMax'  		=> 0,			// 每分钟最大请求数;0不限制; 推荐:600,300个则每秒5个,每5秒25个, 25个内小于5s
 	'requestAllowPerMinuteMax' 	=> 0,			// 允许的接口每分钟最大请求数;0不限制;推荐:3000, 高频次接口(upload/mkdir/list)
 	'userTaskAllowMax'			=> 0, 			// 每个用户允许的长任务个数;0不限制, 推荐50, 管理员不受限制; 占用独立进程;
-	'userAllowShowInfo'			=> 1,			// 允许普通用户模糊搜索所有用户(默认为关闭,只能精确搜索,避免用户信息泄露); 
 );
 
 
@@ -303,6 +304,7 @@ $config['settingDefault'] = array(
 	'fileIconSize'		=> "80",		// 图标大小
 	'fileOpenClick'		=> 'dbclick',	// 打开文件方式 dbclick|click; 双击|单击;
 	'fileShowDesc'		=> '0',			// 图标模式显示文件夹文件详情(大小,文件夹包含子内容数)
+	'fileShowRename'	=> '1',			// 文件名后显示重命名按钮
 	'animateOpen'		=> "1",			// dialog动画
 	'soundOpen'			=> "0",			// 操作音效
 	'theme'				=> "auto",		// 'light','dark-mode','auto'

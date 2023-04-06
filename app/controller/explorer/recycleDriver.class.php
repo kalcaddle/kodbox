@@ -68,6 +68,25 @@ class explorerRecycleDriver extends Controller{
 					continue;
 				}
 			}
+			$ioType = IO::getType($toPath);
+			$allowInfo = $ioType == 'local'; // 仅允许本地存储属性访问; 访问速度优化处理;
+			if(!$allowInfo){
+				$name = get_path_this($toPath);
+				$info = array(
+					'path' => rtrim($fromPath,'/').'/'.$name,
+					'name' => $name,
+					'type' => preg_match("/.+\.[a-zA-Z0-9]{1,6}$/",$name,$match) ? 'file' : 'folder',
+					'size' => '-1',
+				);
+				if($info['type'] == 'folder'){
+					$data['folderList'][] = $info;
+				}else{
+					$data['fileList'][] = $info;
+				}
+				continue;
+			}
+			
+			// $pathParse['type'];local;miniIO;  info; 网络存储则不获取属性;			
 			$info = IO::info($toPath);
 			if(!$info){
 				unset($listNew[$toPath]);
@@ -140,7 +159,8 @@ class explorerRecycleDriver extends Controller{
 		}
 		
 		$destPath = IO::mkdir($recyclePath);
-		if(!$destPath){return IO::remove($path);} //新建失败,则尝试直接删除;
+		$destInfo = $destPath ? IO::info($destPath):false;
+		if(!$destInfo){return IO::remove($path);} //新建失败,则尝试直接删除;
 
 		$toPath = IO::move($path,$recyclePath,REPEAT_RENAME_FOLDER);
 		$list = $this->listData();

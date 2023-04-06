@@ -51,6 +51,8 @@ class explorerListSearch extends Controller{
 		foreach($param['wordsMutil'] as $word){
 			$param['words'] = $word;
 			$find = $this->searchData($param);
+			foreach ($find['fileList'] as &$item){$item['searchWords'] = $word;};unset($item);
+			foreach ($find['folderList'] as &$item){$item['searchWords'] = $word;};unset($item);
 			if(!$list) {$list = $find;continue;}
 			
 			$list['fileList']   = array_merge($list['fileList'],$find['fileList']);

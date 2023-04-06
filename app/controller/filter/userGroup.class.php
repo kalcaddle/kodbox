@@ -98,10 +98,6 @@ class filterUserGroup extends Controller{
 		if(!$groupList || count($groupList) == 0){ // 不在任何部门则不支持用户及部门查询;
 			return $this->checkError(array('error' =>'error'));
 		}
-		
-		// 是否允许普通用户模糊搜索其他人开关; 
-		$allowShowUserInfo = $GLOBALS['config']['systemOption']['userAllowShowInfo'] == 1;
-		if($allowShowUserInfo && ($action == 'admin.member.search' || $action == 'admin.member.getbyid')) return;
 
 		// app 接口请求认为是前端请求
 		if( strstr($_SERVER['HTTP_USER_AGENT'],'kodCloud-System:iOS') || 
@@ -113,7 +109,7 @@ class filterUserGroup extends Controller{
 		// 来自用户请求,false则来自后台管理员请求;
 		$fromUser   = $this->in['requestFrom'] == 'user';
 		$groupArray = $fromUser ? $this->userGroupRoot() : $this->userAdminGroup();
-		if($fromUser && $action == 'admin.member.search') return $this->checkUserSearch();
+		$GLOBALS['_groupRootArray'] = $groupArray;
 		
 		// 后端请求 fromAdmin;
 		$groupID = $this->in[$check['group']];
@@ -152,25 +148,6 @@ class filterUserGroup extends Controller{
 		// pr($groupID,$groupArray,$this->allowViewGroup($groupArray,$groupID));exit;
 		if($this->allowViewGroup($groupArray,$groupID)) return;
 		$this->checkError(array('error' =>'error'));
-	}
-		
-	private function checkUserSearch(){
-		$words = Input::get('words','require');
-		$where = array(
-			'name' 		=> $words,
-			'nickName' 	=> $words,
-			'email' 	=> $words,
-			'phone' 	=> $words,
-			'_logic' 	=> 'or',
-		);
-		$list = array();$page = array('totalNum' => 0);
-		$userArray = Model("User")->field('userID')->where($where)->select(); // 允许搜索重名用户;
-		if($userArray){
-			$list = Model('User')->userListInfo(array_to_keyvalue($userArray,'','userID'));
-			$list = array_values($list);
-			$page['totalNum'] = 1;
-		}
-		return show_json(array('list'=>$list,'pageInfo'=>$page),true);
 	}
 	
 	private function checkError($check){

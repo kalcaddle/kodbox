@@ -51,24 +51,29 @@ class webdavPlugin extends PluginBase{
 	public function route(){
 		include_once($this->pluginPath.'php/webdavClient.class.php');
 		include_once($this->pluginPath.'php/pathDriverWebdav.class.php');
-		
+
 		if(strtolower(MOD.'.'.ST) == 'plugin.index') exit;
 		$this->_checkConfig();
+		if(MOD === 'dav'){
+			$uriDav = '/index.php/dav/';
+			$this->run($uriDav);exit;
+		}
+		
 		if(strtolower(MOD.'.'.ST) != 'plugin.webdav') return;
 		$action = ACT;//dav/download;
 		if( method_exists($this,$action) ){
 			$this->$action();exit;
 		}
-		$this->run();exit;
+		$uriDav = '/index.php/plugin/webdav/'.$this->webdavName().'/';// 适配window多一层;
+		$this->run($uriDav);exit;
 	}
-	public function run(){
+	public function run($uriDav){
 		if(!$this->isOpen()) return show_json("not open webdav",false);
 		require($this->pluginPath.'php/webdavServer.class.php');
 		require($this->pluginPath.'php/webdavServerKod.class.php');
 		register_shutdown_function(array(&$this, 'endLog'));
 		
 		$this->allowCROS();
-		$uriDav = '/index.php/plugin/webdav/'.$this->webdavName().'/';// 适配window多一层;
 		$this->dav = new webdavServerKod($uriDav);
 		$this->debug($dav);
 		$this->dav->run();

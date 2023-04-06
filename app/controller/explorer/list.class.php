@@ -8,10 +8,15 @@
 
 /**
  * 文件列表通用入口获取
+ * 基本数据: current/folderList/fileList/pageInfo;
  * 
- * 逻辑参数
+ * 其他参数
  * listTypeSet 		// 指定列表模式; icon,list,split
+ * listTypePhoto	// 强制显示图片模式
  * disableSort 		// 是否禁用排序; 0,1
+ * pageSizeArray	// 自定义分页数量选择;
+ * folderTips		// 目录警告提示信息;
+ * groupShow 		// 分组依据;
  */
 class explorerList extends Controller{
 	private $model;
@@ -103,7 +108,7 @@ class explorerList extends Controller{
 		$folderCount= count($data['folderList']);
 		$totalNum	= $fileCount + $folderCount;
 		$pageNum 	= intval($pageNum);
-		$pageNum	= $pageNum <= 50 ? 50 : ($pageNum >= $pageNumMax ? $pageNumMax : $pageNum);
+		$pageNum	= $pageNum <= 5 ? 5 : ($pageNum >= $pageNumMax ? $pageNumMax : $pageNum);
 		$pageTotal	= ceil( $totalNum / $pageNum);
 		$page		= intval( isset($in['page'])?$in['page']:1);
 		$page		= $page <= 1 ? 1  : ($page >= $pageTotal ? $pageTotal : $page);
@@ -117,8 +122,8 @@ class explorerList extends Controller{
 
 		$sort = $this->_parseOrder();
 		$isDesc = $sort['desc'] == 'desc';
-		$data['fileList'] 	= array_sort_by($data['fileList'],$sort['key'],$isDesc);
-		$data['folderList'] = array_sort_by($data['folderList'],$sort['key'],$isDesc);
+		$data['fileList'] 	= KodSort::arraySort($data['fileList'],$sort['key'],$isDesc,'name');
+		$data['folderList'] = KodSort::arraySort($data['folderList'],$sort['key'],$isDesc,'name');
 		
 		$start = ($page-1) * $pageNum;
 		$end   = $start + $pageNum;

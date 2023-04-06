@@ -73,7 +73,7 @@ class webdavServer {
 		return file_exists($path);
 	}
 	public function pathMkdir($path){
-		return mkdir($path,0777,true);
+		return mkdir($path,DEFAULT_PERRMISSIONS,true);
 	}
 	public function pathInfo($path){
 		return path_info($path);

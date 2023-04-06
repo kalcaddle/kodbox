@@ -46,7 +46,7 @@ class kodRarArchive {
 			show_json('bin file not exists!',false);
 		}
 		if(PATH_SEPARATOR == ':') {
-			@chmod($file,0777);
+			@chmod($file,DEFAULT_PERRMISSIONS);
 		}
 		return $file;
 	}

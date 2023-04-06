@@ -30,7 +30,7 @@ class fileThumbPlugin extends PluginBase{
 
 		$param  = '&path='.rawurlencode($pathInfo['path']);
 		$param .= '&etag='.$pathInfo['size'].'_'.$pathInfo['modifyTime'];
-		$pathInfo['fileThumb'] = APP_HOST.'?plugin/fileThumb/cover'.$param.'&size=360';
+		$pathInfo['fileThumb'] = APP_HOST.'?plugin/fileThumb/cover'.$param.'&size=250';
 		if(in_array($pathInfo['ext'],$supportView)){
 			$pathInfo['fileShowView'] = APP_HOST.'?plugin/fileThumb/cover'.$param.'&size=1200';
 		}

@@ -64,7 +64,7 @@ ClassBase.define({
 				"info":{
 					"1":{ //按钮名称
 						"display":LNG['webdav.user.morePath']+" <b class='caret'></b>",
-						"className":"btn-default btn-sm",
+						"className":"btn-default btn-sm btn",
 					}
 				},
 				"switchItem":{"1":"pathAllowMore"}

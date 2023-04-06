@@ -330,7 +330,7 @@ class getid3_tiff extends getid3_handler
 					for ($j=0; $j < $valueCount; $j++) { 
 						$value1 = $this->TIFFendian2Int($this->fread(4),$byteOrder);
 						$value2 = $this->TIFFendian2Int($this->fread(4),$byteOrder);
-						$values[] = $value1 / $value2;
+						$values[] = $value2 ? ($value1 / $value2) : 0;
 					}
 					$item['value'] = $valueCount == 1 ? $values[0] : $values;
 					break;
@@ -343,7 +343,7 @@ class getid3_tiff extends getid3_handler
 					for ($j=0; $j < $valueCount; $j++) { 
 						$value1 = $this->TIFFendian2Int($this->fread(4),$byteOrder);
 						$value2 = $this->TIFFendian2Int($this->fread(4),$byteOrder);
-						$values[] = $value1 / $value2;
+						$values[] = $value2 ? ($value1 / $value2) : 0;
 					}
 					$item['value'] = $valueCount == 1 ? $values[0] : $values;
 					break;
