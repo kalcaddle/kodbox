@@ -100,7 +100,7 @@ class explorerListBlock extends Controller{
 		
 		if(!$this->pathEnable('myFav')){unset($list['fav']);}
 		if(!$this->pathEnable('my')){unset($list['my']);}
-		if(!$this->pathEnable('rootGroup') || !$groupInfo){unset($list['rootGroup']);}
+		if(!$this->pathEnable('rootGroup') || !$groupInfo || !$groupInfo['sourceInfo']){unset($list['rootGroup']);}
 		if(!$this->pathEnable('myGroup')){unset($list['myGroup']);}
 		
 		// 根部门没有权限,且没有子内容时不显示;

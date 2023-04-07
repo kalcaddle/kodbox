@@ -152,6 +152,7 @@ class adminSetting extends Controller {
 	// 清理插件目录下的空文件夹;
 	private function removeEmptyFolder(){
 		$info  = IO::infoFull(IO_PATH_SYSTEM_TEMP.'plugin');
+		if (!$info || !$info['sourceID'] || !$info['parentLevel']) return;
 		$where = array('parentLevel'=>array('like',$info['parentLevel'].'%'),'size'=>0);
 		$lists = Model("Source")->field('sourceID,name')->where($where)->limit(5000)->select();
 		$lists = $lists ? $lists : array();
