@@ -459,6 +459,12 @@ class adminRepair extends Controller {
 		$task->end();
 	}
 	
+	// 文件列表自然排序,文件名处理; 升级向下兼容数据处理;
+	public function sourceNameInit(){
+		// Model("SystemOption")->set('sourceNameSortFlag','');
+		if(Model("SystemOption")->get('sourceNameSortFlag')) return;
+		$this->sourceNameSort();
+	}
 	public function sourceNameSort(){
 		Model("SystemOption")->set('sourceNameSortFlag','1');
 		$taskType ='sourceNameSort';

@@ -95,9 +95,10 @@ class explorerListDriver extends Controller{
 		$storage = $driverList[$parse['id']];
 		if(!$storage) return $info;
 
+		$storageName = str_replace("/",'-',$storage['name']);
 		$info['isReadable']   = array_key_exists('isReadable',$info)  ? $info['isReadable']  : true;
 		$info['isWriteable']  = array_key_exists('isWriteable',$info) ? $info['isWriteable'] : true;
-		$info['pathDisplay']  = str_replace($parse['pathBase'],$storage['name'],$info['path']);
+		$info['pathDisplay']  = str_replace($parse['pathBase'],$storageName,$info['path']);
 		$langKey = 'admin.storage.'.strtolower($storage['driver']);
 		$info['ioType'] = LNG($langKey) != $langKey ? LNG($langKey) : $storage['driver'];
 		$info['ioDriver'] = $storage['driver'];
@@ -106,7 +107,7 @@ class explorerListDriver extends Controller{
 		// 根目录;
 		$thePath = trim($parse['param'],'/');
 		if( (!$thePath && $thePath !== '0') || $isFavPath ){
-			$info['name'] = $storage['name'];
+			$info['name'] = $storageName;
 			if($isFavPath){
 			    $info['name'] = $info['sourceInfo']['favName'];
 			}

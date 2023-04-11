@@ -120,6 +120,8 @@ class userView extends Controller{
 		http_close();
 		Action('explorer.index')->clearCache();
 		Action('explorer.attachment')->clearCache();
+		Action("admin.repair")->sourceNameInit();
+		
 		AutoTask::start();
 		Cache::clearTimeout();
 	}

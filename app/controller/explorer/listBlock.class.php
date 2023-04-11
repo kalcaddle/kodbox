@@ -59,9 +59,9 @@ class explorerListBlock extends Controller{
 	public function blockItems(){
 		$list = array(
 			'files'		=> array('name'=>LNG('common.position'),'open'=>true),
-			'tools'		=> array('name'=>LNG('common.tools'),'open'=>true,'children'=>true),
-			'fileType'	=> array('name'=>LNG('common.fileType'),'open'=>false,'children'=>true,'pathDesc'=> LNG('explorer.pathDesc.fileType')),
-			'fileTag'	=> array('name'=>LNG('common.tag'),'open'=>false,'children'=>true,'pathDesc'=> LNG('explorer.pathDesc.tag')),
+			'tools'		=> array('name'=>LNG('common.tools'),'open'=>true),
+			'fileType'	=> array('name'=>LNG('common.fileType'),'open'=>false,'pathDesc'=> LNG('explorer.pathDesc.fileType')),
+			'fileTag'	=> array('name'=>LNG('common.tag'),'open'=>false,'pathDesc'=> LNG('explorer.pathDesc.tag')),
 			'driver'	=> array('name'=>LNG('common.mount').' (admin)','open'=>false,'pathDesc'=> LNG('explorer.pathDesc.mount')),
 		);
 		return $list;

@@ -383,6 +383,8 @@ class explorerList extends Controller{
 				'fileList'		=> array()
 			);
 		}
+		if(!is_array($data['fileList'])){$data['fileList'] = array();}
+		if(!is_array($data['folderList'])){$data['folderList'] = array();}
 		$path = rtrim($path,'/').'/';
 		if(!isset($data['current']) || !$data['current']){
 			$data['current']  = $this->pathCurrent($path);
