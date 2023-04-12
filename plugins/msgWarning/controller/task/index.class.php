@@ -12,7 +12,7 @@ class msgWarningTaskIndex extends Controller {
 	}
 
 	// 更新同步计划任务
-	public function updateTask($status, $config){
+	public function updateTask($status){
 		// 任务不存在：状态为0，返回；否则新增
 		if(!$task = $this->getTask()) {
 			return $this->addTask($status);
@@ -44,7 +44,7 @@ class msgWarningTaskIndex extends Controller {
 	// 删除计划任务
 	public function delTask(){
 		if(!$task = $this->getTask()) return;
-		Model('SystemTask')->remove($task['id']);
+		Model('SystemTask')->remove($task['id'], true);
 	}
 
 

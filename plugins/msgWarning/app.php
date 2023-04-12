@@ -18,13 +18,13 @@ class msgWarningPlugin extends PluginBase{
 
     // 切换状态——更新计划任务
 	public function onChangeStatus($status){
-		$config = $this->getConfig();
-		$this->task()->updateTask($status, $config);
+		$this->task()->updateTask($status);
 	}
 	// 保存配置——更新计划任务
 	public function onSetConfig($config){
 		$status = 1;
-		$this->task()->updateTask($status, $config);
+		$this->task()->updateTask($status);
+        return $config;
 	}
 	// 卸载插件——删除计划任务
 	public function onUninstall(){
