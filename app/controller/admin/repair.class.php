@@ -550,4 +550,11 @@ class adminRepair extends Controller {
 		}
 		echoLog("删除完成！共删除source记录{$sCnt}条；file记录{$fCnt}条。");
 	}
+	
+	public function resetSize(){
+		$id = $this->in['sourceID'];
+		if(!$id) return;
+		model('Source')->folderSizeResetChildren($id);
+		echoLog("更新完成!");
+	}
 }
