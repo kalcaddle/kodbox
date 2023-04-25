@@ -170,7 +170,7 @@ class installIndex extends Controller {
         foreach($dbConfig as $key => $value) {
             $keys = explode("_", strtolower($key));
             $key = $keys[0] . ucfirst($keys[1]);
-            $database[$key] = strtolower($value);
+            $database[$key] = $value;
         }
         // 2.1 pdo数据处理
         if($database['dbType'] == 'pdo') {
@@ -272,6 +272,7 @@ class installIndex extends Controller {
             $db = Model()->db();
             $dbexist = $db->execute("show databases like '{$dbName}'");
         }
+        $GLOBALS['config']['database']['DB_NAME'] = $dbName;    // 避免auto调用时后续取该值为空（同一进程）
 
         // 1.3 检测缓存配置
         // 判断所需缓存配置是否有效——redis、memcached

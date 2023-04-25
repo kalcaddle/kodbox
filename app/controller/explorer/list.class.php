@@ -97,7 +97,7 @@ class explorerList extends Controller{
 		if(isset($data['pageInfo'])) return;
 		$in = $this->in;
 		$pageNumMax = 50000;
-		$pageNum = isset($in['pageNum'])?$in['pageNum']: $pageNumMax;
+		$pageNum = isset($in['pageNum']) ? $in['pageNum'] : $pageNumMax;
 		if($pageNum === -1){ // 不限分页情况; webdav列表处理;
 			unset($in['pageNum']);
 			$pageNumMax = 1000000;
@@ -390,6 +390,9 @@ class explorerList extends Controller{
 			$data['current']  = $this->pathCurrent($path);
 		}
 		$data['thisPath'] = $path;
+		if(is_array($data['current']) && $data['current']['path']){
+			$data['thisPath'] = rtrim($data['current']['path'],'/').'/';
+		}
 		if(!$data['targetSpace']){
 			$data['targetSpace'] = $this->targetSpace($data['current']);
 		}

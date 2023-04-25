@@ -111,7 +111,7 @@ class Hook{
 
 			self::$events[$event][$i]['times'] = $action['times'] + 1;
 			$res = ActionApply($action['action'],$args);
-			Hook::trigger($action['action']);
+			if(is_string($action['action'])){Hook::trigger($action['action']);}
 			
 			if($_logHook){
 				write_log(get_caller_info(),'hook-trigger');

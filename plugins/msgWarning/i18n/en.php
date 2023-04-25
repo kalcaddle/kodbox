@@ -38,6 +38,7 @@ return array(
 	'msgWarning.main.msgSysErr' 	=> 'The server usage rate of %s continued to exceed %s (currently %s) in the past %s minutes. To avoid affecting the normal use of the system, please check and optimize the relevant configuration. ',
 	'msgWarning.main.msgEmpty' 		=> 'Empty!',
 	'msgWarning.main.msgFmtErr' 	=> 'Format error!',
+	'msgWarning.main.ignoreTips'	=> 'No remind for now',
 
 	'msgWarning.main.taskTitle' 	=> 'message warning',
 	'msgWarning.main.taskDesc' 		=> 'System usage message warning, this task comes from the [Message Warning] plugin',

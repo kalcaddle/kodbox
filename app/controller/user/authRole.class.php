@@ -56,7 +56,11 @@ class userAuthRole extends Controller {
 		}
 		// 排除不需要登录的方法；其他的都需要登录
 		$user = Session::get("kodUser");
-		if(!$user){
+		if(!is_array($user)){
+			if(Session::get('kodUserLogoutTrigger')){
+				Session::destory();Cookie::remove('kodToken');
+				show_json(LNG('user.logoutTrigger'),ERROR_CODE_USER_INVALID);
+			}
 			show_json(LNG('user.loginFirst'),ERROR_CODE_LOGOUT);
 		}
 		//系统管理员不受权限限制

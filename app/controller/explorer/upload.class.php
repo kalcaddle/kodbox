@@ -134,6 +134,7 @@ class explorerUpload extends Controller{
 			$file = array('hashSimple' => null, 'hashMd5' => null);	// 非绑定数据库存储不检查秒传
 		}
 		
+		if(!$file['hashMd5']){$file['hashSimple'] = null;}
 		$default  = KodIO::defaultDriver();
 		$infoData = array(
 			"checkChunkArray"	=> $uploader->checkChunk(),

@@ -3,6 +3,7 @@ var page = {
     getFileInfo: function(callback){
         var tipsLoading = Tips.loadingMask(false,'加载中',0.5);
         var xhr = new XMLHttpRequest();
+        xhr.timeout = 1000*30;  // 超时时间
         xhr.open('GET', FILE_INFO.fileUrl);
         xhr.responseType = "arraybuffer";
         xhr.addEventListener("progress", function (evt) {   //监听进度事件
@@ -30,6 +31,9 @@ var page = {
                 }
             }
         };
+        xhr.ontimeout = function() {
+            self.showTips('加载时间过长，检查网络是否正常！');
+        }
     },
     // 错误提示
     showTips: function(msg){

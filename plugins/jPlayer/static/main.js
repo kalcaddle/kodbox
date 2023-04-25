@@ -16,7 +16,7 @@ kodReady.push(function(){
 			//safari 已经禁用了flash
 		};
 		var res = support.chrome;
-		if($.isWap){
+		if($.isWap && $.browserIS.ios){
 			res = support.wap;
 		}else if(!!window.ActiveXObject || "ActiveXObject" in window){
 			res = support.ie;

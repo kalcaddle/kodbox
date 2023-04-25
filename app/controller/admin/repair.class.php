@@ -1,6 +1,18 @@
 <?php
 /**
- * 计划任务
+ * 数据清理处理
+ * autoReset;			// 清空修复异常数据
+ * resetSourceEmpty		// source中表清理; sourceHash为空或所属关系错误的条目删除;
+ * resetShareTo			// share_to中存在share中不存在的数据清理
+ * resetShare			// share中存在,source已不存在的内容清理
+ * resetSourceFile		// source中的文件fileID,file中不存在清理;
+ * resetFileSource		// file中存在,source中不存在的进行清理
+ * resetSourceHistory	// 文件历史版本,fileID不存在的内容清理;
+ * resetFileLink		// 重置fileID的linkCount引用计数(source,sourceHistory);
+ * clearSameFile		// 清理重复的文件记录
+		
+ * sql清理操作日志: 
+ * delete from `system_log` where createTime < UNIX_TIMESTAMP('2023-03-01 00:00:00')
  */
 class adminRepair extends Controller {
 	function __construct()    {
@@ -43,6 +55,7 @@ class adminRepair extends Controller {
 		$this->resetFileSource();		// file中存在,source中不存在的进行清理
 		$this->resetSourceHistory();	// 文件历史版本,fileID不存在的内容清理;
 		$this->resetFileLink();			// 重置fileID的linkCount引用计数(source,sourceHistory);
+		$this->clearSameFile();			// 清理重复的文件记录
 		write_log('手动清理执行完成！', 'sourceClear');
 		echoLog('=====================================================');
 		echoLog('手动清理执行完成！');
@@ -556,5 +569,54 @@ class adminRepair extends Controller {
 		if(!$id) return;
 		model('Source')->folderSizeResetChildren($id);
 		echoLog("更新完成!");
+	}
+	
+	// 重复文件清理; 根据hashMd5处理;
+	public function clearSameFile(){
+		$list = Model()->query('select hashMd5,count(1) from io_file group by hashMd5 having count(hashMd5)>1;');
+		$list = is_array($list) ? $list : array();
+		$taskType ='clearSameFile';
+		$modelFile = Model("File");
+		
+		$total = 0;$timeStart = timeFloat();$removeNum = 0;
+		echoLog($taskType.',重复文件清理. 总数='.count($list));
+		$task = new Task($taskType,'',count($list));$totalCount = count($list);
+		foreach ($list as $item) {
+			if(!$item['hashMd5'] || $item['hashMd5'] == '0') continue;
+			$where = array("hashMd5"=>$item['hashMd5']);
+			
+			$files = $modelFile->field('fileID,path,linkCount')->where($where)->order('fileID asc')->select();
+			$files = is_array($files) ? $files : array();
+			$fileRemove = array();$linkCount = 0;
+			foreach ($files as $i=>$file){
+				if($i == 0) continue;
+				$linkCount += intval($file['linkCount']);
+				$fileRemove[] = $file['fileID'];
+				if($file['path'] && $file['path'] != $files[0]['path']){
+					IO::remove($file['path']);
+				}
+			}
+			if($fileRemove){
+				$fileID = $files[0]['fileID'];
+				$linkCount += intval($files[0]['linkCount']);
+				$fileWhere = array('fileID'=>array('in',$fileRemove));
+				$save = array('fileID'=>$fileID);
+				Model("Source")->where($fileWhere)->save($save);
+				Model("SourceHistory")->where($fileWhere)->save($save);
+				Model("share_report")->where($fileWhere)->save($save);
+				
+				Model("io_file_meta")->where($fileWhere)->delete();
+				Model("io_file_contents")->where($fileWhere)->delete();
+				Model("io_file_meta")->where($fileWhere)->delete();
+				$modelFile->where($fileWhere)->delete();
+				$modelFile->where(array('fileID'=>$fileID))->save(array('linkCount'=>$linkCount));
+				$removeNum ++;
+			}
+			//echoLog("222;".json_encode($fileRemove));exit;
+			$task->update(1);$total++;
+			echoLog($total.'/'.$totalCount.'; changed='.$removeNum, true);
+		}
+		echoLog($total.'/'.$totalCount.'; changed='.$removeNum.'; t='.(timeFloat() - $timeStart).'s');
+		$task->end();
 	}
 }

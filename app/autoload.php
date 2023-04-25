@@ -13,20 +13,24 @@
  */
 function Model($name = '', $tablePrefix = '', $connection = '') {
     static $cache = array();
+	if($name === '_destroy_'){$cache = array();return;} // 清除缓存;
     $guid = strtolower($tablePrefix . '_' . $name);
-	if (isset($cache[$guid])) return $cache[$guid];
-	
+	if(is_string($connection)){
+		$guid .= '_'.$connection;
+	}else if($connection && is_array($connection)){
+		new ModelBase($name, $tablePrefix, $connection);
+	}
+
+	// 没有该类，则为表名或空model
+	if(!$connection){$connection = $GLOBALS['config']['database'];}
+	if(isset($cache[$guid])) return $cache[$guid];
 	if($name){//有该类的情况(已经引入了类)
 		$name = strtoupper($name[0]).substr($name,1);
 		$modelName = $name.'Model';
 		if( class_exists($modelName) ){
-			$cache[$guid] = new $modelName();
+			$cache[$guid] = new $modelName('',$tablePrefix, $connection);
 			return $cache[$guid];
 		}
-	}
-	// 没有该类，则为表名或空model
-	if(!$connection){
-		$connection = $GLOBALS['config']['database'];
 	}
 	$cache[$guid] = new ModelBase($name, $tablePrefix, $connection);
     return $cache[$guid];

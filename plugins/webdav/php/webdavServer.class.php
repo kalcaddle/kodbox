@@ -426,10 +426,10 @@ class webdavServer {
 		if($data['code'] >= 400 && !$data['body']){
 			$data['body'] = $this->errorBody();
 		}
-		// write_log(array($_SERVER['REQUEST_URI'],$header,$GLOBALS['_SERVER']),'webdav');
         if (is_string($data['body'])) {
         	header('Content-Type: text/xml; charset=UTF-8');
         	echo '<?xml version="1.0" encoding="utf-8"?>'."\n".$data['body'];
         }
+		// write_log(array($_SERVER['REQUEST_URI'],$headers,$GLOBALS['_SERVER'],$data),'webdav');
 	}
 }

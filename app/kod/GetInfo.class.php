@@ -333,7 +333,7 @@ class GetInfo{
 		),
 		'video'	=> array(
 			'ext'	=> 'mp4,flv,f4v,wmv,ogv,mov,avi,rmvb,mkv,rm,webm,m4v,real,swf,'.
-					   '3g2,3gp,asf,bink,ivf,nsv,ts,ts,wtv,mts,mpe,mpeg,mpg,vob', //m2ts
+					   '3g2,3gp,asf,bink,ivf,nsv,wtv,mts,mpe,mpeg,mpg,vob', //m2ts ts
 			'keyMap'	=> array( //TODO; 编解码器;
 				'sizeWidth' 	=> '@.meta.onMetaData.width,video.resolution_x',
 				'sizeHeight' 	=> '@.meta.onMetaData.height,video.resolution_y',

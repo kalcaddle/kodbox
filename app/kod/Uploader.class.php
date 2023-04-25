@@ -47,9 +47,7 @@ class Uploader{
 			show_json('chunkSize error!',false);
 		}
 		
-		if($chunkSize > $size){
-		    $chunks = 1;
-		}
+		if($chunkSize > $size){$chunks = 1;}
 		if ($chunks <= 1) {// 没有分片;
 			// 清除秒传or断点续传请求checkChunk写入的数据;
 			$this->tempFile = $this->tempFile.rand_string(5);
@@ -57,45 +55,53 @@ class Uploader{
 			return $this->moveUploadedFile($this->tempFile);
 		}
 		
+		$fileHashSimple = '';
+		$fileChunkSize  = ($chunk < $chunks - 1) ? $chunkSize : ($size - ($chunks - 1) * $chunkSize);
 		//分片上传必须携带文件大小,及分片切分大小;
 		CacheLock::lock($this->tempFile,30);
 		$data = $this->statusGet();
-		$this->initFileTemp();
-		$chunkFile = $this->moveUploadedFile($dest);
-		if($size > 0 && filesize($chunkFile) == 0){
-			$this->showJson('0 Byte upload',false);
+		$this->initFileTemp();	
+			
+		// 流式上传性能优化;不写入临时文件;直接写入到目标占位文件中;
+		if($this->uploadFile == "php://input"){
+			$chunkFile = $this->uploadFile; 
+		}else{
+			$chunkFile = $this->moveUploadedFile($dest);
+			if($size > 0 && filesize($chunkFile) == 0){$this->showJson('0 Byte upload',false);}
+			if(!$chunkFile){$this->showJson(LNG('explorer.moveError'),false);}
+			$fileHashSimple = IO::hashSimple($chunkFile);
 		}
-		if(!$chunkFile) $this->showJson(LNG('explorer.moveError'),false);
-		
 		$offset = $chunk * $chunkSize;
 		if(!$outFp = @fopen($this->tempFile, "r+")){
 			$this->showJson('fopen file error:'.$this->tempFile,false);
 		}
 		fseek_64($outFp,$offset);
 		$success = $this->writeTo($chunkFile,$outFp,$this->tempFile);
-		$hash    = IO::hashSimple($chunkFile);
-		$size    = IO::size($chunkFile);
-		@unlink($chunkFile);
-		if(!$success){
-			$this->showJson('chunk_error:'.$chunk,false);
+		if(!$fileHashSimple){
+			$outFp = fopen($this->tempFile,'r');
+			fseek_64($outFp,$offset);
+			$fileHashSimple = PathDriverStream::hash($outFp,$fileChunkSize);
+			fclose($outFp);
 		}
+		@unlink($chunkFile);
+		if(!$success){$this->showJson('chunk_error:'.$chunk,false);}
 		
 		//分片成功:
 		$data['chunkTotal'] = $chunks;
 		$data['chunkArray']['chunk'.$chunk] = array(
 			'offset'	=> $offset,
 			'index' 	=> $chunk,
-			'size'		=> $size,
-			'hashSimple'=> $hash,
+			'size'		=> $fileChunkSize,
+			'hashSimple'=> $fileHashSimple,
 		);
 		$this->statusSet($data);
-		if ( count($data['chunkArray']) != $data['chunkTotal'] ){
+		if(count($data['chunkArray']) != $data['chunkTotal'] ){
 			$this->showJson('chunk_success_'.$chunk,true);
 		}
+		
 		// 所有分片完成,检测分片hash值一致性;
-		ignore_timeout();
-		if( !$this->checkChunkHash($data) ){
-			$this->showJson("hash error!",false);
+		if(!$this->checkChunkHash($data)){
+			$this->showJson("check chunk hash error!",false);
 		}
 		$this->statusSet(false);//上传成功,清空相关配置;
 		CacheLock::unlock($this->tempFile);
@@ -118,16 +124,34 @@ class Uploader{
 		}
 	}
 	
+	// 上传临时目录; 优化: 默认存储io为本地时,临时目录切换到对应目录的temp/下;(减少从头temp读取->写入到存储i)
+	private function tempPathGet(){
+		// return '/mnt/usb/tmp/';
+		$tempPath = TEMP_FILES;
+		$path = isset($GLOBALS['in']['path']) ? $GLOBALS['in']['path']:'';
+		$driverInfo = KodIO::pathDriverType($path);
+		if($driverInfo && $driverInfo['type'] == 'local'){
+			$truePath = rtrim($driverInfo['path'],'/').'/';
+			$isSame = KodIO::isSameDisk($truePath,TEMP_FILES);
+			if(!$isSame && file_exists($truePath)){$tempPath = $truePath;}
+		}
+		
+		if(!file_exists($tempPath)){
+			@mk_dir($tempPath);
+			touch($tempPath.'index.html');
+		}
+		return $tempPath;
+	}
+	
 	// 临时文件;
 	private function tempPathInit(){
-		$tempPath = TEMP_FILES;
-		@mk_dir($tempPath);
-		touch($tempPath.'index.html');
+		$tempPath = $this->tempPathGet();
 		$tempName = isset($this->in['checkHashSimple']) ? $this->in['checkHashSimple']:false;
 		if(strlen($tempName) < 30){ //32+大小;
 			$tempName = md5(USER_ID.$this->in['path'].$this->fileName.$this->in['size']);
 		}
-		$this->tempFile = $tempPath."upload_".md5($tempName.$this->in['chunkSize']);
+		$name = ".upload_".md5($tempName.$this->in['chunkSize']);
+		$this->tempFile = $this->tempPathGet().$name;
 	}
 	// 兼容move_uploaded_file 和 流的方式上传
 	private function moveUploadedFile($dest){
@@ -138,9 +162,7 @@ class Uploader{
 			$out = @fopen($dest, "wb");
 			$this->writeTo($fromPath,$out,$dest);
 		}else{
-			if(!move_uploaded_file($fromPath,$dest)){
-				return false;
-			}
+			if(!move_uploaded_file($fromPath,$dest)){return false;}
 		}
 		return $dest;
 	}
@@ -154,7 +176,7 @@ class Uploader{
 			return false;
 		}
 		while (!feof($in)) {
-			fwrite($outFp, fread($in, 1024*200));
+			fwrite($outFp, fread($in, 1024*500));
 		}
 		fclose($in);fclose($outFp);
 		CacheLock::unlock($lockKey);
@@ -221,17 +243,9 @@ class Uploader{
 	
 	// 所有分片完成,检测simpleHash 及md5;
 	private function checkChunkHash($data){
-		if( count($data['chunkArray']) != $data['chunkTotal'] ){
-			return false;
-		}
-		// html5 前端计算了md5,则对比md5;
+		if(count($data['chunkArray']) != $data['chunkTotal'] ){return false;}
 		$fileHash = _get($this->in,'checkHashSimple');
-		$fileMd5  = _get($this->in,'checkHashMd5');
-		if( strlen($fileMd5) == 32 &&
-			IO::hashSimple($this->tempFile) == $fileHash &&
-			IO::hashMd5($this->tempFile) == $fileMd5 ){
-			return true;
-		}
+		if($fileHash){return IO::hashSimple($this->tempFile) == $fileHash;}
 
 		if(!$fp = fopen($this->tempFile,'r')) return false;
 		$success = true;

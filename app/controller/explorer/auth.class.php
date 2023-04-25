@@ -391,6 +391,11 @@ class explorerAuth extends Controller {
 		if( $sharePath == $sourceID && $method =='remove' ){
 			return $this->errorMsg("source share root can't remove !");
 		}
+		
+		// 自己协作分享的内容; 权限同自己拥有的权限;
+		if($shareInfo['userID'] == USER_ID){
+			return $this->checkAuthMethod($shareInfo['sourceInfo']['auth']['authValue'],$method);
+		}
 
 		// 分享时间处理;
 		$timeout = intval(_get($shareInfo,'options.shareToTimeout',0));

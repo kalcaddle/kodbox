@@ -35,10 +35,15 @@ class kodRarArchive {
 		}else if(strstr($os,'win') ){
 			$file .= '.exe';	// win
 		}else if(strstr($os,'linux') ){
-			$result = shell_exec('apk --version');
-			if(strstr($result,'apk')){ // apilin 
-				$file .= '_linux';	// win
-			}
+			$name = get_path_this($file);	// 优先调用系统服务（部分服务器无法运行kod中的执行文件）
+		    if (is_executable('/usr/bin/'.$name)) {
+		        $file = '/usr/bin/'.$name;
+		    } else {
+    			$result = shell_exec('apk --version');
+    			if(strstr($result,'apk')){ // apilin 
+    				$file .= '_linux';	// win
+    			}
+		    }
 		}
 		
 		

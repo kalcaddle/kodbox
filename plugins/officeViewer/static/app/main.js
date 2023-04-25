@@ -10,7 +10,7 @@ kodReady.push(function(){
 				core.openFile('{{pluginApi}}',"{{config.openWith}}",_.toArray(arguments));
 			}
 		});
-		// 暂不屏蔽
+		// 屏蔽已包含的打开方式
 		_.delay(function(){
 			kodApp.remove('officeLive');
 			kodApp.remove('yzOffice');

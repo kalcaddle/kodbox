@@ -377,6 +377,22 @@ class userSetting extends Controller {
 		show_json($res);
 	}
 	
+	// 当前账号在线设备列表;
+	public function userLoginList(){
+		$sign = Session::sign();
+		$arr  = Action("filter.userLoginState")->userListLoad(USER_ID);
+		$arr[$sign]['isSelf'] = true;
+		foreach ($arr as $key => $item) {
+			$arr[$key]['address'] = IpLocation::get($item['ip']);
+		}
+		show_json(array_values($arr));
+	}
+	// 踢下线某个登录设备;
+	public function userLogoutSet(){
+		$sign = Input::get('sign', null, null);
+		Action("filter.userLoginState")->userLogoutTrigger(USER_ID,$sign);
+		show_json(LNG('explorer.success'));
+	}
 
 	public function taskList(){ActionCall('admin.task.taskList',USER_ID);}
 	public function taskKillAll(){ActionCall('admin.task.taskKillAll',USER_ID);}

@@ -72,6 +72,7 @@ class userIndex extends Controller {
 			$upload['chunkSize']  = floatval($sysOption['chunkSize']);
 			$upload['ignoreName'] = trim($sysOption['ignoreName']);
 			$upload['chunkRetry'] = intval($sysOption['chunkRetry']);
+			$upload['threads'] 	  = floatval($sysOption['threads']);
 			// $upload['httpSendFile']  = $sysOption['httpSendFile'] == '1'; //前端默认屏蔽;
 			
 			// 上传限制扩展名,限制单文件大小;
@@ -102,14 +103,21 @@ class userIndex extends Controller {
 		if( is_array(Session::get('kodUser')) ){
 			return $this->userDataInit();
 		}
+		if(Session::get('kodUserLogoutTrigger')){return;} //主动设置退出,不自动登录;
 		$userID 	= Cookie::get('kodUserID');
 		$loginToken = Cookie::get('kodToken');
 		if ($userID && $loginToken ) {
 			$user = Model('User')->getInfo($userID);
-			if ($user && $this->makeLoginToken($user['userID']) == $loginToken ) {
+			if ($user && $user['status'] != '0' && $this->makeLoginToken($user['userID']) == $loginToken ) {
 				return $this->loginSuccess($user);
 			}
 		}
+	}
+	
+	private function logoutError($msg,$code){
+		Session::destory();
+		Cookie::remove('kodToken');
+		show_json($msg,$code);
 	}
 	private function userDataInit() {
 		$this->user = Session::get('kodUser');
@@ -117,20 +125,17 @@ class userIndex extends Controller {
 			$findUser = Model('User')->getInfoFull($this->user['userID']);
 			// 用户账号hash对比; 账号密码修改自动退出处理;
 			if($findUser['userHash'] != $this->user['userHash']){
-				Session::destory();
-				show_json(LNG('common.loginTokenError').'(hash)',ERROR_CODE_LOGOUT);
+				$this->logoutError(LNG('common.loginTokenError').'(hash)',ERROR_CODE_LOGOUT);
 			}
+			$this->user = $findUser;
 			Session::set('kodUser',$findUser);
 		}
-		if (!$this->user) {
-			Session::destory();
-			show_json('user data error!',ERROR_CODE_LOGOUT);
-		} else if ($this->user['status'] == 0) {
-			Session::destory();
-			show_json(LNG('user.userEnabled'),ERROR_CODE_USER_INVALID);
-		} else if ($this->user['roleID'] == '') {
-			Session::destory();
-			show_json(LNG('user.roleError'),ERROR_CODE_LOGOUT);
+		if(!$this->user) {
+			$this->logoutError('user data error!',ERROR_CODE_LOGOUT);
+		}else if($this->user['status'] == 0) {
+			$this->logoutError(LNG('user.userEnabled'),ERROR_CODE_USER_INVALID);
+		}else if($this->user['roleID'] == '') {
+			$this->logoutError(LNG('user.roleError'),ERROR_CODE_LOGOUT);
 		}
 		
 		$GLOBALS['isRoot'] = 0;
@@ -204,6 +209,7 @@ class userIndex extends Controller {
 	 * 退出处理
 	 */
 	public function logout() {
+		Hook::trigger('user.index.logoutBefore',Session::get("kodUser"));
 		Session::destory();
 		Cookie::remove(SESSION_ID,true);
 		Cookie::remove('kodToken');
@@ -242,9 +248,7 @@ class userIndex extends Controller {
 		}
 		$this->loginSuccessUpdate($user);
 		//自动登录跳转; http://xxx.com/?user/index/loginSubmit&name=guest&password=guest&auto=1
-		if($this->in['auto'] == '1'){
-			header('Location: '.APP_HOST);exit;
-		}
+		$this->loginAuto();
 		show_json('ok',true,$this->accessToken());
 	}
 	private function loginWithToken(){
@@ -264,6 +268,7 @@ class userIndex extends Controller {
 		}
 		$user = Model('User')->getInfo($res['userID']);
 		$this->loginSuccessUpdate($user);
+		$this->loginAuto();
 		return show_json('ok',true,$this->accessToken());
 	}
 	
@@ -286,7 +291,14 @@ class userIndex extends Controller {
 		// 判断执行结果
 		if(isset($third['avatar'])) $third['avatar'] = rawurldecode($third['avatar']);
 		Hook::trigger('user.bind.withApp', $third);
+		$this->loginAuto();
 		return show_json('ok',true,$this->accessToken());
+	}
+
+	// 登录后自动跳转
+	private function loginAuto() {
+		if($this->in['auto'] != '1') return;
+		header('Location: '.APP_HOST);exit;
 	}
 	
 	/**

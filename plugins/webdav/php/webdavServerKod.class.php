@@ -24,9 +24,6 @@ class webdavServerKod extends webdavServer {
 		if($method == 'httpOPTIONS'){
 			return self::response($this->httpOPTIONS());
 		}
-		if($method == 'httpHEAD'){ // win10,office打开异常情况处理;不校验权限;
-			return self::response($this->httpHEAD());
-		}
 		
 		$this->checkUser();
 		$this->initPath($this->davPre);
@@ -35,10 +32,24 @@ class webdavServerKod extends webdavServer {
 		$this->response($result);
     }
 	
+	// head时一直返回200; 登录失败或无权限则直接返回; 登录检测等成功同理多了文件信息;
+	// 兼容 win10下office打开异常情况;
+	private function checkErrorHead(){		
+		if(HttpHeader::method() != 'HEAD') return;
+		self::response(array(
+			'code' => 200,
+			'headers' => array(
+				'Content-Type: text/html; charset=utf8',
+			)
+		));exit;
+	}
+	
 	// 错误处理;(空间不足,无权限等)
 	public function showErrorCheck($json){
 		if(!is_array($json)) return $json;
 		if($json['code'] == true || $json['code'] == 1) return $json;
+		
+		$this->checkErrorHead();
 		$this->lastError = is_string($json['data']) ?$json['data']:'';
 		$this->response(array('code'=>404));exit;
 	}
@@ -69,6 +80,7 @@ class webdavServerKod extends webdavServer {
     		$find = ActionCall('user.index.userInfo', $user['user'],$user['pass']);
     		if ( !is_array($find) || !isset($find['userID']) ){
     			// $this->plugin->log(array($user,$find,$_SERVER['HTTP_AUTHORIZATION'],$GLOBALS['_SERVER']));
+				$this->checkErrorHead();
     			return HttpAuth::error();
     		}
     		ActionCall('user.index.loginSuccess',$find);
@@ -81,6 +93,7 @@ class webdavServerKod extends webdavServer {
 			}
 	    }
 		if(!$this->plugin->authCheck()){
+			$this->checkErrorHead();
 			$this->lastError = LNG('common.noPermission');
 			$this->response(array('code'=>404));exit;
 		}

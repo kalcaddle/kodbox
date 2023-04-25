@@ -201,12 +201,12 @@ class KodSort{
         }
 		if(strpos($str,'亿亿') > 0) return -1;
         $splited = explode("亿",$str);
-        if (count($splited) == 2) {
+        if ($splited && count($splited) == 2) {
             $rest = $splited[1] == "" ? 0 : self::chineseToNumber($splited[1]);
             return $summary + self::chineseToNumber($splited[0]) * 100000000 + $rest;
         }
 		$splited = explode("万",$str);
-        if (count($splited) == 2) {
+        if ($splited && count($splited) == 2) {
             $rest = $splited[1] == "" ? 0 : self::chineseToNumber($splited[1]);
             return $summary + self::chineseToNumber($splited[0]) * 10000 + $rest;
         }

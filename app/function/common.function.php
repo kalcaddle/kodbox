@@ -513,28 +513,20 @@ function array_sort_by($records, $field='', $orderDesc=false,$fieldMore=false){
 }
 
 if (!function_exists('array_column')) {
-    function array_column($array, $column_key, $index_key = null) {
-        $column_key_isNumber = (is_numeric($column_key)) ? true : false;
-        $index_key_isNumber  = (is_numeric($index_key)) ? true : false;
-        $index_key_isNull    = (is_null($index_key)) ? true : false;
+    function array_column($array, $columnKey, $indexKey = null) {
         $result = array();
-        foreach((array)$array as $key=>$val){
-            if($column_key_isNumber){
-                $tmp = array_slice($val, $column_key, 1);
-                $tmp = (is_array($tmp) && !empty($tmp)) ? current($tmp) : null;
-            } else {
-                $tmp = isset($val[$column_key]) ? $val[$column_key] : null;
-            }
-            if(!$index_key_isNull){
-                if($index_key_isNumber){
-                    $key = array_slice($val, $index_key, 1);
-                    $key = (is_array($key) && !empty($key)) ? current($key) : null;
-                    $key = is_null($key) ? 0 : $key;
-                }else{
-                    $key = isset($val[$index_key]) ? $val[$index_key] : 0;
+        foreach ($array as $subArray) {
+            if (is_null($indexKey) && array_key_exists($columnKey, $subArray)) {
+                $result[] = is_object($subArray)?$subArray->$columnKey: $subArray[$columnKey];
+            } elseif (array_key_exists($indexKey, $subArray)) {
+                if (is_null($columnKey)) {
+                    $index = is_object($subArray)?$subArray->$indexKey: $subArray[$indexKey];
+                    $result[$index] = $subArray;
+                } elseif (array_key_exists($columnKey, $subArray)) {
+                    $index = is_object($subArray)?$subArray->$indexKey: $subArray[$indexKey];
+                    $result[$index] = is_object($subArray)?$subArray->$columnKey: $subArray[$columnKey];
                 }
             }
-            $result[$key] = $tmp;
         }
         return $result;
     }

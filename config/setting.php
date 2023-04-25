@@ -27,7 +27,7 @@ $config['settings'] = array(
 		'threads'			=> 10,			// 上传并发数;部分低配服务器上传失败则将此设置为1
 		'ignoreName'		=> '',			// 忽略的文件名,不区分大小写; 逗号隔开,例如: .DS_Store,Thumb.db
 		'chunkRetry'		=> 2,			// 分片上传失败,重传次数;针对每个分片;
-		'sendAsBinary'		=> 0,			// 以二进制方式上传;后端服务器以php://input接收;0则为传统方式上传 $_FILE;
+		'sendAsBinary'		=> 1,			// 以二进制方式上传;后端服务器以流php://input接收; 0则为传统方式上传 $_FILE;
 		'httpSendFile'		=> false,		// 调用webserver下载 https://doc.kodcloud.com/v2/#/help/options
 		
 		'ignoreExt'			=> '',          // 限制的扩展名; 扩展名在该说明中则自动不上传;逗号隔开
@@ -48,6 +48,7 @@ $config['settings'] = array(
 	'zipFileSizeMax'  		=> 0,			// 文件(夹)压缩大小限制;   0-不限制; 单位GB(float)
 	'groupCompany'			=> 0,			// 二级部门为子公司,独立部门;
 	'shareLinkExpireTime'	=> 0,			// 外链分享过期时间，单位天（n天后过期）
+	'userLoginLimit'		=> 5,			// 同一账号限制同时登录设备数;0=不限制;guest/admin不限制
 	
 	'staticPath'		=> APP_HOST."static/",	//静态文件目录,可以配置到cdn;
 	'kodApiServer'		=> "https://api.kodcloud.com/?", //QQ微信登录/邮件发送/插件-列表等 
@@ -312,6 +313,7 @@ $config['settingDefault'] = array(
 	'wall'				=> "4",			// wall picture
 	'listTypeKeep'		=> '1',			// 1|0, 为每个文件夹选择视图模式，或对所有文件夹使用相同的视图模式
 	'listSortKeep'		=> '1',			// 1|0, 为每个文件夹配置列排序顺序，或对所有文件夹使用相同的顺序
+	'menuBarAutoHide'	=> '0',			// 1|0, 左侧菜单栏自动显示和隐藏
 	
 	"fileRepeat"		=> "replace",	// rename,replace,skip
 	"recycleOpen"		=> "1",			// 1 | 0 代表是否开启

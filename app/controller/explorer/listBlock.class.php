@@ -48,7 +48,7 @@ class explorerListBlock extends Controller{
 				"path"		=> '{block:'.$type.'}/',
 				"isParent"	=> true,
 			));
-			if($block['open']){
+			if($block['open'] || $block['children']){
 				$block['children'] = $this->blockChildren($type);
 				if($block['children'] === false) continue;
 			} // 必须有children,没有children的去除(兼容Android <= 2.15)
@@ -60,8 +60,8 @@ class explorerListBlock extends Controller{
 		$list = array(
 			'files'		=> array('name'=>LNG('common.position'),'open'=>true), 
 			'tools'		=> array('name'=>LNG('common.tools'),'open'=>true),
-			'fileType'	=> array('name'=>LNG('common.fileType'),'open'=>true,'pathDesc'=> LNG('explorer.pathDesc.fileType')),
-			'fileTag'	=> array('name'=>LNG('common.tag'),'open'=>true,'pathDesc'=> LNG('explorer.pathDesc.tag')),
+			'fileType'	=> array('name'=>LNG('common.fileType'),'open'=>false,'children'=>true,'pathDesc'=> LNG('explorer.pathDesc.fileType')),
+			'fileTag'	=> array('name'=>LNG('common.tag'),'open'=>false,'children'=>true,'pathDesc'=> LNG('explorer.pathDesc.tag')),
 			'driver'	=> array('name'=>LNG('common.mount').' (admin)','open'=>false,'pathDesc'=> LNG('explorer.pathDesc.mount')),
 		);
 		return $list;

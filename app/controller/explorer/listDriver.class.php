@@ -22,15 +22,11 @@ class explorerListDriver extends Controller{
 	private function rootList(){
 		$dataList = Model('Storage')->listData();
 		$list = array();
-		if($this->config['systemOS']=='windows'){
-			$check = 'CDEFGHIJKLMNOPQRSTUVWXYZ';
-			for($i=0;$i<strlen($check);$i++){
-				$this->driverMake($list,"$check[$i]:/");
-			}
-		}else{
-			$this->driverOthers($list);
+		$diskList = KodIO::diskList(false);
+		foreach ($diskList as $path) {
+			$this->driverMake($list,$path);
 		}
-		
+
 		foreach ($dataList as $item) {
 			$list[] = array(
 				"name"			=> $item['name'],
@@ -156,25 +152,6 @@ class explorerListDriver extends Controller{
 		return $info;
 	}
 
-	
-	private function driverOthers(&$list){
-		if(!function_exists("shell_exec")){
-			return $this->driverMake($list,"/");
-		}
-		$rows = explode("\n", shell_exec('df -l'));
-		array_shift($rows);array_pop($rows);
-		$disable = array(//虚拟内存等;
-			'/private/var/vm','/System/Volumes/Data',
-			'/Volumes/Update','/Volumes/Recovery'
-		);
-		foreach ($rows as $row) {
-			$item = preg_split("/[\s]+/", $row);
-			$path = $item[count($item)-1];
-			if(!strstr($item[0],'/dev/')) continue;
-			if(in_array($path,$disable)) continue;
-			$this->driverMake($list,$path);
-		}
-	}
 	private function driverMake(&$list,$path){
 		if(!file_exists($path)) return;
 		$total  = @disk_total_space($path);

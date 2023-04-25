@@ -38,6 +38,7 @@ return array(
 	'msgWarning.main.msgSysErr'		=> '服务器在近%s分钟内,%s使用率持续超过%s(目前为%s),为避免影响系统的正常使用,请检查并优化相关配置',
 	'msgWarning.main.msgEmpty'		=> '为空！',
 	'msgWarning.main.msgFmtErr'		=> '格式错误！',
+	'msgWarning.main.ignoreTips'	=> '暂不提醒',
 
 	'msgWarning.main.taskTitle'		=> '消息预警',
 	'msgWarning.main.taskDesc'		=> '系统用量消息预警,此任务来自于【消息预警】插件',

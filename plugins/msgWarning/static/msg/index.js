@@ -5,6 +5,9 @@ ClassBase.define({
 
     // 显示异常信息
     showTips: function(){
+        var keyTimeout = 'msgwarning_ignore_timeout';
+        var lastTime   = parseInt(LocalData.get(keyTimeout)) || 0;
+        if (lastTime > time()) return;
         if ($('.kui-notify .msg-warning-tips').length) return;
 		if (!this.request) return;
         var self = this;
@@ -12,14 +15,19 @@ ClassBase.define({
             if (!result || !result.code || _.isString(result.data)) return;
             var msg = self.getMsg(result.data);
             if (!msg.length) return;
+            var btnIgnore = '<button class="kui-btn tips-ignore size12 ml-10">'+LNG['msgWarning.main.ignoreTips']+'</button>';
             var tips = Tips.notify({
-                title: LNG['msgWarning.main.tipsTitle'],
+                title: LNG['msgWarning.main.tipsTitle'] + btnIgnore,
                 icon: "warning",
                 className: "msg-warning-tips",
-                content: '<div class="info-alert align-left info-alert-error">'+_.join(msg,'')+'</div>'
+                content: '<div class="info-alert align-left info-alert-error mt-5">'+_.join(msg,'')+'</div>'
             });
             var height = $(document).height();
             tips.$main.find('.kui-notify-content-message').css({'max-height': (height - 100)+'px', 'overflow-y':'scroll'});
+            tips.$main.delegate('.tips-ignore', 'click', function() {
+                LocalData.set(keyTimeout, time() + 3600*24); // 1天内不再提示
+                tips.close();
+            });
         });
     },
 

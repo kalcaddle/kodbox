@@ -348,6 +348,9 @@ class explorerUserShare extends Controller{
 			$listData = array($source);
 			Model('Source')->_listAppendAuthSecret($listData);
 			$source = $listData[0];
+			if($share['userID'] == USER_ID){
+				$source['auth'] = $share['sourceInfo']['auth'];
+			}
 		}
 
 		// 分享者名字;

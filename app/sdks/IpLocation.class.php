@@ -6,6 +6,7 @@
  */
 class IpLocation {
 	public static function get($ip){
+		if(!$ip) return LNG('common.unknow');
 		static $obj;
 		if(!$obj){
 			$path = dirname(__FILE__).'/Ip2Region/';

@@ -250,8 +250,7 @@ class S3 {
 		}
 		if ($rest->error !== false) {
 			$param = implode(',', $params);
-			$this->__triggerError(sprintf('S3->' . $function . '('.$param.'): [%s] %s', $rest->error['code'], $rest->error['message']), __FILE__, __LINE__);
-
+			$this->__triggerError('S3->'.$function.'('.$param.') ['.$rest->error['code'].'] '.$rest->error['message'], __FILE__, __LINE__);
 			return false;
 		}
 		if($noBody) return true;
@@ -995,8 +994,7 @@ class S3 {
 			$rest->response->error = array('code' => $rest->response->code, 'message' => 'Unexpected HTTP status');
 		}
 		if ($rest->response->error !== false) {
-			$this->__triggerError(sprintf("S3->getObject({$bucket}, {$uri}): [%s] %s", $rest->response->error['code'], $rest->response->error['message']), __FILE__, __LINE__);
-
+			$this->__triggerError("S3->getObject({$bucket}, {$uri}): [".$rest->response->error['code'].'] '.$rest->response->error['message'],__FILE__,__LINE__);
 			return false;
 		}
 
@@ -1018,8 +1016,8 @@ class S3 {
 			$rest->error = array('code' => $rest->code, 'message' => 'Unexpected HTTP status');
 		}
 		if ($rest->error !== false) {
-			$this->__triggerError(sprintf("S3->getObjectInfo({$bucket}, {$uri}): [%s] %s", $rest->error['code'], $rest->error['message']), __FILE__, __LINE__);
-
+			// url包含%xxx时会报错;
+			$this->__triggerError("S3->getObjectInfo({$bucket}, {$uri}): [".$rest->error['code'].'] '.$rest->error['message'],__FILE__,__LINE__);
 			return false;
 		}
 
