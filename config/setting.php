@@ -198,7 +198,7 @@ $config['settings']['appType'] = array(
 	array('type' => 'others','name' => 'common.others','class' => 'ri-more-fill'),
 );
 $config['defaultPlugins'] = array(
-	'adminer','DPlayer','imageExif','jPlayer','photoSwipe','picasa','pdfjs',
+	'adminer','DPlayer','jPlayer','photoSwipe','picasa','pdfjs',
 	'simpleClock','client','webodf','webdav','toolsCommon','oauth','fileThumb',
 	'yzOffice','officeViewer','msgWarning',
 );

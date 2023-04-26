@@ -1039,7 +1039,7 @@ function write_log($log, $type = 'default', $level = 'log'){
 	}
 	if(!file_exists($target)){
 		error_log("<?php exit;?>\n", 3,$target);
-		@chmod($target,DEFAULT_PERRMISSIONS);
+		@chmod($target,0777);
 	}
 
 	if(is_object($log) || is_array($log)){

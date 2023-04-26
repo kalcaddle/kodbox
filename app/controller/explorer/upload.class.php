@@ -135,9 +135,14 @@ class explorerUpload extends Controller{
 		}
 		
 		if(!$file['hashMd5']){$file['hashSimple'] = null;}
+		$checkChunkArray = array();
+		if($file['hashSimple']){
+			$checkChunkArray = $uploader->checkChunk();
+		}
+		
 		$default  = KodIO::defaultDriver();
 		$infoData = array(
-			"checkChunkArray"	=> $uploader->checkChunk(),
+			"checkChunkArray"	=> $checkChunkArray,
 			"checkFileHash"		=> array(
 				"hashSimple"=>$file['hashSimple'],
 				"hashMd5"	=>$file['hashMd5']

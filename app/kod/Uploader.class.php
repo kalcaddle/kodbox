@@ -51,8 +51,8 @@ class Uploader{
 		if ($chunks <= 1) {// 没有分片;
 			// 清除秒传or断点续传请求checkChunk写入的数据;
 			$this->tempFile = $this->tempFile.rand_string(5);
-			$this->statusSet(false);
-			return $this->moveUploadedFile($this->tempFile);
+			$result = $this->moveUploadedFile($this->tempFile);
+			return $this->uploadResult($result);
 		}
 		
 		$fileHashSimple = '';
@@ -101,11 +101,24 @@ class Uploader{
 		
 		// 所有分片完成,检测分片hash值一致性;
 		if(!$this->checkChunkHash($data)){
-			$this->showJson("check chunk hash error!",false);
+			$this->showJson(LNG('explorer.upload.error')."[chunk hash error!]",false);
 		}
-		$this->statusSet(false);//上传成功,清空相关配置;
 		CacheLock::unlock($this->tempFile);
-		return $this->tempFile;
+		return $this->uploadResult($this->tempFile);
+	}
+	
+	// 上传完成临时文件检测;
+	private function uploadResult($file){
+		$this->statusSet(false);//上传成功,清空相关配置;
+		$size = isset($this->in["size"]) ? intval($this->in["size"]) : 0;
+		if(!file_exists($file)){
+			show_json(LNG('explorer.upload.error').' [temp not exist!]',false);
+		}
+		if($size && $size != filesize($file)){
+			@unlink($file);
+			show_json(LNG('explorer.upload.error').'[temp size error]',false);
+		}
+		return $file;
 	}
 	
 	private function checkSize(){
@@ -114,6 +127,7 @@ class Uploader{
 	}
 	private function showJson($data,$code){
 		CacheLock::unlock($this->tempFile);
+		if(!$code){$this->clearData();}
 		show_json($data,$code);
 	}
 	
@@ -206,10 +220,7 @@ class Uploader{
 	public function statusSet($data){
 		$file = $this->tempFile.'.cfg';
 		if(!$data){
-			if(file_exists($file)){
-				@unlink($file);
-			}
-			return true;
+			return @unlink($file);
 		}
 		$this->statusData = $data;
 		return file_put_contents($file,json_encode($data));
