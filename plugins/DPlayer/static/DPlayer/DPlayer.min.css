@@ -39,6 +39,7 @@
 	height:100%;margin:0;
 }
 
+.dplayer-paused .dplayer-mobile-play{display: block;}
 .dplayer-controller .dplayer-bar-wrap.on-draging .dplayer-bar-time{top: inherit;bottom:11px;}
 .dplayer-controller .dplayer-bar-wrap.on-draging .dplayer-bar-preview{top: inherit !important;bottom:11px;}
 .dplayer-controller .dplayer-bar-wrap.on-draging .dplayer-bar{position: absolute;bottom:5px;}

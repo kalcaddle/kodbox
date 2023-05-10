@@ -77,7 +77,7 @@ function think_error_parse(&$error){
             $errMsg = $msg; break;
         }
     }
-    $error .= '<br/>' . $errMsg;
+    $error = clear_html($error).'<br/>' . $errMsg;
 }
 
 // 加入 系统版本/php版本/数据库类型;

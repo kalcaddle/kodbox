@@ -1113,7 +1113,7 @@ function get_class_name($obj){
  * @params {int} 返回状态码， 通常0表示正常
  * @params {array} 返回的数据集合
  */
-function show_json($data=false,$code = true,$info=''){
+function show_json($data=false,$code = true,$info='',$infoMore=''){
 	if(!isset($GLOBALS['showJsonTimeStart'])){
 		$GLOBALS['showJsonTimeStart'] = TIME_FLOAT;
 	}
@@ -1123,7 +1123,8 @@ function show_json($data=false,$code = true,$info=''){
 		'timeNow'	=> sprintf('%.4f',mtime()),
 		'data'	 	=> $data
 	);
-	if ($info != '') {$result['info'] = $info;}
+	if ($info !== '') {$result['info'] = $info;}
+	if ($infoMore !== '') {$result['infoMore'] = $infoMore;}
 	// 有值且为true则返回，清空输出并返回数据结果
 	if( isset($GLOBALS['SHOW_JSON_NOT_EXIT']) && $GLOBALS['SHOW_JSON_NOT_EXIT'] == 1 ){
 		// 保留第一个show_json调用输出;ob_get_clean 后该次置空; 

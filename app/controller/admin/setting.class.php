@@ -186,6 +186,7 @@ class adminSetting extends Controller {
 			'action' => array('check'=>'in', 'param'=>array('get', 'phpinfo', 'save', 'task', 'clear'))
 		));
 		$function = ($data['type'] ? $data['type'] : 'srv') . ucfirst($data['action']);
+		// srvGet/cacheSave/dbSave/recoverySave
 		Action('admin.server')->$function();
 	}
 

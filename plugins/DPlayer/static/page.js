@@ -9,12 +9,13 @@ define(function(require, exports){
 			'ogg' : 'oga',
 		};
 		var type = typeArr[videoInfo.ext] || videoInfo.ext;
+		// https://dplayer.diygod.dev/zh/guide.html
 		var playerOption = {
 			container:$target.get(0),
 			preload: 'none',
 			theme:'#f60',
 			loop: false,
-			autoplay:true,
+			autoplay:false,
 			lang: 'zh-cn',
 			//flv仅支持 H.264+AAC编码 https://github.com/Bilibili/flv.js/issues/47
 			video: {url:videoInfo.url,type:type},
@@ -37,15 +38,18 @@ define(function(require, exports){
 				}
 			]
 		};
+		var etag = _.get($.parseUrl(videoInfo.url),'params._etag') || '';
+		var thumbImage = API_HOST+'plugin/fileThumb/cover&path='+urlEncode(videoInfo.path)+'&etag='+etag+'&size=250';
+		playerOption.video.pic = thumbImage;playerOption.pic=thumbImage;
 		loadSubtitle(playerOption,videoInfo);
 		
 		if(window.kodApp && kodApp.videoLoadSmall){
 			playerOption.video = {
 				quality: [
-					{url:videoInfo.url,type:'mp4',name:LNG['fileThumb.video.normal']},
-					{url:videoInfo.url,type:type,name:LNG['fileThumb.video.before']},
+					{url:videoInfo.url,type:'mp4',name:LNG['fileThumb.video.normal'],pic:thumbImage},
+					{url:videoInfo.url,type:type,name:LNG['fileThumb.video.before'],pic:thumbImage},
 				],
-				defaultQuality: 1,
+				defaultQuality: 1,pic:thumbImage,
 				thumbnails:API_HOST+'plugin/fileThumb/videoPreview&path='+urlEncode(videoInfo.path),
 			};
 		};

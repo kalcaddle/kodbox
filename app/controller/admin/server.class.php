@@ -488,7 +488,7 @@ class adminServer extends Controller {
 
 		// 数据库配置存缓存，用于清除获取
 		$key = 'db_change.new_config.' . date('Y-m-d');
-		Cache::set($key, array('type' => $dbType, 'db' => $option));
+		Cache::set($key, array('type' => $dbType, 'db' => $option), 3600*24);
 
         // 2. 复制数据库
         $this->dbChangeAct($database, $option, $dbType);
@@ -503,7 +503,7 @@ class adminServer extends Controller {
 	}
 
 	// 任务进度入缓存
-	private function taskToCache($task, $id = null){
+	private function taskToCache($task, $id = ''){
 		$total = isset($task->task['taskTotal']) ? $task->task['taskTotal'] : $task->task['taskFinished'];
         $cache = array(
             'currentTitle'  => $task->task['currentTitle'],
@@ -513,8 +513,9 @@ class adminServer extends Controller {
 		if($cache['taskFinished'] > 0 && $cache['taskTotal'] == $cache['taskFinished']) {
 			$cache['success'] = 1;
 		}
-		$key = $id ? $id : $task->task['id'];
-		Cache::set('task_'.$key, $cache);
+		// 某些环境下进度请求获取不到缓存，加上过期时间后正常，原因未知
+		$key = !empty($task->task['id']) ? $task->task['id'] : $id;
+		Cache::set('task_'.$key, $cache, 3600*24);
 		$task->end();
     }
 
@@ -544,13 +545,15 @@ class adminServer extends Controller {
 		echo json_encode(array('code'=>true,'data'=>'OK', 'info'=>1));
 		http_close();
 
-		$taskCrt = new Task('db.new.table.create', $type, 0, LNG('admin.setting.dbCreate'));
+		$taskId	 = 'db.new.table.create';
+		$taskCrt = new Task($taskId, $type, 0, LNG('admin.setting.dbCreate'));
 		// 3.表结构写入目标库
 		// TODO 这里其实应该从当前库导出表结构并创建；相互转换有点困难
 		// $sql = 'show create table `xxx`';	// mysql
 		// $sql = 'SELECT sql FROM sqlite_master WHERE type="table" AND name = "xxx"';	// sqlite
         $file = CONTROLLER_DIR . "install/data/{$type}.sql";
         $manageNew->createTable($file, $taskCrt);
+		$this->taskToCache($taskCrt, $taskId);
 		$tableNew = $dbNew->getTables();
 
 		// 4.获取当前表数据，写入sql文件
@@ -565,6 +568,7 @@ class adminServer extends Controller {
 			if(!in_array($table, $tableNew)) continue;
 			$total += $manageOld->model($table)->count();
 		}
+		$taskId	 = 'db.old.table.select';
 		$taskGet = new Task('db.old.table.select', $type, $total, LNG('admin.setting.dbSelect'));
         foreach($tableOld as $table) {
 			// 对比原始库，当前库如有新增表，直接跳过
@@ -574,11 +578,13 @@ class adminServer extends Controller {
             $fileList[] = $file;
 		}
 		// 这里的task缺失id等参数，导致cache无法保存，原因未知
-		$this->taskToCache($taskGet, 'db.old.table.select');
+		$this->taskToCache($taskGet, $taskId);
 
-		$taskAdd = new Task('db.new.table.insert', $type, 0, LNG('admin.setting.dbInsert'));
+		$taskId	 = 'db.new.table.insert';
+		$taskAdd = new Task($taskId, $type, 0, LNG('admin.setting.dbInsert'));
 		// 5.读取sql文件，写入目标库
         $manageNew->insertTable($fileList, $taskAdd);
+		$this->taskToCache($taskAdd, $taskId);
 
 		// 6.删除临时sql文件
         del_dir($pathLoc);
@@ -655,12 +661,16 @@ class adminServer extends Controller {
         $manage->db(true);   // 新建数据库
 
         // 2.3 新建数据表
-        $taskCrt = new Task('recovery.db.table.create', $type, 0, LNG('admin.setting.dbCreate'));
+		$taskId	 = 'recovery.db.table.create';
+        $taskCrt = new Task($taskId, $type, 0, LNG('admin.setting.dbCreate'));
         $manage->createTable($file, $taskCrt);
+		$this->taskToCache($taskCrt, $taskId);
 
 		// 2.4 读取sql文件，写入目标库
-        $taskAdd = new Task('recovery.db.table.insert', $type, 0, LNG('admin.setting.dbInsert'));
+		$taskId	 = 'recovery.db.table.insert';
+        $taskAdd = new Task($taskId, $type, 0, LNG('admin.setting.dbInsert'));
         $manage->insertTable($fileList, $taskAdd);
+		$this->taskToCache($taskAdd, $taskId);
 
 		// 2.5 删除临时sql文件
         del_dir($pathLoc);
@@ -719,7 +729,7 @@ class adminServer extends Controller {
 			$database['db_dsn'] = $dsn;
 		}
 		$key = 'db_recovery.new_config.' . date('Y-m-d');
-		Cache::set($key, array('type' => $type, 'db' => $database));
+		Cache::set($key, array('type' => $type, 'db' => $database), 3600*24);
 		return $database;
 	}
 
@@ -773,7 +783,6 @@ class adminServer extends Controller {
 		$task = $this->actTask($type);
 		foreach($task as $key) {
 			Task::kill($key);
-			// Cache::remove($key);
 			Cache::remove('task_'.$key);
 		}
 		// 2.删除临时sql目录

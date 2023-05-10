@@ -293,7 +293,7 @@ class webdavServer {
 	}
 	// 分片支持; X-Expected-Entity-Length
 	public function httpPUT() {
-		$tempFile = $this->uploadFile();
+		$tempFile = $this->uploadFileLocal();
 		if($tempFile){
 			$code = 204; 
 		}else{
@@ -305,9 +305,11 @@ class webdavServer {
 		return array("code"=>$code);
 	}
 	
+	public function uploadFileTemp(){
+		return TEMP_FILES;
+	}
 	// 兼容move_uploaded_file 和 流的方式上传
-	private function uploadFile(){
-		@mk_dir(TEMP_FILES);
+	public function uploadFileLocal(){
 		$dest 	= TEMP_FILES.'upload_dav_'.rand_string(32);
 		$outFp 	= @fopen($dest, "wb");
 		$in  	= @fopen("php://input","rb");
@@ -328,7 +330,8 @@ class webdavServer {
 	 */
 	public function httpMKCOL() {
 		if ($this->pathExists($this->path)) {
-            return array('code' => 409);
+            return array('code' => 201); // alist 等程序可能额外调用;
+            // return array('code' => 409);
         }
         $res  = $this->pathMkdir($this->path);
         return array('code' => $res?201:403);

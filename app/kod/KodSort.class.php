@@ -118,7 +118,8 @@ class KodSort{
 		return $arr;
 	}
 	public static function split($str){
-		return preg_split("//u",$str,-1,PREG_SPLIT_NO_EMPTY);
+		$arr = @preg_split("//u",$str,-1,PREG_SPLIT_NO_EMPTY);
+		return is_array($arr) ? $arr : array();
 	}
 	
 	// 阿拉伯数字转中文数字; 不支持小数和正负数, 最长16位(一亿亿-1);

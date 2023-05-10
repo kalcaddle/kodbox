@@ -384,7 +384,7 @@ class explorerAuth extends Controller {
 	 */
 	public function checkShare($shareID,$sourceID,$method){
 		$shareInfo = Model('Share')->getInfoAuth($shareID);
-		$sharePath = $shareInfo['sourceID'];
+		$sharePath = $shareInfo['sourceID'].'';
 		if(!$shareInfo || !$shareInfo['sourceInfo'] ){
 			return $this->errorMsg(LNG('explorer.share.notExist'));
 		}

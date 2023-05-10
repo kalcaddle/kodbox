@@ -1023,7 +1023,7 @@ function path_clear_name($path){
 function write_log($log, $type = 'default', $level = 'log'){
 	if(!defined('LOG_PATH')) return;
 	list($usec, $sec) = explode(' ', microtime());
-	$now_time = date('[H:i:s.').substr($usec,2,3).'] ';
+	$now_time = date('[H:i:s.').substr($usec,2,3).' id-'.REQUEST_ID.']';
 	$target   = LOG_PATH . strtolower($type) . '/';
 	mk_dir($target);
 	if (!path_writeable($target)){

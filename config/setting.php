@@ -446,8 +446,8 @@ $config['settingAll'] = array(
 		"ta"	=>	array("த‌மிழ்","泰米尔语","Tamil"),
 		"th"	=>	array("ภาษาไทย","泰语","Thai"),
 		"tr"	=>	array("Türkçe","土耳其语","Turkish"),
-		"uk"	=>	array("Українська","乌克兰语","Ukrainian"),
-		"vi"	=>	array("Tiếng Việt","越南语","Vietnamese"),
+		"uk"	=>	array("Українська","乌克兰语","Ukrainian",'uk'),
+		"vi"	=>	array("Tiếng Việt","越南语","Vietnamese",'vn'),// 3=国旗icon
 	),//de el fi fr nl pt	d/m/Y H:i
 	
 	'theme'		=> "mac,win10,win7,metro,metro_green,metro_purple,metro_pink,metro_orange,alpha_image,alpha_image_sun,alpha_image_sky,diy",
@@ -497,7 +497,7 @@ $config['authAllowAction'] = array(
 	'explorer.tagGroup.get','explorer.tagGroup.set',
 	'explorer.tagGroup.filesRemoveFromTag','explorer.tagGroup.filesAddToTag',
 
-	'user.setting.notice',
+	'user.setting.notice','user.setting.userLoginList',
 	'user.setting.taskList','user.setting.taskKillAll','user.setting.taskAction',
 	'user.setting.userChart','user.setting.userLog','user.setting.userDevice',
 	

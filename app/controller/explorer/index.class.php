@@ -562,30 +562,47 @@ class explorerIndex extends Controller{
 		$repeat = Model('UserOption')->get('fileRepeat');
 		$repeat = !empty($this->in['fileRepeat']) ? $this->in['fileRepeat'] :$repeat;
 		$result = array();$errorList = array();
+		
+		// 所有操作中,是否有重名覆盖的情况(文件,文件夹都算)
+		$infoMore = array('hasExistAll'=>false,'pathTo'=>$pathTo,'listFrom'=>$list,'listTo'=>array());
 		for ($i=0; $i < count($list); $i++) {
 			$thePath = $list[$i]['path'];
-			if ($copyType == 'copy') {
+			$repeatType = $repeat;
+			$ioInfo 	= IO::info($thePath);
+			$driverTo 	= IO::init($this->in['path']);
+			$hasExists  = $driverTo->fileNameExist($driverTo->path,$ioInfo['name']);
+
+			if($copyType == 'copy') {
 				//复制到自己所在目录,则为克隆;
 				$driver = IO::init($thePath);
 				$father = $driver->getPathOuter($driver->pathFather($driver->path));
-				$repeatType = $repeat;
 				if(KodIO::clear($father) == KodIO::clear($pathTo) ){
 					$repeatType = REPEAT_RENAME_FOLDER;
 				}
 				$itemResult = IO::copy($thePath,$pathTo,$repeatType);
 			}else{
-				$itemResult = IO::move($thePath,$pathTo,$repeat);
+				$itemResult = IO::move($thePath,$pathTo,$repeatType);
+			}
+			
+			// 复制/移动时; 所有内容是否存在文件夹已存在覆盖,文件已存在覆盖的情况; 存在时前端不支持撤销操作;
+			if($hasExists){
+				if($ioInfo['type'] == 'file' && ($repeatType != REPEAT_RENAME && $repeatType != REPEAT_RENAME_FOLDER)){
+					$infoMore['hasExistAll'] = true;
+				}
+				if($ioInfo['type'] == 'folder' && $repeatType != REPEAT_RENAME_FOLDER){
+					$infoMore['hasExistAll'] = true;
+				}
 			}
 			if(!$itemResult){$errorList[] = $thePath;continue;}
 			$result[] = $itemResult;
+			$infoMore['listTo'][] = array('path'=>$itemResult);
 		}
-		
 		$code = $result ? true:false;
 		$msg  = $copyType == 'copy'?LNG('explorer.pastSuccess'):LNG('explorer.cutePastSuccess');
 		
 		if(count($result) == 0){$msg = LNG('explorer.error');}
 		if($errorList){$msg .= "(".count($errorList)." error)\n".IO::getLastError();}
-		show_json($msg,$code,$result);
+		show_json($msg,$code,$result,$infoMore);
 	}
 	
 	// 外链分享复制;

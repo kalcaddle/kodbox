@@ -346,7 +346,7 @@ class webdavClient {
 						if (is_array($v) && empty($v)) {$v = '';}
 						$output[$t][] = $v;
 					} elseif ($v || $v === '0') {
-						$output = (string) $v;
+						$output = is_array($v) ? json_encode($v) : $v;
 					}
 				}
 				if ($node->attributes->length && !is_array($output)) { // has attributes but isn't an array

@@ -314,6 +314,7 @@ class webdavServerKod extends webdavServer {
 		if($localFile){
 			$size = filesize($localFile);
 			$result = IO::upload($uploadPath,$localFile,true,REPEAT_REPLACE);
+			// $result = IO::move($localFile,$uploadPath,REPEAT_REPLACE);
 			$this->pathPutRemoveTemp($uploadPath);
 		}else{
 			if(!$info){ // 不存在,创建;
@@ -448,7 +449,29 @@ class webdavServerKod extends webdavServer {
 
 		if(!$this->can($path,'download')) return false;
 		if(!$this->can($dest,'edit')) return false;
-		return IO::copy($path,$dest);
+		
+		$fromName = get_path_this($pathUrl); 
+		$destName = get_path_this($destURL);
+		$destName = $fromName != $destName ? $destName : '';
+		return IO::copy($path,$dest,false,$destName);
+	}
+	
+	// 上传临时目录; 优化: 默认存储io为本地时,临时目录切换到对应目录的temp/下;(减少从头temp读取->写入到存储i)
+	public function uploadFileTemp(){
+		$tempPath = TEMP_FILES;
+		$path = $this->pathCreateParent();// 上传到目录转换; /dav/test/1.txt=> {source:23}/1.txt;
+		$driverInfo = KodIO::pathDriverType($path);
+		if($driverInfo && $driverInfo['type'] == 'local'){
+			$truePath = rtrim($driverInfo['path'],'/').'/';
+			$isSame = KodIO::isSameDisk($truePath,TEMP_FILES);
+			if(!$isSame && file_exists($truePath)){$tempPath = $truePath;}
+		}
+		
+		if(!file_exists($tempPath)){
+			@mk_dir($tempPath);
+			touch($tempPath.'index.html');
+		}
+		return $tempPath;
 	}
 	
 	// 文件编辑锁添加或移除;(office/wps: 打开编辑时会添加; 保存时会添加/解除; 关闭文件时会解锁)

@@ -1,8 +1,8 @@
 @font-face {
   font-family: "kod-svg-font"; /* Project id 1107537 */
-  src: url('iconfont.woff2?t=1619764284807') format('woff2'),
-       url('iconfont.woff?t=1619764284807') format('woff'),
-       url('iconfont.ttf?t=1619764284807') format('truetype');
+  src: url('iconfont.woff2?t=1682677809901') format('woff2'),
+       url('iconfont.woff?t=1682677809901') format('woff'),
+       url('iconfont.ttf?t=1682677809901') format('truetype');
 }
 
 .kod-svg-font {
@@ -405,7 +405,7 @@
   content: "\e63e";
 }
 
-.kod-huishouzhan2-copy:before {
+.kod-huishouzhan2:before {
   content: "\eb18";
 }
 

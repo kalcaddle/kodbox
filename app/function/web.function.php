@@ -664,7 +664,11 @@ function url_header($url){
 		}
 		if(!$name) $name = date("mdHi");
 		if(!strstr($name,'.')){ //没有扩展名,自动追加;
-			$ext  = get_file_ext_by_mime($header['content-type']);
+			$contentType = $header['content-type']; // location ;跳转情况;
+			if(is_array($contentType)){
+				$contentType = $contentType[count($contentType)-1];
+			}
+			$ext  = get_file_ext_by_mime($contentType);
 			$name .= '.'.$ext;
 		}
 	}

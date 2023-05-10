@@ -65,7 +65,10 @@ class userBind extends Controller {
 	public function sendEmail($input, $action) {
 		$systemName = Model('SystemOption')->get('systemName');
 		$user = Session::get('kodUser');
-		$name = _get($user, 'nickName', _get($user, 'name'));
+		// $name = _get($user, 'nickName', _get($user, 'name', ''));
+		$name = _get($user, 'nickName');
+		if (!$name) $name = _get($user, 'nickName');
+		$desc = Model('SystemOption')->get('systemDesc');
 		$data = array(
 			'type'		=> 'email',
 			'input'		=> $input,
@@ -83,7 +86,7 @@ class userBind extends Controller {
 				'system'	=> array(	// 系统信息
 					'icon'	=> STATIC_PATH.'images/icon/fav.png',
 					'name'	=> $systemName,
-					'desc'	=> Model('SystemOption')->get('systemDesc')
+					'desc'	=> $desc
 				),
 			)
 		);
@@ -165,12 +168,13 @@ class userBind extends Controller {
 
 		// 从平台获取
 		$res = $this->apiRequest('secret');
-		if (!$res['code']) {
-			$msg = 'Api secret error' . (!empty($res['data']) ? ': ' . $res['data'] : '');
-			show_json($msg, false);
+		if (!$res['code'] || !$res['data']) {
+			$msg = !empty($res['data']) ? ': ' . $res['data'] : '';
+			show_json('Api secret error. '.$msg, false);
 		}
-		Model('SystemOption')->set('systemSecret', $res['data']);
-		return $res['data'];
+		$secret = addslashes($res['data']);
+		Model('SystemOption')->set('systemSecret', $secret);
+		return $secret;
 	}
 
 }

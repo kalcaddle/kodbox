@@ -256,9 +256,9 @@ class filterUserCheck extends Controller {
 		$findUser = Model("User")->userLoginFind($name);
 		if(!$findUser) return $user;
 		
-		$lockErrorNum   = intval(_get($this->options,'passwordLockNumber',6));//错误n次后锁定账号;
-		$lockTime 		= intval(_get($this->options,'passwordLockTime',60)); //锁定n秒;
-		$key = 'user_login_lock_'.$findUser['userID'];
+		$lockErrorNum   = intval(_get($this->options,'passwordLockNumber',6));	//错误n次后锁定账号;
+		$lockTime 		= intval(_get($this->options,'passwordLockTime',60)); 	//锁定n秒;
+		$key = 'user_login_lock_'.$findUser['userID'].'_'.get_client_ip();		//按IP隔离;
 		$arr = Cache::get($key);
 		$item = is_array($arr)?$arr:array(); //不区分ip;
 		// Cache::remove($key);return $user;//debug;

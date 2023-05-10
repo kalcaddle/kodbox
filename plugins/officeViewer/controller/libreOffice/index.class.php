@@ -88,9 +88,10 @@ class officeViewerlibreOfficeIndex extends Controller {
         $tname = substr(end(explode('/', $file)), 0, -strlen('.'.$ext));
         $tfile = $fpath . $tname . '.' . $fname;    // 源文件名.filename.pdf
         if(!file_exists($tfile)){
-            write_log('cmmand error: '.$script."\n".$out,'error');
+            write_log('libreoffice convert error: '.$script."\n".$out,'error');
         }
-		move_path($tfile,$cacheFile);
+		$res = move_path($tfile,$cacheFile);
+		if (!$res) write_log('libreoffice move file error: '.$tfile.'=>'.$cacheFile, 'error');
 	}
 
     // 获取文件 hash
