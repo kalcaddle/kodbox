@@ -266,6 +266,9 @@ class adminServer extends Controller {
 		if($type != 'file'){
 			$text[] = "\$config['cache']['{$type}']['host'] = '".$data['host']."';";
 			$text[] = "\$config['cache']['{$type}']['port'] = '".$data['port']."';";
+			if ($type == 'redis' && $data['auth']) {
+				$text[] = "\$config['cache']['{$type}']['auth'] = '".$data['auth']."';";
+			}
 		}
 		$content = implode(PHP_EOL, $text);
 		if(!file_put_contents($file, $content, FILE_APPEND)) {
@@ -286,7 +289,13 @@ class adminServer extends Controller {
         $handle = new $cacheType();
 		try{
 			if($type == 'redis') {
-				$conn = $handle->connect($data['host'], $data['port'], 1);
+				$handle->connect($data['host'], $data['port'], 1);
+				$auth = Input::get('redisAuth');
+				if ($auth) {
+					$data['auth'] = $auth;
+					$handle->auth($auth);
+				}
+				$conn = $handle->ping();
 			}else{
 				$conn = $handle->addServer($data['host'], $data['port']);
 				if($conn && !$handle->getStats()) $conn = false;

@@ -191,6 +191,8 @@
             FormData = FormData.replace(/\n/g,"").replace(/\r/g,""); //去掉字符串中的换行符
             FormData = FormData.replace(/\n/g,"").replace(/\s|\xA0/g,""); //去掉字符串中的所有空格
             FormData = eval('(' + FormData + ')'); //将字符串解析成json对象
+            FormData.redisMore.info.openMore.display = LNG['common.more']+' <b class="caret"></b>';
+            FormData.redisMore.info.openMore.className = 'btn btn-default btn-sm';
             request('install/index/env', {db: 1}, function(result){
                 if(_.isEmpty(result.data)) return dbSave(FormData);
                 _.each(FormData, function(value, key){

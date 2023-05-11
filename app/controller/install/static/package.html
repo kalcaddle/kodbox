@@ -136,7 +136,7 @@
 		},
 		"switchItem": {
 			"file": "",
-			"redis": "redisHost,redisPort",
+			"redis": "redisHost,redisMore,redisPort",
 			"memcached": "memcachedHost,memcachedPort"
 		}
 	}, 
@@ -148,7 +148,7 @@
 			"placeholder": "127.0.0.1"
 		},
 		"display": LNG['common.server'],
-		"desc": "",
+		"desc": '',
 		"require": "1"
 	},
 	"redisPort": {
@@ -160,6 +160,24 @@
 		"display": LNG['admin.install.dbPort'],
 		"desc": "",
 		"require": "1"
+	},
+	"redisMore":{
+		"type":"button",
+		"info":{
+			'openMore':{
+				"display":LNG['common.more']+" <b class='caret'></b>",
+				"className":"btn btn-default btn-sm",
+			},
+		},
+		"switchItem":{
+			'openMore':"redisAuth",
+		}
+	},
+	"redisAuth": {
+		"type": "password",
+		"value": "",
+		"attr": {"placeholder": LNG['common.password']},
+		"display": LNG['common.password'],
 	},
 
 	"memcachedHost": {

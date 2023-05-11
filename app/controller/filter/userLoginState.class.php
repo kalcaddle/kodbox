@@ -103,6 +103,6 @@ class filterUserLoginState extends Controller {
 	private function userListSet($userID,$loginList){
 		$key = 'userLoginList_'.$userID;
 		Cache::set($key,$loginList,3600*24*30);
-		write_log($key.';count='.count($loginList).';'.ACTION);
+		// write_log($key.';count='.count($loginList).';'.ACTION);
 	}
 }

@@ -280,13 +280,17 @@ class installIndex extends Controller {
             if(!extension_loaded($cacheType)){
                 return show_json(sprintf(LNG('common.env.invalidExt'), "[php-{$cacheType}]"), false);
             }
+            $host = Input::get("{$cacheType}Host", 'require');
+            $port = Input::get("{$cacheType}Port", 'require');
+
             $type = ucfirst($cacheType);
             $handle = new $type();
             try{
-                $host = Input::get("{$cacheType}Host", 'require');
-                $port = Input::get("{$cacheType}Port", 'require');
                 if($cacheType == 'redis') {
-                    $conn = $handle->connect($host, $port, 1);
+                    $handle->connect($host, $port, 1);
+                    $auth = Input::get('redisAuth');
+                    if ($auth) $handle->auth($auth);
+                    $conn = $handle->ping();
                 }else{
                     $conn = $handle->addServer($host, $port);
                     if($conn && !$handle->getStats()) $conn = false;
