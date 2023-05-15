@@ -394,6 +394,10 @@ class explorerAuth extends Controller {
 		
 		// 自己协作分享的内容; 权限同自己拥有的权限;
 		if($shareInfo['userID'] == USER_ID){
+			$sourceInfo = $shareInfo['sourceInfo'];
+			if( $sourceInfo['targetType'] == 'user' && $sourceInfo['targetID'] == USER_ID ){
+				return $this->canCheckRole($method);
+			}
 			return $this->checkAuthMethod($shareInfo['sourceInfo']['auth']['authValue'],$method);
 		}
 

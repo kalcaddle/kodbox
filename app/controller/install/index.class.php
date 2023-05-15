@@ -61,6 +61,13 @@ class installIndex extends Controller {
         if( in_array(ACTION, $actions) ){
 			ActionCall(ACTION);exit;
         }
+		
+		// 安装路径合法性检测; 不允许[, ;%][*][&=+%#?{}]; 允许(_!@$[]()-./); 需要转义([]@$)   
+        $uri = str_replace(HOST,'',APP_HOST);$matchArr = array();
+        if($uri && !preg_match("/^[a-zA-Z0-9_!@$\[\]\(\)\-\.\/]*$/",$uri,$matchArr)){
+        	show_tips("App path cann't has special chars<br/>(程序路径不支持包含特殊符号,请尽量使用英文字母及数字)<pre>".$uri.'</pre>');
+        }
+		
         $this->tpl = CONTROLLER_DIR . 'install/static/';
         $value = array('installPath' => INSTALL_PATH);
         $this->values = array_merge($value, $this->installFast());
