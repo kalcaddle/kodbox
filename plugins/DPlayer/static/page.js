@@ -39,7 +39,7 @@ define(function(require, exports){
 			]
 		};
 		var etag = _.get($.parseUrl(videoInfo.url),'params._etag') || '';
-		var thumbImage = API_HOST+'plugin/fileThumb/cover&path='+urlEncode(videoInfo.path)+'&etag='+etag+'&size=250';
+		var thumbImage = API_URL('plugin/fileThumb/cover','path='+urlEncode(videoInfo.path)+'&etag='+etag+'&size=250');
 		playerOption.video.pic = thumbImage;playerOption.pic=thumbImage;
 		loadSubtitle(playerOption,videoInfo);
 		
@@ -50,7 +50,7 @@ define(function(require, exports){
 					{url:videoInfo.url,type:type,name:LNG['fileThumb.video.before'],pic:thumbImage},
 				],
 				defaultQuality: 1,pic:thumbImage,
-				thumbnails:API_HOST+'plugin/fileThumb/videoPreview&path='+urlEncode(videoInfo.path),
+				thumbnails:API_URL('plugin/fileThumb/videoPreview','path='+urlEncode(videoInfo.path)),
 			};
 		};
 		if(window.G && window.G.lang && G.lang.indexOf('zh') == -1){playerOption.lang = 'en';}

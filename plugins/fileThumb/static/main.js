@@ -10,7 +10,7 @@ kodReady.push(function(){
 			sort:"{{config.fileSort}}",
 			icon:'x-item-icon x-psd',
 			callback:function(path,ext,name){
-				var url = '{{pluginApi}}cover&size=1200&path='+urlEncode(path)+'&name=/'+name;
+				var url = API_URL('plugin/fileThumb/cover','size=1200&path='+urlEncode(path)+'&name=/'+name);
 				kodApp.open(url,'png',name);
 			}
 		});
@@ -37,7 +37,7 @@ kodReady.push(function(){
 	var autoPlayFast = "{{config.videoPlayType}}" == 'normal';
 	var videoLoadSmall = function(filePath,kodApp,$target,success){
 		var timeout = 1000,delay = false;
-		var api = '{{pluginApi}}videoSmall&noOutput=1&path='+filePath;
+		var api = API_URL('plugin/fileThumb/videoSmall','noOutput=1&path='+filePath);
 		var lastAjax = false;
 		var request  = function(){
 			lastAjax = $.ajax({url:api,dataType:'json',success:function(data){

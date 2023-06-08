@@ -11,6 +11,26 @@ kodReady.push(function(){
 			fileSrc:'{{pluginHost}}static/clientOpen.js',
 		});
 	});
+
+	// 检测是否支持二进制上传;
+	var sendAsBinary = 0;
+	var uploadBindaryCheck = function(){
+		if(!_.get(window.G,'system.settings.upload')){return;}
+		if(!G.system.settings.upload){return;} // 默认关闭则不检测;
+		G.system.settings.upload = sendAsBinary;
+		var callback = function(data){
+			sendAsBinary = (data == '[ok]') ? 1 : 0;
+			G.system.settings.upload = sendAsBinary;
+		};
+		$.ajax({
+			url:API_URL('user/view/uploadBindaryCheck'),
+			type:"post",contentType:"text/html",data:'[uploadCheck]',
+			success:callback,error:callback,
+		});
+	};
+	Events.bind('user.optionLoadAfter',uploadBindaryCheck);
+	uploadBindaryCheck(); //首次执行
+	
 	
 	// web端已登录,App登录界面,可以通过扫码登录App(web端个人中心-二维码)
 	requireAsync('{{pluginHost}}/static/style.css');

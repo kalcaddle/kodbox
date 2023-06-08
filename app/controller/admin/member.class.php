@@ -201,14 +201,20 @@ class adminMember extends Controller{
 			"roleID"	=> array("check"=>"int",	"default"=>null),
 			"password" 	=> array("check"=>"require","default"=>''),
 			
-			"email" 	=> array("check"=>"email",	"default"=>''),
-			"phone" 	=> array("check"=>"phone",	"default"=>''),
+			"email" 	=> array("check"=>"email",	"default"=>null),
+			"phone" 	=> array("check"=>"phone",	"default"=>null),
 			"nickName" 	=> array("check"=>"require","default"=>null),
-			"avatar" 	=> array("check"=>"require","default"=>''),
+			"avatar" 	=> array("check"=>"require","default"=>null),
 			"sex" 		=> array("check"=>"require","default"=>null),//0女1男
 			
 			"status" 	=> array("check"=>"require","default"=>null),//0-未启用 1-启用
 		));
+		// 后台删除这些字段值时（为空），default=null时data不包含导致没有更新
+		foreach (array('email','phone','nickName') as $key) {
+			if (!isset($data[$key]) && isset($this->in[$key])) {
+				$data[$key] = '';
+			}
+		}
 		if( $data['password'] && 
 			!ActionCall('filter.userCheck.password',$data['password']) ){
 			return ActionCall('filter.userCheck.passwordTips');

@@ -127,7 +127,16 @@ class userMsg extends Controller {
      */
     public function emailContent($data){
         $system = _get($data, 'config.system', array());
-        if (!$system['icon']) $system['icon'] = 'https://api.kodcloud.com/static/images/icon/fav.png';
+        $icon = 'https://api.kodcloud.com/static/images/icon/fav.png';
+        if(Model('SystemOption')->get('versionType') == 'A'){
+            $system['icon'] = $icon;
+            $system['name'] = LNG('common.copyright.name');
+            $system['desc'] = LNG('common.copyright.nameDesc');
+        } else {
+            $icon = _get($GLOBALS, 'config.settingSystemDefault.systemIcon', '');
+            if ($icon) $system['icon'] = $icon;
+        }
+        if (!$system['icon']) $system['icon'] = $icon;
         if (!$system['name']) $system['name'] = Model('SystemOption')->get('systemName');
         if (!$system['desc']) $system['desc'] = Model('SystemOption')->get('systemDesc');
 

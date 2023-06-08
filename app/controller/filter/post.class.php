@@ -29,8 +29,12 @@ class filterPost extends Controller{
 		){return;}
 
 		// if(GLOBAL_DEBUG) return;
+		$theMod 	= strtolower(MOD);
+		$theST 		= strtolower(ST);
+		$theACT 	= strtolower(ACT);
+		$theAction 	= strtolower(ACTION);
 		$GLOBALS['config']['jsonpAllow'] = false; //全局禁用jsonp
-		if(strtolower(MOD) == 'plugin'){
+		if($theMod == 'plugin'){
 			$GLOBALS['config']['jsonpAllow'] = true;
 			return; //插件内部自行处理;
 		}
@@ -51,17 +55,36 @@ class filterPost extends Controller{
 			'sitemap'			=> '*',
 		);
 		$allowGet  = false;
-		$ST_MOD = strtolower(MOD.'.'.ST);
+		$ST_MOD = $theMod.'.'.$theST;
 		if(isset($allowGetArr[$ST_MOD])){
 			$methods = strtolower($allowGetArr[$ST_MOD]);
 			$methodArr = explode(',',$methods);
-			if($methods == '*' || in_array(strtolower(ACT),$methodArr)){
+			if($methods == '*' || in_array($theACT,$methodArr)){
 				$allowGet = true;
 			}
 		}
 		if(isset($allowGetArr[MOD])){$allowGet = true;}
 
 		//必须使用POST的请求:统一检测csrfToken;
+		if($allowGet) return;
+		
+		// 无需登录的接口不处理;
+		$authNotNeedLogin = $this->config['authNotNeedLogin'];
+		foreach ($authNotNeedLogin as &$val) {
+			$val = strtolower($val);
+		};unset($val);
+		if(in_array($theAction,$authNotNeedLogin)) return;
+		foreach ($authNotNeedLogin as $value) {
+			$item = explode('.',$value); //MOD,ST,ACT
+			if( count($item) == 2 && 
+				$item[0] === $theMod && $item[1] === '*'){
+				$allowGet = true;break;
+			}
+			if( count($item) == 3 && 
+				$item[0] === $theMod && $item[1] === $theST  &&$item[2] === '*'){
+				$allowGet = true;break;
+			}
+		}
 		if($allowGet) return;
 		
 		$this->checkCsrfToken();

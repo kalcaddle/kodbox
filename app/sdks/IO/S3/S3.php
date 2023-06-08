@@ -246,6 +246,7 @@ class S3 {
 	 */
 	private function __execReponse($rest, $function, $noBody = 0, $params = array(), $code = 200) {
 		if ($rest->error === false && $rest->code !== $code) {
+			write_log(array('S3 request error',$rest->code,$rest->response, get_caller_info()), 'S3');
 			$rest->error = array('code' => $rest->code, 'message' => 'Unexpected HTTP status');
 		}
 		if ($rest->error !== false) {
@@ -991,6 +992,7 @@ class S3 {
 		}
 
 		if ($rest->response->error === false && $rest->response->code !== 200 && $rest->response->code !== 206) {
+			write_log(array('S3 request error [getObject]',$rest->code,$rest->response, get_caller_info()), 'S3');
 			$rest->response->error = array('code' => $rest->response->code, 'message' => 'Unexpected HTTP status');
 		}
 		if ($rest->response->error !== false) {
@@ -1013,6 +1015,7 @@ class S3 {
 		$rest = $rest->getResponse();
 
 		if ($rest->error === false && ($rest->code !== 200 && $rest->code !== 404)) {
+			write_log(array('S3 request error [getObjectInfo]',$rest->code,$rest->response, get_caller_info()), 'S3');
 			$rest->error = array('code' => $rest->code, 'message' => 'Unexpected HTTP status');
 		}
 		if ($rest->error !== false) {

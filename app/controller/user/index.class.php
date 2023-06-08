@@ -45,12 +45,11 @@ class userIndex extends Controller {
 	private function initSession(){
 		$this->apiSignCheck();
 		$systemPassword = Model('SystemOption')->get('systemPassword');
-		if(isset($_REQUEST['accessToken'])){
+		$accessToken = isset($_REQUEST['accessToken']) ? $_REQUEST['accessToken'] : '';
+		if($accessToken && strlen($accessToken) < 500){
 			$pass = substr(md5('kodbox_'.$systemPassword),0,15);
-			$sessionSign = Mcrypt::decode($_REQUEST['accessToken'],$pass);
-			if(!$sessionSign){
-				show_json(LNG('common.loginTokenError'),ERROR_CODE_LOGOUT);
-			}
+			$sessionSign = Mcrypt::decode($accessToken,$pass);
+			if(!$sessionSign){show_json(LNG('common.loginTokenError'),ERROR_CODE_LOGOUT);}
 			Session::sign($sessionSign);
 		}
 		
@@ -225,8 +224,8 @@ class userIndex extends Controller {
 		$res = $this->loginWithThird();	// app第三方账号登录
 		if($res || $res !== false) return $res;
 		$data = Input::getArray(array(
-			"name"		=> array("check"=>"require"),
-			"password"	=> array('check'=>"require"),
+			"name"		=> array("check"=>"require",'lengthMax'=>100),
+			"password"	=> array('check'=>"require",'lengthMax'=>100),
 			"salt"		=> array("default"=>false),
 		));
 		$checkCode = Input::get('checkCode', 'require', '');
@@ -256,7 +255,7 @@ class userIndex extends Controller {
 		$apiToken = $this->config['settings']['apiLoginToken'];
 		$param = explode('|', $this->in['loginToken']);
 		if (strlen($apiToken) < 5 ||
-			count($param) != 2 ||
+			count($param) != 2 || strlen($this->in['loginToken']) > 500 ||
 			md5(base64_decode($param[0]) . $apiToken) != $param[1]
 		) {
 			return show_json('API 接口参数错误!', false);
@@ -398,6 +397,7 @@ class userIndex extends Controller {
 		$actionKey   = $this->in['actionKey'];
 		$appSecret	 = $this->appKeySecret($this->in['appKey']);
 		if(!$actionToken || !$actionToken || !$appSecret) return;
+		if(strlen($actionToken) > 500) return;
 		
 		$action  = str_replace('.','/',ACTION);
 		$keyList = explode(';',hash_decode($actionKey));

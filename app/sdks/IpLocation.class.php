@@ -24,8 +24,9 @@ class IpLocation {
 		$replaceTo   = array('','',' ','省');
 		$lang = I18n::getType();
 		if( strstr($lang,'zh') ){
+			$replace = $lang == 'zh-TW' ? '內網IP' : '内网IP';
 			$address = str_replace($replaceFrom,$replaceTo,$address);
-			$address = str_replace('内网IP 内网IP','内网IP',$address);
+			$address = str_replace('内网IP 内网IP',$replace,$address);
 			return $address;
 		}
 

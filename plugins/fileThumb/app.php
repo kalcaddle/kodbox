@@ -238,7 +238,7 @@ class fileThumbPlugin extends PluginBase{
 		$timeAt   = $videoThumbTime ? '-ss 00:00:03' : '';
 		$script   = $command.' -i "'.$file.'" -y -f image2 '.$timeAt.' -vframes 1 '.$tempPath;
 		shell_exec($script);
-		if(!file_exists($tempPath)) return;
+		if(!file_exists($tempPath)) return $this->log('video thumb error', $script);
 
 		move_path($tempPath,$cacheFile);
 		$cm = new ImageThumb($cacheFile,'file');
@@ -319,7 +319,7 @@ class fileThumbPlugin extends PluginBase{
 		$script = $command.' '.$param.' "'.$file.'" '.$tempPath;
 		shell_exec($script);
 		// pr($script,file_exists($tempPath));exit;
-		if(!file_exists($tempPath)) return;
+		if(!file_exists($tempPath)) return $this->log('image thumb error', $script);
 
 		move_path($tempPath,$cacheFile);
 		return true;
@@ -345,7 +345,10 @@ class fileThumbPlugin extends PluginBase{
 	
 	public function ffmpegSupportCheck($ffmpeg){
         $out = shell_exec($ffmpeg.' -v 2>&1');
-        if(strstr($out,'--disable-muxer=image2')){return false;}
+        if(strstr($out,'--disable-muxer=image2')){
+			$this->log('[ffmpeg support error] '.$out);
+			return false;
+		}
         return true;
     }
     public function getFFmpegNow(){
@@ -441,8 +444,24 @@ class fileThumbPlugin extends PluginBase{
 		return false;
 	}
 	private function checkBin($bin,$check){
-		if(!function_exists('shell_exec')) return false;
+		if(!function_exists('shell_exec')) {
+			$this->log('shell_exec function is disabled.');
+			return false;
+		}
 		$result = shell_exec($bin.' --help');
-		return stripos($result,$check) > 0 ? true : false;
+		if (stripos($result,$check) > 0) return true;
+		$this->log('imagick env error', $bin.' --help');
+		return false;
+	}
+
+	// 调试模式
+	public function log($log, $cmd = ''){
+		$config = $this->getConfig();
+		if(!$config['debug']) return;
+		if ($cmd) {
+			$out = shell_exec($cmd.' 2>&1');
+			$log = '['.$log.'] '.$out;
+		}
+		write_log($log,'fileThumb');
 	}
 }

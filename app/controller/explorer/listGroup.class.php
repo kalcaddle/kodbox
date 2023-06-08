@@ -13,16 +13,50 @@ class explorerListGroup extends Controller{
 	}
 
 	public function groupSelf($pathInfo){//获取组织架构的用户和子组织；
-		$groupInfo 	= Session::get("kodUser.groupInfo");
-		$groupInfo  = array_sort_by($groupInfo,'groupID');
-		return $this->groupArray($groupInfo);
+		$groupArray = Session::get("kodUser.groupInfo");
+		$groupArray = array_sort_by($groupArray,'groupID');
+		$groupArray = $this->groupSelfLimit($groupArray);
+		return $this->groupArray($groupArray);
+	}
+	
+	// 部门层级限制处理; 超过层级限制的部门,展示该部门在限制层级时的部门通路;
+	private function groupSelfLimit($groupArray){
+		$option = Model('SystemOption')->get();
+		if($option['groupSpaceLimit'] != '1') return $groupArray;
+		
+		$levelMax = intval($option['groupSpaceLimitLevel']);
+		$groupMap = array_to_keyvalue($groupArray,'groupID');
+		$groupArray = array();
+		foreach ($groupMap as $groupID => $item) {
+			$level = explode(',',trim($item['parentLevel'],',')); // -1 + 1(去掉0;加上自己; 最后一层是自己)
+			if(count($level) <= $levelMax){$groupArray[$groupID] = $item;continue;}
+
+			$autoGroupID = $level[$levelMax];
+			if(!isset($groupMap[$autoGroupID])){
+				$info = $this->modelGroup->getInfoSimple($autoGroupID);
+				$groupMap[$autoGroupID] = array(
+					'groupID'		=> $info['groupID'],
+					'groupName'		=> $info['name'],
+					'parentLevel'	=> $info['parentLevel']
+				);
+			}
+			if(!is_array($groupMap[$autoGroupID])){continue;}
+			$groupArray[$autoGroupID] = $groupMap[$autoGroupID];
+		}
+		// pr($groupMap,$groupArray);exit;
+		return $groupArray;
 	}
 	
 	// 是否允许罗列部门的子部门;
 	private function enableListGroup($groupID){
 		$option = Model('SystemOption')->get();
-		if( !isset($option['groupListChild']) ) return true;
+		if($option['groupSpaceLimit'] == '1'){
+			$groupInfo = $this->modelGroup->getInfoSimple($groupID);
+			$level = explode(',',trim($groupInfo['parentLevel'],',')); // -1 + 1(去掉0;加上自己)
+			if(count($level) >= intval($option['groupSpaceLimitLevel'])){return false;}
+		}
 		
+		if( !isset($option['groupListChild']) ) return true;
 		$listGroup = $option['groupListChild']=='1';
 		if(!$listGroup) return false;
 		if($groupID == '1'){

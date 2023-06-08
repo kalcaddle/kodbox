@@ -57,7 +57,6 @@ ClassBase.define({
             var target = $(e.currentTarget);
             var type = target.parents(".acc-row").attr("id");
             if (target.attr("class") == 'bind') {
-                if (type != 'weixin') Tips.loadingMask(false, LNG['oauth.main.loading']);
                 return self.Bind.bind(type, 'bind', 0);
             }
             if(self.emptyPwd == '1') {

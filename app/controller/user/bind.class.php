@@ -67,7 +67,7 @@ class userBind extends Controller {
 		$user = Session::get('kodUser');
 		// $name = _get($user, 'nickName', _get($user, 'name', ''));
 		$name = _get($user, 'nickName');
-		if (!$name) $name = _get($user, 'nickName');
+		if (!$name) $name = _get($user, 'name');
 		$desc = Model('SystemOption')->get('systemDesc');
 		$data = array(
 			'type'		=> 'email',
@@ -155,19 +155,16 @@ class userBind extends Controller {
 		return strtoupper($md5); //生成签名
 	}
 
-	/**
-	 * 获取api secret
-	 * @return type
-	 */
+	//获取api secret
 	private function getApiSecret($kodid, $type) {
-		// 从本地获取
 		$secret = Model('SystemOption')->get('systemSecret');
 		if ($secret) return $secret;
 		// 本身为获取secret请求时，secret以kodid代替
 		if ($type == 'secret') return $kodid;
 
-		// 从平台获取
-		$res = $this->apiRequest('secret');
+		// 从平台获取;需要站点认证; kodid变化重新获取(服务端重新生成)
+		$initPass  = Model('SystemOption')->get('systemPassword');
+		$res  = $this->apiRequest('secret',array('initPath'=>BASIC_PATH,'initPass'=>$initPass));
 		if (!$res['code'] || !$res['data']) {
 			$msg = !empty($res['data']) ? ': ' . $res['data'] : '';
 			show_json('Api secret error. '.$msg, false);

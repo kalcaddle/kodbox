@@ -302,8 +302,13 @@ class webdavServerKod extends webdavServer {
 		$info = IO::infoFull($path);
 		if($info){	// 文件已存在; 则使用文件父目录追加文件名;
 			$uploadPath = rtrim(IO::pathFather($info['path']),'/').'/'.$name; //构建上层目录追加文件名;
-		}else{// 首次请求创建,文件不存在; 则使用{source:xx}/newfile.txt;
-			$uploadPath = $path;
+		}else{
+			// 首次请求创建,文件不存在; 则使用{source:xx}/newfile.txt; 自动创建文件夹: /src/aa/s.txt => / [文件夹不存在时]
+			$pathFatherStr = get_path_father($path);
+			$pathFather    = IO::mkdir($pathFatherStr); 
+			$uploadPath    = rtrim($pathFather,'/').'/'.$name;
+			$this->plugin->log("pathPut-mkdir:pathFatherStr=$pathFatherStr;pathFather=$pathFather;uploadPath=$uploadPath");
+			//$uploadPath = $path;
 		}
 		$this->pathPutCheckKod($uploadPath);
 

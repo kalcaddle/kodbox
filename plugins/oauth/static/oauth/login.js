@@ -36,7 +36,6 @@ ClassBase.define({
                 return location.href = './';
             }
 			var type = $(e.currentTarget).attr("data-type");
-            if (type != 'weixin') Tips.loadingMask(false, LNG['oauth.main.loading']);
 			self.Bind.bind(type);
 		});
     }

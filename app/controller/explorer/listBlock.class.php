@@ -97,11 +97,15 @@ class explorerListBlock extends Controller{
 			"myGroup"	=> array("path"	=> KodIO::KOD_GROUP_ROOT_SELF,'pathDesc'=>LNG('explorer.pathDesc.myGroup')),
 			'shareToMe'	=> array("path"	=> KodIO::KOD_USER_SHARE_TO_ME),
 		);
-		
+		$option = Model('SystemOption')->get();
 		if(!$this->pathEnable('myFav')){unset($list['fav']);}
 		if(!$this->pathEnable('my')){unset($list['my']);}
 		if(!$this->pathEnable('rootGroup') || !$groupInfo || !$groupInfo['sourceInfo']){unset($list['rootGroup']);}
 		if(!$this->pathEnable('myGroup')){unset($list['myGroup']);}
+		if($option['groupSpaceLimit'] == '1' && $option['groupSpaceLimitLevel'] <= 1){
+			unset($list['myGroup']);
+		}
+		
 		
 		// 根部门没有权限,且没有子内容时不显示;
 		if(isset($list['rootGroup'])){

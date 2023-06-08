@@ -261,19 +261,25 @@ class webdavClient {
 			curl_setopt($curl, CURLOPT_PUT,true);
 			return;
 		}
-		$postData 	= array();$key = 'UPLOAD_FILE';
-		$filename 	= $fileInfo['name'];
-		$path 		= $fileInfo['path'];		
-		$mime 		= get_file_mime(get_path_ext($filename));
-		if (class_exists('\CURLFile')){
-			$postData[$key] = new CURLFile(realpath($path),$mime,$filename);
-		}else{
-			$postData[$key] = "@".realpath($path).";type=".$mime.";filename=".$filename;
-		}
+		$path = $fileInfo['path'];
+        /*
+        $postData = array();$key = 'UPLOAD_FILE'; // post方式上传;
+        $filename = $fileInfo['name'];
+        $mime = get_file_mime(get_path_ext($filename));
+        if (class_exists('\CURLFile')){
+        	$postData[$key] = new CURLFile(realpath($path),$mime,$filename);
+        }else{
+        	$postData[$key] = "@".realpath($path).";type=".$mime.";filename=".$filename;
+        }
+        // post方式上传; 默认会加上header: multipart/form-data; boundary=-----xxxx--
+        //$this->setHeader('Content-Type','application/octet-stream');//"application/x-www-form-urlencoded"
+        //$this->setHeader('Content-Length',@filesize($path));
+        curl_setopt($curl, CURLOPT_POSTFIELDS,$postData);
+        */
+		
 		curl_setopt($curl, CURLOPT_PUT,true);
 		curl_setopt($curl, CURLOPT_INFILE,@fopen($path,'r'));
 		curl_setopt($curl, CURLOPT_INFILESIZE,@filesize($path));
-		curl_setopt($curl, CURLOPT_POSTFIELDS,$postData);
 		curl_setopt($curl, CURLOPT_TIMEOUT,3600*10);
 		if(class_exists('\CURLFile')){
 			curl_setopt($curl, CURLOPT_SAFE_UPLOAD, true);

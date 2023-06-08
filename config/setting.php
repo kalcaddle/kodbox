@@ -52,6 +52,7 @@ $config['settings'] = array(
 	
 	'staticPath'		=> APP_HOST."static/",	//静态文件目录,可以配置到cdn;
 	'kodApiServer'		=> "https://api.kodcloud.com/?", //QQ微信登录/邮件发送/插件-列表等 
+	'allowHeaderCookie' => '1',				// 允许header自定义传输cookie;
 );
 $config['settings']['searchContent'] 	= 1;		// 搜索:允许文件内容搜索
 $config['settings']['searchMutil'] 		= 1;		// 搜索:开启批量搜索
@@ -125,6 +126,7 @@ $config['systemOption'] = array(
 	'requestPerMinuteMax'  		=> 0,			// 每分钟最大请求数;0不限制; 推荐:600,300个则每秒5个,每5秒25个, 25个内小于5s
 	'requestAllowPerMinuteMax' 	=> 0,			// 允许的接口每分钟最大请求数;0不限制;推荐:3000, 高频次接口(upload/mkdir/list)
 	'userTaskAllowMax'			=> 0, 			// 每个用户允许的长任务个数;0不限制, 推荐50, 管理员不受限制; 占用独立进程;
+	'systemListDriver'  		=> '1',			// 存储挂载,是否显示系统磁盘
 );
 
 
@@ -256,6 +258,8 @@ $config['settingSystemDefault'] = array(
 	'systemRecycleClear'=> '10',		// 系统回收站自动清除,N天以前内容;
 	'systemBackup'		=> '1',			// 文档自动备份;
 	'groupTagAllow' 	=> '0',			// 是否启用部门公共标签
+	'groupSpaceLimit'	=> '0',			// 部门网盘层级限制; 超过部门的层级不显示部门网盘
+	'groupSpaceLimitLevel'=> '5',		// 部门网盘层级,指定层级,默认超过5层不显示部门网盘; >=1;
 	
 	// 分享相关设置;
 	'shareToMeAllowTree'=> '1',			// 分享给我的内容支持按部门组织架构或用户进行分类
@@ -292,7 +296,7 @@ $config['settingSystemDefault'] = array(
 		array('name'=>'官网','url'=>'https://kodcloud.com',"icon"=>"ri-home-line-3",'target'=>'inline','use'=>'1')
 	),
 );
-$config['settingSystemDefault']['searchFulltext'] = 0;			// like%% 转为全文索引
+$config['settingSystemDefault']['searchFulltext'] = 0;			// like%% 转为match (fulltext索引字段)
 $config['settingSystemDefault']['searchFulltextForce']  = 0;	// 完整匹配; (否则会对$words进行分词,包含一部分也作为结果;会多出结果) 
 $config['settingSystemDefault']['searchFulltextInnodb'] = 0;	// 是否为innodb 
 
@@ -467,7 +471,6 @@ $config['settingAll'] = array(
  * user.index.login  代表user模块下index控制器的login方法；
  */
 $config['authNotNeedLogin'] = array(
-	'test.*',
 	'user.index.*',
 	'user.bind.*',
 	'user.sso.*',

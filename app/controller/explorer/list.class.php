@@ -459,7 +459,7 @@ class explorerList extends Controller{
 	}
 	
 	private function dataFilterAuth($list){
-		if(_get($GLOBALS,'isRoot') && $this->config["ADMIN_ALLOW_SOURCE"]) return $list;
+		if($list && Action('explorer.auth')->allowRootSourceInfo($list[0])) return $list;
 		$shareLinkPre = '{shareItemLink';
 		foreach ($list as $key => $item) {
 			if( substr($item['path'],0,strlen($shareLinkPre)) == $shareLinkPre) continue;
@@ -558,7 +558,7 @@ class explorerList extends Controller{
 			$content = IO::getContent($pathInfo['path']);
 			Cache::set($pathHash,$content,3600*24*7);
 		}
-		
+		if(!is_string($content) || !$content) return $pathInfo;
 		$pathInfo['oexeContent'] = json_decode($content,true);
 		if( $pathInfo['oexeContent']['type'] == 'path' && 
 			isset($pathInfo['oexeContent']['value']) ){

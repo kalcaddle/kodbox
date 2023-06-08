@@ -34,6 +34,14 @@ class Input{
 				continue;
 			}
 			
+			// 长度校验,过长或过短内容报错;
+			if(isset($value['lengthMax']) && strlen($in[$key]) > $value['lengthMax']){
+				$error[] = $msg;continue;
+			}
+			if(isset($value['lengthMin']) && strlen($in[$key]) < $value['lengthMin']){
+				$error[] = $msg;continue;
+			}
+			
 			// json 单独处理
 			if( isset($value['check']) && $value['check'] == 'json' ){
 				$decode = json_decode($in[$key],true);

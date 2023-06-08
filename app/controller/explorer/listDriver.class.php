@@ -22,11 +22,13 @@ class explorerListDriver extends Controller{
 	private function rootList(){
 		$dataList = Model('Storage')->listData();
 		$list = array();
-		$diskList = KodIO::diskList(false);
-		foreach ($diskList as $path) {
-			$this->driverMake($list,$path);
+		
+		if($GLOBALS['config']['systemOption']['systemListDriver'] == '1'){
+			$diskList = KodIO::diskList(false);
+			foreach ($diskList as $path) {
+				$this->driverMake($list,$path);
+			}
 		}
-
 		foreach ($dataList as $item) {
 			$list[] = array(
 				"name"			=> $item['name'],
@@ -46,12 +48,27 @@ class explorerListDriver extends Controller{
 	
 	// 对同一类型有多个存储的进行归类;
 	private function driverListGroup(&$result){
-		if(count($result['folderList']) <= 5) return;
+		$notEqual  = array('!='=>'1');
+		$groupShow = array(
+			array(
+				'type' 	=> 'io-type-default',
+				'title' => LNG('admin.storage.current'),
+				"filter"=> array('driverDefault'=>array('='=>'1')),
+			)
+		);
+		if(count($result['folderList']) <= 5){
+			$groupShow[] = array(
+				'type' 	=> 'io-type-others',
+				'title' => LNG('common.others'),
+				"filter"=> array('driverDefault'=>$notEqual),
+			);
+			$result['groupShow'] = $groupShow;
+			return;
+		}
 		
 		$groupMinNumber = 3; // 超过数量才显示分组,否则归类到其他;
 		$driverOthers   = array();
-		$groupShow 		= array();
-		$listGroup 		= array_to_keyvalue_group($result['folderList'],'driverType');
+		$listGroup = array_to_keyvalue_group($result['folderList'],'driverType');
 		foreach ($listGroup as $key=>$val){
 			if(count($val) < $groupMinNumber){
 				$driverOthers[] = $key;continue;
@@ -60,14 +77,14 @@ class explorerListDriver extends Controller{
 			$groupShow[] = array(
 				'type' 	=> 'io-type-'.$key,
 				'title' => LNG($langKey) != $langKey ? LNG($langKey) : $key,
-				"filter"=> array('ioDriver'=>array('='=> $key)),
+				"filter"=> array('ioDriver'=>array('='=> $key),'driverDefault'=>$notEqual),
 			);
 		}
 		if(count($driverOthers) > 0){
 			$groupShow[] = array(
 				'type' 	=> 'io-type-others',
 				'title' => LNG('common.others'),
-				"filter"=> array('ioDriver'=>array('in'=>$driverOthers)),
+				"filter"=> array('ioDriver'=>array('in'=>$driverOthers),'driverDefault'=>$notEqual),
 			);
 		}
 		$result['groupShow'] = $groupShow;

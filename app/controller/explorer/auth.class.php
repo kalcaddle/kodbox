@@ -290,7 +290,7 @@ class explorerAuth extends Controller {
 		Hook::trigger("explorer.auth.can",$pathInfo,$action);
 		// source 类型; 新建文件夹 {source:10}/新建文件夹; 去除
 		//文档类型检测：屏蔽用户和部门之外的类型；
-		if($isRoot && $this->config["ADMIN_ALLOW_SOURCE"]) return true;
+		if($this->allowRootSourceInfo($pathInfo)) return true;
 		$targetType = $pathInfo['targetType'];
 		// if(!$pathInfo) return true; 
 		if(!$pathInfo){//不存在,不判断文档权限;
@@ -315,6 +315,13 @@ class explorerAuth extends Controller {
 			return $this->errorMsg(LNG('explorer.noPermissionAction'),1100);
 		}
 		return true;
+	}
+	
+	public function allowRootSourceInfo($pathInfo){
+		$isRoot = _get($GLOBALS,'isRoot');
+		if($isRoot && $this->config["ADMIN_ALLOW_SOURCE"]) return true;
+		if($isRoot && $pathInfo && $pathInfo['pathType'] == '{systemRecycle}') return true;
+		return false;
 	}
 
 	// 路径类型中: 检测目录是否可操作(属性,重命名,新建上传等); 纯虚拟路径只能列表;

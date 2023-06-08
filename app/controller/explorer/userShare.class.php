@@ -241,7 +241,7 @@ class explorerUserShare extends Controller{
 	
 	
 	// 分享内容属性; 默认$sourceID为空则分享本身属性; 指定则文件夹字内容属性;
-	public function sharePathInfo($shareID,$sourceID=false){
+	public function sharePathInfo($shareID,$sourceID=false,$withChildren=false){
 		$shareInfo = $this->model->getInfo($shareID);
 		if($shareInfo['sourceID'] == '0'){
 			$truePath = KodIO::clear($shareInfo['sourcePath'].$sourceID);
@@ -249,7 +249,11 @@ class explorerUserShare extends Controller{
 			$sourceInfo = array('path'=>$truePath);
 		}else{
 			$sourceID = $sourceID ? $sourceID : $shareInfo['sourceID'];
-			$sourceInfo = Model('Source')->pathInfo($sourceID);
+			if(!$withChildren){
+				$sourceInfo = Model('Source')->pathInfo($sourceID);
+			}else{
+				$sourceInfo = Model('Source')->pathInfoMore($sourceID);
+			}
 		}
 		// pr($sourceID,$truePath,$sourceInfo,$shareInfo);exit;
 		
@@ -336,7 +340,6 @@ class explorerUserShare extends Controller{
 			$thisPath  = KodIO::clear($source['path']);
 			$pathAdd   = substr($thisPath,strlen($sharePath));
 			if(substr($thisPath,0,strlen($sharePath)) != $sharePath) return false;
-			unset($source['authMode']);
 
 			// 子目录不再追加;
 			if($pathAdd){unset($source['shareInfo']);}
@@ -378,9 +381,12 @@ class explorerUserShare extends Controller{
 		}
 
 		// 读写权限;
-		if($source['auth']){
-			$source['isWriteable'] = AuthModel::authCheckEdit($source['auth']['authValue']);
-			$source['isReadable']  = AuthModel::authCheckView($source['auth']['authValue']);
+		if($source['auth']){// 读写权限同时受: 来源权限+设置权限;
+			$isWriteable = array_key_exists('isWriteable',$source) ?  $source['isWriteable'] : true;
+			$isReadable  = array_key_exists('isReadable',$source)  ?  $source['isReadable']  : true;
+			// $isWriteable = true;$isReadable = true;
+			$source['isWriteable'] = $isWriteable && AuthModel::authCheckEdit($source['auth']['authValue']);
+			$source['isReadable']  = $isReadable  && AuthModel::authCheckView($source['auth']['authValue']);
 		}
 		if(isset($source['sourceInfo']['tagInfo'])){
 			unset($source['sourceInfo']['tagInfo']);

@@ -38,6 +38,7 @@ class explorerUpload extends Controller{
 		$this->authorizeCheck();
 		$uploader = new Uploader();
 		$savePath = $this->in['path'];
+		if (!IO::exist($savePath)) show_json(LNG('explorer.upload.errorPath'),false);
 		if ( $this->in['fullPath'] ) {//带文件夹的上传
 			$fullPath = KodIO::clear($this->in['fullPath']);
 			$fullPath = $this->pathAllowReplace($fullPath);
@@ -136,9 +137,7 @@ class explorerUpload extends Controller{
 		
 		if(!$file['hashMd5']){$file['hashSimple'] = null;}
 		$checkChunkArray = array();
-		if($file['hashSimple']){
-			$checkChunkArray = $uploader->checkChunk();
-		}
+		if($hashSimple){$checkChunkArray = $uploader->checkChunk();} // 断点续传保持处理;
 		
 		$default  = KodIO::defaultDriver();
 		$infoData = array(
@@ -246,6 +245,7 @@ class explorerUpload extends Controller{
 	 * 小于10M的文件不处理;
 	 */
 	private function serverDownloadHashCheck($url,$header,$savePath,$filename,$uuid){
+		return;// 暂时关闭该特性;
 		if($header['length'] < 10 * 1024*1024) return false;
 		$driver = new PathDriverUrl();
 		$fileHash = $driver->hashSimple($url,$header); // 50个请求;8s左右;

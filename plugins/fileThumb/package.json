@@ -2,7 +2,7 @@
 	"id":"fileThumb",
 	"name":"{{LNG['fileThumb.meta.name']}}",
 	"title":"{{LNG['fileThumb.meta.title']}}",
-	"version":"1.88",// 2023.1.17
+	"version":"1.90",// 2023.6.02
 	"category":"file,media",
 	"source":{
 		"icon":"{{pluginHost}}static/icon.png"
@@ -17,8 +17,9 @@
 		"formStyle":{
 			"loadFile":"{{pluginHost}}static/check.js",
 			"tabs":{
-				"{{LNG['admin.setting.base']}}":"pluginAuth,imagickBin,ffmpegBin,sep001,fileSort,fileExt,fileThumb",
-				"{{LNG['fileThumb.video.title']}}":"videoConvertDesc,videoConvert,videoConvertLimit,videoConvertLimitTo,videoConvertTask,videoConvertType,sep003,videoPlayType"
+				"{{LNG['admin.setting.base']}}":"pluginAuth,imagickBin,ffmpegBin",
+				"{{LNG['fileThumb.video.title']}}":"videoConvertDesc,videoConvert,videoConvertLimit,videoConvertLimitTo,videoConvertTask,videoConvertType,sep003,videoPlayType",
+				"{{LNG['admin.setting.others']}}":",sep001,fileSort,fileExt,fileThumb,sep002,debug"
 			}
 		},
 		"pluginAuth":{
@@ -46,7 +47,7 @@
 					<button class='btn btn-link check-psd-help' >{{LNG['fileThumb.config.help']}}</button>"
 		},
 
-		"sep001":"<h4>{{LNG['fileThumb.config.file']}}:</h4>",
+		// "sep001":"<h4>{{LNG['fileThumb.config.file']}}:</h4>",
 		"fileSort":{
 			"type":"number",
 			"display":"{{LNG['admin.plugin.fileSort']}}",
@@ -66,6 +67,15 @@
 			"value":"psd,psb,ps,ps2,ps3,tif,tiff,tga,tst,plt,ai,jpe,dds,crw,3fr,fff,ppm,mef,mos,mdc,iiq,eps,
 			,pdf,xps,heic,ttf,
 			,3gp,avi,mp4,m4v,mov,mpg,mpeg,mpe,mts,m2ts,wmv,ogv,webm,vob,flv,f4v,mkv,rmvb,rm"
+		},
+
+		"sep002":"<hr/>",
+		"debug":{
+			"type":"switch",
+			"value":"0",
+			"className":"row-inline",
+			"display":"{{LNG['fileThumb.config.debug']}}",
+			"desc":"{{LNG['fileThumb.config.debugDesc']}}"
 		},
 		
 		"videoConvertDesc":"<h4>{{LNG['fileThumb.video.title']}}</h4>

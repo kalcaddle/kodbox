@@ -537,14 +537,14 @@ class adminServer extends Controller {
 	 */
     public function dbChangeAct($database, $option, $type){
 		// 1.初始化db
-		$manageOld = new DbManage($database, $type);
-		$manageNew = new DbManage($option, $type);
+		$manageOld = new DbManage($database);
+		$manageNew = new DbManage($option);
 		$dbNew = $manageNew->db(true);
 
 		// 2.指定库存在数据表，提示重新指定；不存在则继续
 		$tableNew = $dbNew->getTables();
 		if(!empty($tableNew)) {
-			show_json(LNG('admin.setting.dbNeedNew'), false);
+			show_json(LNG('admin.setting.recDbExist'), false);
 		}
 		if(Input::get('check', null, false)) {
 			show_json(LNG('admin.setting.checkPassed'));
@@ -557,13 +557,11 @@ class adminServer extends Controller {
 		$taskId	 = 'db.new.table.create';
 		$taskCrt = new Task($taskId, $type, 0, LNG('admin.setting.dbCreate'));
 		// 3.表结构写入目标库
-		// TODO 这里其实应该从当前库导出表结构并创建；相互转换有点困难
-		// $sql = 'show create table `xxx`';	// mysql
-		// $sql = 'SELECT sql FROM sqlite_master WHERE type="table" AND name = "xxx"';	// sqlite
-        $file = CONTROLLER_DIR . "install/data/{$type}.sql";
+		$file = $manageOld->getSqlFile($type);
         $manageNew->createTable($file, $taskCrt);
 		$this->taskToCache($taskCrt, $taskId);
 		$tableNew = $dbNew->getTables();
+		del_dir(get_path_father($file));
 
 		// 4.获取当前表数据，写入sql文件
 		$pathLoc = $this->tmpActPath('change');
@@ -571,7 +569,7 @@ class adminServer extends Controller {
 
 		$fileList = array();
 		$tableOld = $manageOld->db()->getTables();
-		$tableOld = array_diff($tableOld, array('______', 'sqlite_sequence'));
+		$tableOld = array_diff($tableOld, array('______', 'sqlite_sequence'));	// 排除sqlite系统表
 		$total = 0;
         foreach($tableOld as $table) {
 			if(!in_array($table, $tableNew)) continue;
@@ -580,7 +578,7 @@ class adminServer extends Controller {
 		$taskId	 = 'db.old.table.select';
 		$taskGet = new Task('db.old.table.select', $type, $total, LNG('admin.setting.dbSelect'));
         foreach($tableOld as $table) {
-			// 对比原始库，当前库如有新增表，直接跳过
+			// 对比原始库，当前库如有新增表（不存在的表），直接跳过
 			if(!in_array($table, $tableNew)) continue;
 			$file = $pathLoc . $table . '.sql';
             $manageOld->sqlFromDb($table, $file, $taskGet);
@@ -639,13 +637,15 @@ class adminServer extends Controller {
 			show_json(LNG('admin.setting.recDbFileErr'), false);
 		}
 		// 检测结果直接返回
-		if(Input::get('check', null, false) && $type == 'mysql') {
-			$dbname = 'kod_rebuild_test';
-			// 如果没有权限，这里会直接报错
-		    $res = Model()->db()->execute("create database `{$dbname}`");
-		    if ($res) {
-		        Model()->db()->execute("drop database if exists `{$dbname}`");
-		    }
+		if(Input::get('check', null, false)) {
+			if ($type == 'mysql') {
+				// 如果没有权限，这里会直接报错
+				$dbname = 'kod_rebuild_test';
+				$res = Model()->db()->execute("create database `{$dbname}`");
+				if ($res) {
+					Model()->db()->execute("drop database if exists `{$dbname}`");
+				}
+			}
 			show_json(LNG('admin.setting.checkPassed'));
 		}
 		echo json_encode(array('code'=>true,'data'=>'OK', 'info'=>1));
@@ -666,7 +666,7 @@ class adminServer extends Controller {
 
 		// 2.2 新建数据库
 		$database = $this->recDatabase($data);
-        $manage = new DbManage($database, $type);
+        $manage = new DbManage($database);
         $manage->db(true);   // 新建数据库
 
         // 2.3 新建数据表
@@ -809,7 +809,7 @@ class adminServer extends Controller {
 		if($type == 'sqlite') {
 			del_file($cache['db']['db_name']);
 		}else if ($type == 'mysql') {
-			$manage = new DbManage($cache['db'], $type);
+			$manage = new DbManage($cache['db']);
 			// if($manage) $manage->dropTable();
 			if($manage) {
 				$dbname = $cache['db']['db_name'];

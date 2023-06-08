@@ -108,19 +108,30 @@ function ActionApply($action,$args=array()){
 	if(is_array($action)){ //可调用方法; array($this,'log');
 		return call_user_func_array($action,$args);
 	}
-
 	if(isset($_cache[$action])){
 		return call_user_func_array($_cache[$action],$args);
 	}
+	
 	if(function_exists($action)){ //全局函数;
 		$_cache[$action] = $action;
 	}else{
-		$last 	  	= strrpos($action,'.');
-		$className	= substr($action,0,$last);
-		$method   	= substr($action,$last + 1);
+		$arrs  = explode('.',$action);
+		$arrs  = is_array($arrs) ? $arrs : array();
+		
+		$className	= substr($action,0,strrpos($action,'.'));
+		$method   	= $arrs[count($arrs) - 1];
 		$obj 		= Action($className);
-		if(!$method || !is_object($obj) || !method_exists($obj,$method)){
+		if(!$method || !is_object($obj)){
 			return actionCallError("$action method not exists!");
+		}
+
+		// 类查存在,最后一个不是方法时,默认将第三个参数作为参数; 支持多参数调用方式;
+		// http://127.0.0.1/kod/kodbox/?test/test/index/page/1/limit/10
+		if(!method_exists($obj,$method)){
+			if(!$arrs[2] || !method_exists($obj,$arrs[2])){
+				return actionCallError("$action method not exists!");
+			}
+			$method = $arrs[2];
 		}
 		$_cache[$action] = array($obj,$method);
 	}

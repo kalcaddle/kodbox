@@ -21,6 +21,9 @@ class filterUserLoginState extends Controller {
 	// 暂不支持通过accessToken的共享session方式登录(app扫描登录, 外部accessToken打开文件或网页); 
 	// 		有一点点门槛;同时一个点退出其他所有设备都会退出;
 	public function checkLimit($user){
+		$user = HttpAuth::get();
+		if($user['user']) return;//排除webdav header直接登录方式;
+		
 		$limitMax = 500;
 		$limit = $GLOBALS['config']['settings']['userLoginLimit'];
 		if($limit == 0) {$limit = $limitMax;};

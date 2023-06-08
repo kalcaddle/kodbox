@@ -18,10 +18,19 @@ class explorerFav extends Controller{
 	public function get() {
 		$pageNum = $GLOBALS['in']['pageNum'];$GLOBALS['in']['pageNum'] = 2000;//分页处理;
 		$list = $this->model->listView();
+		
+		// 收藏协作分享内容;
+		foreach($list as $key => $item) {
+			$pathParse = KodIO::parse($item['path']);
+			if($pathParse['type'] == KodIO::KOD_SHARE_ITEM){
+				$infoItem = IO::info($item['path']);
+				$infoItem = is_array($infoItem) ? $infoItem :array();
+				$list[$key] = array_merge($item,$infoItem);	
+			}
+		}
+		
 		$GLOBALS['in']['pageNum'] = $pageNum ? $pageNum:null;
-		$list = $this->_checkExists($list);
-		// pr($list);exit;
-		return $list;
+		return $this->_checkExists($list);
 	}
 	
 	private function _checkExists($list){

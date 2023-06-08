@@ -46,4 +46,7 @@ return array(
 	'fileThumb.video.STATUS_ERROR'		=> 'Running error(ffmpeg,shell_exec,proc_open)',
 	'fileThumb.video.STATUS_RUNNING'	=> 'Transcoding',
 	'fileThumb.video.STATUS_LIMIT'		=> 'The task in progress exceeds the limit. Please try again later',
+
+	"fileThumb.config.debug"			=> "Debug Mode",
+	"fileThumb.config.debugDesc"		=> "Will write the log. <button class='btn btn-sm btn-default ml-20 view-log'>view log</button>",
 );

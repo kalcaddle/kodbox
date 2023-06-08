@@ -953,7 +953,9 @@ function get_caller_trace($trace,$needArgs = true) {
 		if( $method =='show_json' || $method =='think_trace'){
 			$traceText[$i].= $method.'(args)';
 		}else{
-			$args  = (isset($call['args']) && is_array($call['args'])) ? $call['args'] : array();
+			$temp  = (isset($call['args']) && is_array($call['args'])) ? $call['args'] : array();
+			$args  = array();	// 深拷贝，避免引用传参被修改
+			foreach ($temp as $value) {$args[] = $value;}
 			if(!$needArgs && !in_array($method,$keepArgs)){$args = array();}
 			$param = json_encode(array_parse_deep($args));
 			$param = str_replace(array('\\/','\/','\\\\/','\"'),array('/','/','/','"'),$param);

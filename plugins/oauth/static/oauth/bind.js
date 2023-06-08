@@ -12,11 +12,13 @@ ClassBase.define({
         // 判断是否在微信浏览器
         this.platform = $.browserIS.weixin ? 'mp' : 'open';  // 公众平台or开放平台
 
-        var self = this;
+		var self = this, tips = false;
         var param = {method: 'oauth', type: type, action: action, client: client, state: this.platform};
+		if(type != 'weixin'){tips = Tips.loadingMask(false, LNG['oauth.main.loading']);}
         this.request.requestSend('plugin/oauth/bind', param, function(result){
-            if (!result.code) {
-                Tips.tips(result.data, false);
+			if(tips){tips.close();}
+            if(!result.code) {
+                Tips.tips(result.data, false,5000);
                 return false;
             }
             self.bindSubmit(type, result.data, result.info);

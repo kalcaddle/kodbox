@@ -51,8 +51,6 @@ body{background: #eeeef4;}
 	transition: all 250ms ease 0s;
 }
 .toolbarButton.pdfSidebarNotification::after{display:none;}
-.outlineItem > a, .attachmentsItem > button{color:#666;}
-.outlineItem > a:hover, .attachmentsItem > button:hover{color:#333;}
 .thumbnailImage {
 	border:none;
 	box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1);

@@ -7,6 +7,7 @@ ClassBase.define({
 	},
 	
 	initPath: function(){
+		var self = this;
 		if(G.webdavOption.pathAllow == 'self'){
 			this.$('.item-openMore').remove();
 			return;
@@ -39,12 +40,61 @@ ClassBase.define({
 		var $content = this.$('.item-pathAllowMore .info-alert');
 		$input.val(this.webdavPath + 'my/');
 		this.renderHtml(tpl,{dataList:data},$content);
-		$content.find('[action]').bind('click',function(){
-			var value = $(this).prev().val();
-			$.copyText(value);
-			Tips.tips(LNG['explorer.share.copied']);
+		this.$('[action]').bind('click',function(){
+			var $btn   = $(this);
+			var action = $btn.attr('action');
+			switch (action) {
+				case 'copy':
+					$.copyText($btn.prev().val());
+					Tips.tips(LNG['explorer.share.copied']);
+					break;
+				case 'selectPath':self.pathSelect();break;	
+				default:break;
+			}
 		});
 		this.$('.item-openMore .btn').trigger('click');
+	},
+	
+	pathSelect:function(){
+		var allowType = [
+			LNG['explorer.toolbar.fav'],
+			LNG['explorer.toolbar.rootPath'],
+			LNG['explorer.toolbar.myGroup'],
+			LNG['explorer.toolbar.shareToMe'],
+		];
+		var allowPath = ['{block:files}','{shareToMe}',_.trim(G.user.myhome,'/'),'{userFav}'];
+		var allowCheck = function(pathInfo){
+			var pathParse = kodApp.pathData.parse(pathInfo.path);
+			var pathView  = pathInfo.pathDisplay || pathInfo.path;
+			var pathViewArr = _.trim(pathView,'/').split('/');
+			if(allowPath.indexOf(_.trim(pathInfo.path,'/')) != -1) return true;
+			if(pathParse.type == '{shareItem}') return true;
+
+			//console.log(1232,pathView,pathViewArr,pathParse,pathInfo);
+			if(allowType.indexOf(pathViewArr[0]) === -1){return false;}
+			return true;
+		};
+		var selectFinish = function(pathInfo){
+			if(!allowCheck(pathInfo)){return Tips.tips(LNG['explorer.pathNotSupport'],'warning',4000);}
+			var pathParse = kodApp.pathData.parse(pathInfo.path);
+			var pathView  = pathInfo.pathDisplay || pathInfo.path;
+			if(pathParse.type == '{shareItem}'){
+				pathView = LNG['explorer.toolbar.shareToMe'] + '/' + _.trim(pathView,'/');
+			}
+			var pathViewArr = _.trim(pathView,'/').split('/');
+			if(pathViewArr[0] == allowType[1]){pathViewArr[0] = 'my';}
+			if(_.trim(pathInfo.path,'/') == '{block:files}'){pathViewArr = [];}
+			var url = G.webdavOption.host + urlEncode(pathViewArr.join('/')).replace(/%2F/g,'/');
+			Tips.tips(LNG['explorer.share.copied']+';<br/>'+url);
+			$.copyText(url);
+		};
+		new kodApi.pathSelect({
+			type:'folder',single:true,
+			title:LNG['explorer.selectFolder']+'(support:'+allowType.join(',')+')',
+			pathOpen:G.user.myhome,pathTree:'{block:files}/',
+			//pathCheckAllow:function(pathInfo){},
+			callback:selectFinish
+		});
 	},
 
 	formData:function(){
@@ -55,7 +105,10 @@ ClassBase.define({
 				"type":"html",
 				"display":"<b>webdav "+LNG['common.address']+"</b> ("+LNG['explorer.toolbar.rootPath']+")",
 				"value":"<input type='text' value='"+this.webdavPath+"' readonly style='width:70%;' class='span-title-right'/>\
-				<span class='input-title input-title-right kui-btn' action='copy' tabindex='0'><i class='font-icon ri-file-copy-line-2'></i>"+LNG['explorer.copy']+"</span>"
+				<span class='input-title input-title-right kui-btn' action='copy' tabindex='0'><i class='font-icon ri-file-copy-line-2'></i>"+LNG['explorer.copy']+"</span>\
+				<span class='input-title kui-btn input-title-right ml-10' action='selectPath' tabindex='0' \
+				style='margin-left: 0;border-radius:4px;border-color:rgba(150,150,150,0.2);border-left-width: 1px;'>\
+				<i class='font-icon ri-folder-line-3'></i>"+LNG['explorer.selectFolder']+"</span>"
 			},
 			"openMore":{
 				"type":"button",

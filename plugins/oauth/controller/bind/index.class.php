@@ -66,7 +66,7 @@ class oauthBindIndex extends Controller {
 		if (!$data && is_string($input['data'])) {
 			$msg = LNG('common.invalidParam');
 			if (isset($this->in['info']) && $this->in['info'] == '40003') {
-				Model('SystemOption')->set('systemSecret', '');
+				//Model('SystemOption')->set('systemSecret', '');
 				$msg = 'sign_error';
 			}
 			return $this->bindHtml($type, $data, false, array('bind', $msg));

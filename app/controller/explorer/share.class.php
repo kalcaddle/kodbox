@@ -92,6 +92,7 @@ class explorerShare extends Controller{
 	public function file(){
 		if(!$this->in['hash']) return;
 		if(!defined('USER_ID')){define('USER_ID',0);}
+		if(strlen($this->in['hash']) > 500) return;
 		$pass = Model('SystemOption')->get('systemPassword');
 		$path = Mcrypt::decode($this->in['hash'],$pass);
 		if(!$path || !IO::info($path)){
@@ -211,7 +212,7 @@ class explorerShare extends Controller{
 		//检测密码
 		$passKey  = 'Share_password_'.$share['shareID'];
 		if( $share['password'] ){
-			if( isset($this->in['password']) ){
+			if( isset($this->in['password']) && strlen($this->in['password']) < 500 ){
 				$code = md5(BASIC_PATH.Model('SystemOption')->get('systemPassword'));
 				$pass = Mcrypt::decode(trim($this->in['password']),md5($code));
 				
@@ -297,9 +298,20 @@ class explorerShare extends Controller{
 
 		$result = array();
 		for ($i=0; $i < count($fileList); $i++) {
-			$path 	= $this->parsePath($fileList[$i]['path']);
-			$result[] = $this->shareItemInfo(IO::infoWithChildren($path));
+			$path = $this->parsePath($fileList[$i]['path']);
+			if($this->in['getChildren'] == '1'){
+				$pathInfo = IO::infoWithChildren($path);
+			}else{
+				$pathInfo = IO::infoFull($path);
+			}
+			if(!is_array($pathInfo)){continue;}
+			if(!array_key_exists('hasFolder',$pathInfo)){
+				$has = IO::has($path,true);
+				if(is_array($has)){$pathInfo = array_merge($pathInfo,$has);}
+			}
+			$result[] = $this->shareItemInfo($pathInfo);
 		}
+		
 		if(count($fileList) == 1){
 			// 单个文件属性; 没有仅用预览,则开放预览链接;
 			if($result[0]['type'] == 'file' &&  _get($this->share,'options.notDownload') != '1' ){
@@ -423,6 +435,7 @@ class explorerShare extends Controller{
 			'createUser','modifyUser','createTime','modifyTime','sourceID',
 			'hasFolder','hasFile','children','targetType','targetID','pageInfo',
 			'base64','content','charset','oexeContent','fileInfoMore','fileThumb',
+			'isReadable','isWriteable'
 		);
 		$theItem = array_field_key($item,$field);
 		$path 	 = KodIO::makePath(KodIO::KOD_SHARE_LINK,$this->share['shareHash']);

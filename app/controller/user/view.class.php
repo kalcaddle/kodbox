@@ -12,8 +12,8 @@ class userView extends Controller{
 		}
 		$options = array(
 			"kod"	=> array(
-				'systemOS'		=> $this->config['systemOS'],
-				'phpVersion'	=> PHP_VERSION,
+				'systemOS'		=> '-',
+				'phpVersion'	=> '-',
 				'appApi'		=> appHostGet(),
 				'APP_HOST'		=> APP_HOST,
 				'APP_HOST_LINK' => $this->config['APP_HOST_LINK'],
@@ -32,7 +32,7 @@ class userView extends Controller{
 				'role'			=> Action('user.authRole')->userRoleAuth(),
 				'config'		=> $this->config['settingDefault'],
 				'editorConfig'	=> $this->config['editorDefault'],
-				'isRootAllow'	=> $this->config["ADMIN_ALLOW_IO"],
+				'isRootAllow'	=> true,// $this->config["ADMIN_ALLOW_IO"], 后端处理
 			),
 			"system" => array(
 				'settings'		=> $this->config['settings'],
@@ -52,7 +52,11 @@ class userView extends Controller{
 		if(_get($GLOBALS,'isRoot')){
 			$options['kod']['WEB_ROOT']   = WEB_ROOT;
 			$options['kod']['BASIC_PATH'] = BASIC_PATH;
+			$options['kod']['systemOS']   = $this->config['systemOS'];
+			$options['kod']['phpVersion'] = PHP_VERSION;
 		}
+		unset($options['system']['settings']['sysTempPath']);
+		unset($options['system']['settings']['sysTempFiles']);
 		
 		//为https时自适应为https; 兼容https无法请求http的情况;
 		if(strstr(APP_HOST,'https://')){
@@ -75,7 +79,14 @@ class userView extends Controller{
 		$groupInfo = Model('Group')->getInfo($groupAllowShow[0]);
 		$options['kod']['companyInfo'] = array('name'=>$groupInfo['name'],'logoType'=>'text','logoText'=>$groupInfo['name']);
 	}
-
+	
+	// 检测是否支持二进制上传;(部分apache服务器,上传会被拦截报403错误;自动处理为表单上传;)
+	public function uploadBindaryCheck(){
+		$input = file_get_contents("php://input");
+		$result= trim($input) == '[uploadCheck]' ? '[ok]':'[error]';
+		echo $result;
+	}
+	
 	/**
 	 * 根据权限设置筛选菜单;
 	 */
@@ -88,9 +99,7 @@ class userView extends Controller{
 			}else{
 				$allow = ActionCall("user.authPlugin.checkAuthValue",$item['pluginAuth']);
 			}
-			if($allow){
-				$result[] = $item;
-			}
+			if($allow){$result[] = $item;}
 		}
 		$menus = $result;
 		return $options;

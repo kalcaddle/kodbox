@@ -33,12 +33,12 @@ class explorerIndex extends Controller{
 	private function itemInfo($item){
 		$path = $item['path'];
 		$type = _get($item,'type');
-		if($type == 'full'){
-			$result = IO::infoFull($path);
+		if($this->in['getChildren'] == '1'){
+			$result = IO::infoWithChildren($path);
 		}else if($type == 'simple'){
 			$result = IO::info($path);
 		}else{
-			$result = IO::infoWithChildren($path);
+			$result = IO::infoFull($path);
 		}
 		if(!$result) return false;
 		// $canLink = Action('explorer.auth')->fileCanDownload($path);
