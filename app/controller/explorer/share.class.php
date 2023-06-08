@@ -435,7 +435,7 @@ class explorerShare extends Controller{
 			'createUser','modifyUser','createTime','modifyTime','sourceID',
 			'hasFolder','hasFile','children','targetType','targetID','pageInfo',
 			'base64','content','charset','oexeContent','fileInfoMore','fileThumb',
-			'isReadable','isWriteable'
+			// 'isReadable','isWriteable',//(不处理, 部门文件夹分享显示会有区分)
 		);
 		$theItem = array_field_key($item,$field);
 		$path 	 = KodIO::makePath(KodIO::KOD_SHARE_LINK,$this->share['shareHash']);

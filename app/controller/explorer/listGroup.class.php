@@ -154,6 +154,7 @@ class explorerListGroup extends Controller{
 			$userInfo = Model('User')->getInfo($userID);
 			$groupSelf = $userInfo['groupInfo'];
 		}
+		if(!$groupSelf) return false;
 		
 		// 部门文件夹或子文件夹没有针对自己设置权限,向上级部门回溯;
 		$groupSelf 	= array_to_keyvalue($groupSelf,'groupID');//自己所在的组
