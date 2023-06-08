@@ -169,7 +169,9 @@ CREATE TABLE `io_source` (
   KEY `modifyTime` (`modifyTime`),
   KEY `createTime` (`createTime`),
   KEY `viewTime` (`viewTime`),
-  KEY `modifyUser` (`modifyUser`)
+  KEY `modifyUser` (`modifyUser`),
+  KEY `targetType_targetID_parentID` (`targetType`,`targetID`,`parentID`),
+  KEY `parentID_isDelete` (`parentID`,`isDelete`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='文档数据表';
 
 DROP TABLE IF EXISTS `io_source_auth`;

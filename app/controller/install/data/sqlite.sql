@@ -183,6 +183,8 @@ CREATE INDEX 'idx_io_source_modifyTime' ON 'io_source' ("modifyTime");
 CREATE INDEX 'idx_io_source_createTime' ON 'io_source' ("createTime");
 CREATE INDEX 'idx_io_source_viewTime' ON 'io_source' ("viewTime");
 CREATE INDEX 'idx_io_source_modifyUser' ON 'io_source' ("modifyUser");
+CREATE INDEX 'idx_io_source_targetType_targetID_parentID' ON 'io_source' ("targetType","targetID","parentID");
+CREATE INDEX 'idx_io_source_parentID_isDelete' ON 'io_source' ("parentID","isDelete");
 
 DROP TABLE IF EXISTS "io_source_auth";
 CREATE TABLE "io_source_auth" (
