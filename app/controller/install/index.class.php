@@ -351,6 +351,9 @@ class installIndex extends Controller {
             if(isset($host) && isset($port)){
                 $text[] = "\$config['cache']['{$cacheType}']['host'] = '{$host}';";
                 $text[] = "\$config['cache']['{$cacheType}']['port'] = '{$port}';";
+                if ($cacheType == 'redis' && $auth) {
+                    $text[] = "\$config['cache']['{$cacheType}']['auth'] = '{$auth}';";
+                }
             }
             $file = $this->userSetting;
             if(!@file_exists($file)) @touch($file);

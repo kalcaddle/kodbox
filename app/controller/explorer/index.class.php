@@ -73,6 +73,9 @@ class explorerIndex extends Controller{
 		if( !Action('explorer.listBlock')->pathEnable('my') ){
 			unset($desktopApps['myComputer']);
 		}
+		if($this->config['settings']['disableDesktopHelp'] == 1){
+			unset($desktopApps['userHelp']);
+		}
 		foreach ($desktopApps as $key => &$item) {
 			if($item['menuType'] == 'menu-default-open'){
 				$item['menuType'] = 'menu-default';
