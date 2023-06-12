@@ -1143,6 +1143,7 @@ class S3 {
 		// $expires = $this->__getTime() + $lifetime;
 		$expires = strtotime(date('Ymd 23:59:59')); // kodbox：签名链接有效期，改为当天有效
 		$uri = str_replace(array('%2F', '%2B'), array('/', '+'), rawurlencode($uri));
+		ksort($subResource);
 		$ext = http_build_query($subResource);
 		$url = sprintf(
 			'%s/%sAWSAccessKeyId=%s&Expires=%u&Signature=%s', 

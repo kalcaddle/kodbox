@@ -308,7 +308,7 @@ class videoResize {
 	// 通过命令行及参数查找到进程pid; 兼容Linux,window,mac
 	// http://blog.kail.xyz/post/2018-03-28/other/windows-find-kill.html
 	public function processFind($search){
-		$cmd = "ps -ef | grep '".$search."' | grep -v grep | awk '{print $2}'";
+		$cmd = "ps -eo user,pid,ppid,args | grep '".$search."' | grep -v grep | awk '{print $2}'";
 		if($GLOBALS['config']['systemOS'] != 'windows'){return trim(@shell_exec($cmd));}
 		
 		// windows 获取pid;
