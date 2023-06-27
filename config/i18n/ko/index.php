@@ -656,7 +656,7 @@ return array(
     "admin.storage.editTips"         => "연 후 금지 된 수정 필드를 편집 할 수 있습니다. 저장하기 전에 파일에 액세스하지 못할 수 있으므로주의하십시오.",
     "admin.storage.folderTips"       => "현재 시스템 파일 저장 위치, 주의하여 작동하십시오.",
     "admin.storage.sizeTips"         => "공간 크기는 0보다 커야합니다",
-    "admin.storage.sizeDesc"         => "(GB), 선택한 저장소 디렉터리의 실제 여유 공간에 따라 입력하십시오.",
+    "admin.storage.sizeDesc"         => "선택한 저장소 디렉토리의 실제 사용 가능한 공간에 따라 입력하십시오.",
     "admin.storage.region"           => "저장 영역",
     "admin.storage.domain"           => "공간 도메인 이름",
     "admin.storage.bucket"           => "버킷 이름",

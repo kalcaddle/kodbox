@@ -656,7 +656,7 @@ return array(
     "admin.storage.editTips"         => "Após a abertura, você pode editar os campos de modificação proibidos. O arquivo antes do armazenamento pode não estar acessível, tenha cuidado.",
     "admin.storage.folderTips"       => "O local de armazenamento de arquivos do sistema atual, opere com cuidado",
     "admin.storage.sizeTips"         => "O tamanho do espaço deve ser maior que 0",
-    "admin.storage.sizeDesc"         => "(GB), preencha de acordo com o espaço livre real do diretório de armazenamento selecionado",
+    "admin.storage.sizeDesc"         => "Por favor, preencha de acordo com o espaço disponível real do diretório de armazenamento selecionado",
     "admin.storage.region"           => "Área de armazenamento",
     "admin.storage.domain"           => "Nome de domínio do espaço",
     "admin.storage.bucket"           => "Nome do bloco",

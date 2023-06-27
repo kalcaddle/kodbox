@@ -20,7 +20,8 @@ ClassBase.define({
                 title: LNG['msgWarning.main.tipsTitle'] + btnIgnore,
                 icon: "warning",
                 className: "msg-warning-tips",
-                content: '<div class="info-alert align-left info-alert-error mt-5">'+_.join(msg,'')+'</div>'
+                content: '<div class="info-alert align-left info-alert-error mt-5">'+_.join(msg,'')+'</div>',
+                delayClose: 0
             });
             var height = $(document).height();
             tips.$main.find('.kui-notify-content-message').css({'max-height': (height - 100)+'px', 'overflow-y':'scroll'});

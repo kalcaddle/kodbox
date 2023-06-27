@@ -45,12 +45,14 @@ class webdavPlugin extends PluginBase{
 		$data = $dav->check();
 		if(!$data['status']){
 			show_json('连接失败,请检查连接URL,或用户名密码是否正确;<br/>'.$data['header'][0],false);
-		}	
+		}
 	}
 	
 	public function route(){
 		include_once($this->pluginPath.'php/webdavClient.class.php');
 		include_once($this->pluginPath.'php/pathDriverWebdav.class.php');
+		include_once($this->pluginPath.'php/pathDriverNFS.class.php');
+		include_once($this->pluginPath.'php/pathDriverSamba.class.php');
 
 		if(strtolower(MOD.'.'.ST) == 'plugin.index') exit;
 		$this->_checkConfig();

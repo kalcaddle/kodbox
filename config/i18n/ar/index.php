@@ -656,7 +656,7 @@ return array(
     "admin.storage.editTips"         => "بعد الفتح ، يمكنك تعديل حقول التعديل المحظورة. قد يتعذر الوصول إلى الملف قبل التخزين ، يرجى توخي الحذر.",
     "admin.storage.folderTips"       => "موقع تخزين ملفات النظام الحالي ، يرجى العمل بحذر",
     "admin.storage.sizeTips"         => "يجب أن يكون حجم المساحة أكبر من 0",
-    "admin.storage.sizeDesc"         => "(GB) ، يرجى ملء حسب المساحة الخالية الفعلية لدليل التخزين المحدد",
+    "admin.storage.sizeDesc"         => "يُرجى ملء البيانات وفقًا للمساحة الفعلية المتاحة لدليل التخزين المحدد",
     "admin.storage.region"           => "منطقة التخزين",
     "admin.storage.domain"           => "اسم مجال الفضاء",
     "admin.storage.bucket"           => "اسم الجرافة",

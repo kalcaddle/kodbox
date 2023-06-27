@@ -656,7 +656,7 @@ return array(
     "admin.storage.editTips"         => "Sau khi mở, bạn có thể chỉnh sửa các trường sửa đổi bị cấm. Các tập tin trước khi lưu trữ có thể không thể truy cập, xin vui lòng thận trọng.",
     "admin.storage.folderTips"       => "Vị trí lưu trữ tệp hệ thống hiện tại, vui lòng vận hành một cách thận trọng",
     "admin.storage.sizeTips"         => "Kích thước không gian phải lớn hơn 0",
-    "admin.storage.sizeDesc"         => "(GB), vui lòng điền theo dung lượng trống thực tế của thư mục lưu trữ đã chọn",
+    "admin.storage.sizeDesc"         => "Vui lòng điền theo dung lượng trống thực tế của thư mục lưu trữ đã chọn",
     "admin.storage.region"           => "Khu vực lưu trữ",
     "admin.storage.domain"           => "Tên miền không gian",
     "admin.storage.bucket"           => "Tên xô",

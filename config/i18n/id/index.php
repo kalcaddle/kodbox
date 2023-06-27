@@ -656,7 +656,7 @@ return array(
     "admin.storage.editTips"         => "Setelah dibuka, Anda dapat mengedit bidang modifikasi yang dilarang. File sebelum penyimpanan mungkin tidak dapat diakses, harap berhati-hati.",
     "admin.storage.folderTips"       => "Lokasi penyimpanan file sistem saat ini, harap operasikan dengan hati-hati",
     "admin.storage.sizeTips"         => "Ukuran ruang harus lebih besar dari 0",
-    "admin.storage.sizeDesc"         => "(GB), silakan isi sesuai dengan ruang kosong sebenarnya dari direktori penyimpanan yang dipilih",
+    "admin.storage.sizeDesc"         => "Silakan isi sesuai dengan ruang sebenarnya yang tersedia dari direktori penyimpanan yang dipilih",
     "admin.storage.region"           => "Area penyimpanan",
     "admin.storage.domain"           => "Nama domain luar angkasa",
     "admin.storage.bucket"           => "Nama ember",

@@ -656,7 +656,7 @@ return array(
     "admin.storage.editTips"         => "Nach dem Öffnen können Sie die verbotenen Änderungsfelder bearbeiten. Die Datei vor dem Speicher ist möglicherweise nicht zugänglich. Bitte seien Sie vorsichtig.",
     "admin.storage.folderTips"       => "Der aktuelle Speicherort für Systemdateien ist mit Vorsicht zu genießen",
     "admin.storage.sizeTips"         => "Die Speicherplatzgröße muss größer als 0 sein",
-    "admin.storage.sizeDesc"         => "(GB), bitte entsprechend dem tatsächlich freien Speicherplatz des gewählten Speicherverzeichnisses ausfüllen",
+    "admin.storage.sizeDesc"         => "Bitte füllen Sie den Wert entsprechend dem tatsächlich verfügbaren Speicherplatz des ausgewählten Speicherverzeichnisses aus",
     "admin.storage.region"           => "Lagerbereich",
     "admin.storage.domain"           => "Space-Domain-Name",
     "admin.storage.bucket"           => "Name des Eimers",

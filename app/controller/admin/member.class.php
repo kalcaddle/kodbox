@@ -272,7 +272,7 @@ class adminMember extends Controller{
 		));
 		$userInfo = $this->model->getInfo($data['userID']);
 		if(!$userInfo) show_json(LNG('ERROR_USER_NOT_EXISTS'), false);
-		$authID = 2;
+		$authID = 0;
 		// 删除来源部门，新增到新部门
 		$groupInfo = !empty($userInfo['groupInfo']) ? $userInfo['groupInfo'] : array();
 		foreach($groupInfo as $item) {
@@ -282,6 +282,16 @@ class adminMember extends Controller{
 			}
 			$this->model->userGroupRemove($data['userID'],$item['groupID']);
 			break;
+		}
+		// 权限无效（无来源部门）时，取权限列表中第一个显示项
+		if (!$authID) {
+			$list = Model('Auth')->listData();
+			foreach ($list as $item) {
+				if ($item['display'] != '0') {
+					$authID = $item['id'];
+					break;
+				}
+			}
 		}
 		$groupInfo = array($data['to'] => $authID);
 		$res = $this->model->userGroupAdd($data['userID'],$groupInfo);

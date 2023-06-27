@@ -583,6 +583,7 @@ function move_file($source,$dest,$repeat_add,$repeat_type){
 	if(file_exists($dest)){
 		$dest = get_filename_auto($dest,$repeat_add,$repeat_type);//同名文件处理规则
 	}
+	@chmod($source, DEFAULT_PERRMISSIONS);
 	$result = intval(@rename($source,$dest));
 	if (! $result) { // windows部分ing情况处理
 		$result = intval(@copy_64($source,$dest));

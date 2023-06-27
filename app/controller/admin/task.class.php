@@ -9,10 +9,14 @@ class adminTask extends Controller {
 
 	public function taskList($userID=false){
 		// Cache::deleteAll();
-		$result  = Task::taskListUser($userID);pr($result);
+		$result  = Task::taskListUser($userID);// pr($result);
 		$userArr = array_to_keyvalue($result,'','userID');
 		$userArr = Model('User')->userListInfo($userArr);		
 		foreach ($result as $key =>$value) {
+			if (!$value || !is_array($value)) {
+		        unset($result[$key]);
+		        continue;
+		    }
 			if( $value['status'] == 'kill' && 
 				timeFloat() - $value['timeUpdate'] >= 10){
 				Task::valueSet($value['id'],false);

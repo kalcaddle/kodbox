@@ -50,6 +50,7 @@ kodReady.push(function(){
 		}
 	};
 
+	var musicExtArray = ['mp3','wav','aac','m4a','oga','ogg','webma','m3u8a','m3ua','flac'];
 	Events.bind('explorer.kodApp.before',function(appList){
 		appList.push({
 			name:'{{package.id}}',
@@ -58,10 +59,9 @@ kodReady.push(function(){
 			ext:playerSupport(),
 			icon:'{{pluginHost}}static/images/icon.png',
 			callback:function(path,ext,name){
-				var music = ['mp3','wav','aac','m4a','oga','ogg','webma','m3u8a','m3ua','flac'];
 				//移动端，非视频文件分享页面用跳转方式打开
 				var link = core.path2url(path,true);
-				if($.isWap && $.inArray(ext, music) == -1){ 
+				if($.isWap && $.inArray(ext, musicExtArray) == -1){ 
 					return core.openWindow(link);
 				}
 				var list = [{
@@ -121,9 +121,8 @@ kodReady.push(function(){
 	var selectMusicFiles = function(app){
 		var list = [];
 		var listSelect = app.pathAction.makeParamSelect();
-		var supportExt = 'mp3,aac,oga,ogg,webma,flac'.split(',');
 		_.each(listSelect,function(item){
-			if(!item.ext || !_.includes(supportExt,item.ext)) return; // 过滤非音乐文件;
+			if(!item.ext || !_.includes(musicExtArray,item.ext)) return; // 过滤非音乐文件;
 			if(!app.pathAction.auth.canRead(item)) return; //必须有读取权限;
 			list.push({
 				url:core.path2url(item.path),

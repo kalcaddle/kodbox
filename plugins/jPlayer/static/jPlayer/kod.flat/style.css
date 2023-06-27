@@ -520,7 +520,7 @@
 .jPlayer-music .top-banner .volumeblock {
 	position: absolute;
 	right: 0;
-	top: 7px;
+	top: 9px;
 	width:65px;
 	font-size: 0;
 }
@@ -578,7 +578,7 @@
 	box-shadow: 0 0 0 5px rgba(192, 236, 255, 0.32);
 }
 
-.jPlayer-music .control-actions{padding-top: 10px;padding-top: 28px;}
+.jPlayer-music .control-actions{padding-top: 28px;padding-bottom:2px;}
 .jPlayer-music .control-actions a{
 	width: 50px;height: 50px;line-height:45px;
 	text-decoration: none;
@@ -587,7 +587,7 @@
 	margin-right: 5px;
 	display: inline-block;
 
-	border:2px solid rgba(255,255,255,0.7);
+	border:1px solid rgba(255,255,255,0.7);
 	border-radius: 50%;
 	font-size: 20px;
 	opacity: .8;

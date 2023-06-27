@@ -59,9 +59,9 @@ class Uploader{
 		$fileChunkSize  = ($chunk < $chunks - 1) ? $chunkSize : ($size - ($chunks - 1) * $chunkSize);
 		//分片上传必须携带文件大小,及分片切分大小;
 		CacheLock::lock($this->tempFile,30);
-		$data = $this->statusGet();
-		$this->initFileTemp();	
-			
+		$this->initFileTemp();
+		CacheLock::unlock($this->tempFile);
+
 		// 流式上传性能优化;不写入临时文件;直接写入到目标占位文件中;
 		if($this->uploadFile == "php://input"){
 			$chunkFile = $this->uploadFile; 
@@ -87,6 +87,8 @@ class Uploader{
 		if(!$success){$this->showJson('chunk_error:'.$chunk,false);}
 		
 		//分片成功:
+		CacheLock::lock($this->tempFile.'.statusGet',30);
+		$data = $this->statusGet();
 		$data['chunkTotal'] = $chunks;
 		$data['chunkArray']['chunk'.$chunk] = array(
 			'offset'	=> $offset,
@@ -95,6 +97,8 @@ class Uploader{
 			'hashSimple'=> $fileHashSimple,
 		);
 		$this->statusSet($data);
+		CacheLock::unlock($this->tempFile.'.statusGet');
+		
 		if(count($data['chunkArray']) != $data['chunkTotal'] ){
 			$this->showJson('chunk_success_'.$chunk,true);
 		}
@@ -103,7 +107,6 @@ class Uploader{
 		if(!$this->checkChunkHash($data)){
 			$this->showJson(LNG('explorer.upload.error')."[chunk hash error!]",false);
 		}
-		CacheLock::unlock($this->tempFile);
 		return $this->uploadResult($this->tempFile);
 	}
 	
@@ -111,6 +114,7 @@ class Uploader{
 	private function uploadResult($file){
 		$this->statusSet(false);//上传成功,清空相关配置;
 		$size = isset($this->in["size"]) ? intval($this->in["size"]) : 0;
+		$hash = isset($this->in["checkHashSimple"]) ? $this->in["checkHashSimple"] : '';
 		if(!file_exists($file)){
 			show_json(LNG('explorer.upload.error').' [temp not exist!]',false);
 		}
@@ -183,17 +187,13 @@ class Uploader{
 
 	private function writeTo($from,$outFp,$outName){
 		$lockKey = 'Uploader.writeTo'.$outName;
-		$isLock  = CacheLock::lock($lockKey,1); //不用文件锁;解决NFS不支持文件写入锁的问题;
+		//$isLock= CacheLock::lock($lockKey,1); //不用锁;[多个进程独立写入]
 		$in  = @fopen($from,"rb");
-		if(!$in || !$outFp || !$isLock){
-			CacheLock::unlock($lockKey);
-			return false;
-		}
+		if(!$in || !$outFp){return false;}
 		while (!feof($in)) {
 			fwrite($outFp, fread($in, 1024*500));
 		}
 		fclose($in);fclose($outFp);
-		CacheLock::unlock($lockKey);
 		return true;
 	}
 

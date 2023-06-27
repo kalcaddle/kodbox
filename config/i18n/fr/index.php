@@ -656,7 +656,7 @@ return array(
     "admin.storage.editTips"         => "Après ouverture, vous pouvez éditer les champs de modification interdits. Le fichier avant le stockage peut ne pas être accessible, veuillez faire preuve de prudence.",
     "admin.storage.folderTips"       => "L'emplacement de stockage actuel des fichiers système, veuillez faire preuve de prudence",
     "admin.storage.sizeTips"         => "La taille de l'espace doit être supérieure à 0",
-    "admin.storage.sizeDesc"         => "(Go), veuillez remplir en fonction de l'espace libre réel du répertoire de stockage sélectionné",
+    "admin.storage.sizeDesc"         => "Veuillez remplir en fonction de l'espace disponible réel du répertoire de stockage sélectionné",
     "admin.storage.region"           => "Zone de stockage",
     "admin.storage.domain"           => "Nom de domaine spatial",
     "admin.storage.bucket"           => "Nom du seau",

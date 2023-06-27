@@ -656,7 +656,7 @@ return array(
     "admin.storage.editTips"         => "開いた後、禁止されている変更フィールドを編集できます。保存前のファイルにアクセスできない可能性があります。注意してください。",
     "admin.storage.folderTips"       => "現在のシステム ファイルの保存場所です。注意して操作してください",
     "admin.storage.sizeTips"         => "スペースサイズは0より大きくなければなりません",
-    "admin.storage.sizeDesc"         => "（GB）、選択したストレージディレクトリの実際の空き容量に応じて入力してください",
+    "admin.storage.sizeDesc"         => "選択した保存ディレクトリの実際の空き容量に応じて入力してください",
     "admin.storage.region"           => "保管場所",
     "admin.storage.domain"           => "スペースドメイン名",
     "admin.storage.bucket"           => "バケット名",

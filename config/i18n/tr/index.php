@@ -656,7 +656,7 @@ return array(
     "admin.storage.editTips"         => "Açtıktan sonra yasaklanmış değişiklik alanlarını düzenleyebilirsiniz. Depolamadan önceki dosyaya erişilemeyebilir, lütfen dikkatli olun.",
     "admin.storage.folderTips"       => "Geçerli sistem dosyası depolama konumu, lütfen dikkatli çalışın",
     "admin.storage.sizeTips"         => "Alan boyutu 0'dan büyük olmalıdır",
-    "admin.storage.sizeDesc"         => "(GB), lütfen seçilen depolama dizininin gerçek boş alanına göre doldurun",
+    "admin.storage.sizeDesc"         => "Lütfen seçilen depolama dizininin gerçek kullanılabilir alanına göre doldurun",
     "admin.storage.region"           => "Depolama alanı",
     "admin.storage.domain"           => "Boş alan adı",
     "admin.storage.bucket"           => "Kova adı",

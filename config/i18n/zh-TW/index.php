@@ -656,7 +656,7 @@ return array(
     "admin.storage.editTips"         => "開啟後，可對禁止修改字段進行編輯。可能導致該儲存之前的文件無法訪問，請謹慎操作。",
     "admin.storage.folderTips"       => "當前為系統文件儲存位置,請謹慎操作",
     "admin.storage.sizeTips"         => "空間大小需大於0",
-    "admin.storage.sizeDesc"         => "(GB)，請根據所選儲存目錄的實際可用空間大小填寫",
+    "admin.storage.sizeDesc"         => "請根據所選存儲目錄的實際可用空間大小填寫",
     "admin.storage.region"           => "儲存區域",
     "admin.storage.domain"           => "空間域名",
     "admin.storage.bucket"           => "Bucket名稱",

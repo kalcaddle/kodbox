@@ -58,7 +58,7 @@ class explorerIndex extends Controller{
 		if(!$showMd5) return $item;
 		
 		if( !_get($result,'fileInfo.hashMd5') && 
-			($result['size'] <= 200*1024*1024 || _get($this->in,'getMore') )  ){
+			($result['size'] <= 100*1024*1024 || _get($this->in,'getMore') || _get($this->in,'getChildren'))  ){
 			$result['hashMd5'] = IO::hashMd5($result['path']);
 		}
 		$result = Action('explorer.list')->pathInfoMore($result);
@@ -522,6 +522,7 @@ class explorerIndex extends Controller{
 				if($item['parentInfo']){
 					$data['list'][$i]['parentInfo'] = $userActon->_shareItemeParse($item['parentInfo'],$shareInfo);
 				}
+				if(!is_array($item['desc'])){continue;}
 				if(is_array($item['desc']['from'])){
 					$data['list'][$i]['desc']['from'] = $userActon->_shareItemeParse($item['desc']['from'],$shareInfo);
 				}

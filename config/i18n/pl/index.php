@@ -656,7 +656,7 @@ return array(
     "admin.storage.editTips"         => "Po otwarciu możesz edytować zabronione pola modyfikacji. Plik przed przechowywaniem może być niedostępny, należy zachować ostrożność.",
     "admin.storage.folderTips"       => "Bieżąca lokalizacja przechowywania plików systemowych, należy postępować ostrożnie",
     "admin.storage.sizeTips"         => "Rozmiar przestrzeni musi być większy niż 0",
-    "admin.storage.sizeDesc"         => "(GB), wypełnij zgodnie z rzeczywistą ilością wolnego miejsca w wybranym katalogu pamięci",
+    "admin.storage.sizeDesc"         => "Proszę wypełnić zgodnie z rzeczywistą dostępną przestrzenią wybranego katalogu przechowywania",
     "admin.storage.region"           => "Powierzchnia magazynowa",
     "admin.storage.domain"           => "Nazwa domeny kosmicznej",
     "admin.storage.bucket"           => "Nazwa wiadra",

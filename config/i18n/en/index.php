@@ -656,7 +656,7 @@ return array(
     "admin.storage.editTips"         => "After opening, you can edit the prohibited modification fields. The file before the storage may not be accessible, please exercise caution.",
     "admin.storage.folderTips"       => "The current system file storage location, please operate with caution",
     "admin.storage.sizeTips"         => "Space size must be greater than 0",
-    "admin.storage.sizeDesc"         => "(GB), please fill in according to the actual free space of the selected storage directory",
+    "admin.storage.sizeDesc"         => "Please fill in according to the actual available space of the selected storage directory",
     "admin.storage.region"           => "Region",
     "admin.storage.domain"           => "Domain name",
     "admin.storage.bucket"           => "Bucket name",

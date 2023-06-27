@@ -16,11 +16,11 @@ kodReady.push(function(){
 	var sendAsBinary = 0;
 	var uploadBindaryCheck = function(){
 		if(!_.get(window.G,'system.settings.upload')){return;}
-		if(!G.system.settings.upload){return;} // 默认关闭则不检测;
-		G.system.settings.upload = sendAsBinary;
+		if(!G.system.settings.upload.sendAsBinary){return;} // 默认关闭则不检测;
+		G.system.settings.upload.sendAsBinary = sendAsBinary;
 		var callback = function(data){
 			sendAsBinary = (data == '[ok]') ? 1 : 0;
-			G.system.settings.upload = sendAsBinary;
+			G.system.settings.upload.sendAsBinary = sendAsBinary;
 		};
 		$.ajax({
 			url:API_URL('user/view/uploadBindaryCheck'),

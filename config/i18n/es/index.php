@@ -656,7 +656,7 @@ return array(
     "admin.storage.editTips"         => "Después de abrir, puede editar los campos de modificación prohibidos. El archivo antes del almacenamiento puede no ser accesible, tenga cuidado.",
     "admin.storage.folderTips"       => "La ubicación actual de almacenamiento de archivos del sistema, opere con precaución",
     "admin.storage.sizeTips"         => "El tamaño del espacio debe ser mayor que 0",
-    "admin.storage.sizeDesc"         => "(GB), complete de acuerdo con el espacio libre real del directorio de almacenamiento seleccionado",
+    "admin.storage.sizeDesc"         => "Complete de acuerdo con el espacio disponible real del directorio de almacenamiento seleccionado",
     "admin.storage.region"           => "Área de almacenamiento",
     "admin.storage.domain"           => "Nombre de dominio espacial",
     "admin.storage.bucket"           => "Nombre del cubo",
