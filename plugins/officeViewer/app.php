@@ -143,13 +143,31 @@ class officeViewerPlugin extends PluginBase{
 
 	/**
 	 * 加载模板文件
-	 * @param [type] $assign
-	 * @param [type] $template	'static/weboffice/template.html'
-	 * @return void
 	 */
-	public function displayTpl($assign, $template){
+	public function showWebOffice($app, $link=''){
+		$path   = $this->in['path'];
+		$assign = array(
+			"fileUrl"	=> '',
+			'filePath'	=> $path,
+			'canWrite'	=> false,
+			'fileName'	=> $this->in['name'],
+			'fileApp'	=> $app, 
+			'fileExt'	=> $this->in['ext']
+		);
+		if($path){
+			if(substr($path,0,4) == 'http'){
+				$assign['fileUrl'] = $path;
+			}else{
+				$assign['fileUrl']  = $this->filePathLink($path);
+				if(ActionCall('explorer.auth.fileCanWrite',$path)){
+					$assign['canWrite'] = true;
+				}
+			}
+			$assign['fileUrl'] .= "&name=/".$assign['fileName'];
+		}
+		if ($link) $assign['fileUrl'] = $link;
 		$this->assign($assign);
-		$this->display($this->pluginPath.$template);
+		$this->display($this->pluginPath.'static/weboffice/template.html');
 	}
 
 	/**
@@ -159,6 +177,57 @@ class officeViewerPlugin extends PluginBase{
 	 */
 	public function includeTpl($template){
 		include($this->pluginPath.$template);
+	}
+
+	// 编辑方式
+	public function editApp() {
+		$data = Input::getArray(array(
+			'path' => array('check' => 'require'),
+			'name' => array('check' => 'require'),
+			'ext'  => array('check' => 'require'),
+		));
+
+		$list = array();
+		$appList = Model('Plugin')->loadList();
+		$apps = array('wpsOffice','onlyoffice','officeOnline');	// 新页面打开，排除client方式
+		foreach ($apps as $app) {
+			// 1.插件是否启用
+			if (!isset($appList[$app]) || !$appList[$app]['status']) continue;
+			$config = $appList[$app]['config'];
+			// 2.插件使用权限
+			if (!$config['pluginAuth']) continue;
+			$auth = ActionCall('user.authPlugin.checkAuthValue',$config['pluginAuth']);
+			if (!$auth) continue;
+			// 3.是否启用编辑模式
+			// if ($app == 'client') {
+			// 	if ($config['fileOpenSupport'] != '1') continue;
+			// 	$fileOpen = json_decode($config['fileOpen'], true);
+			// 	$fileExt  = $fileOpen[0]['ext'];
+			// 	$fileSort = $fileOpen[0]['sort'];
+			// } else {
+				$mode = $app == 'onlyoffice' ? 'wapViewMode' : 'editMode';
+				if ($config[$mode] != 'edit') continue;
+				$fileExt  = $config['fileExt'];
+				$fileSort = $config['fileSort'];
+			// }
+			// 4.是否支持对应格式
+			$fileExt = explode(',', $fileExt);
+			if (!in_array($data['ext'], $fileExt)) continue;
+
+			$list[$app] = intval($fileSort);
+		}
+		// if (isset($list['client'])) {
+		// 	$ua = strtolower($_SERVER ['HTTP_USER_AGENT']);
+		// 	if (!strstr($ua,'kodcloud')) unset($list['client']);
+		// 	// TODO 下载权限
+		// }
+		if (!$list) show_json('没有有效的文件编辑方式', false, 10001);
+		arsort($list, SORT_NUMERIC);
+		$app = key($list);
+
+		$link = urlApi('plugin/'.$app,'path='.$data['path']);
+		$link .= '&ext='.rawurlencode($data['ext']).'&name='.rawurlencode($data['name']);
+		show_json($link);
 	}
 }
 

@@ -38,6 +38,7 @@ $(function(){
                 return false;
             }
         });
+        $('body.weboffice-page').addClass('loaded');
     }
 
     // 读取文件内容，生成luckysheet配置参数——导入

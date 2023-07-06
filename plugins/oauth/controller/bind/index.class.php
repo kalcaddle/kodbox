@@ -218,10 +218,7 @@ class oauthBindIndex extends Controller {
 			Action('user.index')->loginSuccessUpdate($user);
 		}
 		if($this->withApp) {	// bindHtml会直接打印，故在此return
-			return array(
-				'code' => true,
-				'data' => array('success' => true)
-			);
+			return array('code' => true, 'data' => array('success' => true));
 		}
 		$data['bind'] = true;
 		return $this->bindHtml($type, $data, true, array('connect'));

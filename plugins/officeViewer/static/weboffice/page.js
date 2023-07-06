@@ -4,7 +4,7 @@ var page = {
         var tipsLoading = Tips.loadingMask(false,'加载中',0.5);
         var xhr = new XMLHttpRequest();
         xhr.timeout = 1000*30;  // 超时时间
-        xhr.open('GET', FILE_INFO.fileUrl);
+        xhr.open('GET', FILE_INFO.link);
         xhr.responseType = "arraybuffer";
         xhr.addEventListener("progress", function (evt) {   //监听进度事件
             if (evt.lengthComputable) {
@@ -17,7 +17,7 @@ var page = {
             // var data = new Uint8Array(xhr.response);
             var data = xhr.response;
             if(!data){tipsLoading.close();tipsLoading = false;return;};
-            var file = {name: FILE_INFO.fileName, ext: FILE_INFO.fileExt, content: data};
+            var file = {name: FILE_INFO.name, ext: FILE_INFO.ext, content: data};
             callback(file, tipsLoading);
         };
         xhr.send();

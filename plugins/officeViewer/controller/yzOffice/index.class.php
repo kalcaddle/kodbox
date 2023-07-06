@@ -109,7 +109,8 @@ class officeViewerYzOfficeIndex extends Controller {
             }
             Cache::get($key, timeFloat());
         }
-        header('Location:' . $link);
+        Action($this->pluginName)->showWebOffice('yz', $link);
+        // header('Location:' . $link);
     }
 
 	public function task(){

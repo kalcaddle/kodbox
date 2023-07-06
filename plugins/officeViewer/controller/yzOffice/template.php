@@ -15,7 +15,7 @@
 			overflow: hidden;z-index: 100;top:0;left:0;right:0;bottom:0;
 			font-size:13px;color:#666;
 		}
-		.app-icon{text-align: center;position: absolute;width: 100%;top:40%;margin-top: -150px;}
+		.app-icon{text-align: center;position: absolute;left: 50%; top: 50%; transform: translate(-50%,-50%);}
 		.app-icon img{max-height: 150px; width: 96px;}
 		.app-icon .app-name{font-size:16px;color:#222;margin-top:5px;}
 		.load-status{margin: 20px auto;}

@@ -37,10 +37,10 @@ $(function(){
         $('.page-box').addClass(isWap() ? 'is-in-wap' : 'not-in-wap');
         $('.page-box.not-in-wap #output').html('</div><div id="left_slides_bar"></div>');
         $.ajax({
-            url: FILE_INFO.fileUrl,
+            url: FILE_INFO.link,
             type: 'head',
             success: function(res){
-                pptxToHtml(FILE_INFO.fileUrl);
+                pptxToHtml(FILE_INFO.link);
             },
             error: function(err){
                 if(tipsLoading){tipsLoading.close();tipsLoading = false;}
@@ -152,6 +152,7 @@ $(function(){
 
         // 结束
         if(tipsLoading){tipsLoading.close();tipsLoading = false;}
+        $('body.weboffice-page').addClass('loaded');
     });
     // 页面尺寸随窗口变化
     var setPgHeight = function(wap){

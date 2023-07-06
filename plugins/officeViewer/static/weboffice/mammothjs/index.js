@@ -22,6 +22,7 @@
         // 目录添加虚线
         $('#output .wd-catalog').parent().addClass('wd-catalog-line');
         $('#output .wd-catalog').before('<span class="dot"></span>');
+        $('body.weboffice-page').addClass('loaded');
     }
 
     var transformParagraph = function (element) {

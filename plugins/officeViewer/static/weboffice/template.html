@@ -6,7 +6,6 @@
 	<title><?php echo clear_html($fileName);?></title>
 	<link rel="icon" href="<?php $this->url('static/images/icon.png');?>">
 	<script>var kodSdkConfig = {api:'<?php echo APP_HOST;?>'};</script>
-	<?php // if(clear_quote($fileApp) != 'pptxjs') $this->link('app/dist/sdk.js','static');?>
 	<?php $this->link('app/dist/sdk.js','static');?>
 	<?php $this->link('style/lib/font-icon/style.css','static');?>
 	<?php $this->link('static/weboffice/page.css');?>
@@ -14,30 +13,20 @@
 		var BASE_URL = "<?php echo $this->pluginHost.'static/';?>";
 		var BASE_URL_API = "<?php echo $this->pluginApi;?>";
 		var FILE_INFO = {
-			fileUrl:	'<?php echo clear_quote($fileUrl);?>',	// 获取url
-			fileName: 	'<?php echo clear_quote($fileName);?>', // 文件名
-			savePath:	'<?php echo clear_quote($savePath);?>', // 文件路径;有则可以直接保存;没有且canWrite则可以另存为;
-			canWrite:	'<?php echo clear_quote($canWrite);?>',	// 是否可写; 可写才能编辑;
-			fileApp:	'<?php echo clear_quote($fileApp);?>',	// 文件打开方式
-			fileExt:	'<?php echo clear_quote($fileExt);?>',	// 文件后缀
+			link:	'<?php echo clear_quote($fileUrl);?>',	// 获取url
+			name: 	'<?php echo clear_quote($fileName);?>', // 文件名
+			path:	'<?php echo clear_quote($filePath);?>', // 文件路径;有则可以直接保存;没有且canWrite则可以另存为;
+			app:	'<?php echo clear_quote($fileApp);?>',	// 文件打开方式
+			ext:	'<?php echo clear_quote($fileExt);?>',	// 文件后缀
+			write:	'<?php echo clear_quote($canWrite);?>',	// 是否可写; 可写才能编辑;
 		};
 	</script>
 </head>
 
-<!-- <style>
-	body:after{
-		position:absolute;top:0;right:0;bottom:0;left:0;z-index: 100;
-		background:url("<?php echo STATIC_PATH.'images/common/loading-page.gif';?>");
-		margin:auto;width:72px;height:72px;background-color:#eee;
-		content:"";text-align: center;transition: all 0.5s;
-		background-size:100% 100%;background-repeat: no-repeat;
-		border-radius:8px;box-shadow: 0 5px 20px rgba(0,0,0,0.05);
-	}
-	body.page-loaded:after{visibility:hidden;opacity:0;}
-</style> -->
-
-<body class="loading">
-	<!-- <div class="loading-content"></div>	 -->
+<body class="weboffice-page loading">
+	<div class="edit-btn">
+		<button><i class="font-icon ri-edit-line-2"></i> 编辑</button>
+	</div>
 	<div class="page-box <?php echo 'kod-' . clear_quote($fileApp) . '-box';?>">
 		<div id="output"></div>
 	</div>
@@ -97,6 +86,91 @@
 			break;
 		default:break;
 	}?>
+
+	<script>
+		$(function(){
+			var app = FILE_INFO.app;
+			if (app == 'yz' || app == 'lb' || app == 'ol') {
+				$('body').addClass(app);
+				// var sandbox = 'allow-forms allow-popups allow-scripts allow-modals allow-same-origin';
+				// $('#output').html('<iframe src="'+FILE_INFO.link+'" frameborder="0" sandbox="'+sandbox+'"></iframe>');
+				$('#output').html('<iframe src="'+FILE_INFO.link+'" frameborder="0" ></iframe>');
+				// wb方式在数据加载完成后添加
+				$('#output>iframe').on('load', function() {
+					setTimeout(function(){$('body.weboffice-page').addClass('loaded');}, 1000);
+				});
+			}
+
+			// 弹窗打开，添加编辑按钮
+			var dgEditBtn = function(){
+				var $dialog = $(window.frameElement).parents('.aui-dialog');
+				var data = base64Encode(jsonEncode({path:FILE_INFO.path, name:FILE_INFO.name, ext:FILE_INFO.ext}));
+				// // aui-title下会被动态替换
+				// if ($dialog.find('.aui-title-bar .officeViewerEditBtn').length) return;
+				// var style	= 'padding:0px 6px;border-radius:3px;vertical-align:inherit;color:#666;position: absolute;z-index:999;top:6px;right:120px;';
+				// var style2	= 'font-size:12px;display: inline-block;vertical-align:text-top;margin:2px 1px;';
+				// $dialog.find('.aui-title-bar').append('<button class="officeViewerEditBtn btn btn-default btn-sm" data="'+data+'" style="'+style+'" title="编辑文件" title-timeout="200">\
+				// 	<i class="font-icon ri-edit-line-2" style="'+style2+'"></i>编辑</button>');
+
+				if ($dialog.find('.aui-content .officeViewer-edit-btn').length) return;
+				var style1	= 'position:absolute;z-index:999;bottom:60px;right:40px;';
+				var style2	= 'font-size:12px;color:#666;cursor:pointer;background-color:#fff;width:55px;height:55px;border-radius:100%;border:none;box-shadow:0 5px 20px rgb(0 0 0 / 15%);padding:0px;';
+				var style3	= 'font-size:12px;vertical-align:text-top;';
+				$dialog.find('.aui-content').append('<div class="officeViewer-edit-btn" style="'+style1+'">\
+					<button data="'+data+'" style="'+style2+'">\
+					<i class="font-icon ri-edit-line-2" style="'+style3+'"></i> 编辑</button></div>');
+				$dialog.find('.aui-content .officeViewer-edit-btn button').hover(function(){
+					$(this).css({'background-color': '#f9f9f9', 'box-shadow': '0 5px 20px rgb(0 0 0 / 20%)'});
+				}, function(){
+					$(this).css({'background-color': '#fff', 'box-shadow': '0 5px 20px rgb(0 0 0 / 15%)'});
+				});
+			}
+			// 新页面打开，添加编辑按钮
+			var pgEditBtn = function () {
+				// 获取可用编辑方式
+				var appRes = null;
+				var pluginApi = "<?php echo $this->pluginApi;?>";
+				$.ajax({
+					url:pluginApi+"editApp",
+					data: {path: FILE_INFO.path, name: FILE_INFO.name, ext: FILE_INFO.ext},
+					dataType:'json',
+					success:function(result){
+						appRes = result;
+						if (result.code) {	// 显示按钮
+							$('body.weboffice-page').addClass('edit-mode');
+						}
+					}
+				});
+				// 点击编辑
+				$('body.weboffice-page>.edit-btn button').click(function(){
+					if (!appRes || !appRes.code) {
+						var code = appRes.info ? 'warning' : false;
+						return Tips.tips(appRes.data, code);
+					}
+					window.location.href = appRes.data;
+				});
+			}
+
+			// 显示按钮
+			if (FILE_INFO.write == '1') {
+				// window.frameElement ? dgEditBtn() : pgEditBtn();
+				// 轮询检测是否加载完成
+				var idx = 0;
+				var timer = null;
+                timer = setInterval(function () {
+					idx++;
+					var stopped = false;
+					if ($('body.weboffice-page').hasClass('loaded')) {
+						stopped = true;
+						window.frameElement ? dgEditBtn() : pgEditBtn();
+					} else {
+						if (idx >= 60) stopped = true;
+					}
+					if (stopped) clearInterval(timer);
+                }, 1000);
+			}
+		});
+	</script>
 </body>
 </html>
 

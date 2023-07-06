@@ -48,8 +48,9 @@ class Uploader{
 		}
 		
 		if($chunkSize > $size){$chunks = 1;}
-		if ($chunks <= 1) {// 没有分片;
+		if($chunks <= 1) {// 没有分片;
 			// 清除秒传or断点续传请求checkChunk写入的数据;
+			$this->statusSet(false);
 			$this->tempFile = $this->tempFile.rand_string(5);
 			$result = $this->moveUploadedFile($this->tempFile);
 			return $this->uploadResult($result);

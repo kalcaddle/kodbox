@@ -35,8 +35,12 @@ class officeViewerlibreOfficeIndex extends Controller {
 		$fileHash = KodIO::hashPath($info);
 		$convName = "libreOffice_{$ext}_{$fileHash}.pdf";
 		$tempFile = TEMP_FILES . $convName;
-		if($sourceID = IO::fileNameExist($plugin->cachePath, $convName)){
-			return $this->fileView(KodIO::make($sourceID),$convName);
+		$tempInfo = IO::infoFull($plugin->cachePath.$convName);
+		if ($tempInfo) {
+			$file = Model('File')->fileInfo($tempInfo['fileID']);
+			if ($file && IO::exist($file['path'])) {
+				return $this->fileView($tempInfo['path'],$convName);
+			}
 		}
 
 		$localFile = $this->localFile($path);
@@ -62,8 +66,11 @@ class officeViewerlibreOfficeIndex extends Controller {
 
 	// 打开pdf文件
 	public function fileView($path,$convName){
-		$this->in['path'] = Action('explorer.share')->linkFile($path).'&path=/'.$convName;
-		Action('explorer.fileView')->index();
+		// $this->in['path'] = Action('explorer.share')->linkFile($path).'&path=/'.$convName;
+		$link = Action('explorer.share')->linkFile($path).'&path=/'.$convName;
+		$link = APP_HOST.'#fileView&path='. rawurlencode($link);
+		Action($this->pluginName)->showWebOffice('lb', $link);
+		// Action('explorer.fileView')->index();
 	}
 
 	// office文件转pdf

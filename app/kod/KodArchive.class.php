@@ -99,12 +99,12 @@ class KodArchive {
 		}
 		if($result){
 			//编码转换
-			$charset = unzip_charset_get($result);
+			// $charset = unzip_charset_get($result);	// 多个文件可能有多种编码，统一按gbk转码会导致乱码
 			$output  = $output && function_exists('iconv');
 			for ($i=0; $i < count($result); $i++) {
 				//不允许相对路径
 				$result[$i]['filename'] = str_replace(array('../','..\\'),"_",$result[$i]['filename']);
-				// $charset = get_charset($result[$i]['filename']);
+				$charset = get_charset($result[$i]['filename']);
 				if($output){
 					$result[$i]['filename'] = iconv_to($result[$i]['filename'],$charset,'utf-8');
 					unset($result[$i]['stored_filename']);

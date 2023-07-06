@@ -7049,6 +7049,7 @@
     
                 if ( binary ) {
                     // 强制设置成 content-type 为文件流。
+					// xhr.setRequestHeader('Content-Length', binary.size );
                     xhr.overrideMimeType &&
                             xhr.overrideMimeType('application/octet-stream');
     

@@ -16,6 +16,9 @@ class officeViewerOfficeLiveIndex extends Controller {
 		}
         $data = $plugin->_appConfig('ol');
 		$fileUrl = $plugin->filePathLinkOut($this->in['path']);
-		header('Location:'.$data['apiServer'].rawurlencode($fileUrl));
+
+		$link = $data['apiServer'].rawurlencode($fileUrl);
+		Action($this->pluginName)->showWebOffice('ol', $link);
+		// header('Location:'.$data['apiServer'].rawurlencode($fileUrl));
     }
 }

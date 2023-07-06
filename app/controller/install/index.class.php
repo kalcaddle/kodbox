@@ -405,6 +405,15 @@ class installIndex extends Controller {
 		    if(!empty($this->engine) && $this->engine == 'innodb') {
 		        $content = str_ireplace('MyISAM', 'InnoDB', $content);
 		    }
+            // fulltext索引兼容
+            $res = $db->query('select VERSION() as v');
+            $mysqlVersion = floatval(($res[0] && isset($res[0]['v'])) ? $res[0]['v'] : 0);
+			if($mysqlVersion && $mysqlVersion >= 5.7){
+				// 删除索引不存在时报错; 需手动处理;
+				//$content .= "\n".file_get_contents(INSTALL_PATH."data/fulltext.sql");
+			}else{
+				$content = str_ireplace('FULLTEXT ','', $content);
+			}
 		}
 		$sqlArr = sqlSplit($content);
 		foreach($sqlArr as $sql){

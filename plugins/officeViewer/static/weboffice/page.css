@@ -1,20 +1,77 @@
 /* 错误提示页 */
-#msgbox{box-shadow: 0px 10px 40px rgba(0, 0, 0, 0.1);border-radius: 5px;border-radius: 5px;background: #fff;
+.weboffice-page #msgbox{box-shadow: 0px 10px 40px rgba(0, 0, 0, 0.1);border-radius: 5px;border-radius: 5px;background: #fff;
         font-family: "Lantinghei SC","Hiragino Sans GB","Microsoft Yahei",Helvetica,arial,sans-serif;line-height: 1.5em;
         color:888;margin:0 auto;margin-top: 10%; margin-bottom: 10%; width:500px;font-size:13px;color:#666;word-wrap: break-word;word-break: break-all;max-width: 90%;box-sizing: border-box;max-height: 90%;overflow: auto;padding:30px 30px;}
-#msgbox #info {margin-top: 10px; color: #aaa;}
-#msgbox #title {color: #333; border-bottom: 1px solid #eee; padding: 10px 0; margin: 0 0 15px; font-size: 20px; font-weight:200;}
-#msgbox #info a {color: #64b8fb; text-decoration: none; padding: 2px 0px; border-bottom: 1px solid;}
-#msgbox a {text-decoration: none; color: #2196F3;}
-#msgbox a:hover {color: #f60; border-bottom: 1px solid}
-#msgbox .desc {padding: 10px 0; color: #faad14; }
-#msgbox pre {word-break: break-all; word-wrap: break-word; white-space: pre-wrap; 
+        .weboffice-page #msgbox #info {margin-top: 10px; color: #aaa;}
+        .weboffice-page #msgbox #title {color: #333; border-bottom: 1px solid #eee; padding: 10px 0; margin: 0 0 15px; font-size: 20px; font-weight:200;}
+        .weboffice-page #msgbox #info a {color: #64b8fb; text-decoration: none; padding: 2px 0px; border-bottom: 1px solid;}
+        .weboffice-page #msgbox a {text-decoration: none; color: #2196F3;}
+        .weboffice-page #msgbox a:hover {color: #f60; border-bottom: 1px solid}
+        .weboffice-page #msgbox .desc {padding: 10px 0; color: #faad14; }
+        .weboffice-page #msgbox pre {word-break: break-all; word-wrap: break-word; white-space: pre-wrap; 
     background: #002b36; padding: 1em; color: #839496; border-left: 6px solid #8e8e8e; border-radius: 3px;}
 
 /* 文档页 */
-body {background: #f6f6f6; margin: 8px 0px;}
-body .page-box{background: #fff;}
-.page-box.kod-pptxjs-box .slide:after{z-index: 1000000 !important;}
+body.weboffice-page {background: #f6f6f6; margin: 8px 0px;}
+body.weboffice-page.yz {background: #ebebeb; overflow: hidden;}
+body.weboffice-page .page-box{background: #fff;}
+body.weboffice-page .page-box.kod-pptxjs-box .slide:after{z-index: 1000000 !important;}
+body.weboffice-page .page-box #output>iframe {
+    position: absolute; 
+    width: 100vw;
+    /* height: 100vh; */
+    /* pdf顶部菜单也是32px */
+    height: calc(100vh + 32px);
+}
+/* body.weboffice-page.yz .page-box #output>iframe {
+    height: calc(100vh + 32px);
+} */
+body.weboffice-page.lb .page-box #output>iframe {
+    top: -32px
+}
 
-.hidden {display: none;}
-.loading-msg .loading-msg-content .loading-msg-title{font-size: 14px;}
+.weboffice-page .hidden {display: none;}
+.weboffice-page .loading-msg .loading-msg-content .loading-msg-title{font-size: 14px;}
+
+.weboffice-page>.edit-btn {
+    position: fixed;
+    right: 20px;
+    z-index: 999;
+
+    bottom: 60px;
+    right: 40px;
+    display: none;
+}
+.weboffice-page.edit-mode.loaded>.edit-btn {
+    display: block;
+}
+.weboffice-page>.edit-btn.lky {
+    right: 18px;
+    top: 3px;
+}
+.weboffice-page>.edit-btn button {
+    font-size: 12px;
+    color: #666;
+    cursor: pointer;
+    background-color: #fff;
+    border-radius: 4px;
+
+    width: 55px;
+    height: 55px;
+    border-radius: 100%;
+    border: none;
+    box-shadow: 0 5px 20px rgb(0 0 0 / 15%);
+}
+.weboffice-page>.edit-btn.lky button {
+    border-color: #7ec1ff;
+    color: #7ec1ff;
+}
+.weboffice-page>.edit-btn button:hover,
+.weboffice-page>.edit-btn button:focus,
+.weboffice-page>.edit-btn button:active {
+    background-color: #f9f9f9;
+    box-shadow: 0 5px 20px rgb(0 0 0 / 20%);
+}
+.weboffice-page>.edit-btn button i {
+    vertical-align: text-top;
+}

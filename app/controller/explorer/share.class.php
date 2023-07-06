@@ -398,9 +398,18 @@ class explorerShare extends Controller{
 	 * 压缩和下载合并为同一方法
 	 */
 	public function zipDownload(){
-		if($this->in['zipClient'] == '1'){Action('explorer.index')->zipDownload();} 
-		$this->zipSupportCheck();
 		$dataArr = json_decode($this->in['dataArr'],true);
+		if($this->in['zipClient'] == '1'){
+			$result = Action('explorer.index')->zipDownloadClient($dataArr);
+			$sharePath = $this->share['sourcePath'];
+			$shareLink = "{shareItemLink:".$this->share['shareHash']."}/";
+			foreach($result as $i => $item){
+				if(!$item['filePath']){continue;}
+				$result[$i]['filePath'] = str_replace($sharePath,$shareLink,$item['filePath']);
+			}
+			show_json($result,true);return;
+		}
+		$this->zipSupportCheck();
 		foreach($dataArr as $i => $item){
 			$dataArr[$i]['path'] = $this->parsePath($item['path']);
 		}

@@ -689,7 +689,9 @@ class explorerIndex extends Controller{
 	public function zipDownload(){	
 		$dataArr  = json_decode($this->in['dataArr'],true);
 		// 前端压缩处理;
-		if($this->in['zipClient'] == '1'){$this->zipDownloadClient($dataArr);return;}
+		if($this->in['zipClient'] == '1'){
+			return show_json($this->zipDownloadClient($dataArr),true);
+		}
 		
 		ignore_timeout();
 		$zipFolder = $this->tmpZipName($dataArr);
@@ -708,8 +710,6 @@ class explorerIndex extends Controller{
 		if(isset($this->in['disableCache']) && $this->in['disableCache'] == '1'){
 			if(!$zipPath || !IO::exist($zipPath)) return;
 			IO::fileOut($zipPath,true);
-			// $dir = get_path_father($zipPath);
-			// if(strstr($dir,TEMP_FILES)){del_dir($dir);}
 			return;
 		}
 		show_json(LNG('explorer.zipSuccess'),true,$this->pathCrypt($zipPath));
@@ -721,7 +721,7 @@ class explorerIndex extends Controller{
 		return $en ? Mcrypt::encode($path,$pass) : Mcrypt::decode($path,$pass);
 	}
 	
-	private function zipDownloadClient($dataArr){
+	public function zipDownloadClient($dataArr){
 		$result  = array();
 		foreach($dataArr as $itemZip){
 			$pathInfo   = IO::info($itemZip['path']);
@@ -738,7 +738,7 @@ class explorerIndex extends Controller{
 			$children = IO::listAllSimple($itemZip['path']);
 			$result   = array_merge($result, $children);
 		}
-		show_json($result,true);
+		return $result;
 	}
 
 	/**

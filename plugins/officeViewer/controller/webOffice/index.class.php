@@ -40,34 +40,6 @@ class officeViewerWebOfficeIndex extends Controller {
             $plugin->showTips(LNG('officeViewer.main.invalidExt'), $this->appName);
         }
         $app = $extList[$ext];
-        $this->showWebOffice($app);
+		$plugin->showWebOffice($app);
     }
-
-    /**
-	 * 前端解析模板
-	 * @param [type] $app
-	 * @return void
-	 */
-	public function showWebOffice($app){
-        $plugin = Action($this->pluginName);
-		$path   = $this->in['path'];
-		$assign = array(
-			"fileUrl"	=>'','savePath'	=>'','canWrite'	=>false,
-			'fileName'	=> $this->in['name'],
-			'fileApp'	=> $app, 'fileExt' => $this->in['ext']
-		);
-		if($path){
-			if(substr($path,0,4) == 'http'){
-				$assign['fileUrl'] = $path;
-			}else{
-				$assign['fileUrl']  = $plugin->filePathLink($path);
-				if(ActionCall('explorer.auth.fileCanWrite',$path)){
-					$assign['savePath'] = $path;
-					$assign['canWrite'] = true;
-				}
-			}
-			$assign['fileUrl'] .= "&name=/".$assign['fileName'];
-		}
-        $plugin->displayTpl($assign, 'static/weboffice/template.html');
-	}
 }
