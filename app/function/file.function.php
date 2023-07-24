@@ -921,7 +921,8 @@ function is_text_file($ext){
 		'x3d','xaml','xbl','xcscheme','xhtml','xib','xml','xq','xquery','xsd','xsl','xslt','xu','xul','xy',
 		'yaml','yml','ys','z80','mht','mhtml',
 		'zeek','zsh','zsh-template','zsh-theme','zsh-update','zsh_history','zshrc','zshrc_self',
-		'service','target','lightbgcolor','cshrc','crontab','environment','exports','defs'
+		'service','target','lightbgcolor','cshrc','crontab','environment','exports','defs',
+		'odin','jexl','plsql','robot',
 	);
 	if($ext === -1) return $extArray;
 	return in_array($ext,$extArray);

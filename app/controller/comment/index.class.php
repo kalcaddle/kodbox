@@ -14,7 +14,8 @@ class commentIndex extends Controller {
 		$this->model = Model("Comment");
 		Action('comment.auth')->autoCheck();
 	}
-
+	public function test(){
+	}
 	/**
 	 * 评论列表
 	 * 

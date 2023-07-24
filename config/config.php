@@ -90,8 +90,8 @@ if (strtoupper(substr(PHP_OS, 0,3)) === 'WIN') {
 	$config['systemOS']='linux';
 	$config['systemCharset']='utf-8';
 }
-
-if(!defined('HOST')){		define('HOST',get_host());}
+// 可以自定义域名,定义在config/define.php中,避免升级后被覆盖; 例如: define('HOST','https://demo.kodcloud.com/');
+if(!defined('HOST')){		define('HOST',get_host());} 
 if(!defined('WEB_ROOT')){	define('WEB_ROOT',webroot_path(BASIC_PATH) );}
 if(!defined('APP_HOST')){	define('APP_HOST',HOST.str_replace(WEB_ROOT,'',BASIC_PATH));} //程序根目录
 

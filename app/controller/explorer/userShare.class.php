@@ -382,9 +382,11 @@ class explorerUserShare extends Controller{
 
 		// 读写权限;
 		if($source['auth']){// 读写权限同时受: 来源权限+设置权限;
-			$isWriteable = array_key_exists('isWriteable',$source) ?  $source['isWriteable'] : true;
-			$isReadable  = array_key_exists('isReadable',$source)  ?  $source['isReadable']  : true;
-			// $isWriteable = true;$isReadable = true;
+			$isWriteable = true;$isReadable = true;
+			if($share['sourceID'] == '0'){ // 物理路径协作分享,保留原来权限;
+				$isWriteable = array_key_exists('isWriteable',$source) ?  $source['isWriteable'] : true;
+				$isReadable  = array_key_exists('isReadable',$source)  ?  $source['isReadable']  : true;
+			}
 			$source['isWriteable'] = $isWriteable && AuthModel::authCheckEdit($source['auth']['authValue']);
 			$source['isReadable']  = $isReadable  && AuthModel::authCheckView($source['auth']['authValue']);
 		}

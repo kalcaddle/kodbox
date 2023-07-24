@@ -263,7 +263,7 @@ CREATE TABLE "io_source_recycle" (
   "targetID" integer NOT NULL,
   "sourceID" integer NOT NULL,
   "userID" integer NOT NULL,
-  "parentLevel" varchar(1000) NOT NULL,
+  "parentLevel" varchar(2000) NOT NULL,
   "createTime" integer NOT NULL
 );
 -- index io_source_recycle:

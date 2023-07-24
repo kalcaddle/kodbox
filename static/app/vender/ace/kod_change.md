@@ -1,7 +1,65 @@
-## 版本：`Version 1.5.0`
+## 版本：`Version 1.23.4`
 - 下载：https://github.com/ajaxorg/ace-builds/tags
 - 插件：https://github.com/ajaxorg/ace/wiki/Extensions
-- js压缩: https://www.css-js.com/   https://tool.lu/js/
+- js压缩: https://www.css-js.com/ (uglifyjs压缩,不勾选es6到es5)   https://tool.lu/js/
+
+
+## 优化修改 (ace.js 1.23.4)
+- iframe鼠标选中超出失去焦点; ace初始化之前hook处理;
+- ext-emmet.js添加快捷键注释快捷键异常(混合js,css,html,php),非html代码片段中屏蔽补全; ace初始化之前hook处理;
+- 搜索,移动端复制菜单等多语言;ace初始化之前hook处理
+- 单行高亮限制:  ace.js 修改 MAX_TOKEN_COUNT=2000 为 4000; // 太多会导致卡顿;
+- 鼠标中键多光标选择支持;
+    ```
+    ace.define("ace/mouse/multi_select_handler ...; 方法 onMouseDown: 中if最前加入;
+    if(button == 1 || e.altKey){alt = true;button=0;};//add by warlee;
+    ```
+- 移动端复制粘贴操作菜单;不支持剪贴板读取时使用内部复制数据
+    ```
+    需要https或127.0域名,才能访问navigator.clipboard 剪贴板; 不支持时内部自动记录复制数据;
+    ace.define("ace/mouse/touch_handler"... 
+    clipboard && [... => (ace.mobileCopyText || clipboard) && [...
+
+    if(!clipboard){ // if (action == "paste")...  后; 
+        if(ace.mobileCopyText){editor.insert(ace.mobileCopyText);}
+        return;
+    }
+    ace.mobileCopyText = editor.getSelectedText(); //if (action == "cut" || action == "copy") 前
+    ```
+
+- 中文自动换行过早问题(当成了单词)
+    ```
+    ace.define("ace/layer/text"... 
+    方法: this.$computeWrapSplits  
+    if (split > minSplit) {
+        addSplit(++split);
+        continue;
+    } 
+    改为==>  
+    //addy by warlee 
+    if (split > minSplit) {
+    	//避免死循环
+        if(oldLength == displayLength - lastSplit){break;}
+        oldLength = displayLength - lastSplit;
+        if(tokens[split] == CHAR_EXT || tokens[split-1] == CHAR_EXT){
+        	addSplit(split++)
+        }else{
+        	addSplit(++split);
+        }
+        continue;
+    }
+    while 前加入定义: var oldLength = 0;
+    
+    方法: this.$getDisplayTokens = function; if(0x1100 && isFullWidth(c) 后面
+    arr.push(CHAR, CHAR_EXT); 改为==> arr.push(SPACE, CHAR_EXT);
+    ```
+- 重写搜索控件: ext-searchboxKod.js
+- 重命名php相关文件(部分服务器防火墙拦截): 
+    ``` 
+    mode-php.js     =>  mode-phhp.js, 
+    worker-php.js   =>  worker-phhp.js
+    snippets/php.js =>  phhp.js
+    ```
 
 
 ## 优化修改 (ace.js 1.5.0)

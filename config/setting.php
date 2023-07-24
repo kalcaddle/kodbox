@@ -61,9 +61,9 @@ $config['settings']['systemBackup'] 	= 1; 		// 系统备份;
 $config['settings']['bigFileForce'] 	= 0; 		// 32位时强制允许大文件上传; https://demo.kodcloud.com/#s/735psg0g 
 $config['settings']['sysTempPath'] 		= TEMP_PATH;	// 系统临时目录，避免中转时data临时目录慢（如nfs挂载）
 $config['settings']['sysTempFiles'] 	= TEMP_FILES;	// 系统临时文件目录
-$config['settings']['fileViewLog'] 		= 0;		// 操作日志-文件预览
+$config['settings']['fileViewLog'] 		= 0;			// 操作日志-文件预览
 
-
+$config['pluginHome'] 					= 'https://kodcloud.com/';	// 插件主页
 $config["ADMIN_ALLOW_IO"] 				= 1;		// 物理路径或io路径是否允许操作开关，仅限管理员(禁用后无法直接管理物理路径)
 $config["ADMIN_ALLOW_SOURCE"] 			= 1;		// 其他部门or用户目录操作开关，仅限管理员(是否能直接访问其他用户空间或部门空间)
 $config['APP_HOST_LINK'] 				= APP_HOST;	// 分享链接站点url; 可在setting_user中覆盖;
@@ -455,7 +455,7 @@ $config['settingAll'] = array(
 	),//de el fi fr nl pt	d/m/Y H:i
 	
 	'theme'		=> "mac,win10,win7,metro,metro_green,metro_purple,metro_pink,metro_orange,alpha_image,alpha_image_sun,alpha_image_sky,diy",
-	'codeTheme'	=> "chrome,clouds,crimson_editor,eclipse,github,kuroir,solarized_light,tomorrow,xcode,ambiance,monokai,idle_fingers,pastel_on_dark,solarized_dark,twilight,tomorrow_night_blue,tomorrow_night_eighties",
+	'codeTheme'	=> "chrome,clouds,crimson_editor,eclipse,github,kuroir,solarized_light,tomorrow,xcode,gruvbox_light_hard,cloud9_day,ambiance,monokai,idle_fingers,pastel_on_dark,solarized_dark,twilight,tomorrow_night_blue,tomorrow_night_eighties,github_dark,cloud9_night,gruvbox_dark_hard",
 	'codeFont'	=> 'Source Code Pro,Consolas,Courier,DejaVu Sans Mono,Liberation Mono,Menlo,Monaco,Monospace',
 );
 
@@ -542,7 +542,7 @@ $config['authRoleAction']= array(
 	'explorer.zip'			=> array('explorer.index'=>'zip,zipDownload'),
 
 	'user.edit'				=> array(
-		'user.setting'		=> 'setConfig,setUserInfo,setHeadImage,uploadHeadImage',
+		'user.setting'		=> 'setConfig,setUserInfo,setHeadImage,uploadHeadImage,userLogoutSet',
 	),
 	'user.fav' 				=> array(
 		'explorer.fav'		=> 'add,rename,moveTop,moveBottom,del',

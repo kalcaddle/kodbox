@@ -178,7 +178,7 @@
 | targetID | bigint(20) unsigned    | 拥有者对象id |
 | sourceID | bigint(20) unsigned    | 文档id |
 | userID | bigint(20) unsigned    | 操作者id |
-| parentLevel | varchar(1000)    | 文档上层关系;冗余字段,便于统计回收站信息 |
+| parentLevel | varchar(2000)    | 文档上层关系;冗余字段,便于统计回收站信息 |
 | createTime | int(11) unsigned    | 创建时间 |
 
 

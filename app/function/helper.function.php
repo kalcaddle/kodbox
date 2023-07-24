@@ -298,6 +298,35 @@ function get_post_max(){
 	$theMax = $upload<$post?$upload:$post;
 	return $theMax;
 }
+function get_nginx_post_max(){
+	if(!stristr($_SERVER['SERVER_SOFTWARE'],'nginx')) return false;
+	if(!function_exists('shell_exec')) return false;
+	$info = shell_exec('nginx -t 2>&1 ');//client_max_body_size
+	if(!$info || !strstr($info,'the configuration file')) return false;
+	
+	preg_match("/the configuration file\s+(.*)\s+syntax is ok/i",$info,$match);
+	if(!is_array($match) || !$match[1] || !file_exists($match[1])) return false;
+	$content = @file_get_contents($match[1]);
+	if(!$content || !strstr($content,'client_max_body_size')) return false;
+	$content = preg_replace("/\s*#.*/",'',$content);
+	
+	preg_match("/client_max_body_size\s+(\d+\w)/i",$content,$match);
+	if(!is_array($match) || !$match[1]) return false;
+	return size_to_byte($match[1]);
+}
+function size_to_byte($value){
+	$value = trim($value);
+	if(!$value || $value <= 0) return 0;
+	$number = substr($value, 0, -1);
+	$unit = strtolower(substr($value, - 1));
+	switch ($unit){
+		case 'k':$number *= 1024;break;
+		case 'm':$number *= (1024 * 1024);break;
+		case 'g':$number *= (1024 * 1024 * 1024);break;
+		default:break;
+	}
+	return $number;
+}
 
 function phpBuild64(){
 	if(PHP_INT_SIZE === 8) return true;//部分版本,64位会返回4;

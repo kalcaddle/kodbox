@@ -133,6 +133,22 @@ class userView extends Controller{
 		
 		AutoTask::start();
 		Cache::clearTimeout();
+		$this->autoSetUploadMax();
+	}
+	
+	// 自动优化配置上传文件分片大小(如果获取到php限制及nginx限制;取限制的最小值,如果大于20M则分片设置为20M)
+	private function autoSetUploadMax(){
+		$chunkSize   = $GLOBALS['config']['settings']['upload']['chunkSize'];
+		if($chunkSize != 0.5*1024*1024){return;}
+		if(Model('SystemOption')->get('autoSetUploadMax_set')){return;}
+
+		Model('SystemOption')->set('autoSetUploadMax_set','1');
+		$postMaxPhp   = get_post_max();
+		$postMaxNginx = get_nginx_post_max();
+		if($postMaxPhp && $postMaxNginx){
+			$sizeMin = min($postMaxPhp,$postMaxNginx,20*1024*1024) / (1024*1024);// MB;
+			if($sizeMin > 0.3){Model('SystemOption')->set('chunkSize',$sizeMin);}
+		}
 	}
 	
 	public function parseUrl($link){

@@ -8,109 +8,11 @@
 		for(var i in a) (typeof exports === 'object' ? exports : root)[i] = a[i];
 	}
 })((typeof self !== 'undefined' ? self : this), function() {
-return /******/ (function(modules) { // webpackBootstrap
-/******/ 	// The module cache
-/******/ 	var installedModules = {};
-/******/
-/******/ 	// The require function
-/******/ 	function __webpack_require__(moduleId) {
-/******/
-/******/ 		// Check if module is in cache
-/******/ 		if(installedModules[moduleId]) {
-/******/ 			return installedModules[moduleId].exports;
-/******/ 		}
-/******/ 		// Create a new module (and put it into the cache)
-/******/ 		var module = installedModules[moduleId] = {
-/******/ 			i: moduleId,
-/******/ 			l: false,
-/******/ 			exports: {}
-/******/ 		};
-/******/
-/******/ 		// Execute the module function
-/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
-/******/
-/******/ 		// Flag the module as loaded
-/******/ 		module.l = true;
-/******/
-/******/ 		// Return the exports of the module
-/******/ 		return module.exports;
-/******/ 	}
-/******/
-/******/
-/******/ 	// expose the modules object (__webpack_modules__)
-/******/ 	__webpack_require__.m = modules;
-/******/
-/******/ 	// expose the module cache
-/******/ 	__webpack_require__.c = installedModules;
-/******/
-/******/ 	// define getter function for harmony exports
-/******/ 	__webpack_require__.d = function(exports, name, getter) {
-/******/ 		if(!__webpack_require__.o(exports, name)) {
-/******/ 			Object.defineProperty(exports, name, { enumerable: true, get: getter });
-/******/ 		}
-/******/ 	};
-/******/
-/******/ 	// define __esModule on exports
-/******/ 	__webpack_require__.r = function(exports) {
-/******/ 		if(typeof Symbol !== 'undefined' && Symbol.toStringTag) {
-/******/ 			Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
-/******/ 		}
-/******/ 		Object.defineProperty(exports, '__esModule', { value: true });
-/******/ 	};
-/******/
-/******/ 	// create a fake namespace object
-/******/ 	// mode & 1: value is a module id, require it
-/******/ 	// mode & 2: merge all properties of value into the ns
-/******/ 	// mode & 4: return value when already ns object
-/******/ 	// mode & 8|1: behave like require
-/******/ 	__webpack_require__.t = function(value, mode) {
-/******/ 		if(mode & 1) value = __webpack_require__(value);
-/******/ 		if(mode & 8) return value;
-/******/ 		if((mode & 4) && typeof value === 'object' && value && value.__esModule) return value;
-/******/ 		var ns = Object.create(null);
-/******/ 		__webpack_require__.r(ns);
-/******/ 		Object.defineProperty(ns, 'default', { enumerable: true, value: value });
-/******/ 		if(mode & 2 && typeof value != 'string') for(var key in value) __webpack_require__.d(ns, key, function(key) { return value[key]; }.bind(null, key));
-/******/ 		return ns;
-/******/ 	};
-/******/
-/******/ 	// getDefaultExport function for compatibility with non-harmony modules
-/******/ 	__webpack_require__.n = function(module) {
-/******/ 		var getter = module && module.__esModule ?
-/******/ 			function getDefault() { return module['default']; } :
-/******/ 			function getModuleExports() { return module; };
-/******/ 		__webpack_require__.d(getter, 'a', getter);
-/******/ 		return getter;
-/******/ 	};
-/******/
-/******/ 	// Object.prototype.hasOwnProperty.call
-/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
-/******/
-/******/ 	// __webpack_public_path__
-/******/ 	__webpack_require__.p = "";
-/******/
-/******/
-/******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 1);
-/******/ })
-/************************************************************************/
-/******/ ([
-/* 0 */
-/***/ (function(module, exports, __webpack_require__) {
+return /******/ (function() { // webpackBootstrap
+/******/ 	"use strict";
+var __webpack_exports__ = {};
 
-// extracted by mini-css-extract-plugin
-
-/***/ }),
-/* 1 */
-/***/ (function(module, __webpack_exports__, __webpack_require__) {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-
-// EXTERNAL MODULE: ./contrib/copy-tex/copy-tex.css
-var copy_tex = __webpack_require__(0);
-
-// CONCATENATED MODULE: ./contrib/copy-tex/katex2tex.js
+;// CONCATENATED MODULE: ./contrib/copy-tex/katex2tex.js
 // Set these to how you want inline and display math to be delimited.
 var defaultCopyDelimiters = {
   inline: ['$', '$'],
@@ -121,7 +23,7 @@ var defaultCopyDelimiters = {
 // Modifies fragment in-place.  Useful for writing your own 'copy' handler,
 // as in copy-tex.js.
 
-var katexReplaceWithTex = function katexReplaceWithTex(fragment, copyDelimiters) {
+function katexReplaceWithTex(fragment, copyDelimiters) {
   if (copyDelimiters === void 0) {
     copyDelimiters = defaultCopyDelimiters;
   }
@@ -134,8 +36,8 @@ var katexReplaceWithTex = function katexReplaceWithTex(fragment, copyDelimiters)
     var element = katexHtml[i];
 
     if (element.remove) {
-      element.remove(null);
-    } else {
+      element.remove();
+    } else if (element.parentNode) {
       element.parentNode.removeChild(element);
     }
   } // Replace .katex-mathml elements with their annotation (TeX source)
@@ -152,7 +54,7 @@ var katexReplaceWithTex = function katexReplaceWithTex(fragment, copyDelimiters)
     if (texSource) {
       if (_element.replaceWith) {
         _element.replaceWith(texSource);
-      } else {
+      } else if (_element.parentNode) {
         _element.parentNode.replaceChild(texSource, _element);
       }
 
@@ -169,45 +71,60 @@ var katexReplaceWithTex = function katexReplaceWithTex(fragment, copyDelimiters)
   }
 
   return fragment;
-};
+}
 /* harmony default export */ var katex2tex = (katexReplaceWithTex);
-// CONCATENATED MODULE: ./contrib/copy-tex/copy-tex.js
- // Global copy handler to modify behavior on .katex elements.
+;// CONCATENATED MODULE: ./contrib/copy-tex/copy-tex.js
+ // Return <div class="katex"> element containing node, or null if not found.
+
+function closestKatex(node) {
+  // If node is a Text Node, for example, go up to containing Element,
+  // where we can apply the `closest` method.
+  var element = node instanceof Element ? node : node.parentElement;
+  return element && element.closest('.katex');
+} // Global copy handler to modify behavior on/within .katex elements.
+
 
 document.addEventListener('copy', function (event) {
   var selection = window.getSelection();
 
-  if (selection.isCollapsed) {
-    return; // default action OK if selection is empty
+  if (selection.isCollapsed || !event.clipboardData) {
+    return; // default action OK if selection is empty or unchangeable
   }
 
-  var fragment = selection.getRangeAt(0).cloneContents();
+  var clipboardData = event.clipboardData;
+  var range = selection.getRangeAt(0); // When start point is within a formula, expand to entire formula.
+
+  var startKatex = closestKatex(range.startContainer);
+
+  if (startKatex) {
+    range.setStartBefore(startKatex);
+  } // Similarly, when end point is within a formula, expand to entire formula.
+
+
+  var endKatex = closestKatex(range.endContainer);
+
+  if (endKatex) {
+    range.setEndAfter(endKatex);
+  }
+
+  var fragment = range.cloneContents();
 
   if (!fragment.querySelector('.katex-mathml')) {
     return; // default action OK if no .katex-mathml elements
-  } // Preserve usual HTML copy/paste behavior.
-
-
-  var html = [];
-
-  for (var i = 0; i < fragment.childNodes.length; i++) {
-    html.push(fragment.childNodes[i].outerHTML);
   }
 
-  event.clipboardData.setData('text/html', html.join('')); // Rewrite plain-text version.
+  var htmlContents = Array.prototype.map.call(fragment.childNodes, function (el) {
+    return el instanceof Text ? el.textContent : el.outerHTML;
+  }).join(''); // Preserve usual HTML copy/paste behavior.
 
-  event.clipboardData.setData('text/plain', katex2tex(fragment).textContent); // Prevent normal copy handling.
+  clipboardData.setData('text/html', htmlContents); // Rewrite plain-text version.
+
+  clipboardData.setData('text/plain', katex2tex(fragment).textContent); // Prevent normal copy handling.
 
   event.preventDefault();
 });
-// CONCATENATED MODULE: ./contrib/copy-tex/copy-tex.webpack.js
-/**
- * This is the webpack entry point for KaTeX. As ECMAScript doesn't support
- * CSS modules natively, a separate entry point is used.
- */
-
-
-
-/***/ })
-/******/ ])["default"];
+__webpack_exports__ = __webpack_exports__["default"];
+/******/ 	return __webpack_exports__;
+/******/ })()
+;
 });

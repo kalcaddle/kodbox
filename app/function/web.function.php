@@ -336,7 +336,8 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 			if($method == 'PUT'){
 				curl_setopt($ch, CURLOPT_PUT,1);
 				curl_setopt($ch, CURLOPT_INFILE,@fopen($path,'r'));
-				curl_setopt($ch, CURLOPT_INFILESIZE,@filesize($path));				
+				curl_setopt($ch, CURLOPT_INFILESIZE,@filesize($path));
+				unset($data[$key]); // put通常通过body上传文件;不需要post参数,参数放在url中
 			}
 		}
 	}
@@ -419,7 +420,7 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 		case 'DELETE':
 		case 'PUT':
 			curl_setopt($ch, CURLOPT_CUSTOMREQUEST,$method);
-			curl_setopt($ch, CURLOPT_POSTFIELDS,$data);
+			if($data){curl_setopt($ch, CURLOPT_POSTFIELDS,$data);}
 			break;
 		default:break;
 	}

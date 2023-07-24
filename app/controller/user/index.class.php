@@ -208,7 +208,12 @@ class userIndex extends Controller {
 	 * 退出处理
 	 */
 	public function logout() {
-		Hook::trigger('user.index.logoutBefore',Session::get("kodUser"));
+		$user = Session::get('kodUser');
+		if(!is_array($user) || !$user['userID']){show_json('ok');}
+		Hook::trigger('user.index.logoutBefore',$user);
+		
+		$lastLogin = time() - $GLOBALS['config']['cache']['sessionTime'] - 10;
+		Model('User')->userEdit($user['userID'],array("lastLogin"=>$lastLogin));
 		Session::destory();
 		Cookie::remove(SESSION_ID,true);
 		Cookie::remove('kodToken');

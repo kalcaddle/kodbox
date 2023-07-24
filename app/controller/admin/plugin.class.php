@@ -154,6 +154,7 @@ class adminPlugin extends Controller{
 				show_json(LNG('explorer.success'));
 				break;
 			case 'update':
+				Hook::trigger($app.'Plugin.onUpdate');
 				show_json(Hook::apply($app.'Plugin.update'));
 				break;
 			default:break;
@@ -188,7 +189,7 @@ class adminPlugin extends Controller{
 		if(substr($app,0,3) == 'oem'){
 			show_json("专属定制插件不支持卸载,不需要您可以禁用!",false);
 		}		
-		ActionCall($app.'Plugin.onUninstall',$app);
+		ActionCall($app.'Plugin.onUninstall');
 		$this->model->unInstall($app);
 		del_dir(PLUGIN_DIR.$app);
 		$this->appList();

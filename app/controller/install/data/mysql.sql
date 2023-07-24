@@ -119,7 +119,7 @@ CREATE TABLE `io_file_contents` (
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`fileID`),
   KEY `createTime` (`createTime`),
-  FULLTEXT KEY `content` (`content`)
+  KEY `content` (`content`(333))
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='文件id';
 
 DROP TABLE IF EXISTS `io_file_meta`;
@@ -247,7 +247,7 @@ CREATE TABLE `io_source_recycle` (
   `targetID` bigint(20) unsigned NOT NULL COMMENT '拥有者对象id',
   `sourceID` bigint(20) unsigned NOT NULL COMMENT '文档id',
   `userID` bigint(20) unsigned NOT NULL COMMENT '操作者id',
-  `parentLevel` varchar(1000) NOT NULL COMMENT '文档上层关系;冗余字段,便于统计回收站信息',
+  `parentLevel` varchar(2000) NOT NULL COMMENT '文档上层关系;冗余字段,便于统计回收站信息',
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`),
   KEY `sourceID` (`sourceID`),
