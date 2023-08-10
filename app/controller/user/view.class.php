@@ -67,6 +67,13 @@ class userView extends Controller{
 		$options = Hook::filter('user.view.options.after',$options); 
 		$options = $this->parseMenu($options);
 		$this->companyInfo($options);
+		
+		if($this->in['full'] == '1'){
+			$options['_lang'] = array(
+				"list"	=> I18n::getAll(),
+				"lang"	=> I18n::getType(),
+			);
+		}
 		show_json($options);
 	}
 	

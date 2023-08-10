@@ -302,7 +302,9 @@ class adminServer extends Controller {
 			}
 			if(!$conn) show_json(sprintf(LNG('admin.install.cacheError'),"[{$type}]"), false);
 		}catch(Exception $e){
-			show_json(sprintf(LNG('admin.install.cacheConnectError'),"[{$type}]"), false);
+			$msg = sprintf(LNG('admin.install.cacheConnectError'),"[{$type}]");
+			$msg .= '<br/>'.$e->getMessage();
+			show_json($msg, false);
 		}
 		return $data;
 	}

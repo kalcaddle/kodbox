@@ -45,7 +45,7 @@
 			data:param,
 			success: function(result){
 				if(! result.code){
-					Tips.tips(LNG['common.file']+LNG['common.notExists'],false);
+					Tips.tips('今日暂无日志！','warning');
 				}else{
 					openWindow("./#fileView&path="+result.data.path);
 				}

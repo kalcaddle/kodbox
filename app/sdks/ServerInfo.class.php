@@ -58,7 +58,7 @@ class ServerInfo {
      */
     public function cpuUsageWin(){
         $str = shell_exec('powershell "Get-CimInstance -ClassName Win32_Processor | Select-Object -ExpandProperty LoadPercentage"');
-        return round($str, 1)/100;
+        return round(floatval($str), 1)/100;
         // return trim($str) . '%';
     }
     

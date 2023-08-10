@@ -164,10 +164,25 @@ class adminGroup extends Controller{
 	 * 删除
 	 */
 	public function remove() {
-		$id = Input::get('groupID','bigger',null,1);
-		$res = $this->model->groupRemove($id);
-		$msg = $res ? LNG('explorer.success') : LNG('explorer.error');
-		show_json($msg,!!$res);
+		// $id = Input::get('groupID','bigger',null,1);
+		$data = Input::getArray(array(
+			"groupID" 	=> array("check"=>"require"),
+			"delAll"	=> array("default"=>0),
+		));
+		$del = boolval($data['delAll']);
+		$ids = explode(',', $data['groupID']);
+		if (count($ids)>1 && $del) {
+			$res = $this->model->listChildIds($ids);
+			if ($res === false) show_json(LNG('explorer.error'),false);
+			$ids = array_merge($ids, $res);
+		}
+		$code = 0;
+		foreach ($ids as $id) {
+			$res = $this->model->groupRemove($id,$del);
+			$code += ($res ? 1 : 0);
+		}
+		$msg = $code ? LNG('explorer.success') : LNG('explorer.error');
+		show_json($msg,!!$code);
 	}
 
 	/**

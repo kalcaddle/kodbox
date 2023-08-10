@@ -69,10 +69,12 @@ class userIndex extends Controller {
 		$upload = &$GLOBALS['config']['settings']['upload'];
 		if(isset($sysOption['chunkSize'])){ //没有设置则使用默认;
 			$upload['chunkSize']  = floatval($sysOption['chunkSize']);
-			$upload['ignoreName'] = trim($sysOption['ignoreName']);
-			$upload['chunkRetry'] = intval($sysOption['chunkRetry']);
-			$upload['threads'] 	  = floatval($sysOption['threads']);
-			// $upload['httpSendFile']  = $sysOption['httpSendFile'] == '1'; //前端默认屏蔽;
+			
+			// 老版本升级,没有值情况处理;
+			if(isset($sysOption['ignoreName'])){$upload['ignoreName'] = trim($sysOption['ignoreName']);}
+			if(isset($sysOption['chunkRetry'])){$upload['chunkRetry'] = intval($sysOption['chunkRetry']);}
+			if(isset($sysOption['threads'])){$upload['threads'] = floatval($sysOption['threads']);}
+			if($upload['threads'] <= 0){$upload['threads'] = 1;}
 			
 			// 上传限制扩展名,限制单文件大小;
 			$role = Action('user.authRole')->userRoleAuth();

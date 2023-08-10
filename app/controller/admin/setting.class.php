@@ -35,19 +35,16 @@ class adminSetting extends Controller {
 		if (!$data) {
 			show_json(LNG('explorer.error'), false);
 		}
-		$setting = array();
-		foreach ($data as $key => $value) {
-			$setting[$key] = $value;
-		}
 		
-		$postMax = get_post_max();
-		if($setting['chunkSize']*1024*1024  >= $postMax){
-			$sizeTips = ($postMax/(1024*1024)) .'MB';
-			show_json(LNG('admin.setting.transferChunkSizeDescError1').
-			":$sizeTips,<br/>".LNG('admin.setting.transferChunkSizeDescError2'),false);
+		if (isset($data['chunkSize'])) {
+			$postMax = get_post_max();
+			if($data['chunkSize']*1024*1024  >= $postMax){
+				$sizeTips = ($postMax/(1024*1024)) .'MB';
+				show_json(LNG('admin.setting.transferChunkSizeDescError1').
+				":$sizeTips,<br/>".LNG('admin.setting.transferChunkSizeDescError2'),false);
+			}
 		}
-
-		Model('SystemOption')->set($setting);
+		Model('SystemOption')->set($data);
 		show_json(LNG('explorer.success'));
 	}
 	

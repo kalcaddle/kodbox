@@ -356,8 +356,10 @@ class explorerShare extends Controller{
 		Action("explorer.upload")->fileUpload();
 	}
 	public function fileGet(){
+		$pageNum = 1024 * 1024 * 10;
 		$this->in['path'] = $this->parsePath($this->in['path']);
-		$this->in['pageNum'] = 1024 * 1024 * 10;
+		$this->in['pageNum'] = isset($this->in['pageNum']) ? $this->in['pageNum'] : $pageNum;
+		$this->in['pageNum'] = $this->in['pageNum'] >= $pageNum ? $pageNum : $this->in['pageNum'];
 		$result = ActionCallHook("explorer.editor.fileGet");
 		if($result['code']){
 			$result['data'] = $this->shareItemInfo($result['data']);

@@ -138,6 +138,7 @@ function ActionApply($action,$args=array()){
 	return call_user_func_array($_cache[$action], $args);
 }
 function actionCallError($msg){
+	return false;
 	// think_exception($msg,false);
 	write_log($msg."\n".get_caller_msg(),'error');
 	return false;

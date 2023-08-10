@@ -304,7 +304,9 @@ class installIndex extends Controller {
                 }
                 if(!$conn) return show_json(sprintf(LNG('admin.install.cacheError'),"[{$cacheType}]"), false);
             }catch(Exception $e){
-                return show_json(sprintf(LNG('admin.install.cacheConnectError'),"[{$cacheType}]"), false);
+                $msg = sprintf(LNG('admin.install.cacheConnectError'),"[{$cacheType}]");
+                $msg .= '<br/>'.$e->getMessage();
+                return show_json($msg, false);
             }
         }
 

@@ -329,7 +329,8 @@ class adminMember extends Controller{
 		if(!isset($this->in['isImport'])) return;
 		// 1.上传
 		if(!isset($this->in['filePath'])) {
-			$this->in['path'] = TEMP_FILES . 'import_' . time();
+			$path = IO::mkdir(TEMP_FILES . 'import_' . time());
+			$this->in['path'] = $path;
 			$res = ActionCallHook('explorer.upload.fileUpload');
 			if(!$res['code']) show_json($res['data'], false);
 

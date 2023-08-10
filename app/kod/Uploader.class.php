@@ -38,6 +38,7 @@ class Uploader{
 	 * 分片则 size 必须传入
 	 */
 	public function upload(){
+		if($_SERVER['REQUEST_METHOD'] == 'OPTIONS' ){exit;};//跨域请求时,浏览器发送options接口会影响正常流程;
 		$chunk  = isset($this->in["chunk"]) ? intval($this->in["chunk"]) : 0;
 		$chunks = isset($this->in["chunks"]) ? intval($this->in["chunks"]) : 1;
 		$dest   = $this->tempFile.'.part'.$chunk;
