@@ -51,6 +51,12 @@ class installIndex extends Controller {
                 "io"	=> array(),
                 "lang"	=> I18n::getType(),
             );
+			if($this->in['full'] == '1'){
+				$options['_lang'] = array(
+					"list"	=> I18n::getAll(),
+					"lang"	=> I18n::getType(),
+				);
+			}
             show_json($options);
         }
 		$actions = array(
