@@ -93,8 +93,13 @@ class I18n{
 			$langFile = LANGUAGE_PATH.$lang.'/index.php';
 		}
 
+		if(!file_exists(LANGUAGE_PATH.$lang.'/custom.php')){
+			self::$lang = array_merge(include($langFile),include(LANGUAGE_PATH.'zh-CN/custom.php')) ;
+		}else{
+			self::$lang = array_merge(include($langFile),include(LANGUAGE_PATH.$lang.'/custom.php')) ;
+		}
+
 		self::$langType = $lang;
-		self::$lang = include($langFile);
 		self::$loaded = true;
 		$GLOBALS['L'] = &self::$lang;
 	}
