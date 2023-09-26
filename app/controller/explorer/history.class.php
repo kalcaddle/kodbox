@@ -89,7 +89,8 @@ class explorerHistory extends Controller{
 		if(isset($this->in['type']) && $this->in['type'] == 'image'){
 			return IO::fileOutImage($fileInfo['path'],$this->in['width']);
 		}
-		IO::fileOut($fileInfo['path'],$isDownload,$fileInfo['name']);
+		$name = !empty($this->in['name']) ? $this->in['name'] : $fileInfo['name'];
+		IO::fileOut($fileInfo['path'],$isDownload,$name);
 	}
 	public function fileInfo(){
 		$id  = $this->checkItem();

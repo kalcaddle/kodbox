@@ -51,7 +51,7 @@ return array(
 
 
 	'officeViewer.yzOffice.name' 				=> "yozo Office",
-	'officeViewer.yzOffice.desc' 				=> "Parse the file through Yongzhong office service (you need to upload it to its server first) to realize file preview.<br><code style='color:#c7254e'>The server needs to be able to access the external network </code>",
+	'officeViewer.yzOffice.desc' 				=> "Parse the file through Yongzhong office service (the file will be uploaded to its server) to realize file preview.<br><code style='color:#c7254e'>The server needs to be able to access the external network </code>",
 	'officeViewer.yzOffice.transfer' 			=> "1.In data transmission......",
 	'officeViewer.yzOffice.converting'			=> '2.File conversion, please wait a moment...',
 	'officeViewer.yzOffice.uploadError' 		=> "Upload failed. Please check PHP execution timeout!",

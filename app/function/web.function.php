@@ -278,6 +278,7 @@ function curl_progress_end($curl,&$curlResult=false){
 		$GLOBALS['curl_request_error'] = array('message'=>$errorMessage,'url'=> $curlInfo['url'],'code'=>$httpCode);
 		write_log("[CURL] ".$curlInfo['url'].";$errorMessage;");
 	}
+	// write_log("[CURL] ".$curlInfo['url']."; code=$httpCode;".curl_error($curl).";".get_caller_msg(),'test');
 	if(GLOBAL_DEBUG){
 		$response = strlen($curlResult) > 1000 ? substr($curlResult,0,1000).'...':$curlResult;
 		write_log("[CURL] code=".$httpCode.';'.$curlInfo['url'].";$errorMessage \n".$response,'curl');

@@ -64,14 +64,18 @@ $config['settings']['sysTempFiles'] 	= TEMP_FILES;	// 系统临时文件目录
 $config['settings']['fileViewLog'] 		= 0;			// 操作日志-文件预览
 
 $config['pluginHome'] 					= 'https://kodcloud.com/';	// 插件主页
-$config["ADMIN_ALLOW_IO"] 				= 1;		// 物理路径或io路径是否允许操作开关，仅限管理员(禁用后无法直接管理物理路径)
-$config["ADMIN_ALLOW_SOURCE"] 			= 1;		// 其他部门or用户目录操作开关，仅限管理员(是否能直接访问其他用户空间或部门空间)
 $config['APP_HOST_LINK'] 				= APP_HOST;	// 分享链接站点url; 可在setting_user中覆盖;
 $config['PLUGIN_HOST'] 					= APP_HOST.str_replace(BASIC_PATH,'',PLUGIN_DIR);//插件url目录;
 $config['PLUGIN_HOST_CDN_APP'] 			= '';//支持配置到cdn的插件; 插件名,逗号隔开;
 $config['PLUGIN_HOST_CDN'] 				= $config['PLUGIN_HOST'];//在上面的配置插件中才使用此作为插件静态资源url;
 $config['DEFAULT_PERRMISSIONS'] 		= 0755;
 $config['DEFAULT_PERRMISSIONS_KOD'] 	= 0700; // 内部文件,nginx才能读写;
+
+$config["ADMIN_ALLOW_IO"] 				= 1;	// 物理路径或io路径是否允许操作开关，仅限管理员(禁用后无法直接管理物理路径)
+$config["ADMIN_ALLOW_SOURCE"] 			= 1;	// 其他部门or用户目录操作开关，仅限管理员(是否能直接访问其他用户空间或部门空间)
+$config["ADMIN_ALLOW_ALL_ACTION"] 		= 1;	// 三权分立,限制系统管理员权限; 关闭后系统管理员无法再设置用户角色及部门权限(需配置[安全保密员及审计员角色])
+$config["ADMIN_AUTH_LIMIT_PLUGINS"]		= 'adminer,webConsole';// 限制系统管理员权限时,同时限制插件列表;
+
 
 // 存储类型名对应列表
 $config['settings']['ioClassList'] = array(
@@ -145,8 +149,9 @@ $config['cache'] = array(
 		// 'timeout'  => 20, 		// 连接超时时间
 		// 'auth' 	  => '',  		// 密码
 		// 'pconnect' => true,  	// 是否持久链接;
-		// 'server'  => array('10.10.10.1:8001','10.10.10.2:8001'), //集群方式连接;有则忽略host/port
+		// 'server'   => array('10.10.10.1:8001','10.10.10.2:8001'), //集群方式连接;有则忽略host/port
 		// 'mode'	  => 'slave',	// slave、sentinel(暂不支持)、cluster
+		// 'db'		  => 0,			// 选择数据库; 默认0, db0~15
     ),
     'memcached' => array(
         'host' 	   => '127.0.0.1',
@@ -260,6 +265,7 @@ $config['settingSystemDefault'] = array(
 	'groupTagAllow' 	=> '0',			// 是否启用部门公共标签
 	'groupSpaceLimit'	=> '0',			// 部门网盘层级限制; 超过部门的层级不显示部门网盘
 	'groupSpaceLimitLevel'=> '5',		// 部门网盘层级,指定层级,默认超过5层不显示部门网盘; >=1;
+	'pathSafeSpaceEnable' => '1',		// 1|0, 全局开启关闭[私密保险箱]
 	
 	// 分享相关设置;
 	'shareToMeAllowTree'=> '1',			// 分享给我的内容支持按部门组织架构或用户进行分类
@@ -297,6 +303,7 @@ $config['settingSystemDefault'] = array(
 	),
 );
 $config['settingSystemDefault']['searchFulltext'] = 0;			// like%% 转为match (fulltext索引字段)
+$config['settingSystemDefault']['searchNumberUseLike']  = 0;	// 开启全文搜索时, 搜为纯数字则使用like(ngram,match纯数字会很慢)
 $config['settingSystemDefault']['searchFulltextForce']  = 0;	// 完整匹配; (否则会对$words进行分词,包含一部分也作为结果;会多出结果) 
 $config['settingSystemDefault']['searchFulltextInnodb'] = 0;	// 是否为innodb 
 
@@ -318,6 +325,7 @@ $config['settingDefault'] = array(
 	'listTypeKeep'		=> '1',			// 1|0, 为每个文件夹选择视图模式，或对所有文件夹使用相同的视图模式
 	'listSortKeep'		=> '1',			// 1|0, 为每个文件夹配置列排序顺序，或对所有文件夹使用相同的顺序
 	'menuBarAutoHide'	=> '0',			// 1|0, 左侧菜单栏自动显示和隐藏
+	'pathSafeSpaceShow' => '1',			// 1|0, 个人空间根目录显示隐藏-私密保险箱
 	
 	"fileRepeat"		=> "replace",	// rename,replace,skip
 	"recycleOpen"		=> "1",			// 1 | 0 代表是否开启
@@ -527,11 +535,13 @@ $config['authRoleAction']= array(
 	),
 	'explorer.download'		=> array('explorer.index'=>'fileDownload,zipDownload,fileDownloadRemove'),
 	'explorer.share'		=> array('explorer.userShare'=>'add,edit,del'),
+	'explorer.shareLink'	=> array('explorer.userShare'=>'add,edit,del'),
 	'explorer.remove'		=> array('explorer.index'=>'pathDelete,recycleDelete,recycleRestore'),
 	'explorer.edit'			=> array(
 		'explorer.userShareTarget' => 'save',
 		'explorer.index'	=> 'setDesc,setMeta,setAuth,fileSave,pathRename,zip,unzip',
 		'explorer.editor'	=> 'fileSave',
+		'explorer.listSafe' => 'action',
 		'explorer.history'	=> 'get,remove,clear,rollback,setDetail,fileOut',
 		'comment.index'		=> 'listData,add,remove,prasise,listByUser,listChildren'
 	),
@@ -568,6 +578,7 @@ $config['authRoleAction']= array(
 		'admin.group' 		=> 'get,getByID,search'
 	),
 	'admin.member.userEdit'	=> array('admin.member'=>'add,edit,remove,status,addGroup,removeGroup,switchGroup'),
+	'admin.member.userAuth'	=> array('admin.member'=>'add,edit,remove,status,addGroup,removeGroup,switchGroup'),
 	'admin.member.groupEdit'=> array('admin.group'=>'add,edit,status,sort,remove,switchGroup'),
 	
 	'admin.auth.list'		=> array('admin.auth'=>'get'),
@@ -590,6 +601,12 @@ $config['authRoleAction']= array(
 	'admin.autoTask.edit'	=> array('admin.autoTask'=>'add,edit,enable,remove,run,taskStart,taskRun,taskRunEvent'),
 );
 
+// 权限允许true值覆盖;
+$config['authRoleActionKeepTrue'] = array(
+	'explorer.share','explorer.shareLink',
+	'admin.member.userEdit','admin.member.userAuth'
+);
+
 if (file_exists(BASIC_PATH.'config/setting_user.php')) {
 	include_once(BASIC_PATH.'config/setting_user.php');
 }
@@ -603,7 +620,9 @@ if(GLOBAL_DEBUG_LOG_ALL){
 	Hook::bind('beforeShutdown','writeLogAll');
 	Hook::bind('show_json','writeLogAll');
 }
+// Hook::bind('show_json','writeLogAll');
 function writeLogAll($data=false){
+	// if(ACT == 'fileUpload'){return;}
 	$caller = get_caller_info();
 	$trace  = think_trace('[trace]');
 	$ua = $_SERVER['HTTP_USER_AGENT'];

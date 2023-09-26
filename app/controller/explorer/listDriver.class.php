@@ -140,7 +140,7 @@ class explorerListDriver extends Controller{
 	}
 	public function parsePathChildren(&$info,$current){
 		if($info['type'] == 'file' || isset($info['hasFolder']) ) return $info;	
-		$ioAllow = array('Local','MinIO');// 'Local','MinIO'
+		$ioAllow = array('Local');// array('Local','MinIO')
 		$pathParse = KodIO::parse($current['path']);
 		$isLocal = $pathParse['type'] ? false:true;
 		$isIoAllow = isset($current['ioType']) && in_array($current['ioType'],$ioAllow);

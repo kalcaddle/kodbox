@@ -16,7 +16,41 @@ class explorerListGroup extends Controller{
 		$groupArray = Session::get("kodUser.groupInfo");
 		$groupArray = array_sort_by($groupArray,'groupID');
 		$groupArray = $this->groupSelfLimit($groupArray);
-		return $this->groupArray($groupArray);
+		$listData 	= $this->groupArray($groupArray);
+		$this->groupSelfAppendAllow($listData);
+		return $listData;
+	}
+	
+	// 我所在的部门, 罗列自己有权限的部门(通路)
+	public function groupSelfAppendAllow(&$listData){
+		if(intval($this->in['page']) > 1) return;// 第一页才罗列;
+		$groupArray = Action('filter.userGroup')->userGroupRootShow();
+	    if(!$groupArray || empty($groupArray[0])) return false;
+
+		$groupList = array();$groupListArr = array();
+		foreach ($listData as $key => $item) {
+			$item['sourceRootSelf'] = 'self';
+			$groupList[] = $item;
+			$groupListArr[$item['targetID']] = $item;
+			unset($listData[$key]);
+		}
+				
+		$groupChild = $this->modelGroup->where(array('parentID'=>$groupArray[0]))->select();
+		$groupAdd 	= $this->groupArray($groupChild);
+		$groupAddTo = array();// 去除重复已在该部门的部门;
+		foreach ($groupAdd as $item){
+			if(isset($groupListArr[$item['targetID']])){continue;}
+			$groupAddTo[] = $item;
+		}
+		
+		$listData['groupList'] = $groupList;
+		$listData['folderList']= $groupAddTo;
+		$desc = '('.LNG('explorer.toolbar.myGroupAllowDesc').')';
+		$listData['groupShow'] = array(
+			array('type'=>'childGroupSelf', 'title'=>LNG('explorer.toolbar.myGroup'),"filter"=>array('sourceRootSelf'=>'self')),
+			array('type'=>'childGroupAllow','title'=>LNG('explorer.toolbar.myGroupAllow'),"desc"=>$desc,"filter"=>array('sourceRootSelf'=>'!=self')),
+		);
+		if(count($listData['folderList']) == 0){unset($listData['groupShow']);}
 	}
 	
 	// 部门层级限制处理; 超过层级限制的部门,展示该部门在限制层级时的部门通路;
@@ -87,7 +121,9 @@ class explorerListGroup extends Controller{
 			if(!$pathInfo['auth']){
 				$pathInfo['auth'] = Model("SourceAuth")->authDeepCheck($pathInfo['sourceID']);
 			}
-			if(!_get($GLOBALS,'isRoot')){
+			
+			$userRootShow = _get($GLOBALS,'isRoot') && $GLOBALS['config']["ADMIN_ALLOW_SOURCE"];
+			if(!$userRootShow){
 				if( !$pathInfo['auth'] || $pathInfo['auth']['authValue'] == 0){ // 放过-1; 打开通路;
 					continue;// 没有权限;
 				}
@@ -125,6 +161,7 @@ class explorerListGroup extends Controller{
 		$pathInfo = $data['current'];
 		if(!$pathInfo || _get($pathInfo,'targetType') != 'group') return false;
 		if(isset($pathInfo['shareID'])) return false;
+		if(intval($this->in['page']) > 1) return;// 第一页才罗列;
 
 		//不是根目录
 		$parents = $this->model->parentLevelArray($pathInfo['parentLevel']);
@@ -134,7 +171,6 @@ class explorerListGroup extends Controller{
 		$groupList  = $this->modelGroup->where(array('parentID'=>$pathInfo['targetID']))->select();
 		$groupListAdd  = $this->groupArray($groupList);
 		$data['pageInfo']['totalNum'] += count($groupListAdd);
-		if(intval($this->in['page']) > 1) return;// 第一页才罗列;
 
 		$data['groupList'] = $groupListAdd;
 		$data['groupShow'] = array(

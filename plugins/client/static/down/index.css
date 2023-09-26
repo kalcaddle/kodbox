@@ -1,0 +1,60 @@
+.menuBar .menu-dropdown-user li.app-download{
+    display: none !important;
+}
+
+.dialog-client-download.artDialog .dialog-copyright-content .title .client-down-text{
+    text-align: center;
+    font-size: 22px;
+
+    padding-top: 50px;
+    font-size: 26px;
+}
+.dialog-client-download.artDialog .dialog-copyright-content .title .logo{
+    padding-top: 0px;
+    height: 80px;
+}
+.dialog-client-download.artDialog .dialog-copyright-content .title .logo img{
+    max-height: 50px;
+}
+.dialog-client-download.artDialog .dialog-copyright-content .title .info{
+    padding-top: 0px;
+}
+
+.dialog-client-download.artDialog .dialog-copyright-content .content {
+    min-height: 180px;
+}
+.dialog-client-download.artDialog .dialog-copyright-content .content .btn{
+    text-decoration: none;
+    border-radius: 28px;
+    padding: 0;
+    color: #fff;
+    display: inline-block;
+    overflow: hidden;
+    transition: all 0.2s;
+    background: linear-gradient(40deg, #18C0FE, #1677FF);
+    font-size: 13px;
+    padding: 5px 12px;
+    min-width: 88px;
+}
+.dialog-client-download.artDialog .dialog-copyright-content .content .btn:hover{
+    text-decoration: none;
+	transition: all 0.2s;
+	color:#fff;
+	background: linear-gradient(40deg, #2070e5, #1890ff);
+}
+.dialog-client-download.artDialog .dialog-copyright-content .content .btn i{
+    vertical-align: bottom;
+    margin-right: 5px;
+}
+.dialog-client-download.artDialog .dialog-copyright-content .content .line{
+    border-bottom: 1px solid rgba(200,200,200,0.25);
+    width: 100px;
+    margin: -5px auto 10px;
+}
+
+.client-down-qrcode-dg .aui-main {
+    padding-top: 15px !important;
+}
+.client-down-qrcode-dg .aui-content img {
+    width: 185px;
+}

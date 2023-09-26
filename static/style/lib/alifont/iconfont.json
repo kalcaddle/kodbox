@@ -6,6 +6,13 @@
   "description": "多彩图片icon",
   "glyphs": [
     {
+      "icon_id": "20385355",
+      "name": "folder-safe",
+      "font_class": "folder-safe",
+      "unicode": "e642",
+      "unicode_decimal": 58946
+    },
+    {
       "icon_id": "2039579",
       "name": "部门",
       "font_class": "group-root",

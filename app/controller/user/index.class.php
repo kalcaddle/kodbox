@@ -50,6 +50,7 @@ class userIndex extends Controller {
 			$pass = substr(md5('kodbox_'.$systemPassword),0,15);
 			$sessionSign = Mcrypt::decode($accessToken,$pass);
 			if(!$sessionSign){show_json(LNG('common.loginTokenError'),ERROR_CODE_LOGOUT);}
+			$this->initAccessToken();
 			Session::sign($sessionSign);
 		}
 		
@@ -61,6 +62,21 @@ class userIndex extends Controller {
 		// 设置csrf防护;
 		if(!Cookie::get('CSRF_TOKEN')){Cookie::set('CSRF_TOKEN',rand_string(16));}
 	}
+	
+	// accesstoken 登录前处理;
+	private function initAccessToken(){
+		$action = strtolower(ACTION);
+		$disableCookie = array(
+			'explorer.index.filedownload',
+			'explorer.index.fileout',
+			'explorer.share.filedownload',
+			'explorer.share.fileout',
+		);
+		if(in_array($action,$disableCookie)){
+			allowCROS();Cookie::disable(true);
+		}
+	}
+	
 	private function initSetting(){
 		if(!defined('STATIC_PATH')){
 			define('STATIC_PATH',$GLOBALS['config']['settings']['staticPath']);
@@ -91,6 +107,11 @@ class userIndex extends Controller {
 				$upload['downloadSpeed'] = floatval($sysOption['downloadSpeed']);
 			}
 		}
+		
+		// 文件历史版本数量限制; 小于等于1则关闭,大于500则不限制;
+		if(isset($sysOption['fileHistoryMax'])){
+			$GLOBALS['config']['settings']['fileHistoryMax'] = intval($sysOption['fileHistoryMax']);
+		}
 		$upload['chunkSize'] = $upload['chunkSize']*1024*1024;
 		$upload['chunkSize'] = $upload['chunkSize'] <= 1024*1024*0.1 ? 1024*1024*0.4:$upload['chunkSize'];
 		$upload['chunkSize'] = intval($upload['chunkSize']);
@@ -108,7 +129,7 @@ class userIndex extends Controller {
 		$userID 	= Cookie::get('kodUserID');
 		$loginToken = Cookie::get('kodToken');
 		if ($userID && $loginToken ) {
-			$user = Model('User')->getInfo($userID);
+			$user = Model('User')->getInfoFull($userID);
 			if ($user && $user['status'] != '0' && $this->makeLoginToken($user['userID']) == $loginToken ) {
 				return $this->loginSuccess($user);
 			}
@@ -272,7 +293,7 @@ class userIndex extends Controller {
 		if(empty($res['userID'])) {
 			return show_json(LNG('user.pwdError'),false);
 		}
-		$user = Model('User')->getInfo($res['userID']);
+		$user = Model('User')->getInfoFull($res['userID']);
 		$this->loginSuccessUpdate($user);
 		$this->loginAuto();
 		return show_json('ok',true,$this->accessToken());
@@ -307,9 +328,14 @@ class userIndex extends Controller {
 		header('Location: '.APP_HOST);exit;
 	}
 	
-	/**
-	 * 前端（及app）找回密码
-	 */
+	// 刷新用户信息;
+	public function refreshUser($userID){
+		Model('User')->clearCache($userID);
+		$user = Model('User')->getInfoFull($userID);
+		Session::set('kodUser', $user);	
+	}
+	
+	//前端（及app）找回密码
 	public function findPassword(){
 		return Action('user.setting')->findPassword();
 	}
@@ -416,7 +442,7 @@ class userIndex extends Controller {
 		}
 		$signToken = md5(implode(';',$signArr));//同上加密计算
 		$userID    = Mcrypt::decode($actionToken,$signToken);
-		$userInfo  = $userID ? Model('User')->getInfo($userID):false;
+		$userInfo  = $userID ? Model('User')->getInfoFull($userID):false;
 		
 		allowCROS();Cookie::disable(true);
 		if(!is_array($userInfo)) {show_json(LNG("explorer.systemError").'.[apiSignCheck]',false);};

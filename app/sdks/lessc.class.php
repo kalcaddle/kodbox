@@ -558,7 +558,7 @@ class lessc {
         }
         // check for a rest
         $last = end($args);
-        if ($last[0] == "rest") {
+        if (is_array($last) && $last[0] == "rest") {
             $rest = array_slice($orderedValues, count($args) - 1);
             $this->set($last[1], $this->reduce(array("list", " ", $rest)));
         }
@@ -630,7 +630,7 @@ class lessc {
                     if ($suffix !== null &&
                         $subProp[0] == "assign" &&
                         is_string($subProp[1]) &&
-                        $subProp[1]{0} != $this->vPrefix
+                        $subProp[1][0] != $this->vPrefix
                     ) {
                         $subProp[2] = array(
                             'list', ' ',
@@ -756,6 +756,11 @@ class lessc {
     }
     protected function lib_pi() {
         return pi();
+    }
+	protected function lib_replace($args) {
+		// var_dump($args);exit;
+        list($str,$from,$to) = $this->assertArgs($args, 3, "replace");
+		return str_replace($from[2][0],$to[2][0],$str[2][0]);
     }
     protected function lib_mod($args) {
         list($a, $b) = $this->assertArgs($args, 2, "mod");
@@ -1405,7 +1410,7 @@ class lessc {
                 $num = hexdec($colorStr);
                 $width = strlen($colorStr) == 3 ? 16 : 256;
                 for ($i = 3; $i > 0; $i--) { // 3 2 1
-                    $t = $num % $width;
+                    $t = intval($num) % $width;
                     $num /= $width;
                     $c[$i] = $t * (256/$width) + $t * floor(16/$width);
                 }
@@ -3034,7 +3039,7 @@ class lessc_parser {
     protected function matchReg($regex, &$out, $eatWhitespace = null) {
         if ($eatWhitespace === null) $eatWhitespace = $this->eatWhiteDefault;
         $r = '/'.$regex.($eatWhitespace && !$this->writeComments ? '\s*' : '').'/Ais';
-        if (preg_match($r, $this->buffer, $out, null, $this->count)) {
+        if (preg_match($r, $this->buffer, $out, 0, $this->count)) {
             $this->count += strlen($out[0]);
             if ($eatWhitespace && $this->writeComments) $this->whitespace();
             return true;
@@ -3045,7 +3050,7 @@ class lessc_parser {
     protected function whitespace() {
         if ($this->writeComments) {
             $gotWhite = false;
-            while (preg_match(self::$whitePattern, $this->buffer, $m, null, $this->count)) {
+            while (preg_match(self::$whitePattern, $this->buffer, $m, 0, $this->count)) {
                 if (isset($m[1]) && empty($this->seenComments[$this->count])) {
                     $this->append(array("comment", $m[1]));
                     $this->seenComments[$this->count] = true;
@@ -3063,7 +3068,7 @@ class lessc_parser {
     protected function peek($regex, &$out = null, $from=null) {
         if (is_null($from)) $from = $this->count;
         $r = '/'.$regex.'/Ais';
-        $result = preg_match($r, $this->buffer, $out, null, $from);
+        $result = preg_match($r, $this->buffer, $out, 0, $from);
         return $result;
     }
     // seek to a spot in the buffer or return where we are on no argument

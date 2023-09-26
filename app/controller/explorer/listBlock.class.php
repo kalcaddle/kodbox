@@ -25,6 +25,7 @@ class explorerListBlock extends Controller{
 			case 'root':		$result = $this->blockRoot();break; //根
 			case 'files': 		$result = $this->blockFiles();break;
 			case 'tools': 		$result = $this->blockTools();break;
+			case 'safe': 		$result = Action('explorer.listSafe')->listRoot();break;
 			case 'fileType': 	$result = Action('explorer.listFileType')->block();break;
 			case 'fileTag': 	$result = Action('explorer.tag')->tagList();break;
 			case 'driver': 		$result = Action("explorer.listDriver")->get();break;
@@ -68,7 +69,7 @@ class explorerListBlock extends Controller{
 	}
 	
 	private function groupRoot(){
-		$groupArray = Action('filter.userGroup')->userGroupRoot();
+		$groupArray = Action('filter.userGroup')->userGroupRootShow();
 	    if (!$groupArray || empty($groupArray[0])) return false;
 	    return Model('Group')->getInfo($groupArray[0]);
 	}

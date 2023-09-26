@@ -58,7 +58,7 @@ class msgWarningTaskIndex extends Controller {
 		if($config['enable'] != '1') return;
 
 		// 2.获取发送目标
-		$target = array_filter(explode(',', $config['targetx']));
+		$target = array_filter(explode(',', $config['target']));
 		if (empty($target)) return;
 
 		// 3.获取cpu、内存等使用信息，并写入记录
@@ -72,7 +72,7 @@ class msgWarningTaskIndex extends Controller {
 		if (in_array($type, $warnType)) {
 			$memUsage = $server->memUsage();	// [total=>1024,used=>24]
 			$memValue = $memUsage['total'] > 0 ? round($memUsage['used']/$memUsage['total'], 3) : 0;
-			if($memValue > intval($config['useRatio'] / 100)) {
+			if($memValue > floatval($config['useRatio'] / 100)) {
 				$rest = $this->warnUsage($type, array('value' => $memValue, 'data' => $memUsage));
 				if (!$rest) $data[$type] = $memValue;
 			}
@@ -81,9 +81,9 @@ class msgWarningTaskIndex extends Controller {
 		$type = 'cpu';
 		if (in_array($type, $warnType)) {
 			$cpuUsage = $server->cpuUsage();	// 0.23
-			if($cpuUsage > intval($config['useRatio'] / 100)) {
+			if($cpuUsage > floatval($config['useRatio'] / 100)) {
 				$rest = $this->warnUsage($type, array('value' => $cpuUsage));
-				if (!$rest) $data[$type] = $memValue;
+				if (!$rest) $data[$type] = $cpuUsage;
 			}
 		}
 		// 内容不为空，获取系统消息
@@ -148,6 +148,12 @@ class msgWarningTaskIndex extends Controller {
 		if (!$useTime) return false;
 		$cnt = $useTime * 0.8;
 		if(count($list) >= $cnt) {
+			// 时间间隔需满足20分钟，避免每次都有数据写入时提前（16分钟）触发
+			$max = reset($list);
+			$min = end($list);
+			$time = ceil(($max['createTime'] - $min['createTime'])/60);
+			if ($time < $useTime) return true;
+
 			// 每发送一次，删除此前的全部记录。持续时长=发送频率
 			foreach($list as $k => $item) {
 				Model('SystemWarn')->remove($item['id']);

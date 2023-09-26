@@ -1,4 +1,3 @@
-
 <!--
 	mitm.html is the lite "man in the middle"
 
@@ -39,11 +38,12 @@
 	
 	function registerWorker() {
 	  return navigator.serviceWorker.getRegistration('./').then(swReg => {
-		return navigator.serviceWorker.register('./sw.js', { scope: './' })
+		return swReg || navigator.serviceWorker.register('sw.js', { scope: './' })
 	  }).then(swReg => {
 		const swRegTmp = swReg.installing || swReg.waiting
 	
 		scope = swReg.scope
+	
 		return (sw = swReg.active) || new Promise(resolve => {
 		  swRegTmp.addEventListener('statechange', fn = () => {
 			if (swRegTmp.state === 'activated') {
@@ -157,11 +157,11 @@
 		window.onmessage = onMessage
 		messages.forEach(window.onmessage)
 	  })
-	} else {
-	  // FF can ping sw with fetch from a secure hidden iframe
-	  // shouldn't really be possible?
-	  keepAlive()
 	}
 	
-	</script>
+	// FF v102 just started to supports transferable streams, but still needs to ping sw.js
+	// even tough the service worker dose not have to do any kind of work and listen to any
+	// messages... #305
+	keepAlive()
 	
+	</script>

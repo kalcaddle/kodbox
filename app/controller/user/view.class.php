@@ -32,7 +32,8 @@ class userView extends Controller{
 				'role'			=> Action('user.authRole')->userRoleAuth(),
 				'config'		=> $this->config['settingDefault'],
 				'editorConfig'	=> $this->config['editorDefault'],
-				'isRootAllow'	=> true,// $this->config["ADMIN_ALLOW_IO"], 后端处理
+				'isRootAllowIO'	=> $this->config["ADMIN_ALLOW_IO"], //后端处理
+				'isRootAllowAll'	=> _get($GLOBALS,'isRoot',0) ? $this->config["ADMIN_ALLOW_ALL_ACTION"] : 1,
 			),
 			"system" => array(
 				'settings'		=> $this->config['settings'],
@@ -44,10 +45,12 @@ class userView extends Controller{
 		);
 
 		if($user){//空间大小信息;
+			$userInfoFull = Model('User')->getInfoFull(USER_ID);
 			$options['user']['targetSpace'] = Action('explorer.auth')->space('user',USER_ID);
 			$options['user']['role'] = $options['user']['role']['roleList'];
 			$options['user']['config'] = array_merge($this->config['settingDefault'],Model('UserOption')->get());
 			$options['user']['editorConfig'] = array_merge($this->config['editorDefault'],Model('UserOption')->get(false,'editor'));
+			$options['user']['isOpenSafeSpace'] = _get($userInfoFull,'metaInfo.pathSafeFolder',0) ? true:false;
 		}
 		if(_get($GLOBALS,'isRoot')){
 			$options['kod']['WEB_ROOT']   = WEB_ROOT;
@@ -78,6 +81,11 @@ class userView extends Controller{
 	}
 	
 	private function companyInfo(&$options){
+		$op = &$options['system']['options'];$_op = $this->config['settingSystemDefault']; 
+		// 兼容解决部分用户误操作设置logo包含身份token问题;
+		if(stristr($op['systemLogo'],'accessToken')){$op['systemLogo'] = $_op['systemLogo'];}
+		if(stristr($op['systemLogoMenu'],'accessToken')){$op['systemLogoMenu'] = $_op['systemLogoMenu'];}
+
 		$groupSelf  = array_to_keyvalue(Session::get("kodUser.groupInfo"),'','groupID');
 		$groupCompany = $GLOBALS['config']['settings']['groupCompany'];
 		if(!$groupCompany || !$groupSelf || $GLOBALS['isRoot']) return false;

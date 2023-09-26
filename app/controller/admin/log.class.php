@@ -122,7 +122,7 @@ class adminLog extends Controller{
 			if($data['userID'] && !$filter->allowChangeUser($data['userID'])){
 				show_json(LNG('explorer.noPermissionAction'),false);
 			}
-			$groupAdmin = $filter->userAdminGroup();
+			$groupAdmin = $filter->userGroupAdmin();
 			if(!$data['userID'] && !in_array('1',$groupAdmin)){
 				$groupAll = Model('Group')->groupChildrenAll($groupAdmin);
 				$userAll  = Model('User')->groupUserAll($groupAll);
@@ -345,10 +345,8 @@ class adminLog extends Controller{
     public function fileViewLog($path){
         if (MOD == 'plugin' && ACT != 'index') return;
         if (strtolower(ACT) == 'fileout') {
-            // 下载
             $in = $this->in;
             if (isset($in['download']) && $in['download'] == 1) return;
-            // 图片缩略图
             if(isset($in['type']) && $in['type'] == 'image'){
                 if (isset($in['width']) && $in['width'] == '250') return;
             }
@@ -360,10 +358,8 @@ class adminLog extends Controller{
         // 获取文件信息，写入日志
         $parse = KodIO::parse($path);
 		if ($parse['type'] != KodIO::KOD_SOURCE || !$parse['id']) {
-            // 查看历史记录
             $parse = KodIO::parse($this->in['path']);
             if ($parse['type'] != KodIO::KOD_SOURCE || !$parse['id']) return;
-            // $name = $this->in['name'];   // 追加给pathName，在前端并不显示
         }
 		$sourceID = $parse['id'];
 		$sourceInfo = Model("Source")->sourceInfo($sourceID);

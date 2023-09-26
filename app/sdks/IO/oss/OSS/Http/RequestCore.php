@@ -855,7 +855,7 @@ class RequestCore
 		$curl_handle = $theCurl;$this->response = $theResult;
 
         if ($this->response === false) {
-            throw new RequestCore_Exception('cURL resource: ' . (string)$curl_handle . '; cURL error: ' . curl_error($curl_handle) . ' (' . curl_errno($curl_handle) . ')');
+            throw new RequestCore_Exception('cURL resource:cURL error: ' . curl_error($curl_handle) . ' (' . curl_errno($curl_handle) . ')');
         }
 
         $parsed_response = $this->process_response($curl_handle, $this->response);

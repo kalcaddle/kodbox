@@ -6,8 +6,15 @@ class clientPlugin extends PluginBase{
 	}
 	public function regist(){
 		$this->hookRegist(array(
-			'user.commonJs.insert'	=> 'clientPlugin.echoJs'
+			'user.commonJs.insert'		=> 'clientPlugin.echoJs',
+			'user.view.options.after'	=> 'clientPlugin.tfa.index.options',
+			// 'globalRequest'				=> 'clientPlugin.tfa.index.autoCheck',
 		));
+	}
+
+	// tfa相关功能
+	public function tfa(){
+		Action($this->pluginName . "Plugin.tfa.index")->index();
 	}
 	
 	private function needPost(){

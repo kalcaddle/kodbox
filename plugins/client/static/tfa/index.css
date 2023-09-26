@@ -1,0 +1,52 @@
+.login-tfa-dialog .inputs {
+    /* padding: 50px 0px 0px 0px; */
+    padding: 30px 0px 0px 0px;
+}
+.login-tfa-dialog .inputs .input-item {
+    margin: 0 auto 15px auto;
+    text-align: center;
+}
+.login-tfa-dialog .inputs .input-item.def p{
+    padding-left: 38px;
+    text-align: left;
+}
+.login-tfa-dialog .inputs .input-item.def p.title {
+    font-weight: 600;
+    font-size: 16px;
+}
+.login-tfa-dialog .inputs .input-item input {
+    height: 30px;
+    width: 201px;
+    line-height: 25px;
+    padding: 0;
+    border-radius: 3px;
+    /* padding-left: 40px;
+    margin-left: -33px; */
+    border: 1px solid #bbb;
+
+    padding: 0px 10px;
+    width: 221px;
+}
+.login-tfa-dialog .inputs .check-code input {
+    /* width: 120px; */
+    width: 140px;
+    border-radius: 3px 0 0 3px;
+}
+.login-tfa-dialog .inputs .input-item .input-button {
+    cursor: pointer;
+    position: relative;
+    margin: 0 0 0 -5px;
+    width: 66px;
+    height: 30px;
+    line-height: 27px;
+    padding: 0 8px;
+    border-radius: 0 3px 3px 0;
+    border: 1px solid #bbb;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    vertical-align: top;
+    -webkit-appearance: none;
+    appearance: none;
+    background: #fff
+}

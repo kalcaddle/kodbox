@@ -88,6 +88,41 @@ class explorerTag extends Controller{
 		$result['currentFieldAdd'] = $tagInfo;
 		return $result;
 	}
+	
+	// 普通路径追加标签信息; source路径会已经自动添加;
+	public function tagAppendItem(&$item){
+		if(isset($item['sourceInfo']['tagInfo'])){return $item;}
+		
+		static $listPathMap = false;
+		static $tagInfoArr  = false;
+		if($listPathMap === false){ // 缓存处理;
+			$this->modelSource->cacheFunctionClear('listData',USER_ID);
+			$listPathMap = $this->modelSource->listData(); // model查询缓存;			
+			$listPathMap = array_to_keyvalue_group($listPathMap,'path','tagID');
+			$tagInfoArr  = $this->model->listData();
+			$tagInfoArr  = array_to_keyvalue($tagInfoArr,'id');
+		}
+		if(!$tagInfoArr || !$listPathMap){return $item;}
+		
+		$item['sourceInfo']['tagInfo'] = 0;
+		$path 	 = $item['path'];$path1 = rtrim($item['path'],'/');$path2 = rtrim($item['path'],'/').'/';
+		$findItem = isset($listPathMap[$path]) ? $listPathMap[$path]:false;
+		$findItem = (!$findItem && isset($listPathMap[$path1])) ? $listPathMap[$path1]:$findItem;
+		$findItem = (!$findItem && isset($listPathMap[$path2])) ? $listPathMap[$path2]:$findItem;
+		if(!$findItem){return $item;}
+		
+		$item['sourceInfo']['tagInfo'] = array();
+		foreach ($findItem as $tagID) {
+			$item['sourceInfo']['tagInfo'][] = array(
+				"tagID"	=> $tagInfoArr[$tagID]['id'],
+				"name"	=> $tagInfoArr[$tagID]['name'],
+				"style"	=> $tagInfoArr[$tagID]['style'],
+			);
+		}
+		return $item;
+	}
+	
+	
 	private function tagsInfo($tags){
 		$info = false;
 		$styleDefault = 'tag-label label label-blue-normal';
@@ -211,8 +246,6 @@ class explorerTag extends Controller{
 			$res = $this->fileAddTag($file,$data['tagID']);
 		}
 		show_json(LNG('explorer.success'),true);
-		// $msg = $res ? LNG('explorer.success') : LNG('explorer.repeatError');
-		// show_json($msg,!!$res);
 	}
 	
 	// 标签包含内容数量上限控制;
@@ -221,6 +254,7 @@ class explorerTag extends Controller{
 		if( $count > $GLOBALS['config']['systemOption']['tagContainMax'] ){
 			show_json(LNG("common.numberLimit"),false);
 		}
+		Action('explorer.listSafe')->authCheckAllow($file);
 		return $this->modelSource->addToTag($file,$tagID);
 	}
 	

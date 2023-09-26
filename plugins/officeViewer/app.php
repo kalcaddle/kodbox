@@ -50,13 +50,22 @@ class officeViewerPlugin extends PluginBase{
 
 	// 入口
 	public function index(){
+		$path = $this->filePath($this->in['path']);
+		if (isset($this->fileInfo['fileID'])) {
+			$tmpInfo = Model('File')->fileInfo($this->fileInfo['fileID']);
+			if (!$tmpInfo || !IO::exist($tmpInfo['path'])) {
+				show_tips(LNG('common.pathNotExists'));
+			}
+		}
 		$config = $this->getConfig();
 		$openType = isset($config['openType']) ? $config['openType'] : '';
 		if ($openType == 'js') $openType = 'wb';	// 兼容旧版
 		$types = $openType == 'wb' ? array_keys($this->appList) : array($openType);
 		// 按顺序依次调用
+		$skip = (isset($this->in['skip']) && $this->in['skip'] == 'wb') ? true : false;
 		foreach ($this->appList as $type => $app) {
-			if (!in_array($type, $types) || !$this->allowExt($type)) continue;
+			if ($type == 'wb' && $skip) continue;
+			if (!in_array($type, $types) || !$this->allowExt($type,true)) continue;
 			if ($type == 'lb' && !$this->action($app)->getSoffice()) continue;
 			if ($type == 'ol' && !$this->isNetwork()) continue;	// officelive，文件需为域名地址
 			return $this->fileOut($app);
@@ -85,13 +94,13 @@ class officeViewerPlugin extends PluginBase{
 		return $data;
 	}
 	// 各打开方式支持的文件格式
-	public function allowExt($type){
+	public function allowExt($type,$inlet=false){
 		$ext = $this->in['ext'];
 		$config = $this->getConfig();
 		$extAll = explode(',', $config[$type.'FileExt']);
 		if (!in_array($ext, $extAll)) return false;
 		// 某些文件可能只是命名为旧格式，根据前2个字符(PK)区分
-		if ($type == 'wb' && in_array($ext, array('doc', 'ppt'))) {
+		if ($type == 'wb' && $inlet && in_array($ext, array('doc', 'ppt'))) {
 			$path = $this->in['path'];
 			$prfx = IO::fileSubstr($path, 0, 2);
 			return strtolower($prfx) == 'pk' ? true : false;
@@ -100,13 +109,8 @@ class officeViewerPlugin extends PluginBase{
 	}
 	// 各打开方式错误提示
 	public function showTips($msg, $title){
-		// $title = '<img src="'.$this->pluginHost.'static/images/icon.png" style="width:22px;margin-right:8px;vertical-align:text-top;">'
 		$title = '<span style="font-size:20px;">'.LNG('officeViewer.meta.name')
 				.'</span><span style="font-size:14px;margin-left:5px;"> - '.$title.'</span>';
-		// $msg = '<div style="text-align:center;font-size:14px;">'
-		// 		.'<img src="'.$this->pluginHost.'static/images/error.png" style="width:24px;margin-top:10px;">'
-		// 		.'<p style="margin-top:10px;">'.$msg.'</p>'
-		// 		.'</div>';
 		show_tips($msg, '', '', $title);
 	}
 
@@ -163,7 +167,7 @@ class officeViewerPlugin extends PluginBase{
 					$assign['canWrite'] = true;
 				}
 			}
-			$assign['fileUrl'] .= "&name=/".$assign['fileName'];
+			$assign['fileUrl'] .= "&disable_name=1&name=/".$assign['fileName'];
 		}
 		if ($link) $assign['fileUrl'] = $link;
 		$this->assign($assign);
@@ -191,43 +195,26 @@ class officeViewerPlugin extends PluginBase{
 		$appList = Model('Plugin')->loadList();
 		$apps = array('wpsOffice','onlyoffice','officeOnline');	// 新页面打开，排除client方式
 		foreach ($apps as $app) {
-			// 1.插件是否启用
 			if (!isset($appList[$app]) || !$appList[$app]['status']) continue;
 			$config = $appList[$app]['config'];
-			// 2.插件使用权限
 			if (!$config['pluginAuth']) continue;
 			$auth = ActionCall('user.authPlugin.checkAuthValue',$config['pluginAuth']);
 			if (!$auth) continue;
-			// 3.是否启用编辑模式
-			// if ($app == 'client') {
-			// 	if ($config['fileOpenSupport'] != '1') continue;
-			// 	$fileOpen = json_decode($config['fileOpen'], true);
-			// 	$fileExt  = $fileOpen[0]['ext'];
-			// 	$fileSort = $fileOpen[0]['sort'];
-			// } else {
-				$mode = $app == 'onlyoffice' ? 'wapViewMode' : 'editMode';
-				if ($config[$mode] != 'edit') continue;
-				$fileExt  = $config['fileExt'];
-				$fileSort = $config['fileSort'];
-			// }
-			// 4.是否支持对应格式
+
+			$fileExt  = $config['fileExt'];
+			$fileSort = $config['fileSort'];
 			$fileExt = explode(',', $fileExt);
 			if (!in_array($data['ext'], $fileExt)) continue;
 
 			$list[$app] = intval($fileSort);
 		}
-		// if (isset($list['client'])) {
-		// 	$ua = strtolower($_SERVER ['HTTP_USER_AGENT']);
-		// 	if (!strstr($ua,'kodcloud')) unset($list['client']);
-		// 	// TODO 下载权限
-		// }
-		if (!$list) show_json('没有有效的文件编辑方式', false, 10001);
+		if (!$list) show_json('没有有效的文件编辑方式', false);
 		arsort($list, SORT_NUMERIC);
-		$app = key($list);
+		$app = key($list);	// 从当前指针位置返回键名（排序会重置指针）
 
 		$link = urlApi('plugin/'.$app,'path='.$data['path']);
 		$link .= '&ext='.rawurlencode($data['ext']).'&name='.rawurlencode($data['name']);
-		show_json($link);
+		show_json($link, true, $app);
 	}
 }
 

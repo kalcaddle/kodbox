@@ -48,14 +48,13 @@ $(function(){
             }
         });
         window.onerror = function (message, url, line, column, error) {
-            if(tipsLoading){tipsLoading.close();tipsLoading = false;}
-            console.error(message, url, line, column, error);
-            page.showTips('文件损坏，或包含不支持的内容格式！');
+            // if(tipsLoading){tipsLoading.close();tipsLoading = false;}
+            webOfficeAutoChange(error);
+            console.warn(message, url, line, column, error);
         }
     }catch(err){
-        if(tipsLoading){tipsLoading.close();tipsLoading = false;}
-        console.error(err);
-        page.showTips('文件损坏，或包含不支持的内容格式！');
+        // if(tipsLoading){tipsLoading.close();tipsLoading = false;}
+        webOfficeAutoChange(err);
     }
 
     // 页面缩放比例，(当前宽/高) / (原始宽/高)，原始宽高比通常为960/720、1280/720

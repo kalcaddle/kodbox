@@ -38,4 +38,27 @@ return array(
 	
 	'client.app.loginWebDesc'			=> 'App needs to be upgraded to the latest version',
 	'client.app.loginWebTips'			=> 'App scan Qrcode login Web',
+
+	'client.down.client'				=> 'Client Download',
+	'client.down.app'					=> 'App Download',
+	'client.down.apiErr'				=> 'Network request exception, please download on the <a href="https://kodcloud.com/download/" target="_blank">official website</a>.',
+	'client.down.linkErr'				=> 'Invalid link, please contact the administrator!',
+	'client.down.webScan'				=> 'Use mobile browser to scan and download',
+
+	'client.tfa.tfaOpen' 				=> 'Login two-step verification on',
+	'client.tfa.tfaOpenDesc' 			=> 'After opening, you need to verify the message verification code, which is suitable for account and password login. ',
+	'client.tfa.tfaType' 				=> 'Second verification sending method',
+	'client.tfa.tfaTypeDesc' 			=> 'Verification code sending method, users can choose a method for verification when multiple selections are made',
+	'client.tfa.email' 					=> 'Email',
+	'client.tfa.phoneEmail' 			=> 'Mobile phone/email',
+	'client.tfa.phoneNumEmail' 			=> 'Mobile phone number/email',
+	'client.tfa.inputValid' 			=> 'Please fill in valid',
+	'client.tfa.sendTo' 				=> 'Send to',
+	'client.tfa.verify' 				=> 'Verification',
+	'client.tfa.2verify' 				=> 'Second verification',
+	'client.tfa.need2verify' 			=> 'Need two-step verification',
+	'client.tfa.loginErr' 				=> 'Login information abnormal! ',
+	'client.tfa.userErr' 				=> 'User information does not match! ',
+	'client.tfa.sendEmpty' 				=> 'The binding sending method is abnormal! ',
+	'client.tfa.sendInvalid' 			=> 'The format of the sending method is wrong! ',
 );

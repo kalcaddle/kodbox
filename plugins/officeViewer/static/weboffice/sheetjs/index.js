@@ -36,7 +36,7 @@
             setTbHead();
             // $('body').addClass('page-loaded');
         }catch(err){
-            page.showTips('文件损坏，或包含不支持的内容格式！');
+            webOfficeAutoChange(err);
         }
     });
 })();

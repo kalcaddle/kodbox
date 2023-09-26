@@ -276,32 +276,39 @@ function check_code($code){
 
 // 立即输出内容到页面; $replace 为true时不作为后续输出
 function echoLog($log,$replace=false){
-	static $isClean    = false;
+	static $isFirst    = true;
 	static $logBefore  = '';
 	static $timeBefore = false;
-	if(!$isClean){
-		ob_end_clean();
+	static $isCli 	   = false;
+	if($isFirst){
 		ignore_timeout();
-		header('X-Accel-Buffering: no');
-		$isClean = true;
+		@ob_end_clean();
+		@header('X-Accel-Buffering: no');
+		$isFirst = false;
+		$isCli   = stristr(php_sapi_name(),'cli') ? true : false;
 	}
 	
 	$timeDelay  = 0.05;// 临时替换的输出内容, 50ms内只输出一次;
 	$timeAt     = timeFloat();
 	if($timeBefore && $replace && ($timeAt - $timeBefore) < $timeDelay){return;}
 	$timeBefore = $timeAt;
+	$timeFloat 	= explode(".",mtime());
+	$timeNow 	= date("H:i:s.",time()).substr($timeFloat[1],0,3);	
+	if($isCli){
+		echo "".$timeNow.": ".str_replace(array('<br/>','&quot;'),array("\n",'"'),$log)."\n";
+		@flush();@ob_flush();
+		return;
+	}
 	
 	$timeStyle  = '<span style="display:inline-block;width:100px;font-size:14px;color:#888;">';
 	$textStyle  = '<span style="display:inline-block;font-size:14px;color:#0084fe;">';
-	$timeFloat 	= explode(".",mtime());
-	$timeNow 	= date("H:i:s.",time()).substr($timeFloat[1],0,3);
 	$logNow 	= $timeStyle.$timeNow."</span>".$textStyle.$log.'</span><br/>';
 
 	if(!$replace){$logBefore .= $logNow;}
 	$logOut = $replace ? $logBefore.$logNow : $logBefore;
-	$logOut = str_replace('`','\\`',$logOut);
+	$logOut = str_replace(array('`',"\n"),array('\\`',"<br/>"),$logOut);
 	$logOut = '(document.body&&(document.body.innerHTML=`'.$logOut.'`))||(document.write(`'.$logOut.'`));';
-	ob_end_flush();echo '<script>'.$logOut.'</script>'.str_pad('',1024*2);flush();
+	@ob_end_flush();echo '<script>'.$logOut.'</script>'.str_pad('',1024*2);flush();
 }
 
 
@@ -714,17 +721,19 @@ function array_key_max($array){
  * (arr,'id','name')=>{34:"dd",78:"name"}	//用元素key的值作为新数组的key，只取对应$contentKey的值作为内容；
  * (arr,'','name')=>["dd","name"]  			//只取数组元素的特定项构成新的数组
  */
-function array_to_keyvalue($array,$key='',$contentKey=false){
+function array_to_keyvalue($array,$key='',$contentKey=false,$hasSub=false){
 	$result = array();
 	if(!is_array($array) || !$array) return $result;
 	if(!$key){return array_column($array,$contentKey);}
 	$contentKey = $contentKey ? $contentKey : null;
-	return array_column($array,$contentKey,$key);
+	if(!$hasSub){return array_column($array,$contentKey,$key);}
 
+	// 支持取值的下层;
 	foreach ($array as $item) {
-		$theValue = $contentKey ? $item[$contentKey]:$item;
+		$theValue = $contentKey ? _get($item,$contentKey):$item;
 		if($key){
-			$result[$item[$key].''] = $theValue;
+			$theKey = _get($item,$key).'';
+			$result[$theKey] = $theValue;
 		}elseif(!is_null($theValue)){
 			$result[] = $theValue;
 		}
@@ -1130,6 +1139,7 @@ function show_json($data=false,$code = true,$info='',$infoMore=''){
 	// 有值且为true则返回，清空输出并返回数据结果
 	if( isset($GLOBALS['SHOW_JSON_NOT_EXIT']) && $GLOBALS['SHOW_JSON_NOT_EXIT'] == 1 ){
 		// 保留第一个show_json调用输出;ob_get_clean 后该次置空; 
+		write_log(array('SHOW_JSON_NOT_EXIT',$result,'call'=>get_caller_info()));
 		if(!ob_get_length()){echo json_encode_force($result);}
 		return;
 	}

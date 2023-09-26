@@ -55,17 +55,11 @@ class userSso extends Controller{
 		if($appName == 'user:admin'){$appName = '{"user":"admin"}';}
 		if(substr($appName,0,1) == '{'){
 			//支持直接传入权限设定对象;{"user":"1,3","group":"1","role":"1,2"}
-			$authValue = $appName;
+			$allow = Action('user.AuthPlugin')->checkAuthValue($appName);
 		}else{
-			$plugin = Model("Plugin")->loadList($appName);
-			if (!$plugin || $plugin['status'] == 0){
-				return $appName.' '.LNG('admin.plugin.disabled');
-			}
-			$authValue = $plugin['config']['pluginAuth'];
+			$allow = Action('user.AuthPlugin')->checkAuth($appName);
 		}
-		if(!Action('user.AuthPlugin')->checkAuthValue($authValue)){
-			return LNG('user.loginNoPermission');
-		}
+		if(!$allow){return LNG('user.loginNoPermission');}
 		return true;
 	}
 

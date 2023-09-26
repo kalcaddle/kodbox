@@ -34,6 +34,7 @@ class officeViewerlibreOfficeIndex extends Controller {
 		// 转换文件已存在，直接输出
 		$fileHash = KodIO::hashPath($info);
 		$convName = "libreOffice_{$ext}_{$fileHash}.pdf";
+		if (!is_dir(TEMP_FILES)) mk_dir(TEMP_FILES);
 		$tempFile = TEMP_FILES . $convName;
 		$tempInfo = IO::infoFull($plugin->cachePath.$convName);
 		if ($tempInfo) {

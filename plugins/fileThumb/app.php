@@ -107,6 +107,7 @@ class fileThumbPlugin extends PluginBase{
 		// io缩略图已存在，直接输出
 		$fileHash  = KodIO::hashPath($info);
 		$coverName = "cover_{$ext}_{$fileHash}_{$size}.jpg";
+		if (!is_dir(TEMP_FILES)) mk_dir(TEMP_FILES);
 		$thumbFile = TEMP_FILES . $coverName;
 		if($sourceID = IO::fileNameExist($this->cachePath, $coverName)){
 			return IO::fileOut(KodIO::make($sourceID));

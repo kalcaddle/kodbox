@@ -136,23 +136,17 @@ class msgWarningPlugin extends PluginBase{
         $data = array(
             'user'  => array(),     // 账号：email/pass
             'disk'  => array(),     // 存储：系统盘、存储盘空间使用
-            'raid'  => array()      // raid：硬件异常信息
+            // 'raid'  => array()      // raid：硬件异常信息
         );
         // 1.账号信息
-        // 一体机检查初始密码——安装了cockpit才有此项
-        $kptAcc = Session::get('oemCockpitPluginAccount');  // cockpit account
-        if ($kptAcc) {
-            if (isset($kptAcc['password']) && $kptAcc['password'] == 'admin') {
-                $data['user'][] = LNG('msgWarning.main.msgPwdErr');
-            }
-        }
         if (empty($user['email'])) {
             $data['user'][] = LNG('msgWarning.main.msgEmlErr');
         }
         if (!empty($data['user'])) {
-            $style = !$ret ? 'margin-left:5px;' : ''; 
-            $setLink = '<a style="'.$style.'padding:0px;text-decoration:none;" link-href="#setting/user/account">'.LNG('msgWarning.main.setNow').'</a >';
-            $data['user'][count($data['user'])-1] = end($data['user']) . $setLink;
+            $link	= APP_HOST.'#setting/user/account';
+			$style	= 'margin-left:5px;padding:0px;text-decoration:none;';
+			$aLink  = '<a style="'.$style.'" link-href="'.$link.'" href="'.$link.'">'.LNG('msgWarning.main.setNow').'</a >';
+            $data['user'][count($data['user'])-1] = end($data['user']) . $aLink;
         }
 
         // 2.磁盘空间
@@ -176,11 +170,7 @@ class msgWarningPlugin extends PluginBase{
                 $data['disk'][] = sprintf(LNG('msgWarning.main.msgDefSizeErr'), $drvUrl, $size);
             }
         }
-
-        // 3.raid异常
-        if ($kptAcc) {
-            // TODO 获取raid异常信息，多条以数组形式返回
-        }
+        $data = Hook::filter('system.msg.warning',$data);
 
         if ($ret) return $data;
         show_json($data);

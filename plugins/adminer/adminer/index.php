@@ -2,8 +2,11 @@
 
 // 登录认证;
 include('../../../app/api/KodSSO.class.php');
-KodSSO::check('user:admin');//'adminer'  'user:admin'
+KodSSO::check('user:admin');// 必须系统管理员才可用; 'adminer'  'user:admin'
+KodSSO::check('adminer'); 	// 系统管理员,可能开启三权分立,则会做检测;
 @error_reporting(E_ALL^E_NOTICE^E_WARNING^E_DEPRECATED^E_STRICT);
+
+if(file_exists('/tmp') && !file_exists('/tmp/session')){@mkdir('/tmp/session/',0777);}
 
 // X-Frame-Options 去除不允许ifram限制;
 function adminer_object() {
@@ -25,6 +28,9 @@ function adminer_object() {
 			echo '<script src="'.$host.'static/app/dist/sdk.js"></script>';
 			echo '<script type="text/javascript" src="./adminer.js"></script>';
 			return true;
+		}
+		function permanentLogin($allow=false){
+		    return 'aabbccdd';
 		}
 		function login($login, $password){
 			return true;

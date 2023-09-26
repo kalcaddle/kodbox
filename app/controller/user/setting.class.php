@@ -52,7 +52,6 @@ class userSetting extends Controller {
 			$input = trim(rawurldecode($input));
 		}
 		$input = html2txt($input);
-
 		$userID = $this->user['userID'];
 		if(in_array($data['type'], array('email', 'phone'))){
 			if($input == $this->user[$data['type']]){
@@ -75,8 +74,8 @@ class userSetting extends Controller {
 			$msg = $this->model->errorLang($res);
 			show_json(($msg ? $msg : LNG('explorer.error')), false);
 		}
+		Action('user.index')->refreshUser($userID);
 		$userInfo = Model('User')->getInfo($userID);
-		Cache::set('kodUser', $userInfo);
 		show_json(LNG('explorer.success'), true, $userInfo);
 	}
 
@@ -178,8 +177,6 @@ class userSetting extends Controller {
 		if ($res = Model('User')->userSearch($where, 'name,nickName')) {
 			$typeTit = $type . ($type == 'phone' ? 'Number' : '');
 			show_json(LNG('common.' . $typeTit) . LNG('common.error'), false);
-			// $name = $res['nickName'] ? $res['nickName'] : $res['name'];
-			// show_json(LNG('common.' . $type) . LNG('user.bindOthers') . "[{$name}]", false);
 		}
 		// 判断邮箱、短信验证码
 		$param = array(
@@ -260,9 +257,9 @@ class userSetting extends Controller {
 		if(!$this->model->userEdit($userID, array("avatar" => $link))) {
 			show_json(LNG('explorer.upload.error'), false);
 		}
-		$user = $this->model->getInfo($userID);
-		Session::set('kodUser', $user);
-		show_json($link, true, $user);
+		Action('user.index')->refreshUser($userID);
+		$userInfo = Model('User')->getInfo($userID);
+		show_json($link, true, $userInfo);
 	}
 
 	/**

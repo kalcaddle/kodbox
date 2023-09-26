@@ -44,6 +44,7 @@ class adminMember extends Controller{
 		if(!$data['groupID']){show_json(array(),true);}
 		if($data['groupID'] == 1) $data['groupID'] = 0;	// 根部门（id=1）获取全部用户
 		$result = $this->model->listByGroup($data['groupID'], $data);
+		$this->showUserfilterAllow($result['list']);
 		show_json($result,true);
 	}
 	
@@ -54,6 +55,7 @@ class adminMember extends Controller{
 		$id = Input::get('id','[\d,]*');
 		$result = $this->model->listByID(explode(',',$id));
 		$this->showUserfilterAllow($result);
+		show_json($result,true);
 	}
 
 	/**
@@ -66,31 +68,41 @@ class adminMember extends Controller{
 			"status"		=> array("default"=>null)
 		));
 		$result = $this->model->listSearch($data);
-		$this->showUserfilterAllow($result);
+		$this->showUserfilterAllow($result['list']);
+		show_json($result,true);
 	}
 	
 	// 过滤不允许的用户信息(根据当前用户可见部门筛选)
 	private function showUserfilterAllow($list){
-		if(!is_array($GLOBALS['_groupRootArray']) || !$list || !$list['list']){
-			show_json($list,true);
-		}
+		$userGroupRootShow  = Action("filter.userGroup")->userGroupRootShow(); // 用户所在跟部门;可见范围
+		$userGroupAdmin = Action("filter.userGroup")->userGroupAdmin();// 用户所在部门为管理员的部门;
+		if(!$userGroupRootShow || !$list){return $list;}
 
-		$userAllow = array();
-		foreach ($list['list'] as $user){
-			$allow = false;
+		// 获取完整用户信息, 有部门管理权限且该参数为full才返回用户完整信息,否则精简用户信息(去除邮箱,手机号等敏感信息)
+		$userAllow    = array();
+		$requestAdmin = isset($this->in['requestFromType']) && $this->in['requestFromType'] == 'admin'; // 后端用户列表;
+		foreach ($list as $user){
+			$groupParentAll = array(); 
 			foreach ($user['groupInfo'] as $groupInfo){
 				$parents = Model('Group')->parentLevelArray($groupInfo['parentLevel']);
-				$parents[] = $groupInfo['groupID'];
-				foreach ($parents as $groupID){
-					if(in_array($groupID.'',$GLOBALS['_groupRootArray'])){$allow = true;break;}
-				}
-				if($allow){break;}
+				$groupParentAll = array_merge($parents,$groupParentAll,array($groupInfo['groupID']));
 			}
-			if($allow){$userAllow[] = $user;}
+			$groupParentAll = array_unique($groupParentAll);
+			$allowShow = array_intersect($groupParentAll,$userGroupRootShow)  ? true : false; //是否有交集
+			$allowFull = array_intersect($groupParentAll,$userGroupAdmin) ? true : false;
+			if($GLOBALS['isRoot']){$allowFull = true;$allowShow = true;}//超级管理员(不受权限限制)
+			
+			if(!$allowShow){continue;}
+			if($allowFull && $requestAdmin){$userAllow[] = $user;continue;}
+			$userItem = array();
+			$allowField = explode(',','userID,avatar,name,nickName,groupInfo');
+			foreach ($allowField as $key) {
+				$userItem[$key] = $user[$key];
+			}
+			$userAllow[] = $userItem;
 		}
-		// pr($userAllow,$list,$GLOBALS['_groupRootArray']);exit;
-		$list['list'] = $userAllow;
-		show_json($list,true);
+		// pr($userAllow,$list,$userGroupRootShow,$userGroupAdmin);exit;
+		return $userAllow;
 	}
 	
 	/**
@@ -226,17 +238,41 @@ class adminMember extends Controller{
 				return show_json("not support change self role!",false);
 			}
 		}
-
-		$res = $this->model->userEdit($data['userID'],$data);
+		
+		$dataSave = array();$groupSave = false; // 仅处理变化的内容;
+		$userInfo = $this->model->getInfo($data['userID']);
+		foreach($data as $key => $value) {
+			if($key == 'userID') continue;
+			if($value == $userInfo[$key]) continue;
+			$dataSave[$key] = $value;
+		}
+		
+		if($dataSave){$res = $this->model->userEdit($data['userID'],$dataSave);}
 		$groupInfo = json_decode($this->in['groupInfo'],true);
-		if($res > 0 && isset($this->in['groupInfo'])){ 
+		if(isset($this->in['groupInfo'])){ 
 			// 编辑用户,必须有至少一个默认部门; 即便是没有权限;
 			$groupInfo = is_array($groupInfo) ? $groupInfo : array();
-			$this->model->userGroupSet($data['userID'],$groupInfo,true);
+			$userGroup = array_to_keyvalue($userInfo['groupInfo'],'groupID','auth.id',true);
+
+			// 添加到指定部门时;保持原来所在部门权限不变;
+			$isGroupAppend = isset($this->in['groupInfoAppend']) && $this->in['groupInfoAppend'] == '1';
+			// 仅添加时,用户所在部门不在设置范围内则自动加入;
+			foreach ($userGroup as $groupID => $auth){
+				if($isGroupAppend && !isset($groupInfo[$groupID])){$groupInfo[$groupID] = $auth;}
+			}
+			if($userGroup != $groupInfo){
+				$groupSave = true;$res = 1;
+				$this->model->userGroupSet($data['userID'],$groupInfo,true);
+			}
 		}
+		$this->in['_change'] = $dataSave;
+		if($groupSave){$this->in['_change']['groupInfo'] = $_REQUEST['groupInfo'];}
+		if(!$dataSave && !$groupSave){$res = 1;}
+		
 		$msg = $res > 0 ? LNG('explorer.success') : $this->model->errorLang($res);
 		return show_json($msg,($res>0),$data['userID']);
 	}
+	
 	/**
 	 * 添加到部门
 	 */

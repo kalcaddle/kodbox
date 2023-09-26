@@ -20,7 +20,7 @@ class pdfjsPlugin extends PluginBase{
 	 */
 	public function index(){
 		$path = $this->in['path'];
-		$fileUrl  = $this->filePathLink($path);
+		$fileUrl  = $this->filePathLink($path).'&disable_name=1';
 		$fileName = $this->in['name'].' - '.LNG('common.copyright.name').' - '.LNG('common.copyright.powerBy');
 		$canDownload = Action('explorer.auth')->fileCan($path,'download');
 		$fileType = $this->in['ext'];

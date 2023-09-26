@@ -15,14 +15,14 @@
 
 class explorerUserShareGroup extends Controller{
 	private $model;
-	private $userGroupRoot;
+	private $userGroupRootShow;
 	private $shareListData;
 	function __construct(){
 		parent::__construct();
 		$this->model  = Model('Share');
 	}
 	public function get($id){
-		$this->userGroupRoot  = Action('filter.userGroup')->userGroupRoot();
+		$this->userGroupRootShow  = Action('filter.userGroup')->userGroupRootShow();
 		$this->shareListData  = $this->shareListDataMake();
 		if(!$id || $id == 'group'){
 			return $this->listRoot();
@@ -41,14 +41,14 @@ class explorerUserShareGroup extends Controller{
 	}
 	
 	private function listRoot(){
-		$rootCount = count($this->userGroupRoot);
+		$rootCount = count($this->userGroupRootShow);
 		if($rootCount == 0) return false;
 		$outUserList  = $this->listUserOuter();
 		if($rootCount == 1){
-			return $this->listRootSingle($this->userGroupRoot[0],$outUserList);
+			return $this->listRootSingle($this->userGroupRootShow[0],$outUserList);
 		}
 
-		$childrenGroup = Model("Group")->listByID($this->userGroupRoot);
+		$childrenGroup = Model("Group")->listByID($this->userGroupRootShow);
 		$childrenGroup = array_sort_by($childrenGroup,'sort',false);
 		$groupList = array();
 		foreach($childrenGroup as $groupInfo){
@@ -162,12 +162,12 @@ class explorerUserShareGroup extends Controller{
 	}
 	public function groupAllowShow($groupID,$parentLevel=false){
 		$allow  = false;
-		if(in_array($groupID,$this->userGroupRoot)) return true;
+		if(in_array($groupID,$this->userGroupRootShow)) return true;
 		if(!$parentLevel){
 			$groupInfo = Model('Group')->getInfo($groupID);
 			$parentLevel = $groupInfo['parentLevel'].$groupInfo['groupID'].',';
 		}
-		foreach($this->userGroupRoot as $group){
+		foreach($this->userGroupRootShow as $group){
 			if($this->groupChildrenMake($group,$parentLevel)){$allow = true;break;}
 		}
 		return $allow;
@@ -211,15 +211,15 @@ class explorerUserShareGroup extends Controller{
 	
 	private function makeAddress($itemInfo,$parentGroup){
 		$address = array(array("name"=> LNG('explorer.toolbar.shareToMe'),"path"=>'{shareToMe}'));
-		// 从$this->userGroupRoot的某一个,开始到$groupInfo所在部门
+		// 从$this->uuserGroupRootShow的某一个,开始到$groupInfo所在部门
 		$level = $parentGroup ? $parentGroup['parentLevel'].$parentGroup['groupID'].',':'';
 		$level = explode(',',trim($level,','));
 		$level = array_remove_value($level,'0');
 		
-		$fromAdd = count($this->userGroupRoot) == 1 ? 1: 0;//只有一个根部门,则忽略根部门;
+		$fromAdd = count($this->userGroupRootShow) == 1 ? 1: 0;//只有一个根部门,则忽略根部门;
 		$index   = false;
 		if($level){
-			foreach($this->userGroupRoot as $groupID){
+			foreach($this->userGroupRootShow as $groupID){
 				$index = array_search($groupID,$level);
 				if($index !== false){break;}
 			}

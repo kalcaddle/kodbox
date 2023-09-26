@@ -14,21 +14,15 @@ class userAuthRole extends Controller {
 	function __construct() {
 		parent::__construct();
 	}
-	public function authCanDownload(){
-		return $this->authCan('explorer.download');
-	}
 	public function isRoot(){return isset($GLOBALS['isRoot'])?!!$GLOBALS['isRoot']:false;} 
 	public function authCanSearch(){return $this->authCan('explorer.search');}
 	public function authCanRead(){return $this->authCan('explorer.view');}
 	public function authCanEdit(){return $this->authCan('explorer.edit');}
-	public function authCan($action){
+	public function authCanDownload(){return $this->authCan('explorer.download');}
+	public function authCan($action){ // action 区分大小写; 与$config['authRoleAction'] key保持一致;
 		if($this->isRoot()) return true;
 		$userRole = $this->userRoleAuth();
-		$action   = strtolower($action);
-		if($userRole['roleList'][$action] == 1){
-			return true;
-		}
-		return false;
+		return $userRole['roleList'][$action] == 1 ? true : false;
 	}
 
 	// 未登录：允许的 控制器方法;
@@ -63,6 +57,7 @@ class userAuthRole extends Controller {
 			}
 			show_json(LNG('user.loginFirst'),ERROR_CODE_LOGOUT);
 		}
+		$this->authShareLinkUpdate();//分享拆分,老数据迁移;
 		//系统管理员不受权限限制
 		if($this->isRoot()) return true;
 		
@@ -85,14 +80,11 @@ class userAuthRole extends Controller {
 		if(isset(self::$authRole[$roleID])){
 			return self::$authRole[$roleID];
 		}
-		
-		$authAllowAction 	= $this->config['authAllowAction'];
-		$roleAction 		= $this->config['authRoleAction'];		
-		$roleInfo = Model('SystemRole')->listData($roleID);		
+
+		$roleInfo = Model('SystemRole')->listData($roleID);
 		$userRoleAllow  = $this->authCheckAlias($roleInfo['auth']);
-		$authRoleList 	= array();
-		$allowAction 	= array();
-		foreach ($roleAction as $role => $modelActions) {
+		$authRoleList 	= array();$allowAction 	= array();
+		foreach ($this->config['authRoleAction'] as $role => $modelActions) {
 			$enable = intval(in_array($role,$userRoleAllow));
 			$authRoleList[$role] = $enable;
 			if(!$modelActions || !is_array($modelActions)) continue;
@@ -108,21 +100,27 @@ class userAuthRole extends Controller {
 				$action = strtolower($action);//统一转为小写
 				if(!isset($allowAction[$action])){
 					$allowAction[$action] = $enable;
-				}else{
-					/**
-					 * false可以覆盖true;true不能覆盖false;
-					 * 'explorer.download'	=> array('explorer.index'=>'zipDownload...')
-					 * 'explorer.zip'		=> array('explorer.index'=>'zipDownload...')
-					*/
-					if($allowAction[$action]){
-						$allowAction[$action] = $enable;
-					}
+					continue;
+				}
+				// 重复action点允许true值覆盖的动作,(权限在内部判断)
+				if(in_array($role,$this->config['authRoleActionKeepTrue'])){
+					if($enable){$allowAction[$action] = $enable;}
+					continue;
+				}
+				
+				/**
+				 * false可以覆盖true;true不能覆盖false;
+				 * 'explorer.download'	=> array('explorer.index'=>'zipDownload...')
+				 * 'explorer.zip'		=> array('explorer.index'=>'zipDownload...')
+				*/
+				if($allowAction[$action]){
+					$allowAction[$action] = $enable;
 				}
 			}
 		}
 		
 		//不需要检测的动作白名单; 优先级最高;
-		foreach ($authAllowAction as $action) { 
+		foreach ($this->config['authAllowAction'] as $action) { 
 			$allowAction[strtolower($action)] = 1;
 		}
 		$result = array(
@@ -134,6 +132,30 @@ class userAuthRole extends Controller {
 		return $result;
 	}
 	
+	/**
+	 * 角色权限升级,老数据处理(1.44)
+	 * 分享拆分为=内部协作分享+外链分享 原explorer.share 拆分为 explorer.share+explorer.shareLink
+	 * 用户编辑拆分为=用户编辑+用户权限设置; 原admin.member.userEdit 拆分为 admin.member.userEdit+admin.member.userAuth
+	 */
+	private function authShareLinkUpdate(){
+		$option = Model("SystemOption")->get(false,'system');
+		if($option['explorerShareUpate'] == '1') return;
+		Model("SystemOption")->set('explorerShareUpate','1','system');
+		$roleList = Model('SystemRole')->listData();
+		foreach ($roleList as $role){
+			$auth = $role['auth'];
+			if(!strstr($role['auth'],'explorer.shareLink')){
+				$auth = str_replace('explorer.share','explorer.share,explorer.shareLink',$auth);
+			}
+			if(!strstr($role['auth'],'admin.member.userAuth')){
+				$auth = str_replace('admin.member.userEdit','admin.member.userEdit,admin.member.userAuth',$auth);
+			}
+			if($auth == $role['auth']) continue;
+			$role['auth'] = $auth;
+			Model('SystemRole')->update($role['id'],$role);
+		}
+	}
+	
 	// 处理权限前置依赖;
 	private function authCheckAlias($auth){
 		$authList = explode(',',trim($auth,','));
@@ -141,6 +163,7 @@ class userAuthRole extends Controller {
 			'explorer.add'			=> 'explorer.view',
 			'explorer.download'		=> 'explorer.view',
 			'explorer.share'		=> 'explorer.view,explorer.upload,explorer.add,explorer.download',
+			'explorer.shareLink'	=> 'explorer.view,explorer.upload,explorer.add,explorer.download',
 			// 'explorer.upload'		=> 'explorer.add',
 			'explorer.edit'			=> 'explorer.add,explorer.view,explorer.upload',
 			'explorer.remove'		=> 'explorer.edit',

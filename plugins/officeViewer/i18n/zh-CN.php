@@ -51,7 +51,7 @@ return array(
 
 
 	'officeViewer.yzOffice.name' 				=> "永中Office",
-	'officeViewer.yzOffice.desc' 				=> "通过永中office服务解析文件（需先上传至其服务器），实现文件预览。<br><code style='color:#c7254e'>服务器需能访问外网</code>",
+	'officeViewer.yzOffice.desc' 				=> "通过永中office服务解析文件（文件会上传至其服务器），实现文件预览。<br><code style='color:#c7254e'>服务器需能访问外网</code>",
 	'officeViewer.yzOffice.transfer' 			=> "1.数据传输中,请稍后...",
 	'officeViewer.yzOffice.converting'			=> '2.文件转换中,请稍后...',
 	'officeViewer.yzOffice.uploadError' 		=> "上传失败,请检查php执行超时时间!",

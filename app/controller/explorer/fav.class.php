@@ -69,33 +69,22 @@ class explorerFav extends Controller{
 		return $list;
 	}
 	public function favAppendItem(&$item){
-		static $favList = false;
-		if($favList === false){
-			$favList = $this->model->listData();
-			$favList = array_to_keyvalue($favList,'path');
+		static $listPathMap = false;
+		if($listPathMap === false){
+			$listPathMap = $this->model->listData();
+			$listPathMap = array_to_keyvalue($listPathMap,'path');
 		}
 		
-		if(!isset($item['sourceInfo'])){
-			$item['sourceInfo'] = array();
-		}
-		$path 	 = $item['path'];$favItem = false;
-		$favItem = isset($favList[$path]) ? $favList[$path]:$favItem;
-		if(!$favItem){
-			$path 	 = rtrim($item['path'],'/');
-			$favItem = isset($favList[$path]) ? $favList[$path]:$favItem;
-		}
-		if(!$favItem){
-			$path 	 = rtrim($item['path'],'/').'/';
-			$favItem = isset($favList[$path]) ? $favList[$path]:$favItem;
-		}
-		
-		if( $favItem ){
+		if(!isset($item['sourceInfo'])){$item['sourceInfo'] = array();}
+		$path 	 = $item['path'];$path1 = rtrim($item['path'],'/');$path2 = rtrim($item['path'],'/').'/';
+		$findItem = isset($listPathMap[$path]) ? $listPathMap[$path]:false;
+		$findItem = (!$findItem && isset($listPathMap[$path1])) ? $listPathMap[$path1]:$findItem;
+		$findItem = (!$findItem && isset($listPathMap[$path2])) ? $listPathMap[$path2]:$findItem;
+		if($findItem){
 			$item['sourceInfo']['isFav'] = 1;
-			$item['sourceInfo']['favName'] = $favItem['name'];
-			$item['sourceInfo']['favID'] = $favItem['id'];
+			$item['sourceInfo']['favName'] = $findItem['name'];
+			$item['sourceInfo']['favID'] = $findItem['id'];
 		}
-		// $item['$favItem'] = $favItem;		
-		// 收藏文件;
 		if($item['type'] == 'file' && !$item['ext']){
 			$item['ext'] = get_path_ext($item['name']);
 		}
@@ -124,6 +113,7 @@ class explorerFav extends Controller{
 		if($pathInfo['type'] == KodIO::KOD_SOURCE){
 			$data['type'] = 'source';
 			$data['path'] = $pathInfo['id'];
+			Action('explorer.listSafe')->authCheckAllow($data['path']);
 		}
 		$res = $this->model->addFav($data['path'],$data['name'],$data['type']);
 		$msg = !!$res ? LNG('explorer.addFavSuccess') : LNG('explorer.pathHasFaved');

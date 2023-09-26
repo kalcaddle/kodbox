@@ -15,7 +15,11 @@ class filterUserGroup extends Controller{
 	}
 
 	public function check(){
-		if(_get($GLOBALS,'isRoot')) return true;
+		if(_get($GLOBALS,'isRoot')){
+			if($this->config["ADMIN_ALLOW_ALL_ACTION"]){return;}
+			//三权分立,限制系统管理员设置用户角色及所在部门权限; 还原设置数据;
+			return $this->userAuthEditCheck();
+		}
 		$this->checkUser();
 		$this->checkGroup();
 		$this->checkRole();
@@ -26,16 +30,16 @@ class filterUserGroup extends Controller{
 		$paramMap = array(
 			'admin.member.get'			=> array('group'=>'groupID','read'=>'allow','error'=>'list'),
 			'admin.member.search'		=> array('group'=>'parentGroup','read'=>'allow','error'=>'list'),
-			'admin.member.getbyid'		=> array('user'=>'id','read'=>'allow','error'=>'error'),
+			'admin.member.getbyid'		=> array('user'=>'id','read'=>'allow','error'=>'listSimple'),
 			
-			'admin.member.add'			=> array('groupArray'=>'groupInfo','error'=>'error','userRole'=>'roleID'),
-			'admin.member.addgroup'		=> array('groupArray'=>'groupInfo','user'=>'userID','error'=>'error'),
-			'admin.member.removegroup'	=> array('group'=>'groupID','user'=>'userID','error'=>'error'),
-			'admin.member.switchgroup'	=> array('group'=>'to','user'=>'userID','error'=>'error'),
-			
-			'admin.member.edit'			=> array('groupArray'=>'groupInfo','user'=>'userID','error'=>'error','userRole'=>'roleID'),
-			'admin.member.status'		=> array('user'=>'userID','error'=>'error'),
-			'admin.member.remove'		=> array('user'=>'userID','error'=>'error'),
+			'admin.member.add'			=> array('groupArray'=>'groupInfo','userRole'=>'roleID'),
+			'admin.member.addgroup'		=> array('groupArray'=>'groupInfo','user'=>'userID'),
+			'admin.member.removegroup'	=> array('group'=>'groupID','user'=>'userID'),
+			'admin.member.switchgroup'	=> array('group'=>'to','user'=>'userID'),
+					
+			'admin.member.edit'			=> array('groupArray'=>'groupInfo','user'=>'userID','userRole'=>'roleID'),
+			'admin.member.status'		=> array('user'=>'userID'),
+			'admin.member.remove'		=> array('user'=>'userID'),
 		);
 		$this->checkItem($paramMap);
 	}
@@ -44,18 +48,17 @@ class filterUserGroup extends Controller{
 		$paramMap = array(
 			'admin.group.get' 		=> array('group'=>'parentID','read'=>'allow','error'=>'list'),
 			'admin.group.search' 	=> array('group'=>'parentGroup','read'=>'allow','error'=>'list'),
-			'admin.group.getbyid' 	=> array('group'=>'id','read'=>'allow','error'=>'error'),
+			'admin.group.getbyid' 	=> array('group'=>'id','read'=>'allow','error'=>'listSimple'),
 
-			'admin.group.add' 		=> array('group'=>'parentID','error'=>'error'),
-			'admin.group.edit' 		=> array('group'=>'groupID','error'=>'error'),
-			'admin.group.status' 	=> array('group'=>'groupID','error'=>'error'),
-			'admin.group.remove' 	=> array('group'=>'groupID','error'=>'error'),
-			'admin.group.sort' 		=> array('group'=>'groupID','error'=>'error'),
-			'admin.group.switchGroup' => array('group'=>'from','group'=>'to','error'=>'error'),
+			'admin.group.add' 		=> array('group'=>'parentID'),
+			'admin.group.edit' 		=> array('group'=>'groupID'),
+			'admin.group.status' 	=> array('group'=>'groupID'),
+			'admin.group.remove' 	=> array('group'=>'groupID'),
+			'admin.group.sort' 		=> array('group'=>'groupID'),
+			'admin.group.switchgroup' => array('group'=>'from','group'=>'to'),
 			
 			// 部门公共标签: 获取,修改;
-			// 'explorer.taggroup.get' => array('group'=>'groupID','read'=>'allow','error'=>'error','requestFrom'=>'user'),
-			'explorer.taggroup.set' => array('group'=>'groupID','error'=>'error'),
+			'explorer.taggroup.set' => array('group'=>'groupID'),
 		);
 		$this->checkItem($paramMap);
 	}
@@ -79,88 +82,145 @@ class filterUserGroup extends Controller{
 		if($allow && $check['group']){
 			$groupID = $this->in[$check['group']];
 			$allow   = $this->allowChangeGroup($groupID);
-			$adminGroup = $this->userAdminGroup();
+			$adminGroup = $this->userGroupAdmin();
 			// 自己为管理员的根部门: 禁用编辑与删除;
 			$disableAction = array('admin.group.edit','admin.group.remove');
 			if(in_array($action,$disableAction) && in_array($groupID,$adminGroup)){$allow = false;}
 		}
-		if($allow && $check['user']){ $allow = $this->allowChangeUser($this->in[$check['user']]);}
-		if($allow && $check['userRole']){$allow = $this->allowChangeUserRole($this->in[$check['userRole']]);}
-		if($allow && $check['roleAuth']){$allow = $this->roleActionAllow($this->in[$check['roleAuth']]);}
-		if($allow && $check['groupArray']){$allow = $this->allowChangeGroupArray($check);}
+		
+		$err = $allow ? -1:0;
+		if($allow){$allow = $this->userAuthEditCheck();$err=$allow?$err:1;}
+		if($allow && $check['user']){ $allow = $this->allowChangeUser($this->in[$check['user']]);$err=$allow?$err:2;}
+		if($allow && $check['userRole']){$allow = $this->allowChangeUserRole($this->in[$check['userRole']]);$err=$allow?$err:3;}
+		if($allow && $check['roleAuth']){$allow = $this->roleActionAllow($this->in[$check['roleAuth']]);$err=$allow?$err:4;}
+		if($allow && $check['groupArray']){$allow = $this->allowChangeGroupArray($check);$err=$allow?$err:5;}
+		// pr($err,$allow,$check,$this->in,'GET:',$_REQUEST);exit;
 		if($allow) return true;
 		$this->checkError($check);
 	}
 	
-	
 	private function checkItemRead($check,$action){
 		$groupList = Session::get("kodUser.groupInfo");
 		if(!$groupList || count($groupList) == 0){ // 不在任何部门则不支持用户及部门查询;
-			return $this->checkError(array('error' =>'error'));
+			return $this->checkError($check);
 		}
-
-		// app 接口请求认为是前端请求
-		if( strstr($_SERVER['HTTP_USER_AGENT'],'kodCloud-System:iOS') || 
-			isset($this->in['HTTP_X_PLATFORM']) ){
-			$this->in['requestFrom'] = 'user';
-		}
-		if($check['requestFrom'] == 'user'){$this->in['requestFrom'] = 'user';}
-		
-		// 来自用户请求,false则来自后台管理员请求;
-		$fromUser   = $this->in['requestFrom'] == 'user';
-		$groupArray = $fromUser ? $this->userGroupRoot() : $this->userAdminGroup();
-		$GLOBALS['_groupRootArray'] = $groupArray;
-		
-		// 后端请求 fromAdmin;
+		$groupArray = $this->userGroupRootShow();
 		$groupID = $this->in[$check['group']];
 		$userID  = $this->in[$check['user']];
-		if($action == 'admin.group.getbyid' && !$this->allowViewGroup($groupArray,$groupID)){
-			$this->checkError($check);
+		if($groupID && ($groupID == 'root' || $groupID == 'rootOuter')){$groupID = '';}		
+		if($action == 'admin.group.getbyid'){
+			$allowID = $this->allowViewGroup($groupArray,$groupID,true);
+			if(!$allowID){$this->checkError($check);}
+			$this->in[$check['group']] = $allowID;// 过滤出有权限的部分;
+			return;
+		}else if($action == 'admin.member.getbyid'){
+			$allowID = $this->allowViewUser($groupArray,$userID,true);
+			if(!$allowID){$this->checkError($check);}
+			$this->in[$check['user']] = $allowID;// 过滤出有权限的部分;
+			return;
 		}
-		if($action == 'admin.member.getbyid' && !$this->allowViewUser($groupArray,$userID)){
-			$this->checkError($check);
-		}
+		
 		if(!$check['group']) return;
-		if(!$groupID || $groupID == 'root'){
-			$groupID = $groupArray ? $groupArray[0]:false;
-			if($action == 'admin.group.get'){
-				if(isset($this->in['rootParam'])){
-					// 普通用户选择用户(内部协作,权限设置); 加入最近使用;及自己常用保存;
-					// 前端拉取;范围=用户所在部门可见最大范围+部门根目录针对该用户为管理者情况(文档管理员);
-					$GLOBALS['in'][$check['group']] = $groupID;
-					Action("admin.group")->get(); 
-				}else{
-					// 后台部门管理员;获取能管理的部门;
-					$items = Model('Group')->listByID($groupArray);
-					show_json(array('list'=>$items,'pageInfo'=>array()),true);
-				}
-			}
-		}
-		
-		// 当前部门和所有部门根部门相等则不显示 "对外授权"
-		if( $fromUser && $groupID && 
-			strstr($this->in['rootParam'],'appendRootGroup') && 
-			count($groupArray) == 0 && $groupArray[0] == $groupID
-		){
-			$this->in['rootParam'] = str_replace('appendRootGroup','',$this->in['rootParam']);
-		}
-		
-		// pr($groupID,$groupArray,$this->allowViewGroup($groupArray,$groupID));exit;
-		if($this->allowViewGroup($groupArray,$groupID)) return;
-		$this->checkError(array('error' =>'error'));
+		if(!$groupID || $this->allowViewGroup($groupArray,$groupID)) return;
+		$this->checkError($check);
 	}
 	
 	private function checkError($check){
-		if(!$check['error'] || $check['error'] == 'error'){
-			show_json(LNG('explorer.noPermissionAction'),false);
-		}
-		$pageInfo = array("page"=>1,"totalNum"=>0,"pageTotal"=>0);
-		show_json(array('list'=>array(),'pageInfo'=>$pageInfo),true);
+		if(!$check || !$check['error']){show_json(LNG('explorer.noPermissionAction'),false);}
+
+		$result = array('list'=>array(),'pageInfo'=>array("page"=>1,"totalNum"=>0,"pageTotal"=>0));
+		if($check['error'] == 'listSimple'){$result = array();}
+		show_json($result,true,'empty');
 	}
 	
-	// 多个部门信息检测;
+	// 用户编辑,用户角色设置权限处理;  三权分立系统管理员; 
+	private function userAuthEditCheck(){
+		$action = strtolower(ACTION);
+		$allowUserAuth 	= Action('user.authRole')->authCan('admin.member.userAuth');
+		$allowUserEdit 	= Action('user.authRole')->authCan('admin.member.userEdit');
+		if(_get($GLOBALS,'isRoot')){
+			$allowUserEdit = true;
+			$allowUserAuth = $this->config["ADMIN_ALLOW_ALL_ACTION"] == 1 ? true:false;
+		}
+		if($allowUserEdit && $allowUserAuth){return true;}
+		if(!$allowUserEdit && !$allowUserAuth){return true;}
+		
+		$userCheckActions = array(
+			'admin.member.add'			=> array('groupArray'=>'groupInfo','userRole'=>'roleID'),
+			//'admin.member.addgroup'		=> array('groupArray'=>'groupInfo'), // 单独检测;
+			'admin.member.removegroup'	=> array(),
+			'admin.member.switchgroup'	=> array(),
+			'admin.member.edit'			=> array('groupArray'=>'groupInfo','userRole'=>'roleID'),
+			'admin.member.status'		=> array(),
+			'admin.member.remove'		=> array(),
+		);
+		
+		if(!is_array($userCheckActions[$action])){return true;}
+		$userCheck = $userCheckActions[$action];
+		$groupInfoKey = isset($userCheck['groupArray']) ? $userCheck['groupArray'] : '';
+
+		// 不允许编辑用户,仅允许设置用户权限(安全保密员角色); 只能设置用户角色和用户所在部门权限,不能设置用户所在部门
+		if(!$allowUserEdit && $allowUserAuth){
+			if($action != 'admin.member.edit'){return false;} 	// 只允许调用edit;其他方法禁用			
+			$keepKey  = array('userID','groupInfo','roleID','HTTP_X_PLATFORM','CSRF_TOKEN','URLrouter','URLremote');
+			foreach ($this->in as $key=>$v) {
+				if(!in_array($key,$keepKey)){unset($this->in[$key]);unset($_REQUEST[$key]);}
+			}
+			return $this->userAuthEditKeepGroupInfo($groupInfoKey,$this->in['userID'],'onlyAuth');
+		}
+		
+		// 允许编辑用户,不允许设置用户权限(用户管理员; 系统管理员-启用三权分立时)
+		// 可以编辑,删除,添加用户; 不能设置用户角色(添加用户:最小普通用户角色),能设置用户所在部门,不能设置用户所在部门权限(最小权限-不可见);
+		if($allowUserEdit && !$allowUserAuth){
+			// 用户角色权限默认移除;
+			if(isset($this->in['roleID']) ){unset($this->in['roleID']);}
+			if($action == 'admin.member.add'){
+				$this->in['roleID'] = Model('SystemRole')->findRoleDefault();
+			}
+			return $this->userAuthEditKeepGroupInfo($groupInfoKey,$this->in['userID'],'onlyEdit');
+		}
+	}
+	
+	private function userAuthEditKeepGroupInfo($groupInfoKey,$userID,$type='onlyEdit'){
+		if(!$groupInfoKey || !isset($this->in[$groupInfoKey])){return true;}
+		$authSet 	= json_decode($this->in[$groupInfoKey],true);
+		$authSet 	= is_array($authSet) ? $authSet : array();$authSetOld = $authSet;
+		$userInfo 	= $userID ? Model('User')->getInfo($userID):array();
+		$groupAuth 	= array_to_keyvalue($userInfo['groupInfo'],'groupID','auth');
+		$defaultAuth= Model('Auth')->findAuthMinDefault();
+
+		if($type == 'onlyAuth'){
+			// 只能修改在某部门的权限(设置部门不在已有部门中-移除; 移除已有部门kv-保留);
+			foreach ($authSet as $groupID => $auth){
+				if(!isset($groupAuth[$groupID])){unset($authSet[$groupID]);}
+			}
+			foreach ($groupAuth as $groupID => $auth){
+				if(!isset($authSet[$groupID])){$authSet[$groupID] = $auth['id'];}
+			}
+		}else if($type == 'onlyEdit'){
+			$isGroupAppend = isset($this->in['groupInfoAppend']) && $this->in['groupInfoAppend'] == '1';
+			if(strtolower(ACTION) == 'admin.member.addgroup'){$isGroupAppend = true;}
+
+			// 只能修改用户所在部门, 不能修改所在部门权限,允许移除所在部门(新添加部门使用默认最小权限)
+			foreach ($authSet as $groupID => $auth){
+				$authSet[$groupID] = isset($groupAuth[$groupID]) ? $groupAuth[$groupID]['id']:$defaultAuth;
+			}
+			// 仅添加时,用户所在部门不在设置范围内则自动加入;
+			foreach ($groupAuth as $groupID => $auth){
+				if($isGroupAppend && !isset($authSet[$groupID])){$authSet[$groupID] = $auth['id'];}
+			}
+		}
+		$this->in[$groupInfoKey] = json_encode($authSet);
+		return true;
+	}
+	
+	
+	// 多个部门信息检测; 修改所在部门及权限时检测(不允许删除/添加用户在自己非部门管理员的部门)
 	public function allowChangeGroupArray($check){
-		$authSet = json_decode($this->in[$check['groupArray']],true);
+		$groupInfoKey = $check['groupArray'];
+		if(!$groupInfoKey || !isset($this->in[$groupInfoKey])){return true;} // 没有传入groupInfo 代表不修改, 对应不检测;
+		
+		$authSet = json_decode($this->in[$groupInfoKey],true);
 		$authSet = is_array($authSet) ? $authSet : array();
 		$userInfo  = $this->in[$check['user']] ? Model('User')->getInfo($this->in[$check['user']]):array();
 		$groupAuth = array_to_keyvalue($userInfo['groupInfo'],'groupID','auth');$allow = true;
@@ -170,58 +230,72 @@ class filterUserGroup extends Controller{
 			if(!$this->allowChangeGroup($groupID)){$allow = false;break;}
 		}
 		if(!$userInfo || !$groupAuth) return $allow;
+		
+		// 追加用户所在部门;// 该值启用时,已存在所在部门权限继续保持,仅追加新的;
+		$isGroupAppend = isset($this->in['groupInfoAppend']) && $this->in['groupInfoAppend'] == '1';
+		if(strtolower(ACTION) == 'admin.member.addgroup'){$isGroupAppend = true;}
 
-		// 其他部门: 不允许删除,不允许修改;
+		// 其他自己无权限部门: 不允许删除,不允许修改;
 		foreach ($groupAuth as $groupID => $authInfo){
+			if($isGroupAppend && !$authSet[$groupID]){$authSet[$groupID] = $authInfo['id'];}
 			if($this->allowChangeGroup($groupID)) continue;
-			if(!$authSet[$groupID]){$allow = false;break;}
+			// if(!$authSet[$groupID]){$allow = false;break;} // 部门自己没有管理权限,报错;
+			if(!$authSet[$groupID]){$authSet[$groupID] = $authInfo['id'];} // 去除部门自己没有管理权限,则默认自动加上;
 		}
 		foreach ($authSet as $groupID => $auth){
 			if($this->allowChangeGroup($groupID)) continue;
 			if($groupAuth[$groupID]['id'] != $auth){$allow = false;break;}
 		}
+		$this->in[$groupInfoKey] = json_encode($authSet);
 		return $allow;
 	}
 	
 	// 当前用户是否有操作该部门的权限;
-	public function allowChangeGroup($groupID){return $this->allowViewGroup($this->userAdminGroup(),$groupID);}
-	public function allowChangeUser($userID){return $this->allowViewUser($this->userAdminGroup(),$userID);}
-	public function allowViewUser($selfGroup,$users){
+	public function allowChangeGroup($groupID){return $this->allowViewGroup($this->userGroupAdmin(),$groupID);}
+	public function allowChangeUser($userID){return $this->allowViewUser($this->userGroupAdmin(),$userID);}
+	
+	// 检测自己是否有权限获取指定用户信息;$returnAllow为true,则返回有权限访问的部分用户id;
+	public function allowViewUser($selfGroup,$users,$returnAllow=false){
 		if(!$selfGroup || count($selfGroup) == 0) return false;
-
-		$userArray = explode(',',trim($users.'',','));//默认多个,逗号分隔;
-		foreach ($userArray as $userID){
-			$userInfo  = Model('User')->getInfo($userID);
+		$allowAll   = true;$allowHas = array();
+		$valueArray = explode(',',trim($users.'',','));//默认多个,逗号分隔;全部都有权限才通过
+		foreach ($valueArray as $theID){
+			$userInfo  = Model('User')->getInfo($theID);
 			$groupList = $userInfo ? $userInfo['groupInfo']:array();
-			foreach ($groupList as $group){
-				$groupInfo  = Model('Group')->getInfo($group['groupID']);
-				$parents = Model('Group')->parentLevelArray($groupInfo['parentLevel']);$parents[] = $group['groupID'];
-				foreach ($parents as $groupID){
-					if(in_array($groupID.'',$selfGroup)) return true;
-				}
+			$groups    = implode(',',array_to_keyvalue($groupList,'','groupID'));
+			if($this->allowViewGroup($selfGroup,$groups,true)){
+				$allowHas[] = $theID;
+			}else{
+				$allowAll = false;
+				if(!$returnAllow){return $allowAll;}
 			}
 		}
-		return false;
+		return $returnAllow ? implode(',',$allowHas) : $allowAll;
 	}
-	public function allowViewGroup($selfGroup,$groups){
+	
+	// 检测自己是否有权限获取指定部门信息;$returnAllow为true,则返回有权限访问的部分部门id;
+	public function allowViewGroup($selfGroup,$groups,$returnAllow=false){
 		if(!$selfGroup || count($selfGroup) == 0) return false;
-		
-		$groupArray = explode(',',trim($groups.'',','));//默认多个,逗号分隔;
-		foreach ($groupArray as $groupID){
-			$groupInfo  = Model('Group')->getInfo($groupID);
-			if(!$groupInfo) continue;
-			$parents = Model('Group')->parentLevelArray($groupInfo['parentLevel']);$parents[] = $groupID;
-			foreach ($parents as $groupID){
-				if(in_array($groupID.'',$selfGroup)) return true;
+		$allowAll   = true;$allowHas = array();
+		$valueArray = explode(',',trim($groups.'',','));//默认多个,逗号分隔; 全部都有权限才通过
+		foreach ($valueArray as $theID){
+			if(Model('Group')->parentInGroup($theID,$selfGroup)){
+				$allowHas[] = $theID;
+			}else{
+				$allowAll = false;
+				if(!$returnAllow){return $allowAll;}
 			}
 		}
-		return false;
+		return $returnAllow ? implode(',',$allowHas) : $allowAll;
 	}
 
 	// 权限修改删除范围处理: 只能操作权限包含内容小于等于自己权限包含内容的类型;  设置用户权限也以此为标准;
 	public function allowChangeUserRole($roleID){
 		if(_get($GLOBALS,'isRoot')) return true;
 		$authInfo = Model('SystemRole')->listData($roleID);
+		if($authInfo && $authInfo['administrator'] == 1) return false; // 系统管理员不允许非系统管理员获取,设置
+		if(!$this->config["ADMIN_ALLOW_ALL_ACTION"]){return true;} // 启用了三权分立,安全保密员允许获取,或设置用户的角色;
+		
 		return $this->roleActionAllow($authInfo['auth']);
 	}
 	private function roleActionAllow($actions){
@@ -236,7 +310,7 @@ class filterUserGroup extends Controller{
 	}
 	
 	// 自己所在为管理员的部门;
-	public function userAdminGroup(){
+	public function userGroupAdmin(){
 		static $groupArray = null;
 		if($groupArray !== null) return $groupArray;
 		
@@ -248,9 +322,18 @@ class filterUserGroup extends Controller{
 		$groupArray = Model('Group')->groupMerge($groupArray);
 		return $groupArray;
 	}
+	// 自己所在部门()
+	public function userGroupAt(){
+		static $groupArray = null;
+		if($groupArray !== null) return $groupArray;
+
+		$groupList 	= Session::get("kodUser.groupInfo");
+		$groupArray = Model('Group')->groupMerge(array_to_keyvalue($groupList,'','groupID'));
+		return $groupArray;
+	}
 	
 	// 自己可见的部门; 所在的部门向上回溯;
-	public function userGroupRoot(){
+	public function userGroupRootShow(){
 		static $groupArray = null;
 		if($groupArray !== null) return $groupArray;
 

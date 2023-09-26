@@ -37,14 +37,18 @@ class userAuthPlugin extends Controller{
 	 * 2. 登录检测；不需要登录的直接返回；
 	 * 3. 权限检测
 	 */
-	public function checkAuth($app){
-		$plugin = Model("Plugin")->loadList($app);
+	public function checkAuth($appName){
+		$plugin = Model("Plugin")->loadList($appName);
 		if (!$plugin)  return true;//不存在插件,转发接口
 		if ($plugin['status'] == 0)  return false;
 		
 		$config = $plugin['config'];
 		if (isset($config['pluginAuthOpen']) && $config['pluginAuthOpen']) return true;
-		if (Action("user.authRole")->isRoot())   return true; //系统管理员
+		if ($GLOBALS['isRoot'] == 1){
+			if($GLOBALS['config']["ADMIN_ALLOW_ALL_ACTION"] || !$GLOBALS['config']["ADMIN_AUTH_LIMIT_PLUGINS"]) return true;
+			$disablePlugin = explode(',',strtolower($GLOBALS['config']["ADMIN_AUTH_LIMIT_PLUGINS"]));
+			return in_array(strtolower($appName),$disablePlugin) ? false : true;//系统管理员,开启三权分立时,限制插件处理;
+		}
 		$auth = isset($config['pluginAuth']) ? $config['pluginAuth'] : null;
 		if(!$auth) return false;
 		return $this->checkAuthValue($auth);

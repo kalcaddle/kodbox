@@ -80,9 +80,8 @@
             }
             pageStyle(!!result.value);
         }).catch(function(err){
-            if(tipsLoading){tipsLoading.close();tipsLoading = false;}
-            page.showTips('文件损坏，或包含不支持的内容格式！');
-            console.error(err);
+            // if(tipsLoading){tipsLoading.close();tipsLoading = false;}
+            webOfficeAutoChange(err);
         }).done();
     });
 })();

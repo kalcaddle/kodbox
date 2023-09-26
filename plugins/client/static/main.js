@@ -1,4 +1,6 @@
 kodReady.push(function(){
+	var staticPath	= "{{pluginHost}}static/";
+	var version		= '?v={{package.version}}';
 	G.clientOption = jsonDecode(urlDecode("{{config}}"));
 	LNG.set(jsonDecode(urlDecode("{{LNG}}")));
 	Events.bind("admin.leftMenu.before",function(menuList){
@@ -8,7 +10,7 @@ kodReady.push(function(){
 			link:"admin/storage/client",
 			after:'admin/storage/share',//after/before; 插入菜单所在位置;
 			sort:10,
-			fileSrc:'{{pluginHost}}static/clientOpen.js',
+			fileSrc:staticPath+'clientOpen.js',
 		});
 	});
 
@@ -33,7 +35,7 @@ kodReady.push(function(){
 	
 	
 	// web端已登录,App登录界面,可以通过扫码登录App(web端个人中心-二维码)
-	requireAsync('{{pluginHost}}/static/style.css');
+	requireAsync(staticPath+'style.css');
 	ClassBase.extendHook({
 		hookMatch:'menuItemMaxNumber,initMenuList,changeLanguage',	
 		bindDarkMode:function(){
@@ -83,7 +85,6 @@ kodReady.push(function(){
 					if(!data || !data.code) return Tips.tips(data);
 					var url = urlPre + data.data;
 					var qrCodeImage = G.kod.APP_HOST+'?user/view/qrcode&url='+urlEncode(url);
-					// console.log(111,url);$.copyText(url);
 					$view.html('<img src="'+qrCodeImage+'"/>');
 					$view.animate({opacity:1},300);
 				}
@@ -91,7 +92,7 @@ kodReady.push(function(){
 		}
 		var makeQrcode = function(){
 			$view.html('').css('opacity','0.01');
-			requireAsync('{{pluginHost}}static/qrcode.min.js',render);
+			requireAsync(staticPath+'qrcode.min.js',render);
 		}
 		$view.bind('click',makeQrcode);
 		makeQrcode();
@@ -204,6 +205,18 @@ kodReady.push(function(){
 			if(G.clientOption.appLoginWeb == '0') return;
 			checkWebLoginBefore(this);
 			showLoginWebView(this);
+			showLoginTfaView(this);
+		},
+		loginSuccess: function(){
+			var _this = this;
+			var _args = arguments;
+			// 判断是否需要二次验证，不需要则继续提交
+			needLoginTfa(function(result){
+				if (result.code === false) {
+					return _this.__loginSuccess.apply(_this,_args);
+				}
+				_this.tfaPage.showDialog(result.data);
+			});
 		}
 	});
 		
@@ -300,4 +313,126 @@ kodReady.push(function(){
 		dialog.$main.find('.btn-confirm').bind('click',function(){loginConfirm(true);});
 		dialog.$main.find('.btn-cancel').bind('click',function(){loginConfirm();});
 	};
+
+	// 后台：二次验证设置
+	Events.bind("admin.setting.initViewBefore",function(formData, options, self){
+		if (formData.tfaOpen) return;
+		// 插入tabs键名
+		var safe = _.split(_.get(formData,'formStyle.tabs.safe'),',');
+		var idex = _.findIndex(safe,function(val){return val == 'needCheckCode';});
+		safe.splice(idex+1, 0, 'tfaOpen','tfaType');
+		_.set(formData,'formStyle.tabs.safe', _.join(safe,','));
+
+		// 追加数据，无法实现插入到指定位置
+		formData.tfaOpen = {
+			"type":"switch",
+			"value":_.get(G,'system.options.tfaOpen') || '0',
+			"display":LNG['client.tfa.tfaOpen'],
+			"desc":LNG['client.tfa.tfaOpenDesc'],
+			"switchItem":{"0":"","1":"tfaType"}
+		};
+		formData.tfaType = {
+			// "type":"radio",
+			"type":"checkbox",
+			"value":_.get(G,'system.options.tfaType') || "email",
+			"display":LNG['client.tfa.tfaType'],
+			"desc":LNG['client.tfa.tfaTypeDesc'],
+			"info":{"email":LNG['client.tfa.email'],"phone":LNG['common.phoneNumber']}
+		};
+	});
+	// 移动追加项位置
+	Events.bind('admin.setting.initViewAfter',function(_this){
+		if (!_this.$('.form-row.item-tfaOpen').length) return;
+		$('.form-row.item-needCheckCode').after($('.form-row.item-tfaOpen,.form-row.item-tfaType'));
+	});
+	Events.bind('router.before',function(hash){
+		// 不需要登录或未登录时不检查——注意：更多登录方式会直接跳转
+		if (!Router.pageNeedLogin(hash) || !_.get(G, 'user.userID')) return;
+
+		needLoginTfa(function(result){
+			if (result.code === false) return;
+			// 跳转到登录页
+			var href = window.location.href;
+			var location = '&link='+urlEncode(href);
+			if( _.trim($.parseUrl().url,'#/ ')  == _.trim(href,'#/ ') ){
+				location = '';
+			}
+			// Router.go('user/login'+location);
+			window.location.href = G.kod.APP_HOST+'#/user/login'+location;
+			return false;
+		});
+		return;
+	});
+	// 登录页追加二次验证项；相较于router.after.user/login事件，这个只会触发一次，故不做重复拦截
+	var showLoginTfaView = function(_this) {
+		var callback = arguments[1] || null;
+		requireAsync([
+			staticPath+'tfa/index.js'+version,
+			staticPath+'tfa/index.css'+version,
+		],function(LoginTfa){
+			_this.tfaPage = new LoginTfa({parent:_this});
+			callback && callback();
+		});
+	}
+	var needLoginTfa = function(callback) {
+		// 1.判断二次验证是否开启
+		var tfaOpen = _.get(G,'system.options.tfaOpen') || 0;
+		var tfaType = _.get(G,'system.options.tfaType') || '';
+		if (tfaOpen != '1' || !tfaType) {
+			return callback({code:false});
+		}
+		// 2.判断是否已标记——已登录且已验证（不额外判断userID）
+		if (_.get(G, 'user.userID') && _.get(G,'user.tfa') === true) {
+			return callback({code:false});
+		}
+		// 3.判断当前用户是否需要验证
+		$.ajax({
+			url:G.kod.APP_HOST+'?plugin/client/tfa',
+			data:{action:'tfaInfo'},
+			type:'POST',dataType:'json',
+			success:function(result){
+				// 未登录：result.info == 10011
+				if (!result || !result.code) {
+					return callback({code:false});
+				}
+				var data = result.data;
+				if (data.isRoot || data.isTfa == 1) {
+					_.set(G,'user.tfa',true);
+					return callback({code:false});
+				}
+				callback({code:true,data:data});
+			}
+		});
+	}
+
+	if($.hasKey('plugin.client.event')) return;
+	// 客户端下载；js文件为异步加载，hook不能放在js文件中调用
+	var clientDown = null;
+	var clientDownload = function(_this, type){
+		var data = {parent:_this, pluginApi: "{{pluginApi}}", type: type};
+		if (clientDown) return clientDown.bindEvent(data);
+		requireAsync([
+			staticPath+'down/index.js',
+			staticPath+'down/index.css',
+		],function(Down){
+			clientDown = new Down({parent:self});
+			clientDown.bindEvent(data);
+		});
+	}
+	// 左下角菜单
+	ClassBase.extendHook({
+		hookMatch:'initMenuList,loadFooter,changeLanguage',
+		hookInitAfter:function(){
+			clientDownload(this, 'menu');
+		},
+	});
+	// 登录界面
+	if(window.kodWeb) return;
+	ClassBase.extendHook({
+		hookMatch:'loginSave,loginSuccess',
+		init:function(){
+			this.__init.apply(this,arguments);
+			clientDownload(this, 'login');
+		}
+	});
 });

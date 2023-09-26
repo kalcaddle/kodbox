@@ -33,9 +33,8 @@ class userBind extends Controller {
 		// 1.2 判断邮箱是否已绑定-他人
 		if ($res = Model('User')->userSearch(array($type => $data['input']), 'name,nickName')) {
 			$typeTit = $type . ($type == 'phone' ? 'Number' : '');
-			show_json(LNG('common.' . $typeTit) . LNG('common.error'), false);
-			// $name = $res['nickName'] ? $res['nickName'] : $res['name'];
-			// show_json(LNG('common.' . $type) . LNG('user.bindOthers') . "[{$name}]", false);
+			$message = $type == 'phone' ? LNG('ERROR_USER_EXIST_PHONE') : LNG('ERROR_USER_EXIST_EMAIL');
+			show_json($message.'.', false);
 		}
 		$data['source'] = 'bind';
 		Action('user.setting')->checkMsgFreq($data);	// 消息发送频率检查
@@ -62,26 +61,22 @@ class userBind extends Controller {
 	 * @param [type] $action
 	 * @return void
 	 */
-	public function sendEmail($input, $action) {
+	public function sendEmail($input, $action,$title = '',$code = false) {
 		$systemName = Model('SystemOption')->get('systemName');
 		$user = Session::get('kodUser');
-		// $name = _get($user, 'nickName', _get($user, 'name', ''));
-		$name = _get($user, 'nickName');
-		if (!$name) $name = _get($user, 'name');
+		$name = _get($user,'nickName',_get($user,'name',''));
 		$desc = Model('SystemOption')->get('systemDesc');
+		$code = $code ? $code : rand_string(6,1);
 		$data = array(
 			'type'		=> 'email',
 			'input'		=> $input,
 			'action'	=> $action,
 			'config'	=> array(
 				'address'	=> $input,
-				'subject'	=> "[{$systemName}]" . LNG('user.emailVerify'),
+				'subject'	=> "[{$systemName}]" . LNG('user.emailVerify').$title,
 				'content'	=> array(
 					'type'	=> 'code', 
-					'data'	=> array(
-						'user' => $name,
-						'code' => rand_string(6)
-					)
+					'data'	=> array('user' => $name,'code' => $code)
 				),
 				'system'	=> array(	// 系统信息
 					'icon'	=> STATIC_PATH.'images/icon/fav.png',
