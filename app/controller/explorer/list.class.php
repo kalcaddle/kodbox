@@ -559,7 +559,7 @@ class explorerList extends Controller{
 	private function pathGetContent($pathInfo){
 		if(!$pathInfo || !$pathInfo['path']){return "";}
 		$filePath = $pathInfo['path'];
-		if(!isset($pathInfo['fileID'])){
+		if(isset($pathInfo['fileID'])){
 			$fileInfo = Model("File")->fileInfo($pathInfo['fileID']);
 			if(!$fileInfo || !$fileInfo['path']){return "";}
 			$filePath = $fileInfo['path'];
