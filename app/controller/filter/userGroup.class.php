@@ -332,6 +332,9 @@ class filterUserGroup extends Controller{
 		return $groupArray;
 	}
 	
+	public function  userGroupRoot(){
+		return $this->userGroupRootShow();
+	}
 	// 自己可见的部门; 所在的部门向上回溯;
 	public function userGroupRootShow(){
 		static $groupArray = null;
