@@ -88,9 +88,11 @@ class explorerListRecent extends Controller{
 	}
 	private function listRecentWith($timeType,&$result){
 		$userID = USER_ID;
+		$userInfo = Model('User')->getInfo($userID);
 		$where  = array(
 			'targetType'	=> SourceModel::TYPE_USER,
 			'targetID'		=> $userID,
+			'parentLevel'	=> array("like",',0,'.$userInfo['sourceInfo']['sourceID'].',%'),
 			'isFolder'		=> 0,
 			'isDelete'		=> 0,
 			'size'			=> array('>',0),

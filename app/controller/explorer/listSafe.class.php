@@ -81,7 +81,7 @@ class explorerListSafe extends Controller{
 	
 	// 系统管理员: 管理用户根目录--显示私密文件夹处理(默认关闭)
 	private function appendSafeUserRootAdmin(&$data){
-		// return; //默认关闭不启用; 当有用户离职或数据异常情况下需要管理时可以打开后进入;
+		if(!$this->config["ADMIN_ALLOW_USER_SAFE"]){return;}
 		$pathInfo = $data['current'];
 		if(!$GLOBALS['isRoot'] || !$pathInfo || !$pathInfo['sourceID']){return;}
 		if($pathInfo['parentID'] != 0 || $pathInfo['targetType'] != 'user') return;

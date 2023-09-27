@@ -71,9 +71,10 @@ $config['PLUGIN_HOST_CDN'] 				= $config['PLUGIN_HOST'];//在上面的配置插�
 $config['DEFAULT_PERRMISSIONS'] 		= 0755;
 $config['DEFAULT_PERRMISSIONS_KOD'] 	= 0700; // 内部文件,nginx才能读写;
 
-$config["ADMIN_ALLOW_IO"] 				= 1;	// 物理路径或io路径是否允许操作开关，仅限管理员(禁用后无法直接管理物理路径)
-$config["ADMIN_ALLOW_SOURCE"] 			= 1;	// 其他部门or用户目录操作开关，仅限管理员(是否能直接访问其他用户空间或部门空间)
-$config["ADMIN_ALLOW_ALL_ACTION"] 		= 1;	// 三权分立,限制系统管理员权限; 关闭后系统管理员无法再设置用户角色及部门权限(需配置[安全保密员及审计员角色])
+$config["ADMIN_ALLOW_USER_SAFE"]		= 0; // 是否允许系统管理员访问用户私密空间,默认关闭;ADMIN_ALLOW_SOURCE为0时无效;当有离职等情况需管理时可打开
+$config["ADMIN_ALLOW_IO"] 				= 1; // 物理路径或io路径是否允许操作开关，仅限管理员(禁用后无法直接管理物理路径)
+$config["ADMIN_ALLOW_SOURCE"] 			= 1; // 其他部门or用户目录操作开关，仅限管理员(是否能直接访问其他用户空间或部门空间)
+$config["ADMIN_ALLOW_ALL_ACTION"] 		= 1; // 三权分立,限制系统管理员权限;关闭后系统管理员无法设置用户角色及部门权限(需配置[安全保密员及审计员角色])
 $config["ADMIN_AUTH_LIMIT_PLUGINS"]		= 'adminer,webConsole';// 限制系统管理员权限时,同时限制插件列表;
 
 
