@@ -286,6 +286,7 @@ function echoLog($log,$replace=false){
 		@header('X-Accel-Buffering: no');
 		$isFirst = false;
 		$isCli   = stristr(php_sapi_name(),'cli') ? true : false;
+		if(strstr($_SERVER['HTTP_USER_AGENT'],'curl/')){$isCli = true;}
 	}
 	
 	$timeDelay  = 0.05;// 临时替换的输出内容, 50ms内只输出一次;
