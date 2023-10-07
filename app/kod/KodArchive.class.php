@@ -292,6 +292,14 @@ class KodArchive {
 		}
 		IO::fileOut($newFile,$download,$filenameOutput);
 	}
+	
+	static function createFromFolder($file,$folder){
+		$listPath = IO::listPath($folder);
+		$listPath = array_merge($listPath['folderList'],$listPath['fileList']);
+		$lists = array_to_keyvalue($listPath,'path','path');
+		return self::create($file,$lists);
+	}
+	
 	/**
 	 * [create description]
 	 * @param  [type] $file  [archive file name]

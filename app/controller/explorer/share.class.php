@@ -267,9 +267,9 @@ class explorerShare extends Controller{
 			equal_not_case(ACT,'fileUpload') ){
 			$this->showError(LNG('explorer.share.noUploadTips'),false);
 		}
-		// 分享页下载都会提交以下2个方法（之一），与fileout重复，且多线程时fileout会请求多次；屏蔽则存在直接请求fileout时未计入的问题
-		// if((equal_not_case(ACT,'fileOut') && $this->in['download']=='1') ||
-		if(equal_not_case(ACT,'zipDownload') || equal_not_case(ACT,'fileDownload')){
+		if((equal_not_case(ACT,'fileOut') && $this->in['download']=='1') ||
+			equal_not_case(ACT,'zipDownload') || 
+			equal_not_case(ACT,'fileDownload')){
 			$this->model->where($where)->setAdd('numDownload');
 		}
 	}

@@ -15,7 +15,7 @@ return array(
     "admin.fileEdit"                 => "编辑保存文件",
     "admin.list"                     => "列表查看",
     "admin.configError"              => "配置保存失败,管理员禁止了此权限!",
-    "admin.userManage"               => "个人中心",
+    "admin.userManage"               => "账号中心",
     "admin.manage"                   => "后台管理",
     "admin.pluginManage"             => "插件管理",
     "admin.emailDear"                => "%s，您好，",

@@ -30,10 +30,12 @@ class adminStorage extends Controller {
 		$id = Input::get('id','int');
 		$res = $this->model->getConfig($id);
 		// 隐藏密码
-		if (isset($res['secret'])) {	// os
-			$res['secret'] = str_repeat('*', strlen($res['secret']));
-		} else if (isset($res['userpass'])) {	// ftp/uss
-			$res['userpass'] = str_repeat('*', strlen($res['userpass']));
+		$arr = array('secret','userpass','password');	// os、ftp/uss、dav
+		foreach ($arr as $key) {
+			if (isset($res[$key])) {
+				$res[$key] = str_repeat('*', strlen($res[$key]));
+				break;
+			}
 		}
 		show_json($res,true);
 	}

@@ -44,6 +44,13 @@ class userIndex extends Controller {
 	}
 	private function initSession(){
 		$this->apiSignCheck();
+		// 入口不处理cookie,兼容服务器启用了全GET缓存情况(输出前一次用户登录的cookie,导致账号登录异常)
+		$action= strtolower(ACTION);
+		if( $action == 'user.index.index' || 
+		    $action == 'user.view.call'){
+			Cookie::disable(true);
+		}
+		
 		$systemPassword = Model('SystemOption')->get('systemPassword');
 		$accessToken = isset($_REQUEST['accessToken']) ? $_REQUEST['accessToken'] : '';
 		if($accessToken && strlen($accessToken) < 500){

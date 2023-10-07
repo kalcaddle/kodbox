@@ -35,6 +35,7 @@
     font-size: 13px;
     padding: 5px 12px;
     min-width: 88px;
+    margin: 0px 5px;
 }
 .dialog-client-download.artDialog .dialog-copyright-content .content .btn:hover{
     text-decoration: none;

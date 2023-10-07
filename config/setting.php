@@ -468,7 +468,22 @@ $config['settingAll'] = array(
 	'codeFont'	=> 'Source Code Pro,Consolas,Courier,DejaVu Sans Mono,Liberation Mono,Menlo,Monaco,Monospace',
 );
 
-
+I18n::init();$lang = I18n::$langType;
+if($lang != 'zh-CN' && $lang != 'zh-CN'){
+	$config['settingSystemDefault']['systemDesc'] = './static/images/common/logo-en.png';
+	$config['settingSystemDefault']['systemDesc'] = "—— kodbox.explorer";
+	$config['settingSystemDefault']['newUserApp'] = "trello,icloud";
+	$config['settingSystemDefault']['newUserFolder']  = "Documents,Pictures,Music";
+	$config['settingSystemDefault']['newGroupFolder'] = "Documents,Pictures,Others";
+	$config['settingSystemDefault']['groupRootName']  = "Group";
+	$config['settingSystemDefault']['sourceSecretList']  = '[{"id":"","title":"A-Secret","style":"#E64A19","auth":""},{"id":"","title":"B-Secret","style":"#FF5722","auth":""},{"id":"","title":"C-Secret","style":"#E57754","auth":""}]';
+	$config['settingSystemDefault']['menu'][3]['name']  = 'kodcloud';
+	
+	$config['settings']['sourceMeta']['user_sourceAlias']['display'] = "Attachments";
+	$config['settings']['sourceMeta']['user_sourceAlias']['info']['title'] = "Attachments";
+	$config['settings']['sourceMeta']['user_sourceNumber']['display'] = "Number";
+	$config['settings']['sourceMeta']['user_sourceParticipant']['display'] = "Participant";
+}
 
 /**
  * 无需登录检测权限检测配置;
