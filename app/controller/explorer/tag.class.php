@@ -86,7 +86,23 @@ class explorerTag extends Controller{
 		$tagInfo['pathDesc'] = LNG('explorer.tag.pathDesc');
 		if(!$result){$result = array("fileList"=>array(),'folderList'=>array());}
 		$result['currentFieldAdd'] = $tagInfo;
+		$result['fileList']   = $this->_checkExists($result['fileList']);
+		$result['folderList'] = $this->_checkExists($result['folderList']);
 		return $result;
+	}
+	
+	// 自动清理不存在的内容(仅限物理路径, 其他io路径由于比较耗时暂不处理,手动处理)
+	private function _checkExists($list){
+		if(!$list){return array();}
+		foreach($list as $key => &$item){
+			if(substr($item['path'],0,1) == '{'){continue;} // 仅处理物理路径;
+			if(!file_exists($item['path'])){
+				// $item['exists'] = false;
+				unset($list[$key]);
+				$this->modelSource->removeBySource($item['path']);
+			}
+		};unset($item);
+		return $list;
 	}
 	
 	// 普通路径追加标签信息; source路径会已经自动添加;

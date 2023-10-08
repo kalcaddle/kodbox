@@ -75,6 +75,7 @@ class explorerUserShare extends Controller{
 			$sourceArray = array_to_keyvalue($sourceArray,'sourceID');
 		}
 		$notExist = array();
+		$sourceCountGroup = 0;$sourceCountIO = 0;
 		foreach ($shareList['list'] as $shareItem) {
 			$shareItem = $this->shareItemParse($shareItem);
 			// 物理路径,io路径;
@@ -100,24 +101,33 @@ class explorerUserShare extends Controller{
 				continue;
 			}
 			$result[$key][] = $info;
+			if(!$info['sourceID']){$sourceCountIO++;}
+			if($info['groupParentLevel']){$sourceCountGroup++;}
 		}
 		// if($notExist){$this->model->remove($notExist);}// 自动清除不存在的分享内容;
 		
 		// 对自己和部门内容进行分组;
 		$result['groupShow'] = array(
-			array(
+			'selfData' => array(
 				'type' 	=> 'selfData',
 				'title' => LNG('explorer.pathGroup.shareSelf'),
-				"filter"=> array('groupParentLevel'=>'_null_')
+				"filter"=> array('groupParentLevel'=>'_null_','sourceID'=>'')
 			),
-			array(
+			'groupData' => array(
 				'type'	=> 'groupData',
 				'title'	=> LNG('explorer.pathGroup.shareGroup'),
-				"filter"=> array('groupParentLevel'=>'')
+				"filter"=> array('groupParentLevel'=>'','sourceID'=>'')
+			),
+			'ioData' => array(
+				'type'	=> 'ioData',
+				'title'	=> LNG('admin.storage.localStore').'/IO',
+				"filter"=> array('sourceID'=>'_null_')
 			),
 		);
 		$length = count($result['folderList']) + count($result['fileList']);
-		if($length <= 3){unset($result['groupShow']);}	
+		if($sourceCountGroup == 0){unset($result['groupShow']['groupData']);}
+		if($sourceCountIO == 0){unset($result['groupShow']['ioData']);}
+		if($length <= 3 || count($result['groupShow']) <= 1){unset($result['groupShow']);}
 		return $result;
 	}
 	
