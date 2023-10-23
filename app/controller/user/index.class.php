@@ -70,6 +70,16 @@ class userIndex extends Controller {
 		if(!Cookie::get('CSRF_TOKEN')){Cookie::set('CSRF_TOKEN',rand_string(16));}
 	}
 	
+	public function accessTokenCheck($accessToken){
+		$systemPassword = Model('SystemOption')->get('systemPassword');
+		if(!$accessToken || strlen($accessToken) > 500) return false;
+		
+		$pass = substr(md5('kodbox_'.$systemPassword),0,15);
+		$sessionSign = Mcrypt::decode($accessToken,$pass);
+		if(!$sessionSign || $sessionSign != Session::sign()) return false;
+		return true;
+	}
+	
 	// accesstoken 登录前处理;
 	private function initAccessToken(){
 		$action = strtolower(ACTION);
@@ -79,9 +89,9 @@ class userIndex extends Controller {
 			'explorer.share.filedownload',
 			'explorer.share.fileout',
 		);
-		if(in_array($action,$disableCookie)){
-			allowCROS();Cookie::disable(true);
-		}
+		$enableCookie = array('user.index.index');
+		if(in_array($action,$enableCookie)){Cookie::disable(false);} // 带token的url跳转入口页面允许cookie输出;
+		if(in_array($action,$disableCookie)){Cookie::disable(true);allowCROS();}
 	}
 	
 	private function initSetting(){

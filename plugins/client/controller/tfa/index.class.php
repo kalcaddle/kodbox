@@ -10,95 +10,52 @@ class clientTfaIndex extends Controller {
 		$tfaOpen = Model('SystemOption')->get('tfaOpen');
 		$tfaType = Model('SystemOption')->get('tfaType');
 		$options['system']['options']['tfaOpen'] = $tfaOpen == '1' ? 1 : 0;
-		$options['system']['options']['tfaType'] = $tfaType ? $tfaType : 'email';
+		$options['system']['options']['tfaType'] = $tfaType ? $tfaType : '';
 		return $options;
 	}
 
-    /**
-     * 检查所有需登录的请求
-     * 参考：user.authRole.autoCheck
-     */
-    public function autoCheck(){
-        $user = Session::get('kodUser');
-        if (!is_array($user)) return;
-        // 排除无需登录请求
-        $theMod 	= strtolower(MOD);
-		$theST 		= strtolower(ST);
-		$theAction 	= strtolower(ACTION);
-		$authNotNeedLogin = $this->config['authNotNeedLogin'];
-		foreach ($authNotNeedLogin as &$val) {
-			$val = strtolower($val);
-		};unset($val);
-		if(in_array($theAction,$authNotNeedLogin)) return;
-		foreach ($authNotNeedLogin as $value) {
-			$item = explode('.',$value); //MOD,ST,ACT
-			if( count($item) == 2 && 
-				$item[0] === $theMod && $item[1] === '*'){
-				return;
-			}
-			if( count($item) == 3 && 
-				$item[0] === $theMod && $item[1] === $theST  &&$item[2] === '*'){
-				return;
-			}
-		}
-        // 判断是否已二次验证
-        $info = $this->tfaInfo(false,true);
-        if ($info['isRoot'] || $info['isTfa'] === 1) return;
+    // 登录成功后（尚未更新登录状态）
+    public function loginAfter($user) {
+        // 避免死循环
+        $uinfo = Session::get('kodUser');
+        if($uinfo && isset($uinfo['userID']) && $uinfo['userID'] == $user['userID']) return;
+        if (!isset($this->in['withTfa']) || $this->in['withTfa']) return;
 
-        // 跳转到登录页——无法区分是跳转请求还是ajax提交，故只用做后端功能判断
-        show_json(LNG('explorer.noPermissionAction').LNG('client.tfa.need2verify'),false);
-        header('Location:'.$this->getReferLink());
-        exit;
+        $tfaInfo = $this->getTfaInfo($user);
+        if (!$tfaInfo['tfaOpen']) return;
+
+        $key = md5($this->in['name'].$this->in['password'].'_'.$user['userID']);
+        Cache::set($key, $user);
+        show_json($tfaInfo);
     }
-    private function getReferLink(){
-		$url = APP_HOST;
-		if (!empty($this->in['link'])) {
-			$link = $this->in['link'];
-			if($this->in['callbackToken'] == '1'){
-				$param = 'kodTokenApi='.$this->accessToken();
-				$link .= strstr($link,'?') ? '&'.$param:'?'.$param;
-			}
-			$url .= '#user/login&link='.rawurlencode($link);
-		}
-        return $url;
-	}
 
     // 入口方法
     public function index(){
-        $check = array('tfaInfo','tfaCode','tfaVerify');
-        $func = Input::get('action','in',null,$check);
-        $user = Session::get('kodUser');
-        if (!$user) show_json(LNG('client.tfa.loginErr'), false, 10011);
+        $check  = array('tfaCode','tfaVerify');
+        $func   = Input::get('action','in',null,$check);
+
+        $tfaIn  = Input::get('tfaIn','json');
+        $key    = md5($tfaIn['name'].$tfaIn['password'].'_'.$this->in['userID']);
+        $user   = Cache::get($key);
+        if (!$user) show_json(LNG('client.tfa.userLgErr'), false, 10011);
         $this->$func($user);
     }
 
     /**
      * 获取用户多重验证信息
      */
-    public function tfaInfo($user=array(),$ret=false){
-        if (!$user) $user = Session::get('kodUser');
-        $key  = $this->pluginName.'_'.$user['userID'].'_isTfa'; // 不直接从meta中取，是避免有其他处覆盖用户信息
-        $tfa  = Session::get($key);
-        $info = array(
-            'userID'    => $user['userID'],
-            'isRoot'    => !!$GLOBALS['isRoot'],
-            'isTfa'     => intval($tfa),
-        );
-        if (!$info['isRoot'] && !$info['isTfa']) {
-            $info['tfaInfo'] = $this->getTfaInfo($user);
-        }
-		return $ret ? $info : show_json($info);
-	}
-
-    /**
-     * tfa信息：tfa类型、发送信息
-     * $user    ['email'=>'xx','phone'=>'xx]
-     */
-    private function getTfaInfo($user){
+    public function getTfaInfo($user){
+        $tfaOpen = Model('SystemOption')->get('tfaOpen');
         $tfaType = Model('SystemOption')->get('tfaType');
-		if(!$tfaType) $tfaType = 'email';
-
-        // 优先使用手机
+        $data = array(
+            'userID'    => $user['userID'],
+            'tfaOpen'   => intval($tfaOpen),
+        );
+        if (!$data['tfaOpen'] || !$tfaType) {
+            $data['tfaOpen'] = 0;
+            return $data;
+        }
+        // 发送类型，优先使用手机
         $info = array(
             'phone' => _get($user, 'phone', ''),
             'email' => _get($user, 'email', ''),
@@ -112,12 +69,13 @@ class clientTfaIndex extends Controller {
 				break;
 			}
 		}
-        return array(
+        $tfaInfo = array(
             'tfaType'   => $tfaType,
             'type'      => $type,
             'input'     => $this->getMscValue($input,$type)
         );
-    }
+        return array_merge($data, $tfaInfo);
+	}
 
     // 获取手机/邮箱（加*）
     private function getMscValue($value, $type){
@@ -152,7 +110,7 @@ class clientTfaIndex extends Controller {
 			'default'   => array('default' => 0),
         ));
         if ($data['userID'] != $user['userID']) {
-            show_json(LNG('client.tfa.userErr'), false);
+            show_json(LNG('client.tfa.userMtErr'), false);
         }
         if ($data['default'] == '1') {
             if (empty($user[$data['type']])) {
@@ -232,16 +190,27 @@ class clientTfaIndex extends Controller {
      * 提交验证码
      */
     public function tfaVerify($user) {
-        $data = $this->checkCode($user);
-        $code = Input::get('code', 'require');
-
         // 验证码验证
-        $this->checkMsgCode($code, $data);
-
-        // 更新验证信息
-        $key  = $this->pluginName.'_'.$user['userID'].'_isTfa';
-        Session::set($key, 1);
-        show_json(LNG('explorer.success'));
+        if (!Input::get('wiotTfa',null,0)) {
+            $data = $this->checkCode($user);
+            $code = Input::get('code', 'require');
+            $this->checkMsgCode($code, $data);
+            // 绑定联系方式
+            if (isset($this->in['default']) && $this->in['default'] == '0') {
+                $update = array($data['type'] => $data['input']);
+                // Model('User')->where(array("userID"=>$user['userID']))->save($update);
+                $res = Model('User')->userEdit($user['userID'], $update);
+                $user[$data['type']] = $data['input'];
+            }
+        }
+        // 删除用户缓存
+        $this->in = Input::get('tfaIn','json');
+        $key = md5($this->in['name'].$this->in['password'].'_'.$user['userID']);
+        Cache::remove($key);
+        // 更新登录状态
+        $this->in['withTfa'] = true;
+        Action("user.index")->loginSuccessUpdate($user);
+        show_json(LNG('common.loginSuccess'));
     }
 
 }

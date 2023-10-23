@@ -781,11 +781,11 @@ class explorerIndex extends Controller{
 		}
 		return $task;
 	}
-	private function taskUnzip($data){
+	private function taskUnzip($path){
 		$defaultID = 'unzip-'.USER_ID.'-'.rand_string(8);
 		$taskID = $this->in['longTaskID'] ? $this->in['longTaskID']:$defaultID;
 		$task = new TaskUnzip($taskID,'zip');
-		$task->addFile($data['path']);
+		$task->addFile($path);
 	}
 	
 	/**
@@ -801,9 +801,9 @@ class explorerIndex extends Controller{
 		
 		$repeat = Model('UserOption')->get('fileRepeat');
 		$repeat = !empty($this->in['fileRepeat']) ? $this->in['fileRepeat'] :$repeat;
-		$this->taskUnzip($data);
-		IOArchive::unzip($data,$repeat);
-		show_json(LNG('explorer.unzipSuccess'));
+		$this->taskUnzip($data['path']);
+		$result = IOArchive::unzip($data['path'],$data['pathTo'],$data['unzipPart'],$repeat);
+		show_json($result ? LNG('explorer.unzipSuccess'):LNG('explorer.error'),!!$result,$result);
 	}
 
 	/**
@@ -814,9 +814,8 @@ class explorerIndex extends Controller{
 			'path' => array('check' => 'require'),
 			'index' => array('check' => 'require', 'default' => '-1'),
 			'download' => array('check' => 'require', 'default' => false),
-			'name' => array('check' => 'require', 'default' => ''),
 		));
-		$this->taskUnzip($data);
+		$this->taskUnzip($data['path']);
 		$list = IOArchive::unzipList($data);
 		show_json($list);
 	}

@@ -150,8 +150,8 @@ class kodRarArchive {
 		return $result;
 	}
 	
-	static function listContent($file) {
-		$ext = !empty($GLOBALS['ARCHIVE_FILE_EXT']) ? $GLOBALS['ARCHIVE_FILE_EXT'] : get_path_ext($file);
+	static function listContent($file,$ext=''){
+		$ext = $ext ? $ext : get_path_ext($file);
 		if($ext == 'rar'){
 			return self::listContentRar($file);
 		}else{

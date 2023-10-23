@@ -1627,6 +1627,8 @@ return array(
     "explorer.createLink"            => "Erstellen Sie eine Verknüpfung",
     "explorer.createLinkHome"        => "An Desktop-Verknüpfung senden",
     "explorer.setBackground"         => "Als Desktop-Hintergrund festlegen",
+    "explorer.desktop.appSetting"    => "Einstellungen der Desktop-App",
+    "explorer.desktop.appSettingDesc" => "Die Änderung wird für alle Benutzer wirksam",
     "explorer.favRemove"             => "Diese Sammlung abbrechen",
     "explorer.openPath"              => "Gehe in das Verzeichnis",
     "explorer.openPathFinished"      => "Bereits in das Verzeichnis eingegeben",

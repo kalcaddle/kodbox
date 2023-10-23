@@ -33,7 +33,12 @@ function get_client_ip($b_ip = true){
 		// $client_ip = substr($client_ip,$pos+1);
 		$client_ip = substr($client_ip,0,$pos);
 	}
-	return trim($client_ip);
+	$client_ip = trim($client_ip);
+	if (!$client_ip || filter_var($client_ip, FILTER_VALIDATE_IP)) return $client_ip;
+	// 过滤可能伪造的ip
+	preg_match('/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/', $client_ip, $matches);
+	$client_ip = filter_var($matches[1], FILTER_VALIDATE_IP);
+	return $client_ip ? $client_ip : 'unknown';
 }
 function get_server_ip(){
 	static $ip = NULL;
@@ -403,7 +408,7 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 			break;
 		case 'DOWNLOAD':
 			//远程下载到指定文件；进度条
-			$fp = fopen ($data.'.'.rand_string(5),'w+');
+			$fp = fopen ($data,'w+');
 			curl_setopt($ch, CURLOPT_HTTPGET,1);
 			curl_setopt($ch, CURLOPT_HEADER,0);//不输出头
 			curl_setopt($ch, CURLOPT_FILE, $fp);

@@ -1627,6 +1627,8 @@ return array(
     "explorer.createLink"            => "إنشاء اختصار",
     "explorer.createLinkHome"        => "إرسال إلى اختصار سطح المكتب",
     "explorer.setBackground"         => "تعيين كخلفية لسطح المكتب",
+    "explorer.desktop.appSetting"    => "إعدادات تطبيقات سطح المكتب",
+    "explorer.desktop.appSettingDesc" => "سيصبح التعديل ساري المفعول لجميع المستخدمين",
     "explorer.favRemove"             => "إلغاء هذه المجموعة",
     "explorer.openPath"              => "انتقل إلى الدليل",
     "explorer.openPathFinished"      => "دخلت بالفعل في الدليل",

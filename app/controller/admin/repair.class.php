@@ -26,14 +26,14 @@ class adminRepair extends Controller {
 	 * 清空修复异常数据(php终止,断电,宕机等引起数据库表错误的进行处理;)
 	 * 6个小时执行一次;
 	 * 
-	 * 手动执行：
-	 * /?admin/repair/autoReset&done=1/2，done=1为清理数据；done=2为实际删除不存在的文件记录
+	 * 手动执行:
+	 * /?admin/repair/autoReset&done=1/2,done=1为清理数据;done=2为实际删除不存在的文件记录
 	 */
 	public function autoReset(){
 		$done = isset($this->in['done']) ? intval($this->in['done']) : 0;
 		if ($done == 2) {	// 计划任务执行
 			$msg = $this->resetPathSource();
-			echoLog('异常数据清理，'.$msg.'可在后台任务管理进行中止。');
+			echoLog('异常数据清理,'.$msg.'可在后台任务管理进行中止.');
 		} else {
 			$cacheKey = 'autoReset';
 			$lastTime = Cache::get($cacheKey);
@@ -42,9 +42,9 @@ class adminRepair extends Controller {
 				echo '最后一次执行未超过6小时!';return;
 			}
 			Cache::set($cacheKey,time());
-			echoLog('异常数据清理，可在后台任务管理进行中止。');
+			echoLog('异常数据清理,可在后台任务管理进行中止.');
 		}
-		echoLog('请求参数done=1时，不直接删除已缺失的物理文件，可查看“物理文件不存在的数据记录”，确认需要删除后，再执行done=2进行删除');
+		echoLog('请求参数done=1时,不直接删除已缺失的物理文件,可查看“物理文件不存在的数据记录”,确认需要删除后,再执行done=2进行删除');
 		echoLog('=====================================================');
 		if ($done == 2) {return $this->clearErrorFile();}
 		// http_close();
@@ -57,9 +57,9 @@ class adminRepair extends Controller {
 		$this->resetSourceHistory();	// 文件历史版本,fileID不存在的内容清理;
 		$this->resetFileLink();			// 重置fileID的linkCount引用计数(source,sourceHistory);
 		$this->clearSameFile();			// 清理重复的文件记录
-		write_log('手动清理执行完成！', 'sourceClear');
+		write_log('手动清理执行完成!','sourceRepair');
 		echoLog('=====================================================');
-		echoLog('手动清理执行完成！');
+		echoLog('手动清理执行完成!');
 	}
 
 	// 处理指定目录数据
@@ -95,13 +95,13 @@ class adminRepair extends Controller {
 			'file'	=> array_filter(array_unique($file)),
 		);
 		Cache::set($this->resetPathKey, $cache);
-		return '执行目录: '.$path.'，';
+		return '执行目录: '.$path.',';
 	}
 	private function pathWhere($model, $file=false, $shareTo=false) {
 		if (!$this->resetPathKey) return;
 		$cache = Cache::get($this->resetPathKey);
 		if (!$cache) {
-			echoLog('缓存数据异常，请尝试重新执行！');exit;
+			echoLog('缓存数据异常,请尝试重新执行!');exit;
 		}
 		$key = $file ? 'file' : 'source';
 		$ids = $cache[$key];
@@ -121,17 +121,17 @@ class adminRepair extends Controller {
 	
 	/**
 	 * 清除已不存在的物理文件记录
-	 * 需先执行autoReset方法，并查看sourceClear日志【resetFileLink--已不存在的物理文件】，确认是否需要清除
+	 * 需先执行autoReset方法,并查看sourceRepair日志【resetFileLink--已不存在的物理文件】,确认是否需要清除
 	 * @return void
 	 */
 	public function clearErrorFile(){
 		$cache = Cache::get('clear_file_'.date('Ymd'));
 		if (!$cache || !is_array($cache)) {
-			echoLog('没有缺失的物理文件记录！');
-			echoLog('注意：此记录从缓存中获取，缓存数据在执行done=1时产生，因此请务必先执行done=1。');
+			echoLog('没有缺失的物理文件记录!');
+			echoLog('注意:此记录从缓存中获取,缓存数据在执行done=1时产生,因此请务必先执行done=1.');
 			exit;
 		}
-		echoLog('clearErrorFile，物理文件不存在的数据处理；');
+		echoLog('clearErrorFile,物理文件不存在的数据处理;');
 		$model = Model('File');
 		$modelSource = Model("Source");$modelHistory = Model("SourceHistory");
 		$result = array('file' => 0, 'source' => 0);
@@ -142,8 +142,7 @@ class adminRepair extends Controller {
 			echoLog('file:'.$result['file'].';source:'.$result['source'],true);
 		}
 		Cache::remove('clear_file_'.date('Ymd'));
-		echoLog('clearErrorFile，finished:清除已不存在的物理文件记录共' . $result['file'] . '条，涉及source记录' . $result['source'] . '条！');
-		// echo '<p style="font-size:14px;">清除已不存在的物理文件记录共' . $result['file'] . '条，涉及source记录' . $result['source'] . '条！</p>';
+		echoLog('clearErrorFile,finished:清除已不存在的物理文件记录共'.$result['file'].'条,涉及source记录'.$result['source'].'条!');
 		exit;
 	}
 
@@ -154,78 +153,59 @@ class adminRepair extends Controller {
 	 * 3. sourchHash 为空的数据;
 	 */
 	public function resetSourceEmpty(){
-		$taskType ='resetSourceEmpty';
+		$taskID ='resetSourceEmpty';$pageNum = $this->pageCount;$page = 1;$changeNum = 0;
 		$model = Model("Source");
-		$pageNum = $this->pageCount;$page = 1;$errorNum = 0;
 		$this->pathWhere($model);
 		$list = $model->selectPage($pageNum,$page);
 		
-		$total = 0;
-		echoLog($taskType.'，source表异常数据处理；');$timeStart = timeFloat();
-		$task = new Task($taskType,'',$list['pageInfo']['totalNum']);
+		$task = TaskLog::newTask($taskID,'source表异常数据处理',$list['pageInfo']['totalNum']);
 		while($list && $page <= $list['pageInfo']['pageTotal']){
 			$parentSource = $removeSource = $removeFiles = array();
 			foreach ($list['list'] as $item) {
 				$levelEnd = ','.$item['parentID'].',';
 				$levelEndNow = substr($item['parentLevel'],- strlen($levelEnd));
-				if( $item['sourceHash'] == '' ||
-					$levelEndNow != $levelEnd
-				){
-					$errorNum ++;
-					$task->task['currentTitle'] = $errorNum .'个不存在';
-					write_log(array($taskType,$item),'sourceClear');
+				if( $item['sourceHash'] == '' || $levelEndNow != $levelEnd ){
+					$changeNum++;write_log(array($taskID,$item),'sourceRepair');
+					$task->task['desc'] = $task->task['currentTitle'] = $changeNum.'个不存在';
 					$parentSource[] = $item['parentID'];
 					$removeSource[] = $item['sourceID'];
 					$removeFiles[]  = $item['fileID'];
 				}
-				$total++;
-				echoLog('['.$total.'] '.($errorNum > 0 ? $task->task['currentTitle'].';' : ''), true);
 				$task->update(1);
 			}
 			$model->removeRelevance($removeSource,$removeFiles); // 优化性能;
 			$this->folderSizeReset($parentSource);
-			$page ++;
-			$this->pathWhere($model);
+			$this->pathWhere($model);$page++;
 			$list = $model->selectPage($pageNum,$page);
 		}
-		echoLog($taskType.'，total: '.$total.'; error: '.$errorNum.'; t='.(timeFloat() - $timeStart).'s');
 		$task->end();
 	}
 	
 	// source对应fileID 不存在处理;
 	public function resetSourceFile(){
-		$taskType ='resetSourceFile';
-		$model = Model("Source");
-		$modelFile = Model("File");
-		$pageNum = $this->pageCount;$page = 1;$errorNum = 0;
+		$taskID ='resetSourceFile';$pageNum = $this->pageCount;$page = 1;$changeNum = 0;
+		$model = Model("Source");$modelFile = Model("File");
 		$this->pathWhere($model);
 		$list = $model->selectPage($pageNum,$page);
-		
-		$total = 0;$timeStart = timeFloat();
-		echoLog($taskType.'，source表空数据处理；');
-		$task = new Task($taskType,'',$list['pageInfo']['totalNum']);
+
+		$task = TaskLog::newTask($taskID,'source表空数据处理',$list['pageInfo']['totalNum']);
 		while($list && $page <= $list['pageInfo']['pageTotal']){
 			$parentSource = $removeSource = $removeFiles = array();
 			foreach ($list['list'] as $item) {
 				if($item['isFolder'] == '0' && !$modelFile->find($item['fileID'])){
-					$errorNum ++;
-					$task->task['currentTitle'] = $errorNum .'个不存在';
-					write_log(array($taskType,$item),'sourceClear');
+					$changeNum++;write_log(array($taskID,$item),'sourceRepair');
+					$task->task['desc'] = $task->task['currentTitle'] = $changeNum.'个不存在';
 					$parentSource[] = $item['parentID'];
 					$removeSource[] = $item['sourceID'];
 					$removeFiles[]  = $item['fileID'];
 				}
-				$total++;
-				echoLog('['.$total.'] '.($errorNum > 0 ? $task->task['currentTitle'].';' : ''), true);
 				$task->update(1);
 			}
 			$model->removeRelevance($removeSource,$removeFiles); // 优化性能;
 			$this->folderSizeReset($parentSource);
-			$page ++;
-			$this->pathWhere($model);
+			$this->pathWhere($model);$page++;
 			$list = $model->selectPage($pageNum,$page);
 		}
-		echoLog($taskType.'，total: '.$total.'; error: '.$errorNum.'; t='.(timeFloat() - $timeStart).'s');
 		$task->end();
 	}
 
@@ -239,29 +219,25 @@ class adminRepair extends Controller {
 	}
 
 	public function resetFileHash(){
-		$taskType ='resetFileHash';
-		$model = Model('File');
-		$pageNum = $this->pageCount;$page = 1;$errorNum = 0;
+		$taskID ='resetFileHash';$pageNum = $this->pageCount;$page = 1;$changeNum = 0;
+		$model  = Model('File');
 		$this->pathWhere($model, true);
 		$list = $model->selectPage($pageNum,$page);
 		
-		$task = new Task($taskType,'',$list['pageInfo']['totalNum']);
+		$task = TaskLog::newTask($taskID,'更新文件hash',$list['pageInfo']['totalNum']);
 		while($list && $page <= $list['pageInfo']['pageTotal']){
 			foreach ($list['list'] as $item) {
 				if(!$item['hashSimple'] || !$item['hashMd5']){
 					$data = array('hashSimple'=>IO::hashSimple($item['path']) );
-					if(!$item['hashMd5']){
-						$data['hashMd5'] = IO::hashMd5($item['path']);
-					}
-					$errorNum ++;
-					$task->task['currentTitle'] = $errorNum .'个修改';
-					write_log(array($taskType,$item),'sourceClear');
+					if(!$item['hashMd5']){$data['hashMd5'] = IO::hashMd5($item['path']);}
+					
+					$changeNum++;write_log(array($taskID,$item),'sourceRepair');
+					$task->task['desc'] = $task->task['currentTitle'] = $changeNum.'个修改';
 					$model->where(array('fileID'=>$item['fileID']))->save($data);
 				}
 				$task->update(1);
 			}
-			$page ++;
-			$this->pathWhere($model, true);
+			$this->pathWhere($model, true);$page++;
 			$list = $model->selectPage($pageNum,$page);
 		}
 		$task->end();
@@ -269,138 +245,104 @@ class adminRepair extends Controller {
 	
 	// 重置分享,内部协作分享数据;(删除文件夹,删除对应分享,及内部协作分享)
 	public function resetShareTo(){
-		$taskType ='resetShareTo';
-		$model = Model('share_to');$modelShare = Model("share");
-		$pageNum = $this->pageCount;$page = 1;$errorNum = 0;
+		$taskID ='resetShareTo';$pageNum = $this->pageCount;$page = 1;$changeNum = 0;
+		$model  = Model('share_to');$modelShare = Model("share");
 		$this->pathWhere($model, false, true);
 		$list = $model->selectPage($pageNum,$page);
 		
-		$total = 0;$timeStart = timeFloat();
-		echoLog($taskType.'，协作分享异常数据处理；');
-		$task = new Task($taskType,'',$list['pageInfo']['totalNum']);
+		$task = TaskLog::newTask($taskID,'重置内部协作数据',$list['pageInfo']['totalNum']);
 		while($list && $page <= $list['pageInfo']['pageTotal']){
 			foreach ($list['list'] as $item) {
 				$where = array("shareID"=>$item['shareID']);
 				if(!$modelShare->where($where)->find()){
-					$errorNum ++;
-					$task->task['currentTitle'] = $errorNum .'个不存在';
-					write_log(array($taskType,$item),'sourceClear');
+					$changeNum++;write_log(array($taskID,$item),'sourceRepair');
+					$task->task['desc'] = $task->task['currentTitle'] = $changeNum.'个不存在';
 					$model->where($where)->delete();
 				}
-				$total++;
-				echoLog('['.$total.'] '.($errorNum > 0 ? $task->task['currentTitle'].';' : ''), true);
 				$task->update(1);
 			}
-			$page ++;
-			$this->pathWhere($model, false, true);
+			$this->pathWhere($model, false, true);$page++;
 			$list = $model->selectPage($pageNum,$page);
 		}
-		echoLog($taskType.'，total: '.$total.'; error: '.$errorNum.'; t='.(timeFloat() - $timeStart).'s');
 		$task->end();
 	}
 	
 	// 重置分享,内部协作分享数据;(删除文件夹,删除对应分享,及内部协作分享)
 	public function resetShare(){
-		$taskType ='resetShare';
+		$taskID ='resetShare';$pageNum = $this->pageCount;$page = 1;$changeNum = 0;
 		$model = Model('share');$modelSource = Model("Source");
-		$pageNum = $this->pageCount;$page = 1;$errorNum = 0;
 		$this->pathWhere($model);
 		$list = $model->selectPage($pageNum,$page);
-		
-		$total = 0;$timeStart = timeFloat();
-		echoLog($taskType.'，外链分享异常数据处理；');
-		$task = new Task($taskType,'',$list['pageInfo']['totalNum']);
+
+		$task = TaskLog::newTask($taskID,'重置分享数据',$list['pageInfo']['totalNum']);
 		while($list && $page <= $list['pageInfo']['pageTotal']){
 			foreach ($list['list'] as $item) {
 				$where = array("sourceID"=>$item['sourceID']);
 				if($item['sourceID'] != '0' && !$modelSource->where($where)->find()){
-					$errorNum ++;
-					$task->task['currentTitle'] = $errorNum .'个不存在';
-					write_log(array($taskType,$item),'sourceClear');
-									
+					$changeNum++;write_log(array($taskID,$item),'sourceRepair');
+					$task->task['desc'] = $task->task['currentTitle'] = $changeNum.'个不存在';
+					
 					$where = array('shareID'=>$item['shareID']);
 					$model->where($where)->delete();
 					Model('share_to')->where($where)->delete();
 				}
-				$total++;
-				echoLog('['.$total.'] '.($errorNum > 0 ? $task->task['currentTitle'].';' : ''), true);
 				$task->update(1);
 			}
-			$page ++;
-			$this->pathWhere($model);
+			$this->pathWhere($model);$page++;
 			$list = $model->selectPage($pageNum,$page);
 		}
-		echoLog($taskType.'，total: '.$total.'; error: '.$errorNum.'; t='.(timeFloat() - $timeStart).'s');
 		$task->end();
 	}
-	
 
 	// file表中存在, source表中不存在的进行清除;历史记录表等;
 	public function resetFileSource(){
-		$taskType ='resetFileSource';
+		$taskID ='resetFileSource';$pageNum = $this->pageCount;$page = 1;$changeNum = 0;
 		$model = Model("File");$modelSource = Model("Source");
 		$modelHistory = Model('SourceHistory');;
-		$pageNum = $this->pageCount;$page = 1;$errorNum = 0;
 		$this->pathWhere($model, true);
 		$list = $model->selectPage($pageNum,$page);
 		$stores = Model('Storage')->listData();
 	    $stores = array_to_keyvalue($stores, '', 'id');	// 有效存储列表
 
-		$total = 0;$timeStart = timeFloat();
-		echoLog($taskType.'，file+source记录异常处理；');
-		$task = new Task($taskType,'',$list['pageInfo']['totalNum']);
+		$task = TaskLog::newTask($taskID,'Source记录异常处理',$list['pageInfo']['totalNum']);
 		while($list && $page <= $list['pageInfo']['pageTotal']){
 			foreach ($list['list'] as $item) {
 				$where = array("fileID"=>$item['fileID']);
 				$findSource  = $modelSource->where($where)->find();
 				$findHistory = $modelHistory->where($where)->find();
 				if(!$findSource && !$findHistory){
-					$errorNum ++;
-					$task->task['currentTitle'] = $errorNum .'个不存在';
-					write_log(array($taskType,$item),'sourceClear');
+					$changeNum++;write_log(array($taskID,$item),'sourceRepair');
+					$task->task['desc'] = $task->task['currentTitle'] = $changeNum.'个不存在';
 					// if (in_array($item['ioType'], $stores)) {IO::remove($item['path']);}
 					$model->where($where)->delete();
 				}
-				$total++;
-				echoLog('['.$total.'] '.($errorNum > 0 ? $task->task['currentTitle'].';' : ''), true);
 				$task->update(1);
 			}
-			$page ++;
-			$this->pathWhere($model, true);
+			$this->pathWhere($model, true);$page++;
 			$list = $model->selectPage($pageNum,$page);
 		}
-		echoLog($taskType.'，total: '.$total.'; error: '.$errorNum.'; t='.(timeFloat() - $timeStart).'s');
 		$task->end();
 	}
 	
-	
 	// File表中,io不存在的文件进行处理;（被手动删除的）
 	public function resetFileLink(){
-		$taskType ='resetFileLink';
+		$taskID ='resetFileLink';$pageNum = $this->pageCount;$page = 1;$changeNum = 0;
 		$model = Model('File');
-		$pageNum = $this->pageCount;$page = 1;$errorNum = 0;
 		$this->pathWhere($model, true);
 		$list = $model->selectPage($pageNum,$page);
 		$stores = Model('Storage')->listData();
 	    $stores = array_to_keyvalue($stores, '', 'id');	// 有效存储列表
-		
-		$total = 0;$timeStart = timeFloat();
-		echoLog($taskType.'，物理文件不存在的数据记录；');
-		$cache = array();
-		$rest = array('file' => 0, 'source' => 0);
-		$task = new Task($taskType,'',$list['pageInfo']['totalNum']);
+
+		$cache = array();$rest = array('file' => 0, 'source' => 0);
+		$task  = TaskLog::newTask($taskID,'重置清理File表引用',$list['pageInfo']['totalNum']);
 		while($list && $page <= $list['pageInfo']['pageTotal']){
 			foreach ($list['list'] as $item) {
-				$total++;
-				echoLog('['.$total.']', true);
 				$ioNone = in_array($item['ioType'], $stores);
 				if($ioNone && IO::exist($item['path']) ){
 					$model->resetFile($item);
 				}else{
-					$errorNum ++;
-					$task->task['currentTitle'] = $errorNum .'个不存在';
-					write_log(array($taskType.'--已不存在的物理文件',$item),'sourceClear');
-					echoLog('——第'.$task->task['currentTitle'].';'.$item['path']);
+					$changeNum++;write_log(array($taskID.'--已不存在的物理文件',$item),'sourceRepair');
+					$task->task['desc'] = $task->task['currentTitle'] = $changeNum.'个不存在'.';'.$item['path'];
 					$cache[] = array(
 						'fileID'	=> $item['fileID'],
 						'linkCount' => $item['linkCount'],
@@ -408,14 +350,11 @@ class adminRepair extends Controller {
 				}
 				$task->update(1);
 			}
-			$page ++;
-			$this->pathWhere($model, true);
+			$this->pathWhere($model, true);$page++;
 			$list = $model->selectPage($pageNum,$page);
 		}
-		echoLog($taskType.'，total: '.$total.'; error: '.$errorNum.'; t='.(timeFloat() - $timeStart).'s');
 		$task->end();
-
-		if ($cache) Cache::set('clear_file_'.date('Ymd'), $cache);
+		if($cache) Cache::set('clear_file_'.date('Ymd'), $cache);
 		return $rest;
 	}
 	// 删除不存在的物理文件
@@ -434,42 +373,32 @@ class adminRepair extends Controller {
 		return array('source' => intval($cnt1),'file'=> intval($cnt2));
 	}
 
-	public function resetSourceHistory(){		
-		$taskType ='resetSourceHistory';
+	public function resetSourceHistory(){
+		$taskID ='resetSourceHistory';$pageNum = $this->pageCount;$page = 1;$changeNum = 0;
 		$model = Model('SourceHistory');$modelSource = Model("Source");
 		$modelFile = Model("File");
-		$pageNum = $this->pageCount;$page = 1;$errorNum = 0;
 		$this->pathWhere($model);
 		$list = $model->selectPage($pageNum,$page);
-		
-		$total = 0;$timeStart = timeFloat();
-		echoLog($taskType.'，历史版本异常数据处理；');
-		$task = new Task($taskType,'',$list['pageInfo']['totalNum']);
+
+		$task = TaskLog::newTask($taskID,'历史版本异常数据处理',$list['pageInfo']['totalNum']);
 		while($list && $page <= $list['pageInfo']['pageTotal']){
 			foreach ($list['list'] as $item) {
 				$where = array("sourceID"=>$item['sourceID']);
 				if( !$modelSource->where($where)->find() ){
-					$errorNum ++;
-					$task->task['currentTitle'] = $errorNum .'个不存在';
-					write_log(array($taskType,$item),'sourceClear');
+					$changeNum++;write_log(array($taskID,$item),'sourceRepair');
+					$task->task['desc'] = $task->task['currentTitle'] = $changeNum.'个不存在';
 					$model->where($where)->delete();
 				}
-				
 				if( !$modelFile->where(array('fileID'=>$item['fileID']))->find()){
-					$errorNum ++;
-					$task->task['currentTitle'] = $errorNum .'个不存在';
-					write_log(array($taskType.';fileError!',$item),'sourceClear');
+					$changeNum++;write_log(array($taskID.',fileError!',$item),'sourceRepair');
+					$task->task['desc'] = $task->task['currentTitle'] = $changeNum.'个不存在';	
 					$model->where(array('fileID'=>$item['fileID']))->delete();
 				}
-				$total++;
-				echoLog('['.$total.'] '.($errorNum > 0 ? $task->task['currentTitle'].';' : ''), true);
 				$task->update(1);
 			}
-			$page ++;
-			$this->pathWhere($model);
+			$this->pathWhere($model);$page++;
 			$list = $model->selectPage($pageNum,$page);
 		}
-		echoLog($taskType.'，total: '.$total.'; error: '.$errorNum.'; t='.(timeFloat() - $timeStart).'s');
 		$task->end();
 	}
 	
@@ -480,19 +409,17 @@ class adminRepair extends Controller {
 		$this->sourceNameSort();
 	}
 	public function sourceNameSort(){
+		$taskID ='sourceNameSort';$pageNum = $this->pageCount;$page = 1;$changeNum = 0;
 		Model("SystemOption")->set('sourceNameSortFlag','1');
-		$taskType ='sourceNameSort';
 		$model = Model('Source');$modelMeta = Model("io_source_meta");
-		$pageNum = $this->pageCount;$page = 1;$errorNum = 0;
+		$pageNum = $this->pageCount;$page = 1;$changeNum = 0;
 		$model->selectPageReset();
 		$list = $model->field('sourceID,name')->selectPage($pageNum,$page);
 		
-		$task = new Task($taskType,'',$list['pageInfo']['totalNum']);
-		$index = 0;$total = $list['pageInfo']['totalNum'];
+		$task = TaskLog::newTask($taskID,'更新Source排序名',$list['pageInfo']['totalNum']);
 		while($list && $page <= $list['pageInfo']['pageTotal']){
 			$metaAdd = array();
 			foreach ($list['list'] as $item){
-				$index++;
 				if(!$item['name']) continue;
 				$metaAdd[] = array(
 					'sourceID' 	=> $item['sourceID'],
@@ -500,7 +427,6 @@ class adminRepair extends Controller {
 					'value'		=> KodSort::makeStr($item['name']),
 				);
 				$task->update(1);
-				echoLog($index.'/'.$total, true);
 				if(count($metaAdd) >= 1000){
 					$modelMeta->addAll($metaAdd,array(),true);$metaAdd = array();
 				}
@@ -508,7 +434,7 @@ class adminRepair extends Controller {
 			if(count($metaAdd) > 0){
 				$modelMeta->addAll($metaAdd,array(),true);$metaAdd = array();
 			}
-			$page ++;
+			$page++;
 			$list = $model->field('sourceID,name')->selectPage($pageNum,$page);
 		}
 		Model("SystemOption")->set('sourceNameSortFlag','2');
@@ -517,14 +443,14 @@ class adminRepair extends Controller {
 	}
 
 	/**
-	 * 根据sourceID彻底删除文件，sourceID可传多个，如sourceID=1,2,3
+	 * 根据sourceID彻底删除文件,sourceID可传多个,如sourceID=1,2,3
 	 * @return void
 	 */
 	public function clearSource(){
-		echoLog('根据sourceID彻底删除关联文件！参数sourceID=1,2,3');
+		echoLog('根据sourceID彻底删除关联文件!参数sourceID=1,2,3');
 		$ids = $this->in['sourceID'];
 		if (!$ids) {
-			echoLog('无效的参数：sourceID！');exit;
+			echoLog('无效的参数:sourceID!');exit;
 		}
 		// 1.根据sourceID查fileID
 		$ids = array_filter(explode(',',$ids));
@@ -534,11 +460,11 @@ class adminRepair extends Controller {
 		);
 		$list = Model('Source')->where($where)->field('sourceID,fileID')->select();
 		if (empty($list)) {
-			echoLog('找不到对应的source记录，请检查sourceID是否正确。');
+			echoLog('找不到对应的source记录,请检查sourceID是否正确.');
 			exit;
 		}
 
-		echoLog('删除开始：');
+		echoLog('删除开始:');
 		$ids  = array_to_keyvalue($list, '', 'sourceID');
 		$file = array_to_keyvalue($list, '', 'fileID');
 		$file = array_filter($file);
@@ -555,14 +481,14 @@ class adminRepair extends Controller {
 		foreach ($ids as $i => $id) {
 			$path = KodIO::make($id);
 			IO::remove($path, false);
-			echoLog('source记录：'.($i+1), true);
+			echoLog('source记录:'.($i+1), true);
 		}
 		// 4.删除可能还存在的file记录——实际物理文件删除与否不影响
 		if (!empty($file)) {
 			$where = array('fileID'=>array('in', $file));
 			Model('File')->where($where)->delete();
 		}
-		echoLog("删除完成！共删除source记录{$sCnt}条；file记录{$fCnt}条。");
+		echoLog("删除完成!共删除source记录{$sCnt}条;file记录{$fCnt}条.");
 	}
 	
 	public function resetSize(){
@@ -574,14 +500,12 @@ class adminRepair extends Controller {
 	
 	// 重复文件清理; 根据hashMd5处理;
 	public function clearSameFile(){
+		$taskID ='clearSameFile';$pageNum = $this->pageCount;$page = 1;$changeNum = 0;
 		$list = Model()->query('select hashMd5,count(1) from io_file group by hashMd5 having count(hashMd5)>1;');
 		$list = is_array($list) ? $list : array();
-		$taskType ='clearSameFile';
 		$modelFile = Model("File");
 		
-		$total = 0;$timeStart = timeFloat();$removeNum = 0;
-		echoLog($taskType.',重复文件清理. 总数='.count($list));
-		$task = new Task($taskType,'',count($list));$totalCount = count($list);
+		$task = TaskLog::newTask($taskID,'重复文件清理',count($list));
 		foreach ($list as $item) {
 			if(!$item['hashMd5'] || $item['hashMd5'] == '0') continue;
 			$where = array("hashMd5"=>$item['hashMd5']);
@@ -611,13 +535,12 @@ class adminRepair extends Controller {
 				Model("io_file_meta")->where($fileWhere)->delete();
 				$modelFile->where($fileWhere)->delete();
 				$modelFile->where(array('fileID'=>$fileID))->save(array('linkCount'=>$linkCount));
-				$removeNum ++;
+				
+				$changeNum++;write_log(array($taskID,$item),'sourceRepair');
+				$task->task['desc'] = $task->task['currentTitle'] = $changeNum.'个修改';
 			}
-			//echoLog("222;".json_encode($fileRemove));exit;
-			$task->update(1);$total++;
-			echoLog($total.'/'.$totalCount.'; changed='.$removeNum, true);
+			$task->update(1);
 		}
-		echoLog($total.'/'.$totalCount.'; changed='.$removeNum.'; t='.(timeFloat() - $timeStart).'s');
 		$task->end();
 	}
 }

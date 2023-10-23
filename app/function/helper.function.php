@@ -14,31 +14,7 @@ function allowCROS(){
 }
 
 //扩展名权限判断 有权限则返回1 不是true
-function checkExt($file){
-	if(_get($GLOBALS,'isRoot')) return 1;
-	if(strstr($file,'<') || strstr($file,'>') || $file=='') {
-		return 0;
-	}
-	
-	//'php|phtml|phtm|pwml|asp|aspx|ascx|jsp|pl|htaccess|shtml|shtm'
-	$notAllow = strtolower($GLOBALS['auth']['extNotAllow']);
-	$extArr = explode('|',$notAllow);
-	if(in_array('asp',$extArr)){
-		$extArr = array_merge($extArr,array('aspx','ascx','pwml'));
-	}
-	if(in_array('php',$extArr)){
-		$extArr = array_merge($extArr,array('phtml','phtm','htaccess','pwml'));
-	}
-	if(in_array('htm',$extArr) || in_array('html',$extArr)){
-		$extArr = array_merge($extArr,array('html','shtml','shtm','html'));
-	}
-	foreach ($extArr as $current) {
-		if ($current !== '' && stristr($file,'.'.$current)){//含有扩展名
-			return 0;
-		}
-	}
-	return 1;
-}
+function checkExt($file){return checkExtSafe($file);}
 function checkExtSafe($file){
 	if($file == '.htaccess' || $file == '.user.ini') return false;
 	if(strstr($file,'<') || strstr($file,'>') || $file=='') return false;
@@ -126,14 +102,8 @@ function zip_pre_name($fileName,$toCharset=false){
 
 //解压缩文件名检测
 function unzip_filter_ext($name){
-	$add = '.txt';
-	if( checkExt($name) &&
-		!stristr($name,'user.ini') &&
-		!stristr($name,'.htaccess')
-	){//允许
-		return $name;
-	}
-	return $name.$add;
+	return $name;// 暂不处理(临时文件夹中处理; 通过加密目录进行隐藏)
+	return $name.(checkExtSafe($name) ? '':'.txt');
 }
 //解压到kod，文件名处理;识别编码并转换到当前系统编码
 function unzip_pre_name($fileName){

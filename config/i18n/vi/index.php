@@ -1627,6 +1627,8 @@ return array(
     "explorer.createLink"            => "Tạo một lối tắt",
     "explorer.createLinkHome"        => "Gửi tới lối tắt trên màn hình",
     "explorer.setBackground"         => "Đặt làm hình nền máy tính",
+    "explorer.desktop.appSetting"    => "Cài đặt ứng dụng trên máy tính để bàn",
+    "explorer.desktop.appSettingDesc" => "Việc sửa đổi sẽ có hiệu lực đối với tất cả người dùng",
     "explorer.favRemove"             => "Hủy bộ sưu tập này",
     "explorer.openPath"              => "Vào thư mục",
     "explorer.openPathFinished"      => "Đã vào thư mục",

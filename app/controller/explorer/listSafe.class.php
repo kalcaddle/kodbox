@@ -140,6 +140,11 @@ class explorerListSafe extends Controller{
 			'pathSafe'	=> $type,
 			'metaInfo' 	=> array('systemSort'=>3000000000,'systemSortHidden'=>true),
 		);
+		if($type != 'isLogin'){
+			$result['folderRoot']['hasFile'] = 0;
+			$result['folderRoot']['hasFolder'] = 0;
+		}
+		
 		$result['listEmpty']  = array(
 			'current' 		=> $result['folderRoot'],
 			'folderList' 	=> array(),

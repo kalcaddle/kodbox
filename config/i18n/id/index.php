@@ -1627,6 +1627,8 @@ return array(
     "explorer.createLink"            => "Buat jalan pintas",
     "explorer.createLinkHome"        => "Kirim ke pintasan desktop",
     "explorer.setBackground"         => "Tetapkan sebagai wallpaper desktop",
+    "explorer.desktop.appSetting"    => "Pengaturan aplikasi desktop",
+    "explorer.desktop.appSettingDesc" => "Modifikasi akan berlaku untuk semua pengguna",
     "explorer.favRemove"             => "Batalkan koleksi ini",
     "explorer.openPath"              => "Pergi ke direktori",
     "explorer.openPathFinished"      => "Sudah masuk direktori",

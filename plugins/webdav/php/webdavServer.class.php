@@ -301,6 +301,7 @@ class webdavServer {
 			$code = 201;
 		}
 		$result = $this->pathPut($this->path,$tempFile);
+		@unlink($tempFile);
 		if($result == false){$code = 404;}
 		return array("code"=>$code);
 	}
@@ -310,13 +311,11 @@ class webdavServer {
 	}
 	// 兼容move_uploaded_file 和 流的方式上传
 	public function uploadFileLocal(){
-		$dest 	= TEMP_FILES.'upload_dav_'.rand_string(32);
+		$dest 	= TEMP_FILES.'upload_dav_'.rand_string(32);mk_dir(TEMP_FILES);
 		$outFp 	= @fopen($dest, "wb");
 		$in  	= @fopen("php://input","rb");
-		if(!$in || !$outFp){
-			@unlink($dest);return false;
-		} 	
-		while (!feof($in)) {
+		if(!$in || !$outFp){@unlink($dest);return false;} 	
+		while(!feof($in)) {
 			fwrite($outFp, fread($in, 1024*200));
 		}
 		fclose($in);fclose($outFp);

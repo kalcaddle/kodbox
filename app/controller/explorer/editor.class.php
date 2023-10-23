@@ -14,14 +14,10 @@ class explorerEditor extends Controller{
 	public function fileGet(){
 		$path = Input::get('path','require');
 		$this->fileGetHistoryCheck($path);
+		$this->fileGetZipContentCheck($path);
 		if(request_url_safe($path)){
-			$urlInfo = parse_url_query($path);
-			$driver  = new PathDriverUrl();
-			$pathInfo  = $driver->info($path);
-			$pathInfo['path'] = '';
-			$pathInfo['name'] = isset($urlInfo['name']) ? rawurldecode($urlInfo['name']) : $pathInfo['name'];
-			$pathInfo['pathDisplay'] = "[" . trim($pathInfo['name'], '/') . "]";
-			return $this->fileGetMake($path,$pathInfo);
+			$driver   = new PathDriverUrl();
+			return $this->fileGetMake($path,$driver->info($path),$path);
 		}
 		$pathInfo = IO::info($path);
 		$pathInfo = Action('explorer.list')->pathInfoParse($pathInfo);
@@ -43,12 +39,7 @@ class explorerEditor extends Controller{
 		$action = isset($info['sourceID']) ? 'explorer.history':'explorer.historyLocal';
 		$pathInfo = Action($action)->fileInfo();// 内部做权限检测;
 		if(!$pathInfo){return show_json(LNG('common.pathNotExists'),false);}
-
-		$pathInfo['name'] 	= isset($urlInfo['name']) ? rawurldecode($urlInfo['name']) : $pathInfo['name'];
-		$pathInfo['ext'] 	= get_path_ext($pathInfo['name']);
-		$pathInfo['pathDisplay'] = "[" . trim($pathInfo['name'], '/') . "]";
-		$filePath = $pathInfo['path'];$pathInfo['path'] = '';
-		$this->fileGetMake($filePath,$pathInfo);exit;
+		$this->fileGetMake($pathInfo['path'],$pathInfo,$path);exit;
 	}
 	
 	private function contentPage($path,$size){
@@ -87,9 +78,54 @@ class explorerEditor extends Controller{
 			)
 		);
 	}
-
-	private function fileGetMake($path,$pathInfo){
-		// pr($path,$pathInfo);exit;
+	
+	// 压缩包内文件请求优化; 请求内部文件链接识别并处理成直接访问
+	private function fileGetZipContentCheck($path){
+		if(!request_url_safe($path)) return;
+		$urlInfo = parse_url_query($path);
+		if(!isset($urlInfo['index']) || !isset($urlInfo['path']) || !isset($urlInfo['accessToken'])) return;
+		if(!Action('user.index')->accessTokenCheck($urlInfo['accessToken'])){return;}
+		
+		$zipFile  = rawurldecode($urlInfo['path']);
+		$indexArr = @json_decode(rawurldecode($urlInfo['index']),true);
+		if(!$indexArr || !$zipFile){show_json(LNG('common.pathNotExists'),false);}
+		
+		$isShareFile = isset($urlInfo['explorer/share/unzipList']);
+		$isViewFile  = isset($urlInfo['explorer/index/unzipList']);
+		// 权限判断;
+		if($isShareFile){
+			$shareFileInfo = Action("explorer.share")->sharePathInfo($zipFile);
+			if(!$shareFileInfo){show_json(LNG('explorer.noPermissionAction'),false);}
+			$zipFile = $shareFileInfo['path'];
+		}else if($isViewFile){
+			if(!Action('explorer.auth')->canRead($zipFile)){
+				show_json(LNG('explorer.noPermissionAction'),false);
+			}
+		}else{return;}
+		
+		// 解压处理;
+		$filePart  = IOArchive::unzipPart($zipFile,$indexArr);
+		if(!$filePart || !IO::exist($filePart['file'])){
+			show_json(LNG('common.pathNotExists'),false);
+		}
+		$this->fileGetMake($filePart['file'],IO::info($filePart['file']),$path);exit;
+	}
+	
+	public function fileGetMake($path,$pathInfo,$pathUrl = false){
+		// pr($path,$pathInfo,$pathUrl);exit;
+		if($pathUrl){ //url类文件信息处理; 只读, pathUrl,编辑器刷新支持;
+			$urlInfo = parse_url_query($pathUrl);
+			$showPath = trim(rawurldecode($urlInfo['name']),'/');
+			if(isset($urlInfo['index']) && $urlInfo['index']){ // 压缩包内部文件;
+				$indexArr = json_decode(rawurldecode($urlInfo['index']),true);
+				if(is_array($indexArr)){$showPath = $indexArr[count($indexArr) - 1]['name'];}
+			}
+			$pathInfo['path'] 	= '';$pathInfo['pathUrl'] = $pathUrl;
+			$pathInfo['name'] 	= get_path_this($showPath);
+			$pathInfo['ext'] 	= get_path_ext($pathInfo['name']);
+			$pathInfo['pathDisplay'] = "[".$showPath."]";
+			$pathInfo['isWriteable'] = false;
+		}
 		if(!$pathInfo || $pathInfo['type'] == 'folder'){
 			return show_json(LNG('common.pathNotExists'),false);
 		}

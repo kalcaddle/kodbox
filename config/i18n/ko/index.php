@@ -1627,6 +1627,8 @@ return array(
     "explorer.createLink"            => "바로 가기 만들기",
     "explorer.createLinkHome"        => "바탕 화면 바로 가기로 보내기",
     "explorer.setBackground"         => "바탕 화면 배경 무늬로 설정",
+    "explorer.desktop.appSetting"    => "데스크톱 앱 설정",
+    "explorer.desktop.appSettingDesc" => "수정사항은 모든 사용자에게 적용됩니다.",
     "explorer.favRemove"             => "이 컬렉션을 취소",
     "explorer.openPath"              => "디렉토리로 이동",
     "explorer.openPathFinished"      => "이미 디렉토리를 입력했습니다.",

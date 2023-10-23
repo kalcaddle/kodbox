@@ -56,39 +56,30 @@ class KodArchive {
 	 * @param  [type] $file [archive file]
 	 * @return [type]       [array or false]
 	 */
-	static function listContent($file,$output=true) {
+	static function listContent($file,$output=true,$ext='') {
 		self::init();
-		$ext = !empty($GLOBALS['ARCHIVE_FILE_EXT']) ? $GLOBALS['ARCHIVE_FILE_EXT'] : get_path_ext($file);
+		$ext = $ext ? $ext : get_path_ext($file);
+		if($ext == 'gz'){$ext = 'tgz';}
 		$result = false;
 		if( self::checkIfType($ext,'tar') ){
 			//TrOn(10);
 			$resultOld = PclTarList($file,$ext);
 			//TrDisplay();exit;
 			$result = array();
-			for ($i=0; $i < count($resultOld); $i++) {
+			if(!is_array($resultOld)){return array('code'=>false,'data'=>$result);}
+			for($i=0; $i < count($resultOld); $i++) {
 				$item = $resultOld[$i];
 				//http://rpm5.org/docs/api/tar_8c-source.html
-				if( $item['typeflag'] == 'x' || $item['typeflag'] == 'g'){
-					continue;
-				}
-				if($output){
-					$item['filename'] = ltrim($item['filename'],'./');
-				}
-				if($item['typeflag'] == '5'){
-					$item['folder'] = true;
-				}else{
-					$item['folder'] = false;
-				}
+				if($item['typeflag'] == 'x' || $item['typeflag'] == 'g'){continue;}
+				if($output){$item['filename'] = ltrim($item['filename'],'./');}
+				$item['folder'] = $item['typeflag'] == '5' ? true : false;
 				$item['index'] = $i;
 				$result[] = $item;
 			}
 		}else if( self::checkIfType($ext,'rar') ){
-			$appResult = kodRarArchive::listContent($file);
-			if(!$appResult['code']){
-				return $appResult;
-			}else{
-				$result = $appResult['data'];
-			}
+			$appResult = kodRarArchive::listContent($file,$ext);
+			if(!$appResult['code']){return $appResult;}
+			$result = $appResult['data'];
 		}else{//默认zip
             if(kodZipArchive::support('list')){
                 $result = kodZipArchive::listContent($file);
@@ -97,23 +88,23 @@ class KodArchive {
                 $result = $zip->listContent();
             }
 		}
-		if($result){
-			//编码转换
-			// $charset = unzip_charset_get($result);	// 多个文件可能有多种编码，统一按gbk转码会导致乱码
-			$output  = $output && function_exists('iconv');
-			for ($i=0; $i < count($result); $i++) {
-				//不允许相对路径
-				$result[$i]['filename'] = str_replace(array('../','..\\'),"_",$result[$i]['filename']);
+		if(!$result){return array('code'=>false,'data'=>$result);}
+		
+		// $charset = unzip_charset_get($result);	// 多个文件可能有多种编码，统一按gbk转码会导致乱码
+		$output  = $output && function_exists('iconv');
+		for ($i=0; $i < count($result); $i++) {
+			//不允许相对路径
+			$result[$i]['filename'] = str_replace(array('../','..\\'),"_",$result[$i]['filename']);
+			if($output){
 				$charset = get_charset($result[$i]['filename']);
-				if($output){
-					$result[$i]['filename'] = iconv_to($result[$i]['filename'],$charset,'utf-8');
-					unset($result[$i]['stored_filename']);
-				}
+				$result[$i]['filename'] = iconv_to($result[$i]['filename'],$charset,'utf-8');
+				unset($result[$i]['stored_filename']);
 			}
-			return array('code'=>true,'data'=>$result);
-		}else{
-			return array('code'=>false,'data'=>$result);
+			if($result[$i]['folder']){
+				$result[$i]['filename'] = rtrim($result[$i]['filename'],'/').'/';
+			}
 		}
+		return array('code'=>true,'data'=>$result);
 	}
 
 	/**
@@ -123,10 +114,11 @@ class KodArchive {
 	 * @param  string $part [archive file content]
 	 * @return [type]       [array]
 	 */
-	static function extract($file, $dest, $part = '-1',&$partName=false) {
+	static function extract($file, $dest, $part = '-1',&$partName=false,$ext=''){
 		self::init();
-		$ext = !empty($GLOBALS['ARCHIVE_FILE_EXT']) ? $GLOBALS['ARCHIVE_FILE_EXT'] : get_path_ext($file);
-		$listContent = self::listContent($file,false);//不转码
+		$ext = $ext ? $ext: get_path_ext($file);
+		if($ext == 'gz'){$ext = 'tgz';}
+		$listContent = self::listContent($file,false,$ext);//不转码
 		if(!$listContent['code']){
 			return $listContent;
 		}
@@ -253,53 +245,13 @@ class KodArchive {
 		return $newFile;
 	}
 
-	/**
-	 * [filePreview file preview or download a file;]
-	 * 解压后自动缓存;
-	 * @param  [type] $file  [archive file name]
-	 * @param  [type] $index [file index]
-	 * @return [type]        [echo to client;]
-	 */
-	static function filePreview($file,$index,$download=false,$byName = false){
-		self::init();
-		$temp = TEMP_FILES.hash_path($file).'/';
-		mk_dir($temp);
-		$newFile = $temp.md5($file.$index.$byName);
-		$partName = '';//引用传值,传入处理
-		$result = self::extract($file, $temp,$index,$partName);
-		if(is_array($partName)){//不能是数组——文件夹
-			show_json('unzip preview folder error!',false);
-		}
-		if(file_exists($newFile)){
-			IO::fileOut($newFile,$download,get_path_this($partName));
-			return;
-		}
-		//$partName 压缩文件原名；初始编码；转为当前文件系统编码
-		$partName = unzip_pre_name($partName);
-		$filenameOutput = get_path_this($partName);
-		$outFile = unzip_filter_ext($temp.$filenameOutput);
-		if(!$result['code']){
-			show_json($result['data'],false);
-		}
-		//debug_out($partName,$file,$outFile,$byName);
-		if(!file_exists($outFile)){
-			show_json('unzip error!',false);
-		}
-		@rename($outFile,$newFile);
-		if(!file_exists($newFile)){
-			del_dir($temp);
-			show_json('unzip:rename error!');
-		}
-		IO::fileOut($newFile,$download,$filenameOutput);
-	}
-	
 	static function createFromFolder($file,$folder){
 		$listPath = IO::listPath($folder);
 		$listPath = array_merge($listPath['folderList'],$listPath['fileList']);
 		$lists = array_to_keyvalue($listPath,'path','path');
 		return self::create($file,$lists);
 	}
-	
+		
 	/**
 	 * [create description]
 	 * @param  [type] $file  [archive file name]

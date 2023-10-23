@@ -1627,6 +1627,8 @@ return array(
     "explorer.createLink"            => "Crie um atalho",
     "explorer.createLinkHome"        => "Enviar para atalho na área de trabalho",
     "explorer.setBackground"         => "Definir como papel de parede da área de trabalho",
+    "explorer.desktop.appSetting"    => "Configurações do aplicativo de desktop",
+    "explorer.desktop.appSettingDesc" => "A modificação entrará em vigor para todos os usuários",
     "explorer.favRemove"             => "Cancelar esta coleção",
     "explorer.openPath"              => "Vá para o diretório",
     "explorer.openPathFinished"      => "Já entrei no diretório",

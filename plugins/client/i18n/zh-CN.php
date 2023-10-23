@@ -56,8 +56,8 @@ return array(
 	'client.tfa.verify'					=> '验证',
 	'client.tfa.2verify'				=> '二次验证',
 	'client.tfa.need2verify'			=> '需要二次验证',
-	'client.tfa.loginErr'				=> '登录信息异常！',
-	'client.tfa.userErr'				=> '用户信息不匹配！',
+	'client.tfa.userLgErr'				=> '用户信息异常！',
+	'client.tfa.userMtErr'				=> '用户信息不匹配！',
 	'client.tfa.sendEmpty'				=> '绑定的发送方式异常！',
 	'client.tfa.sendInvalid'			=> '发送方式格式错误！',
 );

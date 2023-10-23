@@ -1627,6 +1627,8 @@ return array(
     "explorer.createLink"            => "Создать ярлык",
     "explorer.createLinkHome"        => "Отправить на рабочий стол ярлык",
     "explorer.setBackground"         => "Установить как обои для рабочего стола",
+    "explorer.desktop.appSetting"    => "Настройки настольного приложения",
+    "explorer.desktop.appSettingDesc" => "Изменение вступит в силу для всех пользователей.",
     "explorer.favRemove"             => "Отменить эту коллекцию",
     "explorer.openPath"              => "Перейти в каталог",
     "explorer.openPathFinished"      => "Уже вошел в каталог",

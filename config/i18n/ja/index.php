@@ -1627,6 +1627,8 @@ return array(
     "explorer.createLink"            => "ショートカットを作成する",
     "explorer.createLinkHome"        => "デスクトップへのショートカットを送信",
     "explorer.setBackground"         => "デスクトップの壁紙として設定",
+    "explorer.desktop.appSetting"    => "デスクトップアプリの設定",
+    "explorer.desktop.appSettingDesc" => "変更はすべてのユーザーに有効になります",
     "explorer.favRemove"             => "このコレクションをキャンセル",
     "explorer.openPath"              => "ディレクトリに移動します",
     "explorer.openPathFinished"      => "すでにディレクトリに入っています",

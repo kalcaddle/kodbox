@@ -1627,6 +1627,8 @@ return array(
     "explorer.createLink"            => "শর্টকাট তৈরি করুন",
     "explorer.createLinkHome"        => "ডেস্কটপ শর্টকাটে প্রেরণ করুন",
     "explorer.setBackground"         => "ডেস্কটপ ওয়ালপেপার হিসাবে সেট করুন",
+    "explorer.desktop.appSetting"    => "ডেস্কটপ অ্যাপ সেটিংস",
+    "explorer.desktop.appSettingDesc" => "পরিবর্তনটি সকল ব্যবহারকারীর জন্য কার্যকর হবে",
     "explorer.favRemove"             => "এই সংগ্রহটি বাতিল করুন",
     "explorer.openPath"              => "ডিরেক্টরিতে যান",
     "explorer.openPathFinished"      => "ইতিমধ্যে ডিরেক্টরি প্রবেশ করেছে",

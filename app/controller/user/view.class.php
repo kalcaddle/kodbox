@@ -43,7 +43,6 @@ class userView extends Controller{
 			"io"	=> KodIO::typeList(),
 			"lang"	=> I18n::getType(),
 		);
-
 		if($user){//空间大小信息;
 			$userInfoFull = Model('User')->getInfoFull(USER_ID);
 			$options['user']['targetSpace'] = Action('explorer.auth')->space('user',USER_ID);
@@ -52,6 +51,17 @@ class userView extends Controller{
 			$options['user']['editorConfig'] = array_merge($this->config['editorDefault'],Model('UserOption')->get(false,'editor'));
 			$options['user']['isOpenSafeSpace'] = _get($userInfoFull,'metaInfo.pathSafeFolder',0) ? true:false;
 		}
+		
+		// 外链分享,界面部分配置采用分享者的配置;
+		if(!$user && isset($this->in['shareID']) && $this->in['shareID']){
+			$share = Model('Share')->getInfoByHash($this->in['shareID']);
+			$share = $share ? $share : array('userID'=>'_');
+			$userOptions = Model('user_option')->where(array('userID'=>$share['userID'],'type'=>''))->select();
+			$userOptions = array_to_keyvalue($userOptions,'key','value');
+			$userOptions = array_field_key($userOptions,array('theme','themeStyle'));
+			$options['user']['config'] = array_merge($options['user']['config'],$userOptions);
+		}
+		
 		if(_get($GLOBALS,'isRoot')){
 			$options['kod']['WEB_ROOT']   = WEB_ROOT;
 			$options['kod']['BASIC_PATH'] = BASIC_PATH;

@@ -1627,6 +1627,8 @@ return array(
     "explorer.createLink"            => "สร้างทางลัด",
     "explorer.createLinkHome"        => "ส่งไปยังทางลัดบนเดสก์ท็อป",
     "explorer.setBackground"         => "ตั้งเป็นภาพพื้นหลังเดสก์ทอป",
+    "explorer.desktop.appSetting"    => "การตั้งค่าแอปเดสก์ท็อป",
+    "explorer.desktop.appSettingDesc" => "การแก้ไขจะมีผลกับผู้ใช้ทุกคน",
     "explorer.favRemove"             => "ยกเลิกการรวบรวมนี้",
     "explorer.openPath"              => "ไปที่ไดเรกทอรี",
     "explorer.openPathFinished"      => "เข้าสู่ไดเร็กทอรีแล้ว",

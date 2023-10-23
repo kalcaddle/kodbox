@@ -1627,6 +1627,8 @@ return array(
     "explorer.createLink"            => "Kısayol oluştur",
     "explorer.createLinkHome"        => "Masaüstü kısayoluna gönder",
     "explorer.setBackground"         => "Masaüstü duvar kağıdı olarak ayarla",
+    "explorer.desktop.appSetting"    => "Masaüstü uygulaması ayarları",
+    "explorer.desktop.appSettingDesc" => "Değişiklik tüm kullanıcılar için geçerli olacaktır",
     "explorer.favRemove"             => "Bu koleksiyonu iptal et",
     "explorer.openPath"              => "Dizine git",
     "explorer.openPathFinished"      => "Dizine zaten girdiniz",

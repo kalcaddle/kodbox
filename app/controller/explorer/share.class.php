@@ -11,15 +11,12 @@ class explorerShare extends Controller{
 	function __construct(){
 		parent::__construct();
 		$this->model  = Model('Share');
-		$notCheck = array('link','file','pathParse','fileDownloadRemove');
+		$notCheck = array('link','file','pathParse','fileDownloadRemove','unzipListHash','fileGetHash');
 		// 检测并处理分享信息
-		if( equal_not_case(ST,'share') && 
-			!in_array_not_case(ACT,$notCheck) ){
+		if( strtolower(ST) == 'share' && !in_array_not_case(ACT,$notCheck) ){
 			$shareID = $this->parseShareID();
 			$this->initShare($shareID);
-			if(equal_not_case(MOD.'.'.ST,'explorer.share')){
-				$this->authCheck();
-			}
+			if(strtolower(MOD.'.'.ST) == 'explorer.share'){$this->authCheck();}
 		}
 	}
 
@@ -91,21 +88,20 @@ class explorerShare extends Controller{
 	
 	public function file(){
 		if(!$this->in['hash']) return;
-		if(!defined('USER_ID')){define('USER_ID',0);}
-		if(strlen($this->in['hash']) > 500) return;
-		$pass = Model('SystemOption')->get('systemPassword');
-		$path = Mcrypt::decode($this->in['hash'],$pass);
-		if(!$path || !IO::info($path)){
-			show_json(LNG('common.pathNotExists'),false);
-		}
-		$fileInfo = IO::info($path);
-		if($fileInfo['isDelete'] == '1'){
-		    show_json(LNG('explorer.pathInRecycle'),false);
-		}
-		//pr(IO::info($path));exit;
+		$path = $this->fileHash($this->in['hash']);
 		$isDownload = isset($this->in['download']) && $this->in['download'] == 1;
 		$downFilename = !empty($this->in['downFilename']) ? $this->in['downFilename'] : false;
 		IO::fileOut($path,$isDownload,$downFilename);
+	}
+	// 文件外链解析;
+	private function fileHash($hash){
+		if(!$hash || strlen($hash) > 500) return;
+		if(!defined('USER_ID')){define('USER_ID',0);}	
+		$path = Mcrypt::decode($hash,Model('SystemOption')->get('systemPassword'));
+		$fileInfo = $path ? IO::info($path) : false;
+		if(!$fileInfo){show_json(LNG('common.pathNotExists'),false);}
+		if($fileInfo['isDelete'] == '1'){show_json(LNG('explorer.pathInRecycle'),false);}
+		return $path;
 	}
 	
 	/**
@@ -327,7 +323,6 @@ class explorerShare extends Controller{
 	//输出文件
 	public function fileOut(){
 		$path = rawurldecode($this->in['path']);//允许中文空格等;
-		// $path = $this->in['path']; // 路径中包含%20等字符允许.
 		if(request_url_safe($path)) {
 			header('Location:' . $path);exit;
 		} 
@@ -365,6 +360,28 @@ class explorerShare extends Controller{
 			$result['data'] = $this->shareItemInfo($result['data']);
 		}
 		show_json($result['data'],$result['code'],$result['info']);
+	}
+	
+	// 压缩包内文本文件请求(不再做权限校验; 通过文件外链hash校验处理)
+	public function fileGetHash(){
+		$pageNum = 1024 * 1024 * 10;
+		$this->in['pageNum'] = isset($this->in['pageNum']) ? $this->in['pageNum'] : $pageNum;
+		$this->in['pageNum'] = $this->in['pageNum'] >= $pageNum ? $pageNum : $this->in['pageNum'];
+		// ActionCall("explorer.editor.fileGet");exit;
+
+		$url = $this->in['path'];
+		$urlInfo = parse_url_query($url);
+		if( !isset($urlInfo["explorer/share/unzipListHash"]) && 
+			!isset($urlInfo["accessToken"])){
+			show_json(LNG('common.pathNotExists'),false);
+		}
+		$index 	  = json_decode(rawurldecode($urlInfo['index']),true);
+		$zipFile  = $this->fileHash(rawurldecode($urlInfo['path']));
+		$filePart = IOArchive::unzipPart($zipFile,$index ? $index:'-1');
+		if(!$filePart || !IO::exist($filePart['file'])){
+			show_json(LNG('common.pathNotExists'),false);
+		}
+		Action("explorer.editor")->fileGetMake($filePart['file'],IO::info($filePart['file']),$url);
 	}
 	
 	public function pathList(){
@@ -426,6 +443,12 @@ class explorerShare extends Controller{
 		$this->in['path'] = $this->parsePath($this->in['path']);
 		Action('explorer.index')->unzipList();
 	}
+	public function unzipListHash(){
+		$this->zipSupportCheck();
+		$this->in['path'] = $this->fileHash($this->in['path']);
+		Action('explorer.index')->unzipList();
+	}
+
 	private function zipSupportCheck(){
 		$config = Model('SystemOption')->get();
 		if($config['shareLinkZip'] == '1') return true;

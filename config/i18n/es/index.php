@@ -1627,6 +1627,8 @@ return array(
     "explorer.createLink"            => "Crear acceso directo",
     "explorer.createLinkHome"        => "Enviar a acceso directo de escritorio",
     "explorer.setBackground"         => "Establecer como fondo de escritorio",
+    "explorer.desktop.appSetting"    => "Configuración de la aplicación de escritorio",
+    "explorer.desktop.appSettingDesc" => "La modificación entrará en vigor para todos los usuarios.",
     "explorer.favRemove"             => "Cancelar esta colección",
     "explorer.openPath"              => "Ir al directorio",
     "explorer.openPathFinished"      => "Ya ingresaste al directorio",

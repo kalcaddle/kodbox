@@ -1627,6 +1627,8 @@ return array(
     "explorer.createLink"            => "Créer un raccourci",
     "explorer.createLinkHome"        => "Envoyer au bureau raccourci",
     "explorer.setBackground"         => "Définir comme fond d'écran",
+    "explorer.desktop.appSetting"    => "Paramètres de l'application de bureau",
+    "explorer.desktop.appSettingDesc" => "La modification prendra effet pour tous les utilisateurs",
     "explorer.favRemove"             => "Annuler cette collection",
     "explorer.openPath"              => "Aller au répertoire",
     "explorer.openPathFinished"      => "Déjà entré dans le répertoire",

@@ -1627,6 +1627,8 @@ return array(
     "explorer.createLink"            => "建立快捷方式",
     "explorer.createLinkHome"        => "發送到桌面快捷方式",
     "explorer.setBackground"         => "設定為桌面背景",
+    "explorer.desktop.appSetting"    => "桌面應用程式設定",
+    "explorer.desktop.appSettingDesc" => "修改後所有使用者生效",
     "explorer.favRemove"             => "取消該收藏",
     "explorer.openPath"              => "進入所在目錄",
     "explorer.openPathFinished"      => "已經進入所在目錄",

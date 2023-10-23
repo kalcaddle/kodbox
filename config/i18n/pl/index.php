@@ -1627,6 +1627,8 @@ return array(
     "explorer.createLink"            => "Utwórz skrót",
     "explorer.createLinkHome"        => "Wyślij na skrót na pulpicie",
     "explorer.setBackground"         => "Ustaw jako tapetę pulpitu",
+    "explorer.desktop.appSetting"    => "Ustawienia aplikacji komputerowej",
+    "explorer.desktop.appSettingDesc" => "Modyfikacja będzie obowiązywać dla wszystkich użytkowników",
     "explorer.favRemove"             => "Anuluj tę kolekcję",
     "explorer.openPath"              => "Idź do katalogu",
     "explorer.openPathFinished"      => "Już wszedł do katalogu",

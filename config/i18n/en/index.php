@@ -1627,6 +1627,8 @@ return array(
     "explorer.createLink"            => "Create Shortcut",
     "explorer.createLinkHome"        => "Send to desktop shortcut",
     "explorer.setBackground"         => "Set as desktop wallpaper",
+    "explorer.desktop.appSetting"    => "Desktop app settings",
+    "explorer.desktop.appSettingDesc" => "The modification will take effect for all users",
     "explorer.favRemove"             => "Unstar",
     "explorer.openPath"              => "Enter the directory",
     "explorer.openPathFinished"      => "Already entered the directory",

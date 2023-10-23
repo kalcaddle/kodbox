@@ -274,6 +274,7 @@ $config['settingSystemDefault'] = array(
 	'shareLinkZip'		=> '1',			// 外链分享,开启关闭文件夹打包下载; 默认开启
 	'shareLinkPasswordAllowEmpty'	=> '1',		// 外链分享允许密码为空,关闭后将强制设置密码;
 	'shareLinkAllowGuest'			=> '1',		// 外链分享允许未登录游客访问
+	'desktopAppDisable'				=> '',		// 桌面默认快捷方式入口隐藏项;
 	
 	
 	'treeOpen'			=> 'my,myFav,myGroup,rootGroup,recentDoc,fileType,fileTag,driver',//树目录开启功能;
@@ -328,6 +329,7 @@ $config['settingDefault'] = array(
 	'menuBarAutoHide'	=> '0',			// 1|0, 左侧菜单栏自动显示和隐藏
 	'pathSafeSpaceShow' => '1',			// 1|0, 个人空间根目录显示隐藏-私密保险箱
 	
+	"themeStyle"		=> 'theme-windows',	// 主题样式; theme-windows/theme-mac;
 	"fileRepeat"		=> "replace",	// rename,replace,skip
 	"recycleOpen"		=> "1",			// 1 | 0 代表是否开启
 	'kodAppDefault'		=> '',			// 

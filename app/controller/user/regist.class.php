@@ -13,8 +13,11 @@ class userRegist extends Controller {
 	}
 	
 	public function checkAllow(){
-		$regist = Model("SystemOption")->get("regist");
-		if($regist['openRegist'] != '1'){
+		if (!isset($this->regOpen)) {
+			$regist = Model("SystemOption")->get("regist");
+			$this->regOpen = $regist['openRegist'] == '1';
+		}
+		if (!$this->regOpen) {
 			show_json("未开启注册,请联系管理员!",false);
 		}
 	}
@@ -161,6 +164,7 @@ class userRegist extends Controller {
 	 * @return type
 	 */
 	public function addUser($data) {
+		$this->checkAllow();
 		$name = $data['name'];
 		$nickName = trim($data['nickName']);
 		$nickName = $nickName ? $nickName : '';

@@ -1627,6 +1627,8 @@ return array(
     "explorer.createLink"            => "शॉर्टकट बनाएं",
     "explorer.createLinkHome"        => "डेस्कटॉप शॉर्टकट के लिए भेजें",
     "explorer.setBackground"         => "डेस्कटॉप वॉलपेपर के रूप में सेट करें",
+    "explorer.desktop.appSetting"    => "डेस्कटॉप ऐप सेटिंग",
+    "explorer.desktop.appSettingDesc" => "संशोधन सभी उपयोगकर्ताओं के लिए प्रभावी होगा",
     "explorer.favRemove"             => "इस संग्रह को रद्द करें",
     "explorer.openPath"              => "निर्देशिका पर जाएं",
     "explorer.openPathFinished"      => "पहले से ही निर्देशिका में प्रवेश किया",

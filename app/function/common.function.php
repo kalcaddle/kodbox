@@ -76,6 +76,17 @@ function classPathAuto($path,$name,$fileLast = '.class.php'){
 	return $result;
 }
 
+// 是否为控制台模式(控制台执行,或者curl请求)
+function is_cli(){
+	static $isFirst    = true;
+	static $isCli 	   = false;
+	if($isFirst){
+		$isFirst = false;
+		$isCli   = stristr(php_sapi_name(),'cli') ? true : false;
+		if(strstr($_SERVER['HTTP_USER_AGENT'],'curl/')){$isCli = true;}
+	}
+	return $isCli;
+}
 
 /**
  * 文本字符串转换
@@ -274,19 +285,17 @@ function check_code($code){
 	imagedestroy($im);//销毁图片
 }
 
-// 立即输出内容到页面; $replace 为true时不作为后续输出
+// 立即输出内容到页面; $replace 为true代表替换输出; 支持cli模式及cli下的curl请求;
 function echoLog($log,$replace=false){
 	static $isFirst    = true;
-	static $logBefore  = '';
 	static $timeBefore = false;
-	static $isCli 	   = false;
+	static $logOutBefore  = '';
+	static $replaceID  = '';
 	if($isFirst){
 		ignore_timeout();
 		@ob_end_clean();
 		@header('X-Accel-Buffering: no');
 		$isFirst = false;
-		$isCli   = stristr(php_sapi_name(),'cli') ? true : false;
-		if(strstr($_SERVER['HTTP_USER_AGENT'],'curl/')){$isCli = true;}
 	}
 	
 	$timeDelay  = 0.05;// 临时替换的输出内容, 50ms内只输出一次;
@@ -294,22 +303,43 @@ function echoLog($log,$replace=false){
 	if($timeBefore && $replace && ($timeAt - $timeBefore) < $timeDelay){return;}
 	$timeBefore = $timeAt;
 	$timeFloat 	= explode(".",mtime());
-	$timeNow 	= date("H:i:s.",time()).substr($timeFloat[1],0,3);	
-	if($isCli){
-		echo "".$timeNow.": ".str_replace(array('<br/>','&quot;'),array("\n",'"'),$log)."\n";
-		@flush();@ob_flush();
+	$timeNow 	= date("H:i:s.",time()).sprintf("%03d",substr($timeFloat[1],0,3));
+	if(is_cli()){
+		// \b输出光标回退一个字符(并不清空,需要自行覆盖);\r输出光标回到行首; "\r\033[k";
+		$chrPad = "\x01";$chrBack = "\x08";//$chrPad = "\x01" "\x06" "\x1b","\x18",""
+		$padLen = $logOutBefore ? strlen(trim($logOutBefore,$chrPad)) : 0;
+		$charReplace = array('<br/>'=>"\n",'&nbsp;'=>' ',"&quot;"=>'"');$append = "\n";
+		if($replace){$charReplace = array('<br/>'=>"_|",'&nbsp;'=>' ',"&quot;"=>'"');$append = str_repeat($chrPad,2000);}
+		
+		$output = $timeNow.": ".str_replace(array_keys($charReplace),array_values($charReplace),$log);
+		$padLenBefore = $padLen - strlen($output);// 填充到前一次长度,清除所有显示字符(比前一行短,前一行超出部分会出现残留)	
+		$output = $output.str_pad("",$padLenBefore <= 0 ? 0 : $padLenBefore);
+		$logOutBefore = $replace ? $output:'';
+		@ob_end_flush();echo str_repeat($chrBack,$padLen).$output.$append;@flush();
 		return;
 	}
 	
-	$timeStyle  = '<span style="display:inline-block;width:100px;font-size:14px;color:#888;">';
-	$textStyle  = '<span style="display:inline-block;font-size:14px;color:#0084fe;">';
-	$logNow 	= $timeStyle.$timeNow."</span>".$textStyle.$log.'</span><br/>';
+	$replaceIdBefore = $replaceID;
+	if(!$replace){$replaceID = '';}
+	if($replace){$replaceID = $replaceID ? $replaceID:rand_string(10);}
+	
+	if(!strstr($log,'<')){$log = str_replace(array(" "),array("&nbsp;"),$log);} // 没有html标签时替换空格
+	$log = str_replace(array('`',"\n"),array('\\`',"<br/>"),$log);
+	$timeStyle  = '<span style="display:inline-block;width:100px;font-size:14px;color:#888;font-family:monospace;padding-right:10px;">';
+	$textStyle  = '<span style="display:inline-block;font-size:14px;color:#0084fe;font-family:monospace;">';
+	$logNow 	= $timeStyle.$timeNow."</span>".$textStyle.$log.'</span>';
+	$logOut		= "<div class='line' ".($replaceID ? 'id="line-'.$replaceID.'"':'').">".$logNow."</div>";
 
-	if(!$replace){$logBefore .= $logNow;}
-	$logOut = $replace ? $logBefore.$logNow : $logBefore;
-	$logOut = str_replace(array('`',"\n"),array('\\`',"<br/>"),$logOut);
-	$logOut = '(document.body&&(document.body.innerHTML=`'.$logOut.'`))||(document.write(`'.$logOut.'`));';
-	@ob_end_flush();echo '<script>'.$logOut.'</script>'.str_pad('',1024*2);flush();
+	// 替换输出: 针对上一次输出行进行替换; 当前不是替换输出且前一次为替换输出则移除前一行;  不干扰其他echo等输出的内容;
+	if($replace){
+		$script = 'var line=document.getElementById("line-'.$replaceID.'");';
+		$script = $script.'if(!line){document.write(`'.$logOut.'`);}else{line.innerHTML=`'.$logNow.'`;}';
+		$logOut = '<script>{'.$script.'}</script>';
+	}else if(!$replace && $replaceIdBefore){
+		$script = 'var line=document.getElementById("line-'.$replaceIdBefore.'");if(line){line.remove();}';
+		$logOut = $logOut.'<script>{'.$script.'}</script>';
+	}
+	@ob_end_flush();echo $logOut.str_pad('',1024*2);flush();
 }
 
 
@@ -1421,6 +1451,7 @@ function pr_trace(){
 function pr_trace_exit(){pr_trace();exit;}
 
 function pr(){
+	static $hasStyle = false;
 	$arg = func_get_args();
 	$num = func_num_args();
 	if( !isset($GLOBALS['debugLastTime']) ){
@@ -1433,8 +1464,8 @@ function pr(){
 	
 	ob_start();
 	$style = '<style>
-	pre.debug{margin:10px;font-size:14px;color:#222;font-family:Consolas ;line-height:1.2em;background:#f6f6f6;
-		border-left:5px solid #444;padding:10px;width:95%;word-break:break-all;white-space:pre-wrap;word-wrap: break-word;}
+	pre.debug{margin:2px 0;font-size:14px;color:#222;font-family:Consolas ;line-height:1.2em;background:#f6f6f6;
+		border-left:5px solid #444;padding:5px;width:95%;word-break:break-all;white-space:pre-wrap;word-wrap: break-word;}
 	pre.debug b{font-weight:400;}
 	.debug .debug_keywords{font-weight:200;color:#888;}
 	.debug .debug_tag{color:#222 !important;}
@@ -1456,15 +1487,16 @@ function pr(){
 	$fileInfo = get_path_this($callFile['file']).'; '.$method.'()';
 
 	$time = sprintf("%.5fs",$time);
-	echo "<i class='debug_keywords'>".$fileInfo.";[line-".$callFile['line']."];{$time}</i><br/>";
+	$logInfo = "<i class='debug_keywords'>".$fileInfo.";[line-".$callFile['line']."];{$time}</i><br/>";
 	for ($i=0; $i < $num; $i++) {
 		var_dump($arg[$i]);
 	}
 	$out = ob_get_clean(); //缓冲输出给$out 变量
 	$out = preg_replace('/=\>\n\s+/',' => ',$out); //高亮=>后面的值
 	$out = preg_replace_callback('/\n(\s*)([\}\[])/','pr_replace_callback',$out); //高亮=>后面的值
+	if(is_cli()){echo $time.': '.$fileInfo.";[line-".$callFile['line']."]   ".strip_tags($out);return;}
 
-	$out = preg_replace('/"(.*)"/','<b class="debug_var_str">"\\1"</b>', $out); //高亮字符串变量
+	$out = preg_replace('/"(.*)"/','<b class="debug_var_str">"\\1"</b>', $logInfo.$out); //高亮字符串变量
 	$out = preg_replace('/\[(.*)\]/','<b class="debug_tag">[</b><b class="debug_var">\\1</b><b class="debug_tag">]</b>', $out); //高亮变量
 	$out = str_replace(array('=>',"\n\n"), array('<b id="debug_set">=></b>',"\n"), $out);
 	$keywords = array('array','int','string','object','null','float','bool'); //关键字高亮
@@ -1475,6 +1507,8 @@ function pr(){
 	$out = str_replace($keywords, $keywords_to, $out);
 	// $out = stripslashes($out);
 	$out = str_replace(array('\n','\/'),array("<br/>",'/'),$out);
+	if($hasStyle){$style = "";}
+	if(!$hasStyle){$hasStyle = true;}
 	echo $style.'<pre class="debug">'.$out.'</pre>';
 }
 function dump(){call_user_func('pr',func_get_args());}

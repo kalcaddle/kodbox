@@ -1627,6 +1627,8 @@ return array(
     "explorer.createLink"            => "குறுக்குவழியை உருவாக்கவும்",
     "explorer.createLinkHome"        => "டெஸ்க்டாப் குறுக்குவழிக்கு அனுப்பவும்",
     "explorer.setBackground"         => "டெஸ்க்டாப் வால்பேப்பராக அமைக்கவும்",
+    "explorer.desktop.appSetting"    => "டெஸ்க்டாப் பயன்பாட்டு அமைப்புகள்",
+    "explorer.desktop.appSettingDesc" => "மாற்றம் அனைத்து பயனர்களுக்கும் நடைமுறைக்கு வரும்",
     "explorer.favRemove"             => "இந்த தொகுப்பை ரத்துசெய்",
     "explorer.openPath"              => "கோப்பகத்திற்குச் செல்லவும்",
     "explorer.openPathFinished"      => "ஏற்கனவே கோப்பகத்தில் நுழைந்தது",

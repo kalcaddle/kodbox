@@ -1627,6 +1627,8 @@ return array(
     "explorer.createLink"            => "Створити ярлик",
     "explorer.createLinkHome"        => "Надіслати ярлик на робочий стіл",
     "explorer.setBackground"         => "Встановити як шпалери для робочого столу",
+    "explorer.desktop.appSetting"    => "Налаштування програми для робочого столу",
+    "explorer.desktop.appSettingDesc" => "Зміна набуде чинності для всіх користувачів",
     "explorer.favRemove"             => "Скасувати цю колекцію",
     "explorer.openPath"              => "Перейдіть до каталогу",
     "explorer.openPathFinished"      => "Вже ввійшов до каталогу",

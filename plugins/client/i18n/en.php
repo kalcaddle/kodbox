@@ -57,8 +57,8 @@ return array(
 	'client.tfa.verify' 				=> 'Verification',
 	'client.tfa.2verify' 				=> 'Second verification',
 	'client.tfa.need2verify' 			=> 'Need two-step verification',
-	'client.tfa.loginErr' 				=> 'Login information abnormal! ',
-	'client.tfa.userErr' 				=> 'User information does not match! ',
+	'client.tfa.userLgErr' 				=> 'User information abnormal! ',
+	'client.tfa.userMtErr' 				=> 'User information does not match! ',
 	'client.tfa.sendEmpty' 				=> 'The binding sending method is abnormal! ',
 	'client.tfa.sendInvalid' 			=> 'The format of the sending method is wrong! ',
 );
