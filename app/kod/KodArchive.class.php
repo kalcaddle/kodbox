@@ -90,13 +90,14 @@ class KodArchive {
 		}
 		if(!$result){return array('code'=>false,'data'=>$result);}
 		
-		// $charset = unzip_charset_get($result);	// 多个文件可能有多种编码，统一按gbk转码会导致乱码
+		$charsetAll = unzip_charset_get($result);	// 多个文件可能有多种编码，统一按gbk转码会导致乱码
 		$output  = $output && function_exists('iconv');
 		for ($i=0; $i < count($result); $i++) {
 			//不允许相对路径
 			$result[$i]['filename'] = str_replace(array('../','..\\'),"_",$result[$i]['filename']);
 			if($output){
 				$charset = get_charset($result[$i]['filename']);
+				if($charsetAll != $charset && $charset == 'utf-8'){$charset = $charsetAll;}
 				$result[$i]['filename'] = iconv_to($result[$i]['filename'],$charset,'utf-8');
 				unset($result[$i]['stored_filename']);
 			}

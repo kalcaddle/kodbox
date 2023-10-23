@@ -315,7 +315,8 @@ function echoLog($log,$replace=false){
 		$padLenBefore = $padLen - strlen($output);// 填充到前一次长度,清除所有显示字符(比前一行短,前一行超出部分会出现残留)	
 		$output = $output.str_pad("",$padLenBefore <= 0 ? 0 : $padLenBefore);
 		$logOutBefore = $replace ? $output:'';
-		@ob_end_flush();echo str_repeat($chrBack,$padLen).$output.$append;@flush();
+		// 最前面追加\r 兼容部分终端没有回退的情况;
+		@ob_end_flush();echo "\r".str_repeat($chrBack,$padLen).$output.$append;@flush();
 		return;
 	}
 	

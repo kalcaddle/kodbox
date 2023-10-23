@@ -265,7 +265,16 @@ class explorerShare extends Controller{
 		}
 		if((equal_not_case(ACT,'fileOut') && $this->in['download']=='1') ||
 			equal_not_case(ACT,'zipDownload') || 
-			equal_not_case(ACT,'fileDownload')){
+			equal_not_case(ACT,'fileDownload') ){
+			// 下载计数; 分片下载时仅记录起始为0的项(并忽略长度为0的请求),忽略head请求;
+			$isHead  = strtoupper($_SERVER['REQUEST_METHOD']) == 'HEAD';
+			$rangeStart = 0;
+			if(isset($_SERVER['HTTP_RANGE'])) {
+				$find = preg_match('/bytes=\h*(\d+)-(\d*)[\D.*]?/i',$_SERVER['HTTP_RANGE'],$matches);
+				if($find && is_array($matches)){$rangeStart = intval($matches[1]);}
+				if(isset($matches[2]) && intval($matches[2]) == 0){$rangeStart = 100;} // end=0也不记录;
+			}
+			if($isHead || $rangeStart != 0){return;}
 			$this->model->where($where)->setAdd('numDownload');
 		}
 	}

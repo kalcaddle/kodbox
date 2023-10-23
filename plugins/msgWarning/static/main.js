@@ -33,5 +33,5 @@ kodReady.push(function(){
 	});
 
 	if($.hasKey('plugin.msgWarning.style')) return;
-	requireAsync(["{{pluginHost}}static/style.css"],function(){});
+	$.addStyle('.dialog-plugin-config.app-config-msgWarning{width:560px;}');
 });
