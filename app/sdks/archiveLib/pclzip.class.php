@@ -3921,11 +3921,13 @@
           else {
 			// chanded by warlee; 改为流方式,  避免内存占用过多引起不足问题;
 			$use_stream = true;
-			if($use_stream){
+			if(!function_exists('stream_filter_append')){$use_stream = false;}
+			if($use_stream && $p_entry['compressed_size'] >= 1024*1024*100){
 				if(($v_dest_file = @fopen($p_entry['filename'], 'wb')) == 0) {
 					$p_entry['status'] = "write_error";
 					return $v_result;
 				}
+				$pose = @ftell($this->zip_fd);@fseek($this->zip_fd,$pose); // 兼容部分linux服务器;
 				$gz_filter = stream_filter_append($this->zip_fd,'zlib.inflate',STREAM_FILTER_READ);
 				$read_num = 0;$read_total = $p_entry['size']; // 读取字节数为压缩后的字节数; $p_entry['compressed_size']
 				while($read_num < $read_total){
@@ -3938,7 +3940,7 @@
 				}
 				stream_filter_remove($gz_filter);
 				@fclose($v_dest_file);
-			}else{       
+			}else{
 
 			/**/
             // ----- Read the compressed file in a buffer (one shot)

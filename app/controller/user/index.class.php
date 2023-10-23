@@ -13,6 +13,7 @@ class userIndex extends Controller {
 		parent::__construct();
 	}
 	public function index(){
+		@ob_end_clean();
 		include(TEMPLATE.'user/index.html');
 	}
 	// 进入初始化; total=10ms左右;
