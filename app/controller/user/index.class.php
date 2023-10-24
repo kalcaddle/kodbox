@@ -167,8 +167,14 @@ class userIndex extends Controller {
 			if($findUser['userHash'] != $this->user['userHash']){
 				$this->logoutError(LNG('common.loginTokenError').'(hash)',ERROR_CODE_LOGOUT);
 			}
+			
+			//优化,避免频繁写入session(file缓存时容易造成并发锁); 变化时更新;或者超过10分钟写入一次;
+			$_lastTime = $this->user['_lastTime'];unset($this->user['_lastTime']);
+			if($this->user != $findUser || time() - $_lastTime > 600){
+			    $findUser['_lastTime'] = time();
+			    Session::set('kodUser',$findUser);
+			}
 			$this->user = $findUser;
-			Session::set('kodUser',$findUser);
 		}
 		if(!$this->user) {
 			$this->logoutError('user data error!',ERROR_CODE_LOGOUT);

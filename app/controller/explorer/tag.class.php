@@ -239,11 +239,17 @@ class explorerTag extends Controller{
 			"tagID"	=> array("check"=>"int"),
 			"files"	=> array("check"=>"require"),
 		));
+		
+		$data['files'] = str_replace("__*@*__",',',$data['files']);
 		$files = explode(',',$data['files']);
 		if(!$files){
 			show_json(LNG('explorer.error'),false);
 		}
 		$res = $this->modelSource->removeFromTag($files,$data['tagID']);
+		if(!$res && count($files) == 1){ // 部分老数据处理; 文件夹统一去除结尾斜杠;
+			$files[0] = rtrim($files[0],'/').'/';
+			$res = $this->modelSource->removeFromTag($files,$data['tagID']);
+		}
 		$msg = $res ? LNG('explorer.success') : LNG('explorer.error');
 		show_json($msg,!!$res);
 	}
@@ -254,6 +260,7 @@ class explorerTag extends Controller{
 			"tagID"	=> array("check"=>"int"),
 			"files"	=> array("check"=>"require"),
 		));
+		$data['files'] = str_replace("__*@*__",',',$data['files']);
 		$files = explode(',',$data['files']);
 		if(!$files){
 			show_json(LNG('explorer.error'),false);

@@ -17,11 +17,11 @@ class clientTfaIndex extends Controller {
     // 登录成功后（尚未更新登录状态）
     public function loginAfter($user) {
         // 避免死循环
-        $uinfo = Session::get('kodUser');
-        if($uinfo && isset($uinfo['userID']) && $uinfo['userID'] == $user['userID']) return;
-        if (!isset($this->in['withTfa']) || $this->in['withTfa']) return;
+        $userInfo = Session::get('kodUser');
+        if($userInfo && isset($userInfo['userID']) && $userInfo['userID'] == $user['userID']) return;
+        if(!isset($this->in['withTfa']) || $this->in['withTfa']) return;
 
-        $tfaInfo = $this->getTfaInfo($user);
+		$tfaInfo = $this->getTfaInfo($user);
         if (!$tfaInfo['tfaOpen']) return;
 
         $key = md5($this->in['name'].$this->in['password'].'_'.$user['userID']);
@@ -109,20 +109,23 @@ class clientTfaIndex extends Controller {
 			'input'	    => array('check' => 'require'),
 			'default'   => array('default' => 0),
         ));
-        if ($data['userID'] != $user['userID']) {
+		$type = $data['type'];
+        if($data['userID'] != $user['userID']) {
             show_json(LNG('client.tfa.userMtErr'), false);
         }
-        if ($data['default'] == '1') {
-            if (empty($user[$data['type']])) {
-                show_json(LNG('client.tfa.sendEmpty'), false);
-            }
-            $data['input'] = $user[$data['type']];
-        }
-        if (!Input::check($data['input'], $data['input'])) {
+		if($user[$type]){$data['input'] = $user[$type];}
+        if(!Input::check($data['input'],$type)) {
             show_json(LNG('client.tfa.sendInvalid'), false);
         }
+		
+		// 检测是否已被绑定;
+		if(!$user[$type] && $data['input']){
+			$find = Model('User')->userSearch(array($type => $data['input']));
+			$err  = ($type == 'phone') ? LNG('ERROR_USER_EXIST_PHONE') : LNG('ERROR_USER_EXIST_EMAIL');
+			if($find){show_json($err, false);}
+		}
         return array(
-            'type'      => $data['type'],
+            'type'      => $type,
             'input'     => $data['input'],
             'source'    => $this->pluginName.'_tfa_login',
         );
@@ -196,9 +199,8 @@ class clientTfaIndex extends Controller {
             $code = Input::get('code', 'require');
             $this->checkMsgCode($code, $data);
             // 绑定联系方式
-            if (isset($this->in['default']) && $this->in['default'] == '0') {
+            if($user[$data['type']] != $data['input']) {
                 $update = array($data['type'] => $data['input']);
-                // Model('User')->where(array("userID"=>$user['userID']))->save($update);
                 $res = Model('User')->userEdit($user['userID'], $update);
                 $user[$data['type']] = $data['input'];
             }

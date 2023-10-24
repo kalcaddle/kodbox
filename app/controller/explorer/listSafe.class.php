@@ -141,8 +141,8 @@ class explorerListSafe extends Controller{
 			'metaInfo' 	=> array('systemSort'=>3000000000,'systemSortHidden'=>true),
 		);
 		if($type != 'isLogin'){
-			$result['folderRoot']['hasFile'] = 0;
-			$result['folderRoot']['hasFolder'] = 0;
+			$result['folderRoot']['hasFile'] = false;
+			$result['folderRoot']['hasFolder'] = false;
 		}
 		
 		$result['listEmpty']  = array(

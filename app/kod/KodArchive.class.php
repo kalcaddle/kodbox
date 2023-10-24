@@ -119,7 +119,10 @@ class KodArchive {
 		self::init();
 		$ext = $ext ? $ext: get_path_ext($file);
 		if($ext == 'gz'){$ext = 'tgz';}
-		$listContent = self::listContent($file,false,$ext);//不转码
+		
+		$listUtf8 = false;//默认不转码; rar转码;
+		if(self::checkIfType($ext,'rar')){$listUtf8 = true;}
+		$listContent = self::listContent($file,$listUtf8,$ext);
 		if(!$listContent['code']){
 			return $listContent;
 		}

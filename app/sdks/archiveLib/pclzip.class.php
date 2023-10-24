@@ -3922,7 +3922,7 @@
 			// chanded by warlee; 改为流方式,  避免内存占用过多引起不足问题;
 			$use_stream = true;
 			if(!function_exists('stream_filter_append')){$use_stream = false;}
-			if($use_stream && $p_entry['compressed_size'] >= 1024*1024*100){
+			if($use_stream && $p_entry['compressed_size'] >= 1024*1024*50){
 				if(($v_dest_file = @fopen($p_entry['filename'], 'wb')) == 0) {
 					$p_entry['status'] = "write_error";
 					return $v_result;
