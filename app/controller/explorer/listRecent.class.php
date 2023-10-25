@@ -106,7 +106,10 @@ class explorerListRecent extends Controller{
 			if($timeType == 'createTime'){$where['createUser'] = $userID;}
 			if($timeType == 'modifyTime'){$where['modifyUser'] = $userID;}
 		}
-		$where[$timeType] = array('>',time() - 3600*24*60);//2个月内
+		$where[$timeType] = array(
+			array('>',time() - 3600*24*60),//2个月内
+			array('<',time()),// 忽略大于当前时间内容;
+		);
 
 		$maxNum = 50;	//最多150项
 		$field  = 'sourceID,name,createTime,modifyTime,viewTime';

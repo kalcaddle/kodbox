@@ -40,6 +40,48 @@ function get_client_ip($b_ip = true){
 	$client_ip = filter_var($matches[1], FILTER_VALIDATE_IP);
 	return $client_ip ? $client_ip : 'unknown';
 }
+
+if(!function_exists('filter_var')){
+	if(!defined('FILTER_VALIDATE_IP')){
+		define('FILTER_VALIDATE_INT','int');
+		define('FILTER_VALIDATE_FLOAT','float');
+		define('FILTER_VALIDATE_EMAIL','email');
+		define('FILTER_VALIDATE_REGEXP','reg');
+		define('FILTER_VALIDATE_URL','url');
+		define('FILTER_VALIDATE_IP','ip');
+		
+		define('FILTER_FLAG_IPV4','ipv4');
+		define('FILTER_FLAG_IPV6','ipv6');
+		define('FILTER_FLAG_EMAIL_UNICODE','email');
+		
+		define('FILTER_SANITIZE_STRING','string');
+		define('FILTER_SANITIZE_NUMBER_INT','int');
+		define('FILTER_SANITIZE_NUMBER_FLOAT','float');
+		define('FILTER_SANITIZE_SPECIAL_CHARS','special');
+		define('FILTER_SANITIZE_EMAIL','email');
+	}
+	function filter_var($str,$filter,$option=false){
+		$mapReg = array(
+			'ip' 		=> "/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/",
+			'ipv4' 		=> "/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/",
+			'ipv6' 		=> "/\s*(([:.]{0,7}[0-9a-fA-F]{0,4}){1,8})\s*/",
+			'url'		=> "/(http|ftp|https):\/\/[\w\-_]+(\.[\w\-_]+)+([\w\-\.,@?^=%&:\/~\+#]*[\w\-\@?^=%&\/~\+#])?/",
+			'email'		=> '/\w+([\.\-]\w+)*\@\w+([\.\-]\w+)*\.\w+/',
+			'int'		=> "/[-\+]?\d+/",
+			'float'		=> "/[-\+]?\d+(\.\d+)?/",
+			// 'reg'	=> _get($options,'regexp'),
+		);
+		if($filter == 'string'){return addslashes($str);}
+		if($filter == 'special'){return htmlspecialchars($str,ENT_QUOTES,'UTF-8',false);}
+		
+		if($filter== 'ip' && $option == 'ipv4'){$filter = 'ipv4';}
+		if($filter== 'ip' && $option == 'ipv6'){$filter = 'ipv6';}
+		$reg = $mapReg[$filter];
+		if(preg_match($reg,$str,$matches)){return $matches[1];}
+		return $str;
+	}
+}
+
 function get_server_ip(){
 	static $ip = NULL;
 	if ($ip !== NULL) return $ip;

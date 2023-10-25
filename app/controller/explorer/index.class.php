@@ -817,6 +817,7 @@ class explorerIndex extends Controller{
 		));
 		$this->taskUnzip($data['path']);
 		$list = IOArchive::unzipList($data);
+		$this->updateLastOpen($data['path']);
 		show_json($list);
 	}
 
@@ -832,13 +833,13 @@ class explorerIndex extends Controller{
 		if($isDownload && !Action('user.authRole')->authCanDownload()){
 			show_json(LNG('explorer.noPermissionAction'),false);
 		}
-		if ($isDownload) Hook::trigger('explorer.fileDownload', $path);
+		if($isDownload){Hook::trigger('explorer.fileDownload', $path);}
 		Hook::trigger('explorer.fileOut', $path);
 		if(isset($this->in['type']) && $this->in['type'] == 'image'){
 			$info = IO::info($path);
 			$imageThumb = array('jpg','png','jpeg','bmp');
 			$width = isset($this->in['width']) ? intval($this->in['width']) :0;
-			if(!$width || $width >= 2000){
+			if($isDownload || !$width || $width >= 2000){
 				$this->updateLastOpen($path);
 			}
 			if($info['size'] >= 1024*200 &&
@@ -847,6 +848,7 @@ class explorerIndex extends Controller{
 			){
 				return IO::fileOutImage($path,$width);
 			}
+			return IO::fileOut($path,$isDownload); // 不再记录打开时间;
 		}
 		$this->updateLastOpen($path);
 		IO::fileOut($path,$isDownload);
