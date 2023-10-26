@@ -155,6 +155,7 @@ class adminPlugin extends Controller{
 				break;
 			case 'update':
 				Hook::trigger($app.'Plugin.onUpdate');
+				Hook::apply($app.'Plugin.regist');
 				show_json(Hook::apply($app.'Plugin.update'));
 				break;
 			default:break;

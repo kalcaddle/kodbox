@@ -48,7 +48,8 @@ class explorerListSafe extends Controller{
 		if(!$pathInfo || intval($this->in['page']) > 1)  return false;
 		if(!isset($pathInfo['targetType']) || !isset($pathInfo['targetID']) || !isset($pathInfo['parentID'])){return;}
 		if($pathInfo['parentID'] != 0 || $pathInfo['targetType'] != 'user' || $pathInfo['targetID'] != USER_ID) return;
-
+		if(defined('KOD_FROM_WEBDAV')){return;}
+		
 		$userInfo = Model("User")->getInfoFull(USER_ID);
 		if(_get($data,'current.sourceID') == _get($userInfo,'metaInfo.pathSafeFolder')) return;
 		if(Model("UserOption")->get('pathSafeSpaceShow') != '1'){return;} // 个人设置已隐藏;
