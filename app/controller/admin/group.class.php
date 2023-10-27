@@ -71,8 +71,8 @@ class adminGroup extends Controller{
 			if($data['parentID'] && is_string($data['parentID'])){
 				$result['list'] = Model('Group')->listByID(array($data['parentID']));
 			}
-			// 所在部门最上层,和可见部门最上层不一致时,显示对外授权;
-			if(array_diff($userGroupRootShow,$userGroupAt)){
+			// 自己可见根目录,不再当前显示列表中,则显示对外授权;
+			if($userGroupRootShow != array_to_keyvalue($result['list'],'','groupID')){
 				$result['list'][] = $toOuterGroup;
 			}
 			$children = $shareHistory['children'];
