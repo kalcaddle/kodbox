@@ -202,16 +202,17 @@ kodReady.push(function(){
 		hookMatch:'login,bindAutoLogin,autoSetAccount,loginSuccess',	
 		bindEvent:function(){
 			this.__bindEvent.apply(this,arguments);
-			if(G.clientOption.appLoginWeb == '0') return;
-			checkWebLoginBefore(this);
-			showLoginWebView(this);
 			showLoginTfaView(this);
+			if(G.clientOption.appLoginWeb == '1'){
+				checkWebLoginBefore(this);
+				showLoginWebView(this);
+			}
 		},
 		loginSuccess: function(){
 			var _this = this;
 			var _args = arguments;
 			// 判断是否需要二次验证，不需要则继续提交
-			if (this.withTfa || !_.has(tfaIn,'withTfa')) {
+			if (this.withTfa || !_.has(tfaIn,'withTfa') || !_this.tfaPage) {
 				return _this.__loginSuccess.apply(_this,_args);
 			}
 			_this.tfaPage.needTfa(tfaIn,tfaInfo);
