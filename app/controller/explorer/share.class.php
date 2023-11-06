@@ -304,6 +304,7 @@ class explorerShare extends Controller{
 				$has = IO::has($path,true);
 				if(is_array($has)){$pathInfo = array_merge($pathInfo,$has);}
 			}
+			$pathInfo = Action('explorer.list')->pathInfoCover($pathInfo);
 			$result[] = $this->shareItemInfo($pathInfo);
 		}
 		
@@ -487,9 +488,11 @@ class explorerShare extends Controller{
 		$theItem['path'] = rtrim($path,'/').'/'.$theItem['pathDisplay'];
 		$theItem['pathDisplay'] = $name.'/'.$theItem['pathDisplay'];
 
-		if($theItem['type'] == 'folder'){
-			$theItem['ext'] = 'folder';
+		if(is_array($item['metaInfo'])){
+			$picker = 'user_sourceCover';
+			$theItem['metaInfo'] = array_field_key($item['metaInfo'],explode(',',$picker));
 		}
+		if($theItem['type'] == 'folder'){$theItem['ext'] = 'folder';}
 		if(is_array($theItem['createUser'])) $theItem['createUser'] = $this->filterUserInfo($theItem['createUser']);
 		if(is_array($theItem['modifyUser'])) $theItem['modifyUser'] = $this->filterUserInfo($theItem['modifyUser']);
 		return $theItem;

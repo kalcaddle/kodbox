@@ -367,16 +367,6 @@ class explorerList extends Controller{
 				$pathInfo['metaInfo']['systemLock'] != USER_ID ){
 				$pathInfo['isWriteable'] = false;
 			}
-			
-			// 文件文件夹封面; 自适应当前url;
-			if(is_array($pathInfo['metaInfo']) && $pathInfo['metaInfo']['user_sourceCover']){
-				$pathInfo['fileThumbCover'] = '1';
-				$pathInfo['fileThumb'] = $pathInfo['metaInfo']['user_sourceCover']; 
-				$urlInfo = parse_url($pathInfo['fileThumb']);$port = isset($urlInfo['port']) ? ':'.$urlInfo['port']:'';
-				$urlBase = $urlInfo['scheme']."://".$urlInfo['host'].$port.'/';
-				$pathInfo['fileThumb'] = str_replace($urlBase,HOST,$pathInfo['fileThumb']);
-				$pathInfo['metaInfo']['user_sourceCover'] = $pathInfo['fileThumb'];
-			}
 		}
 		if($pathInfo['type'] == 'file' && !$pathInfo['ext']){
 			$pathInfo['ext'] = strtolower($pathInfo['name']);
@@ -389,6 +379,20 @@ class explorerList extends Controller{
 		}
 		if(isset($pathInfo['fileID'])){unset($pathInfo['fileID']);}
 		if(isset($pathInfo['fileInfo']['path'])){unset($pathInfo['fileInfo']['path']);}
+		$pathInfo = $this->pathInfoCover($pathInfo);
+		return $pathInfo;
+	}
+	
+	public function pathInfoCover($pathInfo){
+		// 文件文件夹封面; 自适应当前url;
+		if(is_array($pathInfo['metaInfo']) && $pathInfo['metaInfo']['user_sourceCover']){
+			$pathInfo['fileThumbCover'] = '1';
+			$pathInfo['fileThumb'] = $pathInfo['metaInfo']['user_sourceCover']; 
+			$urlInfo = parse_url($pathInfo['fileThumb']);$port = isset($urlInfo['port']) ? ':'.$urlInfo['port']:'';
+			$urlBase = $urlInfo['scheme']."://".$urlInfo['host'].$port.'/';
+			$pathInfo['fileThumb'] = str_replace($urlBase,HOST,$pathInfo['fileThumb']);
+			$pathInfo['metaInfo']['user_sourceCover'] = $pathInfo['fileThumb'];
+		}
 		if($pathInfo['type'] == 'file'){ // 仅针对文件; 追加缩略图等业务;
 			$pathInfo = Hook::filter('explorer.list.itemParse',$pathInfo);
 		}
