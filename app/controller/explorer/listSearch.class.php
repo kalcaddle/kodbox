@@ -238,11 +238,10 @@ class explorerListSearch extends Controller{
 			
 			if(isset($item['sourceInfo'])){ //IO文件;
 				$info = $item['sourceInfo'];
-				if(isset($item['filePath'])){
-					$info['filePath'] = $item['filePath'];
-				}
 			}else{
-				$info = IO::info($item['path']);
+				$item['type'] = $item['folder'] ? 'folder':'file';
+				$item['name'] = $name;$item['ext'] = $ext;$info = $item;
+				// $info = IO::info($item['path']); // 性能优化,不直接获取;
 			}
 			if(!$info) continue;
 			if( $isFolder && ($param['sizeFrom'] || $param['sizeTo'])  ) continue;
@@ -275,14 +274,15 @@ class explorerListSearch extends Controller{
 					continue; // 内容匹配; 
 				}
 			}
-			unset($info['filePath']);
 			$findNum ++;
 			if($findNum > $matchMax) break;
-			if($isFolder){
-				$result['folderList'][] = $info;
-			}else{
-				$result['fileList'][] = $info;
+			
+			if(kodIO::pathDriverLocal($info['path'])){
+				$infoFile = IO::info($item['path']); // 物理路径获取权限等情况;
+				$info = array_merge($infoFile,$info);
 			}
+			$typeKey = $isFolder ? 'folderList':'fileList';
+			$result[$typeKey][] = $info;
 		}
 		// pr($path,$param,$list,$result,$allowExt);exit;
 		return $result;
@@ -290,15 +290,14 @@ class explorerListSearch extends Controller{
 	
 	private function searchFile(&$file,$search,$isLocalFile){
 		if($file['size'] <= 3) return false;
-		$filePath = isset($file['filePath']) ? $file['filePath'] : $file['path'];
 		if(is_text_file($file['ext']) && $isLocalFile ){
 			if($file['size'] >= 1024*1024*10) return false;
-			$content = IO::getContent($filePath);
+			$content = IO::getContent($file['path']);
 		}else{
 			$content = Hook::trigger('explorer.listSearch.fileContentText',$file);
 			if(!$content && is_text_file($file['ext'])){
 				if($file['size'] >= 1024*1024*10) return false;
-				$content = IO::getContent($filePath);
+				$content = IO::getContent($file['path']);
 			}
 		}
 		if(!$content) return false;

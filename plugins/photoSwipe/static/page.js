@@ -2,7 +2,7 @@ define(function(require, exports) {
 	var lastImageList = {};
 	var getImageArr = function(filePath,name){
 		var imageList = kodApp.imageList;
-		lastImageList = imageList;
+		lastImageList = imageList || {};
 		kodApp.imageList = false;
 		if(!imageList) {
 			imageList = {items:[{

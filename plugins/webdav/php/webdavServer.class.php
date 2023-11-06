@@ -146,6 +146,7 @@ class webdavServer {
 		$picker = array(
 			'hasFile','hasFolder','fileInfo','fileInfoMore','oexeContent','parentID','isTruePath',
 			'isReadable','isWriteable','sourceRoot','icon','iconClassName','children',
+			'listAllChildren','fileThumb','fileShowView',
 		);
 		foreach ($picker as $key){
 			if(array_key_exists($key,$itemFile)){$infoMore[$key] = $itemFile[$key];}
@@ -204,6 +205,13 @@ class webdavServer {
 			HttpHeader::get('X_DAV_ACTION') == 'infoChildren'){
 			$pathInfo = IO::infoWithChildren($pathInfo['path']);
 		}
+		
+		// kodbox 挂载kod存储; listAll请求优化;
+		if( $pathInfo['type'] == 'folder' && 
+			isset($_SERVER['HTTP_X_DAV_ACTION']) && $_SERVER['HTTP_X_DAV_ACTION'] == 'kodListAll'){
+			$pathInfo['listAllChildren'] = IO::listAllSimple($this->path,true);
+		}
+		
 		if($isInfo){
 			$list = array($pathInfo);
 		}else{

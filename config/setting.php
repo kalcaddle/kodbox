@@ -363,9 +363,9 @@ $config['editorDefault'] = array(
 // 多语言; 在user/view/parseMetaLang中替换; meta.[key] 为多语言key;
 $config['settings']['sourceMeta'] = array(
 	'configItem'	=> array(
-		'defaultShow'	=> 'user_sourceAlias', 					 					 //默认显示的key;
-		'fileAllow'		=> 'user_sourceAlias,user_sourceNumber,user_sourceParticipant', //文件支持的key
-		'folderAllow'	=> 'user_sourceAlias,user_sourceParticipant',					 //文件夹支持的key
+		'defaultShow'	=> 'user_sourceAlias,user_sourceCover', 					 	//默认显示的key;
+		'fileAllow'		=> 'user_sourceAlias,user_sourceCover,user_sourceNumber,user_sourceParticipant', //文件支持的key
+		'folderAllow'	=> 'user_sourceAlias,user_sourceCover,user_sourceParticipant',					//文件夹支持的key
 	),
 	'user_sourceAlias' => array(
 		"type"		=> "fileSelect",
@@ -381,6 +381,21 @@ $config['settings']['sourceMeta'] = array(
 			"authCheck"	=> "read",			// read,write或空;默认为可写入;
 		),
 	),
+	'user_sourceCover' => array(
+		"type"		=> "fileSelect",
+		"value"		=> "",
+		"display" 	=> "文档封面",
+		"info"		=> array(
+			"single"	=> true,			// 单选or多选; true/false
+			"type"		=> "file", 			// 文件or文件夹选择; file|folder|all
+			"makeUrl"	=> true,			// 生成永久外链,
+			"valueKey"	=> "downloadPath", 	// 取结果中的key
+			"valueShowKey"	=> 'name',		// 显示名称;
+			"title"		=> "文档封面", 		 // 对话框标题;		
+			"authCheck"	=> "read",			// read,write或空;默认为可写入;
+		),
+	),
+	
 	//扩展;
 	'user_sourceNumber' => array(
 		"type"		=> "input",
@@ -517,7 +532,7 @@ $config['authAllowAction'] = array(
 	'explorer.fav.get',
 	'explorer.index.pathInfo',
 	'explorer.lightApp.get',
-	'explorer.list.path',
+	'explorer.list.path','explorer.list.listAll',
 	'explorer.index.desktopApp',
 	'explorer.userShare.get',
 	'explorer.userShare.myShare',

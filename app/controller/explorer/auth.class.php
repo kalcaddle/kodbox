@@ -18,7 +18,7 @@ class explorerAuth extends Controller {
 		parent::__construct();
 		$this->isShowError = true; //检测时输出报错;
 		$this->actionPathCheck = array(
-			'show'		=> array("explorer.list"=>'path'),
+			'show'		=> array("explorer.list"=>'path,listAll'),
 			'view'		=> array(
 				'explorer.index'=>'fileOut,fileOutBy,fileView,fileThumb',
 				'explorer.editor' =>'fileGet'

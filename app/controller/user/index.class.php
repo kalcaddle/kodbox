@@ -33,6 +33,10 @@ class userIndex extends Controller {
 		$this->loginCheck();
 		Model('Plugin')->init();
 		Action('filter.index')->trigger();
+		if(!defined("USER_ID")){
+			$userID = Session::get("kodUser.userID");$userID = 0;
+			define("USER_ID",$userID ? $userID:0);
+		}
 	}
 	public function shutdownEvent(){
 		TaskQueue::addSubmit();		// 结束后有任务时批量加入
@@ -192,7 +196,7 @@ class userIndex extends Controller {
 		
 		// 计划任务处理; 目录读写所有者为系统;
 		if( strtolower(ACTION) == 'user.view.call'){
-			define('USER_ID','0');
+			define('USER_ID',0);
 			define('MY_HOME','');
 			define('MY_DESKTOP','');
 			return;
@@ -425,10 +429,12 @@ class userIndex extends Controller {
 	 * 注:完全以当前身份访问, 权限以当前用户为准;
 	 */
 	public function apiSignMake($action,$args,$timeout=false,$appKey='',$uriIndex=false){
-		if(!defined('USER_ID') || !USER_ID) return false;
 		$appSecret = $this->appKeySecret($appKey);
-		if(!$appSecret) return false;
+		if(!$appSecret || !USER_ID){ // 外链分享等情况
+			return APP_HOST.'index.php?'.$action.'&'.http_build_query($args);
+		}
 		
+		$userID  = Session::get('kodUser.userID');
 		$timeout = $timeout ? $timeout : 3600*24*3;
 		$param   = '';
 		$keyList = array(strtolower($action));
@@ -436,12 +442,11 @@ class userIndex extends Controller {
 		foreach($args as $key=>$val){
 			$keyList[] = strtolower($key);
 			$signArr[] = strtolower($key).'='.base64_encode($val);
-			$param = $key.'='.rawurlencode($val).'&';
+			$param .= $key.'='.rawurlencode($val).'&';
 		}
 		$signToken = md5(implode(';',$signArr));//解密时获取
 		$acionKey  = hash_encode(implode(';',$keyList));
-		$actionToken = Mcrypt::encode(USER_ID,$signToken,$timeout);
-		
+		$actionToken = Mcrypt::encode(USER_ID,$signToken,0,md5($appSecret)); // 避免url变化,无法缓存问题;
 		$param .= 'actionToken='.$actionToken.'&actionKey='.$acionKey;
 		// 包含index.php; (跨域时浏览器请求options, 避免被nginx拦截提前处理)
 		if($uriIndex){return APP_HOST.'index.php?'.$action.'&'.$param;}
@@ -467,7 +472,7 @@ class userIndex extends Controller {
 		$signToken = md5(implode(';',$signArr));//同上加密计算
 		$userID    = Mcrypt::decode($actionToken,$signToken);
 		$userInfo  = $userID ? Model('User')->getInfoFull($userID):false;
-		
+
 		allowCROS();Cookie::disable(true);
 		if(!is_array($userInfo)) {show_json(LNG("explorer.systemError").'.[apiSignCheck]',false);};
 

@@ -19,7 +19,6 @@ class adminRepair extends Controller {
 		parent::__construct();
 		$this->resetPathKey = '';
 		$this->pageCount    = 20000;// 分页查询限制; 默认5000, 20000;
-		if(!defined('USER_ID')){define('USER_ID',0);}
 	}
 	
 	/**

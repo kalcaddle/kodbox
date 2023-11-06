@@ -492,7 +492,7 @@ class webdavServerKod extends webdavServer {
 	}
 	private function fileLockCheck($path){
 		$info = IO::infoFull($path);
-		if(!$info || !$info['sourceID'] || !defined('USER_ID')) return;
+		if(!$info || !$info['sourceID'] || !USER_ID) return;
 		if(!$this->can($path,'edit')) return;
 		return $info;
 	}

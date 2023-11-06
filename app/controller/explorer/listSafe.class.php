@@ -121,7 +121,7 @@ class explorerListSafe extends Controller{
 	private function spaceInfo(){
 		static $result = false;
 		if(is_array($result)) return $result;
-		if(!defined('USER_ID')){show_json('not login',false);}
+		if(!Session::get('kodUser')){show_json('not login',false);}
 		
 		$userInfo = Model("User")->getInfoFull(USER_ID);
 		$safeFolder = _get($userInfo,'metaInfo.pathSafeFolder','');

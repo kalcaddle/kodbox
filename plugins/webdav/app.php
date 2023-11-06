@@ -41,10 +41,17 @@ class webdavPlugin extends PluginBase{
 			"config" 	=> array("check"=>"require"),
 		));		
 		$config = json_decode($data['config'], true);
+		$configBefore = Model('Storage')->getConfig($data['id']); // 未修改密码情况处理;
+		if($config['password'] == str_repeat('*',strlen($configBefore['password']))){
+			$config['password'] = $configBefore['password'];
+		}
+		
 		$dav  = new WebdavClient($config);
 		$data = $dav->check();
 		if(!$data['status']){
-			show_json('连接失败,请检查连接URL,或用户名密码是否正确;<br/>'.$data['header'][0],false);
+			$message = _get($data,'data.message');
+			$message = $message ? $message.'!':'';
+			show_json($message.$data['header'][0].'<br/>连接失败,请检查连接URL,或用户名密码是否正确.',false);
 		}
 	}
 	

@@ -49,8 +49,8 @@ class webdavClient {
 	// 存储options返回头DAV字段;(标记支持项)
 	private function patchCheck(){
 		$data = $this->options('/');
-		if(!$data['header']['dav']) return;
-		$this->options['dav'] = $data['header']['dav'];
+		if(!$data['header'] || !$data['header']['DAV']) return;
+		$this->options['dav'] = $data['header']['DAV'];
 		$GLOBALS['in']['config'] = json_encode($this->options,true);// 修改配置;
 	}
 
@@ -85,9 +85,10 @@ class webdavClient {
 		$data = $this->send('DELETE',$this->makeUrl($path));
 		return $data['status'];
 	}
-	public function propfind($path,$depth='1'){
+	public function propfind($path,$depth='1',$header=''){	
 		$this->setHeader('Depth',$depth);//遍历深度
 		$this->setHeader('Content-type','text/xml; charset=UTF-8');
+		if($header){$this->setHeader($header);}
 		$body = '<D:propfind xmlns:D="DAV:"><D:allprop /></D:propfind>';
 		return $this->send('PROPFIND',$this->makeUrl($path),$body);
 	}

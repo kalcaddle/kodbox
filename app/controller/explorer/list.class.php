@@ -73,7 +73,19 @@ class explorerList extends Controller{
 		$this->pathListParse($data);// 1000 => 50ms; all-image=200ms;
 		$this->pageReset($data);
 		$this->addHistoryCount($data,$pathParse);
-	}	
+	}
+	
+	// 拉取所有(用于文件夹同步,对比等情况)
+	// IO::listAll($this->in['path']);// path:默认为真实路径;包含sourceInfo时sourceInfo.path为真实路径;
+	public function listAll(){
+		$page		= isset($this->in['page']) ? intval($this->in['page']):1;
+		$pageNum 	= isset($this->in['pageNum']) ? intval($this->in['pageNum']):2000;
+		$page = $page <= 1 ? 1:$page;$pageNum = $pageNum <= 1000 ? 1000:$pageNum;		
+
+		$list = IO::listAllSimple($this->in['path'],0);// path:包含上层文件夹名的路径;filePath:真实路径;
+		$data = array_page_split($list,$page,$pageNum);
+		show_json($data);
+	}
 	
 	// 桌面文件夹自动检测;不存在处理;
 	private function checkDesktop($path){
@@ -311,7 +323,7 @@ class explorerList extends Controller{
 			$showMd5 			= Model('SystemOption')->get('showFileMd5') != '0';
 		}
 
-		if(defined('USER_ID')){
+		if(USER_ID){
 			$explorerFav->favAppendItem($pathInfo);
 			$explorerTag->tagAppendItem($pathInfo);
 			$explorerShare->shareAppendItem($pathInfo);
@@ -350,10 +362,20 @@ class explorerList extends Controller{
 			if(isset($pathInfo['auth'])){
 				$pathInfo['canWrite'] = $modelAuth->authCheckEdit($pathInfo['auth']['authValue']);
 			}
-			if( is_array($pathInfo['metaInfo']) && 
+			if(is_array($pathInfo['metaInfo']) && 
 				isset($pathInfo['metaInfo']['systemLock']) && 
 				$pathInfo['metaInfo']['systemLock'] != USER_ID ){
 				$pathInfo['isWriteable'] = false;
+			}
+			
+			// 文件文件夹封面; 自适应当前url;
+			if(is_array($pathInfo['metaInfo']) && $pathInfo['metaInfo']['user_sourceCover']){
+				$pathInfo['fileThumbCover'] = '1';
+				$pathInfo['fileThumb'] = $pathInfo['metaInfo']['user_sourceCover']; 
+				$urlInfo = parse_url($pathInfo['fileThumb']);$port = isset($urlInfo['port']) ? ':'.$urlInfo['port']:'';
+				$urlBase = $urlInfo['scheme']."://".$urlInfo['host'].$port.'/';
+				$pathInfo['fileThumb'] = str_replace($urlBase,HOST,$pathInfo['fileThumb']);
+				$pathInfo['metaInfo']['user_sourceCover'] = $pathInfo['fileThumb'];
 			}
 		}
 		if($pathInfo['type'] == 'file' && !$pathInfo['ext']){
@@ -428,7 +450,7 @@ class explorerList extends Controller{
 	
 	// 显示隐藏文件处理; 默认不显示隐藏文件;
 	private function parseDataHidden(&$data,$pathParse){
-		if(defined('USER_ID') && Model('UserOption')->get('displayHideFile') == '1') return;
+		if(Model('UserOption')->get('displayHideFile') == '1') return;
 		$pathHidden = Model('SystemOption')->get('pathHidden');
 		$pathHidden = explode(',',$pathHidden);
 		$hideNumber = 0;

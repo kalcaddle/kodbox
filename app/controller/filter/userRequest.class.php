@@ -16,12 +16,13 @@ class filterUserRequest extends Controller {
 	}
 	public function taskCheck(){
 		$taskAllowMax = $this->config['systemOption']['userTaskAllowMax'];
-		if(!$taskAllowMax || _get($GLOBALS,'isRoot') || !USER_ID) return;
+		$userID = Session::get('kodUser.userID');
+		if(!$taskAllowMax || _get($GLOBALS,'isRoot') || !$userID) return;
 		
-		$result  = Task::listData(USER_ID);
+		$result  = Task::listData($userID);
 		if(count($result) > $taskAllowMax){
 			$error = "Task is too many! (".$taskAllowMax.")";
-			Task::log($error.';user='.USER_ID.';');
+			Task::log($error.';user='.$userID.';');
 			show_json($error,false);
 		}
 	}

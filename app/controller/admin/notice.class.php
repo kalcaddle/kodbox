@@ -91,7 +91,7 @@ class adminNotice extends Controller{
 
 	// 检查是否具有接受某通知的权限
 	private function authCheck($auth){
-		if(!defined('USER_ID')) return false; //未登录
+		if(!Session::get('kodUser')) return false; //未登录
 		if(_get($GLOBALS,'isRoot')) return true;
 		return  ActionCall('user.authPlugin.checkAuthValue',$auth);
 	}

@@ -195,7 +195,6 @@ class userRegist extends Controller {
 		);
 		!$bindRegist && $this->in[$data['type']] = $data['input'];
 
-        if(!defined('USER_ID')) define('USER_ID', 0);
 		$res = ActionCallHook('admin.member.add');
 		// 绑定注册，直接返回新增结果
 		if ($bindRegist) return $res;	// show_json(true, true, userID)

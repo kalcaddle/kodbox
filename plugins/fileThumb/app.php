@@ -23,17 +23,15 @@ class fileThumbPlugin extends PluginBase{
 			$supportView  	= explode(',',$config['fileExt']);
 			$supportBin 	= $this->getConvert() && $this->getFFmpeg();
 		}
-		if($supportBin != 'ok') return;
-		if($pathInfo['type'] == 'folder') return;
-		if(isset($pathInfo['fileThumb']) || $pathInfo['size'] < 100) return;
-		if(!in_array($pathInfo['ext'],$supportThumb)) return;
-
-		$param  = '&path='.rawurlencode($pathInfo['path']);
-		$param .= '&etag='.$pathInfo['size'].'_'.$pathInfo['modifyTime'];
-		$pathInfo['fileThumb'] = APP_HOST.'?plugin/fileThumb/cover'.$param.'&size=250';
-		if(in_array($pathInfo['ext'],$supportView)){
-			$pathInfo['fileShowView'] = APP_HOST.'?plugin/fileThumb/cover'.$param.'&size=1200';
+		$param = array('path'=>$pathInfo['path'],'etag'=>$pathInfo['size'].'_'.$pathInfo['modifyTime']);
+		if(!in_array($pathInfo['ext'],$supportThumb) || $supportBin != 'ok') return $pathInfo;	
+		if(in_array($pathInfo['ext'],$supportView)){// heic 等支持预览的内容; 
+			$pathInfo['fileShowView'] = Action('user.index')->apiSignMake('plugin/fileThumb/cover',$param).'&size=1200';
 		}
+		if(!kodIO::allowCover($pathInfo)){return $pathInfo;}
+		if(Cache::get('fileCover_'.KodIO::hashPath($pathInfo,false)) == 'no') return $pathInfo;
+		
+		$pathInfo['fileThumb'] = Action('user.index')->apiSignMake('plugin/fileThumb/cover',$param).'&size=250';
 		return $pathInfo;
 	}
 
@@ -105,14 +103,14 @@ class fileThumbPlugin extends PluginBase{
 		$ext  = $info['ext'];
 		
 		// io缩略图已存在，直接输出
-		$fileHash  = KodIO::hashPath($info);
+		$fileHash  = KodIO::hashPath($info,false);
+		if(Cache::get('fileCover_'.$fileHash) == 'no'){return;}; //是否有封面处理;
 		$coverName = "cover_{$ext}_{$fileHash}_{$size}.jpg";
 		if (!is_dir(TEMP_FILES)) mk_dir(TEMP_FILES);
 		$thumbFile = TEMP_FILES . $coverName;
 		if($sourceID = IO::fileNameExist($this->cachePath, $coverName)){
 			return IO::fileOut(KodIO::make($sourceID));
 		}
-		if(Cache::get('fileCover_'.$fileHash) == 'error'){return;}; //是否有封面处理;
 		
 		$localFile = $this->localFile($path);
 		$movie = '3gp,avi,mp4,m4v,mov,mpg,mpeg,mpe,mts,m2ts,wmv,ogv,webm,vob,flv,f4v,mkv,rmvb,rm';
@@ -153,7 +151,7 @@ class fileThumbPlugin extends PluginBase{
 			$cachePath  = IO::move($thumbFile,$this->cachePath);
 			return IO::fileOutServer($cachePath);
 		}
-		Cache::set('fileCover_'.$fileHash,'error',60);
+		Cache::set('fileCover_'.$fileHash,'no',3600*24*30);
 		del_file($thumbFile);
 	}
 	
@@ -328,10 +326,10 @@ class fileThumbPlugin extends PluginBase{
 	
 	
 	public function getFFmpeg(){
-		return $this->getCall('fileThumb.getFFmpeg',60,array($this,'getFFmpegNow'));
+		return $this->getCall('fileThumb.getFFmpeg',600,array($this,'getFFmpegNow'));
 	}
 	public function getConvert(){
-		return $this->getCall('fileThumb.getConvert',60,array($this,'getConvertNow'));
+		return $this->getCall('fileThumb.getConvert',600,array($this,'getConvertNow'));
 	}
 	// Cache::getCall
 	private function getCall($key,$timeout,$call,$args = array()){

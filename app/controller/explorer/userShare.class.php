@@ -43,15 +43,10 @@ class explorerUserShare extends Controller{
 		$shareInfo = $shareInfo ? $shareInfo : _get($shareList,rtrim($item['path'],'/'));
 		$shareInfo = $shareInfo ? $shareInfo : _get($shareList,rtrim($item['path'],'/').'/');
 		if(!$shareInfo) return $item;
-		$item['sourceInfo']['shareInfo'] = array(
-			'shareID' 		=> $shareInfo['shareID'],
-			'shareHash' 	=> $shareInfo['shareHash'],
-			'shareSource'	=> $shareInfo['sourceID'],
-			'isLink' 		=> $shareInfo['isLink'],
-			'isShareTo' 	=> $shareInfo['isShareTo'],
-			'timeTo' 		=> $shareInfo['timeTo'],
-			'options'		=> $shareInfo['options'],
-		);
+		
+		$picker = 'shareID,shareHash,createTime,sourceID,userID,shareSource,isLink,isShareTo,timeTo,options';
+		if($shareInfo['isLink']=='1'){$picker.=',numDownload,numView';}
+		$item['sourceInfo']['shareInfo'] = array_field_key($shareInfo,explode(',',$picker));
 		return $item;
 	}
 
@@ -331,6 +326,7 @@ class explorerUserShare extends Controller{
 	 * 去除无关字段；处理parentLevel，pathDisplay
 	 */
 	public function _shareItemeParse($source,$share){
+		if(!$source || !is_array($source)){return false;}
 		$share = $this->shareItemParse($share);
 		$sourceBefore = $source;
 		$user = Model('User')->getInfoSimpleOuter($share['userID']);
@@ -369,7 +365,10 @@ class explorerUserShare extends Controller{
 		$displayUser = '['.$userName.']'.LNG('common.share').'-'.$sourceRoot['name'];
 		if($share['userID'] == USER_ID){
 			$displayUser = $sourceRoot['name'];
-			$source['sourceInfo']['selfShareInfo'] = $sourceRoot;
+			$picker = 'shareID,shareHash,createTime,shareSource,isLink,isShareTo,timeTo,options,numDownload,numView';
+			$shareInfoAdd = array_field_key($share,explode(',',$picker));
+			$source['sourceInfo']['selfShareInfo'] = array_merge($sourceRoot,$shareInfoAdd);
+			if(!$pathAdd){$source['sourceInfo']['shareInfo'] = $share;}
 		}
 		if($sourceRoot['targetType'] == 'group'){
 			$source['sharePathFrom'] = $sourceRoot['pathDisplay'];

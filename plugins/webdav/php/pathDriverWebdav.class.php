@@ -88,7 +88,20 @@ class PathDriverWebdav extends PathDriverBase {
 		if($count){return $children;}
 		return $isFolder ? $children['hasFolder'] : $children['hasFile'];
 	}
-	public function listAll($path) {
+	public function listAll($path){
+		// 优先处理按kod进行尝试请求;
+		$data = $this->dav->propfind($path,'0','X-DAV-ACTION: kodListAll');
+		$current = $this->_pathInfoParse(_get($data,'data.response',false));
+		if($current && isset($current['listAllChildren'])){
+			foreach ($current['listAllChildren'] as &$item){
+				$arr = explode('/',trim($item['path'],'/'));
+				$pathShow = implode('/',array_slice($arr,1)).($item['folder'] ? '/':'');
+				$item["path"] = rtrim($current['path'],'/').'/'.$pathShow; // 都使用包含上层的方式,兼容1.45前版本;
+				unset($item["filePath"]);
+			};unset($item);
+			return $current['listAllChildren'];
+		}
+		
 		$result = array();
 		$this->listAllMake($path,$result);
 		return $result;
@@ -310,6 +323,7 @@ class PathDriverWebdav extends PathDriverBase {
 	}
 	// 文件属性; name/path/type/size/createTime/modifyTime/
 	private function _pathInfoParse($item){
+		if(!$item || !isset($item['href'])){return array();}
 		$path 	= $this->dav->uriToPath($item['href']);
 		$info   = array('name'=>get_path_this($path),'path'=>$path,'type'=>'folder');
 		$prop   = _get($item,'propstat.prop',array());

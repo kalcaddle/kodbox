@@ -187,25 +187,17 @@ class adminLog extends Controller{
         return $in;
     }
 
-    /**
-     * 检测range传输——预览、下载
-     * 无range：小文件不传，大文件可能有多个请求，前期不传——60s差不多能完成（60s内多次下载也只记一次）
-     * 有range：浏览器下载多次请求时，可能是start或end与size相近（size-1），end-start>1，此时在无range请求时记录
-     * @return void
-     */
-    private function checkHttpRange(){
-        if (!isset($_SERVER['HTTP_RANGE'])) {
-            $key = md5(json_encode($this->in));
-            if (Cache::get($key)) return false;
-            Cache::set($key, 1, 60);
-            return true;
-        }
-        $start = $end = 0;
-        $bytes = explode('-', str_replace('bytes=', '', $_SERVER['HTTP_RANGE']));
-        $start = intval($bytes[0]);
-        $end   = isset($bytes[1]) ? intval($bytes[1]) : 0;
-        return abs($end - $start) > 1 ? false : true;   // app:0-;客户端:0-1
-    }
+	// 文件预览下载,是否为从头开始下载(用于下载计数,或统计日志);  允许的情况:没有range; 有range且start=0且end大于5
+	public function checkHttpRange(){
+		if(strtoupper($_SERVER['REQUEST_METHOD']) == 'HEAD'){return false;}
+		if(!isset($_SERVER['HTTP_RANGE'])){return true;}
+		
+		$start = 0;$end = 100;
+		$find = preg_match('/bytes=\s*(\d+)-(\d*)/i',$_SERVER['HTTP_RANGE'],$matches);
+		if($find && is_array($matches)){$start = intval($matches[1]);}
+		if(!empty($matches[2])){$end = intval($matches[2]);}
+		return ($start == 0 && $end >= 5) ? true : false;
+	}
 
     /**
      * 登录日志

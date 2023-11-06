@@ -26,7 +26,7 @@ ClassBase.define({
             var height = $(document).height();
             tips.$main.find('.kui-notify-content-message').css({'max-height': (height - 100)+'px', 'overflow-y':'scroll'});
             tips.$main.delegate('.tips-ignore', 'click', function() {
-                LocalData.set(keyTimeout, time() + 3600*24); // 1天内不再提示
+                LocalData.set(keyTimeout, time() + 3600*24*5); // 5天内不再提示
                 tips.close();
             });
         });
