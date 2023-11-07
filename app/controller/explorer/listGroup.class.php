@@ -132,8 +132,7 @@ class explorerListGroup extends Controller{
 			// 没有子文件; 则获取是否有子部门;
 			if( !$pathInfo['hasFolder'] && !$pathInfo['hasFile'] ){
 				$groupInfo = Model('Group')->getInfo($groupID);
-				$pathInfo['hasFolder']  = $groupInfo['hasChildren'];
-				$pathInfo['hasFile'] 	= $groupInfo['hasChildren'];
+				$pathInfo['hasFolder']  = $groupInfo ? $groupInfo['hasChildren']:false;
 			}
 			$result[] = $pathInfo;
 		}

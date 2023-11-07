@@ -24,7 +24,7 @@ class userView extends Controller{
 				'channel'		=> INSTALL_CHANNEL,
 			),
 			"user"	=> array(
-				'userID'		=> USER_ID,
+				'userID'		=> USER_ID ? USER_ID:'',
 				'myhome'    	=> defined('MY_HOME') ? MY_HOME : '',
 				'desktop'   	=> defined('MY_DESKTOP') ? MY_DESKTOP : '',
 				'isRoot'		=> _get($GLOBALS,'isRoot',0),
