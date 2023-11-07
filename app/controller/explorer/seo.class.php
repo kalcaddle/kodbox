@@ -40,10 +40,11 @@ class explorerSeo extends Controller{
 	 * 3. 外链分享文件夹列表;
 	 */
 	public function siteMap(){
-		if($this->config['settings']['allowSEO'] != 1){
+		if($this->config['settings']['allowSEO'] != 1){ // keep=1
 			header('HTTP/1.1 404 Not Found');
 			return show_tips("Not allow robots!");
 		}
+		if(!defined("USER_ID")){define("USER_ID",0);}
 		switch(ST){
 			case 'index': $this->shareList();exit;break;
 			case 'share': $this->shareView(ACT);exit;break;
