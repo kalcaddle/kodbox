@@ -19,6 +19,9 @@ class oauthLogIndex extends Controller {
             if($action != 'unbind' && $GLOBALS['loginLogSaved'] == 1) return;
             $type = 'user.bind.'.$action;
         }
+		if(!$userID){$userID = (defined('USER_ID') && USER_ID) ? USER_ID:Session::get("kodUser.userID");}
+		if(!$userID){$userID = 0;}
+		
 		// 写入日志
 		$data['ip'] = get_client_ip();
         $insert = array(
