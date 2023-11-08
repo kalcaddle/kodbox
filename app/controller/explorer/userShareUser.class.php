@@ -45,7 +45,7 @@ class explorerUserShareUser extends Controller{
 		$defaultThumb = STATIC_PATH.'images/common/default-avata.png';
 		$defaultThumb = 'root-user-avatar';// $userInfo["avatar"] = false;
 		$result = array(
-			"name" 			=> _get($userInfo,"nickName",$userInfo["name"]),
+			"name" 			=> $userInfo['nickName'] ? $userInfo['nickName']:$userInfo['name'],
 			"type" 			=> "folder",
 			"path" 			=> "{shareToMe:user-".$userInfo['userID']."}/",
 			"icon"			=> $userInfo["avatar"] ? $userInfo["avatar"]:$defaultThumb,//fileThumb,icon

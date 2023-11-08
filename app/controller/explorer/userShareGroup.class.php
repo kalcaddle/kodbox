@@ -191,7 +191,7 @@ class explorerUserShareGroup extends Controller{
 		$parentGroup  = $parentGroup ? $parentGroup:array('groupID'=>'0','parentLevel'=>'');
 		$result = array(
 			"userID"		=> $userInfo['userID'],
-			"name" 			=> _get($userInfo,"nickName",$userInfo["name"]),
+			"name" 			=> $userInfo['nickName'] ? $userInfo['nickName']:$userInfo['name'],
 			"type" 			=> "folder",
 			"path" 			=> "{shareToMe:group-u".$userInfo['userID']."-".$parentGroup['groupID']."}/",
 			"icon"			=> $userInfo["avatar"] ? $userInfo["avatar"]:$defaultThumb,//fileThumb,icon

@@ -146,7 +146,7 @@ class webdavServer {
 		$picker = array(
 			'hasFile','hasFolder','fileInfo','fileInfoMore','oexeContent','parentID','isTruePath',
 			'isReadable','isWriteable','sourceRoot','icon','iconClassName','children',
-			'listAllChildren','fileThumb','fileShowView',
+			'listAllChildren','fileThumb','fileThumbCover','fileShowView',
 		);
 		foreach ($picker as $key){
 			if(array_key_exists($key,$itemFile)){$infoMore[$key] = $itemFile[$key];}

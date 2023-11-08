@@ -67,6 +67,7 @@ class userBind extends Controller {
 		$name = _get($user,'nickName',_get($user,'name',''));
 		$desc = Model('SystemOption')->get('systemDesc');
 		$code = $code ? $code : rand_string(6,1);
+		if(!$name && isset($user['name'])){$name = $user['name'];}
 		$data = array(
 			'type'		=> 'email',
 			'input'		=> $input,

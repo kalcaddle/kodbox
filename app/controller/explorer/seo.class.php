@@ -274,7 +274,7 @@ class explorerSeo extends Controller{
 		}
 		if(!$pathInfo) return '';
 		$link = $this->shareLink($item);
-		$user = _get($item['userInfo'],'nickName',_get($item['userInfo'],'name'));
+		$user = $item['nickName'] ? $item['nickName']:$item['name'];
 
 		$time = date('Y-m-d H:i',$item['createTime']);	
 		$size = size_format($pathInfo['size']);

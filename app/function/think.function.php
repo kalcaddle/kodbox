@@ -54,8 +54,9 @@ function think_exception($msg) {
 	$desc  = is_array($trace) ? implode("\n",array_slice($trace,-2)) : '';
 	$desc  = preg_replace("/{\w+}#/",'',$desc);
 	think_error_parse($error);
-	$error = "<div class='desc'>".$error."</div>";
-	$error = $error.'<div style="border-top:1px dotted #eee;"><code>'.$desc.'</code></div>';
+	$action = defined('ACTION') ? ' <span style="color:#888;font-size:12px;font-weight:200;">('.ACTION.')</span>' : '';
+	$error = "<div class='desc'>".$error.$action."</div>";
+	$error = $error.'<div style="border-top:1px dotted #eee;padding-top:10px;"><code>'.$desc.'</code></div>';
 	$error = $error.'<div style="color:#ccc;font-size:12px;"><code>['.think_system_info().']</code></div>';
 	show_tips($error,'',0,'',false);
 }

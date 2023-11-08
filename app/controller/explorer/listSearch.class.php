@@ -109,10 +109,14 @@ class explorerListSearch extends Controller{
 		if($parseSearch['type'] != KodIO::KOD_SHARE_ITEM) return $listData;
 		$userShare = Action('explorer.userShare');
 		$shareInfo = Model("Share")->getInfo($parseSearch['id']);
+		$pathPre = '{shareItem:';
 		foreach ($listData as $key => $keyList) {
 			if($key != 'folderList' && $key != 'fileList' ) continue;
 			$keyListNew = array();
 			foreach ($keyList as $source){
+				$pathStart = substr($source['path'],0,strlen($pathPre));// 已经处理过
+				if($pathStart == $pathPre){$keyListNew[] = $source;continue;}
+				
 				$source = $userShare->_shareItemeParse($source,$shareInfo);
 				if($source){$keyListNew[] = $source;}
 			};
@@ -123,10 +127,14 @@ class explorerListSearch extends Controller{
 	// 外链分享搜索
 	public function listDataParseShareLink($listData,$parseSearch){
 		if($parseSearch['type'] != KodIO::KOD_SHARE_LINK) return $listData;
+		$pathPre = '{shareItemLink:';
 		foreach ($listData as $key => $keyList) {
 			if($key != 'folderList' && $key != 'fileList' ) continue;
 			$keyListNew = array();
 			foreach ($keyList as $source){
+				$pathStart = substr($source['path'],0,strlen($pathPre));// 已经处理过
+				if($pathStart == $pathPre){$keyListNew[] = $source;continue;}
+
 				$source = Action('explorer.share')->shareItemInfo($source);
 				if($source){$keyListNew[] = $source;}
 			};
@@ -279,6 +287,7 @@ class explorerListSearch extends Controller{
 			
 			if(kodIO::pathDriverLocal($info['path'])){
 				$infoFile = IO::info($item['path']); // 物理路径获取权限等情况;
+				$infoFile = is_array($infoFile) ? $infoFile:array();
 				$info = array_merge($infoFile,$info);
 			}
 			$typeKey = $isFolder ? 'folderList':'fileList';
