@@ -45,11 +45,17 @@ class explorerUpload extends Controller{
 			$fullPath = get_path_father($fullPath);
 			$savePath = IO::mkdir(rtrim($savePath,'/').'/'.$fullPath);
 		}
-		$uploader->fileName = $this->pathAllowReplace($uploader->fileName);
-		$savePath = rtrim($savePath,'/').'/'.$uploader->fileName;
 		$repeat = Model('UserOption')->get('fileRepeat');
 		$repeat = isset($this->in['fileRepeat']) ? $this->in['fileRepeat'] : $repeat;
 		$repeat = isset($this->in['repeatType']) ? $this->in['repeatType'] : $repeat; // 向下兼容pc客户端
+		
+		// 上传前同名文件处理(默认覆盖; [覆盖,重命名,跳过])
+		$uploader->fileName = $this->pathAllowReplace($uploader->fileName);
+		if($repeat == REPEAT_RENAME){
+			$uploader->fileName = IO::fileNameAuto($savePath,$uploader->fileName,$repeat);
+			if(!$uploader->fileName){show_json('skiped',true);}
+		}
+		$savePath = rtrim($savePath,'/').'/'.$uploader->fileName;
 		
 		// 文件保存; 必须已经先存在;
 		if($this->in['fileSave'] == '1'){

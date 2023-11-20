@@ -244,13 +244,16 @@
                 "require":"1"
             },
         };
-        userFormMaker = new kodApi.formMaker({formData:FormData });
+        var userFormMaker = new kodApi.formMaker({formData:FormData });
         userFormMaker.renderTarget($(".step-box.user .user-table"));
+		Events.trigger('install.userSetReady',userFormMaker);
         $(".step-box.user .form-save-button").text(lng.text_ok);
         $(".step-box.user .form-save-button").click(function(){
             var data = userFormMaker.getValue();
-            if(!data) return false;
-            var _this = this;
+			Events.trigger('install.userSetStart',data);
+            if(!data || !data.name || !data.password) return false;
+
+			var _this = this;
             data = $.extend({}, {action: 'user'}, data);
             var tips = Tips.loadingMask($('.content-main'),false,0.2);
             request('install/index/save', data, function(result){

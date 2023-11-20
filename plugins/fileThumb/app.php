@@ -13,6 +13,11 @@ class fileThumbPlugin extends PluginBase{
 	public function echoJs(){
 		$this->echoFile('static/main.js');
 	}
+	public function onUpdate(){
+		AutoTask::restart();sleep(1);
+		AutoTask::start();
+	}
+		
 	public function itemParse($pathInfo){
 		static $supportThumb = false;
 		static $supportView  = false;
@@ -93,29 +98,38 @@ class fileThumbPlugin extends PluginBase{
 		$video = new videoResize();
 		$video->videoPreview($this);
 	}
+	
+	// 获取缩略图(首次访问,加入到生成队列;已经生成则直接输出)
+	public function cover(){
+		$path = $this->filePath($this->in['path']);
+		$size = $this->getSize(intval($this->in['size']));
+		$info = IO::info($path);$ext = $info['ext'];
+		$fileHash  = KodIO::hashPath($info,false);
+		$coverName = "cover_".$ext."_{$fileHash}_{$size}.jpg";
+		if(Cache::get('fileCover_'.$fileHash) == 'no'){return;}; //是否有封面处理;
+		if($sourceID = IO::fileNameExist($this->cachePath,$coverName)){
+			return IO::fileOut(KodIO::make($sourceID));
+		}
+
+		$args = array($this->cachePath,$path,$size);
+		$desc = 'fileThumb.coverMake:size='.$info['size'].';name='.$info['name'].';path='.$info['path'];
+		TaskQueue::add('fileThumbPlugin.coverMake',$args,$desc,$coverName);
+		// $this->coverMake($this->cachePath,$path,$size); // 直接调用,调试模式;
+	}
 
 	// 本地文件:local,io-local, {{kod-local}}全量生成;
 	// 远端:(ftp,oss等对象存储)
-	public function cover(){
-		$path = $this->filePath($this->in['path']);
-		$size = $this->getSize();
-		$info = IO::info($path);
-		$ext  = $info['ext'];
-		
-		// io缩略图已存在，直接输出
+	public function coverMake($cachePath,$path,$size){
+		$info = IO::info($path);$ext = $info['ext'];
 		$fileHash  = KodIO::hashPath($info,false);
-		if(Cache::get('fileCover_'.$fileHash) == 'no'){return;}; //是否有封面处理;
-		$coverName = "cover_{$ext}_{$fileHash}_{$size}.jpg";
-		if (!is_dir(TEMP_FILES)) mk_dir(TEMP_FILES);
-		$thumbFile = TEMP_FILES . $coverName;
-		if($sourceID = IO::fileNameExist($this->cachePath, $coverName)){
-			return IO::fileOut(KodIO::make($sourceID));
-		}
+		$coverName = "cover_".$ext."_{$fileHash}_{$size}.jpg";
 		
+		if(!is_dir(TEMP_FILES)){mk_dir(TEMP_FILES);}
+		$thumbFile = TEMP_FILES . $coverName;
+		if(IO::fileNameExist($cachePath,$coverName)){return 'exists;';}
 		$localFile = $this->localFile($path);
 		$movie = '3gp,avi,mp4,m4v,mov,mpg,mpeg,mpe,mts,m2ts,wmv,ogv,webm,vob,flv,f4v,mkv,rmvb,rm';
 		$isVideo = in_array($ext,explode(',',$movie));
-		
 		// 过短的视频封面图,不指定时间;
 		$videoThumbTime = true;
 		if( $isVideo && is_array($info['fileInfoMore']) && 
@@ -123,7 +137,6 @@ class fileThumbPlugin extends PluginBase{
 			floatval($info['fileInfoMore']['playtime']) <= 3 ){
 			$videoThumbTime = false;
 		}
-
 		// del_file($thumbFile);
 		if( $isVideo ){
 			// 不是本地文件; 切片后获取:mp4,mov,mpg,webm,f4v,ogv,avi,mkv,wmv;(部分失败)
@@ -146,17 +159,16 @@ class fileThumbPlugin extends PluginBase{
 		}
 
 		// pr(file_exists($thumbFile),$localFile,$thumbFile);exit;
-		if($localTemp){ @unlink($localTemp); }
+		if($localTemp){@unlink($localTemp);}
 		if(@file_exists($thumbFile)){
-			$cachePath  = IO::move($thumbFile,$this->cachePath);
-			return IO::fileOutServer($cachePath);
+			Cache::remove('fileCover_'.$fileHash);
+			return IO::move($thumbFile,$cachePath);
 		}
-		Cache::set('fileCover_'.$fileHash,'no',3600*24*30);
+		Cache::set('fileCover_'.$fileHash,'no',600);
 		del_file($thumbFile);
+		return 'error! localFile='.$localFile.';';
 	}
-	
-	private function getSize(){
-		$size = intval($this->in['size']);		
+	private function getSize($size){
 		$sizeAllow = array(250,1200,3000);
 		for ($i=0;$i<count($sizeAllow);$i++){
 			if($i == 0 && $size <= $sizeAllow[$i]){
@@ -188,6 +200,10 @@ class fileThumbPlugin extends PluginBase{
 		}
 		$parent = array('path'=>'{userFav}/');
 		$fileInfo = Action('explorer.listDriver')->parsePathIO($fileInfo,$parent);
+		$this->ioFileInfo = array(
+			'path'		=> $path, 
+			'ioDriver'	=> strtolower($fileInfo['ioDriver'])
+		);
 		if($fileInfo['ioDriver'] == 'Local' && $fileInfo['ioBasePath']){
 			$base = rtrim($fileInfo['ioBasePath'],'/');
 			if(substr($base,0,2) == './') {
@@ -235,13 +251,29 @@ class fileThumbPlugin extends PluginBase{
 
 		$maxWidth = 800;
 		$timeAt   = $videoThumbTime ? '-ss 00:00:03' : '';
-		$script   = $command.' -i "'.$file.'" -y -f image2 '.$timeAt.' -vframes 1 '.$tempPath;
-		shell_exec($script);
-		if(!file_exists($tempPath)) return $this->log('video thumb error', $script);
+		$script   = $command.' -i "'.$file.'" -y -f image2 '.$timeAt.' -vframes 1 '.$tempPath.' 2>&1';
+		$out = shell_exec($script);
+		if(!file_exists($tempPath)) {
+			if ($this->thumbVideoByLink($cacheFile)) return;
+			return $this->log('video thumb error,'.$out.';cmd='.$script);
+		}
 
 		move_path($tempPath,$cacheFile);
 		$cm = new ImageThumb($cacheFile,'file');
 		$cm->prorate($cacheFile,$maxWidth,$maxWidth);
+	}
+	// 对象存储通过链接获取缩略图——当前仅支持OSS
+	private function thumbVideoByLink($cacheFile) {
+		if (!isset($this->ioFileInfo['ioDriver']) || $this->ioFileInfo['ioDriver'] != 'oss') return;
+		// 获取缩略图链接
+		$options = array('x-oss-process' => 'video/snapshot,t_10000,f_jpg,w_250,m_fast');
+		$link = IO::link($this->ioFileInfo['path'], $options);
+		if (!$link) return;
+		// 写入文件——视频缩略图收费，写入文件，避免反复调用
+		$content = curl_get_contents($link);
+		if (!$content) return;
+		file_put_contents($cacheFile, $content);
+		return @file_exists($cacheFile) ? true : false;
 	}
 
 	// imagemagick  -density 100 //耗时间,暂时去除
@@ -315,11 +347,9 @@ class fileThumbPlugin extends PluginBase{
 			$tempPath = '/tmp/fileThumb/'.rand_string(15).'.jpg';
 		}
 
-		$script = $command.' '.$param.' "'.$file.'" '.$tempPath;
-		shell_exec($script);
-		// pr($script,file_exists($tempPath));exit;
-		if(!file_exists($tempPath)) return $this->log('image thumb error', $script);
-
+		$script = $command.' '.$param.' "'.$file.'" '.$tempPath.' 2>&1';
+		$out = shell_exec($script);
+		if(!file_exists($tempPath)) return $this->log('image thumb error:'.$out.';cmd='.$script);
 		move_path($tempPath,$cacheFile);
 		return true;
 	}
@@ -345,7 +375,7 @@ class fileThumbPlugin extends PluginBase{
 	public function ffmpegSupportCheck($ffmpeg){
         $out = shell_exec($ffmpeg.' -v 2>&1');
         if(strstr($out,'--disable-muxer=image2')){
-			$this->log('[ffmpeg support error] '.$out);
+			$this->log('ffmpeg support error. '.$out);
 			return false;
 		}
         return true;
@@ -449,18 +479,16 @@ class fileThumbPlugin extends PluginBase{
 		}
 		$result = shell_exec($bin.' --help');
 		if (stripos($result,$check) > 0) return true;
-		$this->log('imagick env error', $bin.' --help');
+		
+		$out = shell_exec($bin.' --help 2>&1');
+		$this->log('imagick env error:'.$out.';cmd='.$bin.' --help 2>&1');
 		return false;
 	}
 
 	// 调试模式
 	public function log($log, $cmd = ''){
-		$config = $this->getConfig();
-		if(!$config['debug']) return;
-		if ($cmd) {
-			$out = shell_exec($cmd.' 2>&1');
-			$log = '['.$log.'] '.$out;
-		}
+		// $config = $this->getConfig();
+		//if(!$config['debug']) return;
 		write_log($log,'fileThumb');
 	}
 }

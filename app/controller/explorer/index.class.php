@@ -850,25 +850,46 @@ class explorerIndex extends Controller{
 	相对某个文件访问其他文件; 权限自动处理;支持source,分享路径,io路径,物理路径;
 	path={source:1138926}/&add=images/as.png; path={source:1138926}/&add=as.png
 	path={shareItem:123}/1138934/&add=images/as.png
+	
+	相对路径支持;local,io,(source),shareLink,shareItem[local,io,(source)]
+	/a/b/.././c/../1.txt => /a/1.txt;
 	*/
 	public function fileOutBy(){
 		if(!$this->in['path']) return; 
 		
 		// 拼接转换相对路径;
-		$io = IO::init($this->in['path']);
-		$parent = $io->getPathOuter($io->pathFather($io->path));
-		$find   = $parent.'/'.rawurldecode($this->in['add']); //支持中文空格路径等;
-		$find   = KodIO::clear(str_replace('./','/',$find));
-		$info   = IO::infoFull($find);
-		if(!$info || $info['type'] != 'file'){
+		$add   = rawurldecode($this->in['add']);
+		$parse = kodIO::parse($this->in['path']);
+		$allow = array('',kodIO::KOD_IO,kodIO::KOD_USER_DRIVER,kodIO::KOD_SHARE_LINK);
+		if(in_array($parse['type'],$allow)){
+			$distPath = kodIO::pathTrue(get_path_father($parse['path']).'/'.ltrim($add,'/'));
+			$distInfo = IO::info($distPath);
+		}else{//KOD_SOURCE KOD_SHARE_ITEM(source,)
+			$info = IO::info($parse['path']);
+			if($parse['type'] == kodIO::KOD_SOURCE){
+				$level = Model("Source")->parentLevelArray($info['parentLevel']);
+				$pathRoot = '{source:'.$level[0].'}';
+			}else if($parse['type'] == kodIO::KOD_SHARE_ITEM){
+				$pathArr   = explode('/',trim($parse['path'],'/'));
+				$pathRoot  = $pathArr[0];
+				$shareInfo = Model('Share')->getInfo($parse['id']); // source路径内部协作分享;
+				if($shareInfo['sourceID']){$pathRoot = $pathRoot.'/'.$shareInfo['sourceID'];}
+			}
+			
+			$displayPathArr = explode('/',trim($info['pathDisplay'],'/'));array_shift($displayPathArr);
+			$displayPath = $pathRoot.'/'.implode('/',$displayPathArr);
+			$distPath = kodIO::pathTrue(get_path_father($displayPath).'/'.$add);
+			$distInfo = IO::infoFull($distPath);
+		}
+		// pr($distPath,$distInfo,$parse,[$pathRoot,$displayPath,$info,$shareInfo]);exit;
+		if(!$distInfo || $distInfo['type'] != 'file'){
 			return show_json(LNG('common.pathNotExists'),false);
 		}
-
-		$dist = $info['path'];
-		ActionCall('explorer.auth.canView',$dist);// 再次判断新路径权限;
-		$this->updateLastOpen($dist);
-		Hook::trigger('explorer.fileOut', $dist);
-		IO::fileOut($dist,false);
+		
+		ActionCall('explorer.auth.canView',$distInfo['path']);// 再次判断新路径权限;
+		$this->updateLastOpen($distInfo['path']);
+		Hook::trigger('explorer.fileOut', $distInfo['path']);
+		IO::fileOut($distInfo['path'],false);
 	}
 	
 	/**

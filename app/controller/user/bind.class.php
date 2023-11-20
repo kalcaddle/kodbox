@@ -112,6 +112,7 @@ class userBind extends Controller {
 	 */
 	public function apiRequest($type, $data = array()) {
 		$kodid = md5(BASIC_PATH . Model('SystemOption')->get('systemPassword'));
+		if(is_array($data) && defined('INSTALL_CHANNEL')){$data['channel'] = INSTALL_CHANNEL;}
 		$post = array(
 			'type'		 => $type,
 			'kodid'		 => $kodid,

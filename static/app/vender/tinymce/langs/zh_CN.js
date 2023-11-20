@@ -407,4 +407,9 @@ tinymce.addI18n('zh_CN',{
 "Version": "版本",
 "Keyboard Navigation": "键盘导航",
 "Open popup menu for split buttons": "该组合键的作用是软回车（插入br）",
+
+"Line height":"行高",
+"Checklist":"任务列表",
+"Insert Checklist":"插入任务列表",
+"Insert/edit iframe":"插入页面",
 });

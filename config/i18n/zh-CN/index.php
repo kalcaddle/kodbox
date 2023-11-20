@@ -230,7 +230,7 @@ return array(
     "admin.setting.emailPwdError"    => "邮箱设置密码填写有误",
     "admin.setting.emailDesc"        => "设置邮件服务器，用于用户注册，密码找回邮件发送",
     "admin.setting.sendEmail"        => "发送邮件",
-    "admin.setting.sendEmailDesc"    => "系统默认：调用可道云邮件服务器发送；自定义：自行配置邮件服务器",
+    "admin.setting.sendEmailDesc"    => "系统默认：调用系统默认邮件服务器发送；自定义：自行配置邮件服务器",
     "admin.setting.systemBackup"     => "系统备份",
     "admin.setting.enableFunction"   => "功能及开关",
     "admin.setting.treeOpen"         => "树目录功能开关",

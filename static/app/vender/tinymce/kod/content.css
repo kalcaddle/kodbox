@@ -1,7 +1,11 @@
+.mce-content-body .h1,.mce-content-body h1{font-size: 2.2em;}
+.mce-content-body .h2,.mce-content-body h2{font-size: 1.8em;}
+.mce-content-body .h3,.mce-content-body h3{font-size: 1.4em;}
+.mce-content-body .h4,.mce-content-body h4{font-size: 1.2em;}
+.mce-content-body .h5,.mce-content-body h5{font-size: 1.1em;}
 .mce-content-body,.article-content-body{
-    font-family: Chinese Quote,-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,PingFang SC,Hiragino Sans GB,Microsoft YaHei,Helvetica Neue,Helvetica,Arial,sans-serif;
-    color: #444;
-    font-size:14px;
+    font-family:-apple-system,Segoe UI,PingFangSC-light, PingFangTC-light, "PingFang SC","Lantinghei SC","Hiragino Sans GB","Microsoft Yahei",Helvetica,arial,sans-serif;
+    color: #444;font-size:13px;
 }
 body.mce-content-body{
 	position: absolute;
