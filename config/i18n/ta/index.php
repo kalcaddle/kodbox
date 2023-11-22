@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "பகிர்வு மேலாண்மை",
     "admin.menu.loginLog"            => "உள்நுழைவு பதிவு",
     "admin.menu.log"                 => "செயல்பாட்டு பதிவு",
+    "admin.taskQueue"                => "பணி வரிசை",
     "admin.menu.task"                => "திட்டமிடப்பட்ட பணிகள்",
     "admin.autoTask.restart"         => "திட்டமிடப்பட்ட பணிகளை மறுதொடக்கம் செய்யுங்கள்",
     "admin.autoTask.restartEnd"      => "திட்டமிடப்பட்ட பணி மீண்டும் தொடங்கப்பட்டுள்ளது",

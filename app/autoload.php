@@ -193,7 +193,7 @@ function ActionCallApi($uri,$param='',$allowExec=true){
  * 调用控制器,插件方法,或直接调用函数; 拦截show_json退出;返回show_json的内容数组;
  * 
  * 调用方法有多个show_json;默认返回第一个调用的结果; 
- * 注: 为避免后续继续执行引起其他问题,需要在前面show_json前加上return;
+ * 注: 为避免后续继续执行引起其他问题,需要在前面show_json前加上return (容易出bug,逐步废弃,用ActionCallResult替代)
  */
 function ActionCallHook($action){
 	ob_start();
@@ -202,8 +202,18 @@ function ActionCallHook($action){
 	$result = ActionApply($action,$args);
 	$echo   = ob_get_clean();
 	$result = $echo ? json_decode($echo,true) : $result;// 优先使用输出内容;
+	$GLOBALS['SHOW_JSON_NOT_EXIT_DONE'] = 0;
 	$GLOBALS['SHOW_JSON_NOT_EXIT'] = 0;
 	return $result;
+}
+
+/**
+ * 调用控制器,插件方法,或直接调用函数; 并对show_json输出进行处理;
+ */
+function ActionCallResult($action,$resultParse){
+	$args = array_slice(func_get_args(),2);
+	$GLOBALS['SHOW_JSON_RESULT_PARSE'] = $resultParse;
+	ActionApply($action,$args);
 }
 
 function beforeShutdown(){

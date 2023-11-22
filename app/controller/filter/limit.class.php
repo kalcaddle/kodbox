@@ -7,33 +7,14 @@ class filterLimit extends Controller{
     
     public function check(){
         $action  = strtolower(ACTION);
-		$actions = array(
-			'explorer.index.pathcopyto',    // 分享转存
-            'explorer.usershare.edit',      // 外链分享
-			'explorer.index.unzip',         // 解压缩
-			'explorer.index.zip',           // 压缩
-			'explorer.index.zipdownload',   // 下载压缩
-			'explorer.upload.fileupload',   // 上传
-		);
-        if(!in_array($action,$actions)) return;
-
         switch($action) {
-            case 'explorer.index.pathcopyto':
-                $this->checkShareCopy();
-                break;
-            case 'explorer.usershare.edit':
-                $this->checkShareLink();
-                break;
-            case 'explorer.index.unzip':
-                $this->checkUnzip();
-                break;
+            case 'explorer.index.pathcopyto':$this->checkShareCopy();break;
+            case 'explorer.usershare.edit':$this->checkShareLink();break;
+            case 'explorer.index.unzip':$this->checkUnzip();break;
             case 'explorer.index.zip':
-            case 'explorer.index.zipdownload':
-                $this->checkZip();
-                break;
-            case 'explorer.upload.fileupload':
-                $this->checkUpload();
-                break;
+            case 'explorer.index.zipdownload':$this->checkZip();break;
+			case 'explorer.share.fileupload':
+            case 'explorer.upload.fileupload':$this->checkUpload();break;
             default: break;
         }
     }

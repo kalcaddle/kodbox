@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "分享管理",
     "admin.menu.loginLog"            => "登录日志",
     "admin.menu.log"                 => "操作日志",
+    "admin.taskQueue"                => "任务队列",
     "admin.menu.task"                => "计划任务",
     "admin.autoTask.restart"         => "重启计划任务",
     "admin.autoTask.restartEnd"      => "计划任务已经重启",

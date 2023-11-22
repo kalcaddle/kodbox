@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "Paylaşım yönetimi",
     "admin.menu.loginLog"            => "Giriş günlüğü",
     "admin.menu.log"                 => "İşlem günlüğü",
+    "admin.taskQueue"                => "görev kuyruğu",
     "admin.menu.task"                => "Zamanlanmış görevler",
     "admin.autoTask.restart"         => "Planlanan görevleri yeniden başlatın",
     "admin.autoTask.restartEnd"      => "Zamanlanan görev yeniden başlatıldı",

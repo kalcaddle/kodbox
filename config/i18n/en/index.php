@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "Share",
     "admin.menu.loginLog"            => "Login log",
     "admin.menu.log"                 => "Operation log",
+    "admin.taskQueue"                => "Task queue",
     "admin.menu.task"                => "Scheduled Tasks",
     "admin.autoTask.restart"         => "Restart scheduled tasks",
     "admin.autoTask.restartEnd"      => "The scheduled task has restarted",

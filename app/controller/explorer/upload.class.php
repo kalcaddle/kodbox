@@ -38,8 +38,8 @@ class explorerUpload extends Controller{
 		$this->authorizeCheck();
 		$uploader = new Uploader();
 		$savePath = $this->in['path'];
-		if (!IO::exist($savePath)) show_json(LNG('explorer.upload.errorPath'),false);
-		if ( $this->in['fullPath'] ) {//带文件夹的上传
+		if(!IO::exist($savePath)) show_json(LNG('explorer.upload.errorPath'),false);
+		if( $this->in['fullPath']){//带文件夹的上传
 			$fullPath = KodIO::clear($this->in['fullPath']);
 			$fullPath = $this->pathAllowReplace($fullPath);
 			$fullPath = get_path_father($fullPath);
@@ -158,8 +158,9 @@ class explorerUpload extends Controller{
 			"kodDriverType"		=> $default['driver'],
 		);
 		$linkInfo = &$infoData['uploadLinkInfo'];
-		if(isset($linkInfo['host'])){
+		if(isset($linkInfo['host'])){ // 前端上传时,自适应处理(避免http,https混合时浏览器拦截问题; )
 		    $linkInfo['host'] = str_replace("http://",'//',$linkInfo['host']);
+			$linkInfo['host'] = str_replace("https://",'//',$linkInfo['host']);
 		}
 		
 		// 保留参数部分; kod挂载kod的webdav前端上传;

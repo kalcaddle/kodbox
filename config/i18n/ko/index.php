@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "나눔 경영",
     "admin.menu.loginLog"            => "로그인 로그",
     "admin.menu.log"                 => "작업 로그",
+    "admin.taskQueue"                => "작업 대기열",
     "admin.menu.task"                => "예약 된 작업",
     "admin.autoTask.restart"         => "예약 된 작업 다시 시작",
     "admin.autoTask.restartEnd"      => "예약 된 작업이 다시 시작되었습니다.",

@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "শেয়ারিং ম্যানেজমেন্ট",
     "admin.menu.loginLog"            => "লগইন লগ",
     "admin.menu.log"                 => "অপারেশন লগ",
+    "admin.taskQueue"                => "টাস্ক সারি",
     "admin.menu.task"                => "নির্ধারিত কাজ",
     "admin.autoTask.restart"         => "নির্ধারিত কাজগুলি পুনরায় আরম্ভ করুন",
     "admin.autoTask.restartEnd"      => "নির্ধারিত কাজটি আবার শুরু হয়েছে",

@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "Manajemen berbagi",
     "admin.menu.loginLog"            => "Log masuk",
     "admin.menu.log"                 => "Log operasi",
+    "admin.taskQueue"                => "antrian tugas",
     "admin.menu.task"                => "Tugas yang dijadwalkan",
     "admin.autoTask.restart"         => "Mulai ulang tugas terjadwal",
     "admin.autoTask.restartEnd"      => "Tugas terjadwal telah dimulai ulang",

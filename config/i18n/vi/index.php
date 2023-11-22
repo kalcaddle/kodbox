@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "Chia sẻ quản lý",
     "admin.menu.loginLog"            => "Đăng nhập đăng nhập",
     "admin.menu.log"                 => "Nhật ký vận hành",
+    "admin.taskQueue"                => "hàng đợi nhiệm vụ",
     "admin.menu.task"                => "Nhiệm vụ theo lịch trình",
     "admin.autoTask.restart"         => "Khởi động lại các tác vụ đã lên lịch",
     "admin.autoTask.restartEnd"      => "Nhiệm vụ đã lên lịch đã khởi động lại",

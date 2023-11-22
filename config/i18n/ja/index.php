@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "共有管理",
     "admin.menu.loginLog"            => "ログインログ",
     "admin.menu.log"                 => "操作ログ",
+    "admin.taskQueue"                => "タスクキュー",
     "admin.menu.task"                => "スケジュールされたタスク",
     "admin.autoTask.restart"         => "スケジュールされたタスクを再開する",
     "admin.autoTask.restartEnd"      => "スケジュールされたタスクが再開されました",

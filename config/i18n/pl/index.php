@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "Zarządzanie współdzieleniem",
     "admin.menu.loginLog"            => "Zaloguj się",
     "admin.menu.log"                 => "Dziennik operacji",
+    "admin.taskQueue"                => "kolejka zadań",
     "admin.menu.task"                => "Zaplanowane zadania",
     "admin.autoTask.restart"         => "Uruchom ponownie zaplanowane zadania",
     "admin.autoTask.restartEnd"      => "Zaplanowane zadanie zostało ponownie uruchomione",

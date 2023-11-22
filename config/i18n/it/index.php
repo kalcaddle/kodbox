@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "Condivisioni",
     "admin.menu.loginLog"            => "Registro di accesso",
     "admin.menu.log"                 => "Registro delle operazioni",
+    "admin.taskQueue"                => "coda di attività",
     "admin.menu.task"                => "Attività pianificate",
     "admin.autoTask.restart"         => "Riavvia le attività pianificate",
     "admin.autoTask.restartEnd"      => "L'attività pianificata è stata riavviata",

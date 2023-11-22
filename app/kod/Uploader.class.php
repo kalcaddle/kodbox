@@ -17,11 +17,14 @@ class Uploader{
 		if (!empty($_FILES)) {
 			$files  = $_FILES['file'];
 			$this->uploadFile = $files["tmp_name"];
-			if( !$this->uploadFile && $files['error']> 0){
+			if(!$this->uploadFile && $files['error']> 0){
 				show_json($this->errorInfo($files['error']),false);
 			}
 		}else if (isset($in["name"])) {
-			$this->uploadFile = isset($in['base64Upload'])? 'base64':"php://input";
+			$this->uploadFile = "php://input";
+		}
+		if(isset($in['base64Upload']) && isset($in['base64str'])){
+			$this->uploadFile = 'base64';
 		}
 
 		$this->fileName = self::fileName();
@@ -81,6 +84,7 @@ class Uploader{
 		$success = $this->writeTo($chunkFile,$outFp,$this->tempFile);
 		if(!$fileHashSimple){
 			$outFp = fopen($this->tempFile,'r');
+			if(!$outFp){$this->showJson('fopen file error',false);}
 			fseek_64($outFp,$offset);
 			$fileHashSimple = PathDriverStream::hash($outFp,$fileChunkSize);
 			fclose($outFp);

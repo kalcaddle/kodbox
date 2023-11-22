@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "Gerenciamento de compartilhamento",
     "admin.menu.loginLog"            => "Log de logon",
     "admin.menu.log"                 => "Log de operação",
+    "admin.taskQueue"                => "fila de tarefas",
     "admin.menu.task"                => "Tarefas agendadas",
     "admin.autoTask.restart"         => "Reiniciar tarefas agendadas",
     "admin.autoTask.restartEnd"      => "A tarefa agendada foi reiniciada",

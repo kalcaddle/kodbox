@@ -123,7 +123,8 @@ class explorerListSafe extends Controller{
 		if(is_array($result)) return $result;
 		if(!Session::get('kodUser')){show_json('not login',false);}
 		
-		$userInfo = Model("User")->getInfoFull(USER_ID);
+		$uesrID     = Session::get('kodUser.userID');
+		$userInfo   = Model("User")->getInfoFull($uesrID);
 		$safeFolder = _get($userInfo,'metaInfo.pathSafeFolder','');
 		$isLogin 	= Session::get('pathSafe-userIsLogin') == '1' ? true : false;
 		$type = !$safeFolder ? 'isNotOpen' : ($isLogin ? 'isLogin' : 'isNotLogin');

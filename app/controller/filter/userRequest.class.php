@@ -45,6 +45,7 @@ class filterUserRequest extends Controller {
 			'explorer.index.fileout',
 			'explorer.share.file',
 			'explorer.share.fileout',
+			'explorer.share.fileupload',
 			'user.setting.taskaction',
 		);
 		if(in_array(strtolower(ACTION),$ingoreActions)){

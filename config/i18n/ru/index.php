@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "Совместное управление",
     "admin.menu.loginLog"            => "Вход в систему",
     "admin.menu.log"                 => "Журнал операций",
+    "admin.taskQueue"                => "очередь задач",
     "admin.menu.task"                => "Запланированные задачи",
     "admin.autoTask.restart"         => "Перезапустить запланированные задачи",
     "admin.autoTask.restartEnd"      => "Запланированная задача перезапущена",

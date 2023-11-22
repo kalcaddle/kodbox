@@ -104,6 +104,7 @@ class filterPost extends Controller{
 	private function checkCsrfToken(){
 		if(isset($_REQUEST['accessToken'])) return;
 		if($this->in['CSRF_TOKEN'] != Cookie::get('CSRF_TOKEN')){
+			write_log(array('CSRF_TOKEN error',$this->in,$_COOKIE,$_SERVER['HTTP_USER_AGENT']),'error');
 			return show_json('CSRF_TOKEN error!',false);
 		}
 	}

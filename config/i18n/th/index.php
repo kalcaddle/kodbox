@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "การจัดการการแบ่งปัน",
     "admin.menu.loginLog"            => "เข้าสู่ระบบเข้าสู่ระบบ",
     "admin.menu.log"                 => "บันทึกการทำงาน",
+    "admin.taskQueue"                => "คิวงาน",
     "admin.menu.task"                => "งานที่กำหนดไว้",
     "admin.autoTask.restart"         => "รีสตาร์ทงานตามกำหนดเวลา",
     "admin.autoTask.restartEnd"      => "งานตามกำหนดการได้เริ่มต้นใหม่",

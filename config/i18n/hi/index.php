@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "प्रबंधन साझा करना",
     "admin.menu.loginLog"            => "लॉग इन करें",
     "admin.menu.log"                 => "ऑपरेशन लॉग",
+    "admin.taskQueue"                => "कार्य कतार",
     "admin.menu.task"                => "निर्धारित कार्य",
     "admin.autoTask.restart"         => "निर्धारित कार्यों को पुनः आरंभ करें",
     "admin.autoTask.restartEnd"      => "निर्धारित कार्य फिर से शुरू हो गया है",

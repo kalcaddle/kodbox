@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "إدارة المشاركة",
     "admin.menu.loginLog"            => "سجل الدخول",
     "admin.menu.log"                 => "سجل العملية",
+    "admin.taskQueue"                => "قائمة انتظار المهام",
     "admin.menu.task"                => "المهام المجدولة",
     "admin.autoTask.restart"         => "أعد تشغيل المهام المجدولة",
     "admin.autoTask.restartEnd"      => "تمت إعادة تشغيل المهمة المجدولة",

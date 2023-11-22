@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "Gestión de compartir",
     "admin.menu.loginLog"            => "Registro de inicio de sesión",
     "admin.menu.log"                 => "Registro de operaciones",
+    "admin.taskQueue"                => "cola de tareas",
     "admin.menu.task"                => "Tareas programadas",
     "admin.autoTask.restart"         => "Reiniciar las tareas programadas",
     "admin.autoTask.restartEnd"      => "La tarea programada se ha reiniciado",

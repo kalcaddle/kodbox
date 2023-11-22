@@ -1166,16 +1166,25 @@ function show_json($data=false,$code = true,$info='',$infoMore=''){
 		'timeNow'	=> sprintf('%.4f',mtime()),
 		'data'	 	=> $data
 	);
-	if ($info !== '') {$result['info'] = $info;}
-	if ($infoMore !== '') {$result['infoMore'] = $infoMore;}
+	if($info !== ''){$result['info'] = $info;}
+	if($infoMore !== ''){$result['infoMore'] = $infoMore;}
 	// 有值且为true则返回，清空输出并返回数据结果
-	if( isset($GLOBALS['SHOW_JSON_NOT_EXIT']) && $GLOBALS['SHOW_JSON_NOT_EXIT'] == 1 ){
+	if(isset($GLOBALS['SHOW_JSON_NOT_EXIT']) && $GLOBALS['SHOW_JSON_NOT_EXIT']){
 		// 保留第一个show_json调用输出;ob_get_clean 后该次置空; 
+		if(isset($GLOBALS['SHOW_JSON_NOT_EXIT_DONE']) && $GLOBALS['SHOW_JSON_NOT_EXIT_DONE']){return;}
+		$GLOBALS['SHOW_JSON_NOT_EXIT_DONE'] = 1;
 		write_log(array('SHOW_JSON_NOT_EXIT',$result,'call'=>get_caller_info()));
 		if(!ob_get_length()){echo json_encode_force($result);}
 		return;
 	}
 
+	// 处理输出数据调用;
+	if($GLOBALS['SHOW_JSON_RESULT_PARSE']){
+		$resultNew = $GLOBALS['SHOW_JSON_RESULT_PARSE']($result);
+		$result = is_array($resultNew) ? $resultNew:$result;
+		$GLOBALS['SHOW_JSON_RESULT_PARSE'] = false;
+	}
+	
 	$temp = Hook::trigger("show_json",$result);
 	if(is_array($temp)){$result = $temp;}
 	if(defined("GLOBAL_DEBUG") && GLOBAL_DEBUG==1){

@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "Управління спільним доступом",
     "admin.menu.loginLog"            => "Журнал входу",
     "admin.menu.log"                 => "Журнал операцій",
+    "admin.taskQueue"                => "чергу завдань",
     "admin.menu.task"                => "Планові завдання",
     "admin.autoTask.restart"         => "Перезавантажте заплановані завдання",
     "admin.autoTask.restartEnd"      => "Заплановане завдання перезапустилося",

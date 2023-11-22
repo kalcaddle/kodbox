@@ -348,28 +348,25 @@ class explorerShare extends Controller{
 	
 	private function call($action){
 		$this->in['path'] = $this->parsePath($this->in['path'],true);
-		$res = ActionCallHook($action);
-		if($res['code'] && $res['info'] && is_string($res['info'])){
-			$info = IO::info($res['info']);
-			$pathInfo = $this->shareItemInfo($info);
+		$self = $this;
+		ActionCallResult($action,function(&$res) use($self){
+			if(!$res['code'] || !$res['info'] || !is_string($res['info'])){return;}
+			$pathInfo = $self->shareItemInfo(IO::info($res['info']));
 			$res['info'] = $pathInfo['path'];
-			// pr($res,$this->in['path'],$_GET,$pathInfo,$info);exit;
-		}
-		$info = isset($res['info']) ? $res['info']:'';
-		$infoMore = isset($res['infoMore']) ? $res['infoMore']:'';
-		show_json($res['data'],$res['code'],$info,$infoMore);
+		});		
 	}
 	public function fileUpload(){$this->call("explorer.upload.fileUpload");}
 	public function mkfile(){$this->call("explorer.index.mkfile");}
 	public function mkdir(){$this->call("explorer.index.mkdir");}
 	public function fileGet(){
-		$pageNum = 1024 * 1024 * 10;
+		$pageNum = 1024 * 1024 * 10;$self = $this;
 		$this->in['pageNum'] = isset($this->in['pageNum']) ? $this->in['pageNum'] : $pageNum;
 		$this->in['pageNum'] = $this->in['pageNum'] >= $pageNum ? $pageNum : $this->in['pageNum'];
 		$this->in['path'] = $this->parsePath($this->in['path']);
-		$res = ActionCallHook("explorer.editor.fileGet");
-		if($res['code']){$res['data'] = $this->shareItemInfo($res['data']);}
-		show_json($res['data'],$res['code'],$res['info']);
+		ActionCallResult("explorer.editor.fileGet",function(&$res) use($self){
+			if(!$res['code']){return;}
+			$res['data'] = $self->shareItemInfo($res['data']);
+		});
 	}
 	
 	// 压缩包内文本文件请求(不再做权限校验; 通过文件外链hash校验处理)

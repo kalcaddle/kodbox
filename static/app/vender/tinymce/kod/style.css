@@ -768,11 +768,6 @@ div.tox .mce-i-unlink{background-position:0 -2112px;}
 	only screen and (min-resolution: 2dppx),
 	only screen and (min-resolution: 192dpi){
 	div.tox .mce-i-icon{background-image:url(img/icons_hidpi.png);background-size: 100%;}
-	div.tox .mce-i-bold,
-	div.tox .mce-i-italic,
-	div.tox .mce-i-fullscreen,
-	div.tox .mce-i-underline{zoom:0.85;}
-	div.tox .mce-i-indent,div.tox .mce-i-outdent{zoom:1.25;}
 }
 
 div.tox-tinymce{
@@ -810,6 +805,15 @@ div.tox .tox-split-button[aria-pressed="true"], div.tox .tox-split-button[aria-e
 	border-color: #e6e6e6;
 }
 
+@media only screen and (max-width: 767px){
+	body:not(.tox-force-desktop) div.tox .tox-dialog__body-nav{
+		flex-direction: inherit;overflow-x: inherit;
+	}
+	body:not(.tox-force-desktop) div.tox:not([dir=rtl]) .tox-dialog__body-nav-item:not(:first-child){
+		margin-left: 0;
+	}
+}
+
 /* 右键处理 */
 @keyframes editorMenuShow{
 	from {opacity: 0;-webkit-transform:translate3d(0,10px,0);transform: translate3d(0,10px,0);}
@@ -826,3 +830,8 @@ div.tox .tox-menu.tox-collection.tox-collection--list + .tox-menu{
 	-webkit-animation-duration:0;animation-duration:0;
 }
 div.tox .tox-collection--list .tox-collection__item{padding:0px 10px 2px 5px;border-radius: 4px;transition: all 0.2s;}
+
+
+.app-wap-small div.tox .tox-toolbar__group{padding: 0px 2px 1px 2px;}
+.app-wap-small div.tox .tox-editor-header .tox-toolbar .toolbar-fontselect{width:77px;}
+.app-wap-small div.tox .tox-editor-header .tox-toolbar .toolbar-lineheight{margin-right: 9px;}

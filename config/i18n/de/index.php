@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "Sharing Management",
     "admin.menu.loginLog"            => "Login log",
     "admin.menu.log"                 => "Betriebsprotokoll",
+    "admin.taskQueue"                => "Aufgabenwarteschlange",
     "admin.menu.task"                => "Geplante Aufgaben",
     "admin.autoTask.restart"         => "Starten Sie geplante Aufgaben neu",
     "admin.autoTask.restartEnd"      => "Die geplante Aufgabe wurde neu gestartet",

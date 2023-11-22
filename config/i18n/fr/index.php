@@ -47,6 +47,7 @@ return array(
     "admin.menu.share"               => "Gestion du partage",
     "admin.menu.loginLog"            => "Journal de connexion",
     "admin.menu.log"                 => "Journal d'opération",
+    "admin.taskQueue"                => "file d'attente des tâches",
     "admin.menu.task"                => "Tâches planifiées",
     "admin.autoTask.restart"         => "Redémarrez les tâches planifiées",
     "admin.autoTask.restartEnd"      => "La tâche planifiée a redémarré",
