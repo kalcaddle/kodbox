@@ -471,9 +471,11 @@ class userIndex extends Controller {
 		}
 		$signToken = md5(implode(';',$signArr));//同上加密计算
 		$userID    = Mcrypt::decode($actionToken,$signToken);
-		$userInfo  = $userID ? Model('User')->getInfoFull($userID):false;
-
+		
 		allowCROS();Cookie::disable(true);
+		// 当前为自己则默认使用当前session(是否登录保险箱等session共享;)
+		if($userID && Session::get('kodUser.userID') == $userID){return;} 
+		$userInfo  = $userID ? Model('User')->getInfoFull($userID):false;
 		if(!is_array($userInfo)) {show_json(LNG("explorer.systemError").'.[apiSignCheck]',false);};
 
 		// api临时访问接口; 不处理cookie; 不影响已登录用户session; 允许跨域

@@ -59,12 +59,11 @@ function appHostGet(){
 			$data = url_request($checkUrl,0,0,0,0,0,0.5);
 			$data = !empty($data['data']) ? $data['data'] : '';
 		}
-		if(trim($data) == '[ok]') {
-			$split = '?';
-		}
+		if(trim($data) == '[ok]') {$split = '?';}
 		@file_put_contents($resultFile,$split);
 	}
-	return $appHost.$split;
+	$host = $appHost.$split;
+	return $host;
 }
 
 //-----解压缩跨平台编码转换；自动识别编码-----
@@ -358,6 +357,7 @@ function init_cli(){
 }
 // 不允许双引号
 function escapeShell($param){
+	if (!$param && $param !== 0 && $param !== '0') return '';//空值
 	return escapeshellarg($param);
 	//$param = escapeshellarg($param);
 	$os = strtoupper(substr(PHP_OS, 0,3));
@@ -427,9 +427,7 @@ function hash_decode($str) {
 // 目录hash;
 function hash_path($path,$addExt=false){
 	$password = Model('SystemOption')->get('systemPassword');
-	if(!$password){
-		$password = 'kodcloud';
-	}
+	if(!$password){$password = 'kodcloud';}
 
 	$pre = substr(md5($path.$password),0,8);
 	$result = $pre.md5($path);
@@ -437,14 +435,10 @@ function hash_path($path,$addExt=false){
 		$result = $pre.md5($path.filemtime($path));
 		if(filesize($path) < 50*1024*1024){
 			$fileMd5 = @md5_file($path);
-			if($fileMd5){
-				$result = $fileMd5;
-			}
+			if($fileMd5){$result = $fileMd5;}
 		}
 	}
-	if($addExt){
-		$result = $result.'.'.get_path_ext($path);
-	}
+	if($addExt){$result = $result.'.'.get_path_ext($path);}
 	return $result;
 }
 

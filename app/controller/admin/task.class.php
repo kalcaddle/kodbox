@@ -31,8 +31,10 @@ class adminTask extends Controller {
 		$taskInfo = false;
 		if($GLOBALS['isRoot']){
 			$taskInfo = array(//status,running,lastRun,delay
-				'autoTask' => AutoTask::valueGet(false), 
-				'taskQueue'=> TaskQueue::count(),
+				'autoTask' 			=> AutoTask::valueGet(false), 
+				'taskQueue'			=> TaskQueue::count(),
+				'taskQueueLastRun'	=> TaskQueue::lastTime(),
+				'taskQueueThread'	=> TaskQueue::threadCount(),
 			);
 		}
 		$result = array_slice($result,0,50);//最多50

@@ -103,8 +103,12 @@ class filterPost extends Controller{
 	// csrfToken检测; 允许UA为APP,PC客户端的情况;
 	private function checkCsrfToken(){
 		if(isset($_REQUEST['accessToken'])) return;
-		if($this->in['CSRF_TOKEN'] != Cookie::get('CSRF_TOKEN')){
-			write_log(array('CSRF_TOKEN error',$this->in,$_COOKIE,$_SERVER['HTTP_USER_AGENT']),'error');
+		if(!$this->in['CSRF_TOKEN'] || $this->in['CSRF_TOKEN'] != Cookie::get('CSRF_TOKEN')){
+			$className	= substr(ACTION,0,strrpos(ACTION,'.'));
+			if(!Action($className)){header('HTTP/1.1 404 Not Found');exit;}
+
+			//write_log(array('CSRF_TOKEN error',$this->in,$_COOKIE,$_SERVER['HTTP_USER_AGENT']),'error');
+			Cookie::remove('CSRF_TOKEN');// 部分手机浏览器异常情况(ios-夸克浏览器: 打开zip内视频,关闭后拉取文件列表)
 			return show_json('CSRF_TOKEN error!',false);
 		}
 	}

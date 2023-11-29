@@ -188,7 +188,7 @@ class explorerSeo extends Controller{
 
 		$viewPath   = trim(_get($this->in,'view',''),'/');
 		$sourcePath = $shareInfo['sourcePath'].'/'.$viewPath;
-		$pathInfo = IO::infoFull($sourcePath);
+		$pathInfo = IO::infoFullSimple($sourcePath);
 		if(!$pathInfo) return $this->displayError(LNG('common.pathNotExists'));
 		IO::fileOut($pathInfo['path']);exit;
 	}

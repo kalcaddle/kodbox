@@ -54,14 +54,13 @@ class userSetting extends Controller {
 		$input = html2txt($input);
 		$userID = $this->user['userID'];
 		if(in_array($data['type'], array('email', 'phone'))){
+			if(!isset($data['msgCode'])){$data['msgCode'] = '000';}
+			$this->userMsgCheck($input, $data); // 修改邮箱/手机号,需要验证码校验;
 			if($input == $this->user[$data['type']]){
 				show_json(LNG('common.' . $data['type']) . LNG('user.binded'), false);
 			}
 		}
-		// 邮件、手机验证码校验
-		if (isset($data['msgCode'])) {
-			$this->userMsgCheck($input, $data);
-		}
+
 		// 昵称校验——更新时校验
 		// 密码校验
 		if ($data['type'] == 'password') {
@@ -233,7 +232,7 @@ class userSetting extends Controller {
 
 		$path = KodIO::systemFolder('avataImage');
 		$image = 'avata-'.USER_ID.'.jpg';
-		$pathInfo 	= IO::infoFull($path.'/'.$image);
+		$pathInfo 	= IO::infoFullSimple($path.'/'.$image);
 		if($pathInfo){
 			IO::remove($pathInfo['path'], false);
 		}

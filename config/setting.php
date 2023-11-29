@@ -519,8 +519,9 @@ $config['authNotNeedLogin'] = array(
 	'user.view.*',
 	'explorer.share.*',
 	'sitemap.*',
-	'install.*',		// 安装/更新
-	'plugin.*',			//插件排除，权限单独检测;
+	'install.*',			// 安装/更新
+	'plugin.*',				// 插件排除，权限单独检测;
+	'comment.index.test'	// 临时测试;
 );
 
 /**

@@ -6,6 +6,13 @@
   "description": "多彩图片icon",
   "glyphs": [
     {
+      "icon_id": "12837919",
+      "name": "image",
+      "font_class": "LandscapePicture",
+      "unicode": "e643",
+      "unicode_decimal": 58947
+    },
+    {
       "icon_id": "20385355",
       "name": "folder-safe",
       "font_class": "folder-safe",
@@ -249,13 +256,6 @@
       "font_class": "user-act",
       "unicode": "e630",
       "unicode_decimal": 58928
-    },
-    {
-      "icon_id": "3665438",
-      "name": "Landscape Picture",
-      "font_class": "LandscapePicture",
-      "unicode": "e7c7",
-      "unicode_decimal": 59335
     },
     {
       "icon_id": "7615408",

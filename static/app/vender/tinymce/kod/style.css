@@ -130,7 +130,9 @@ div.tox .tox-toolbar:after{
 }
 div.tox:not([dir=rtl]) .tox-color-input .tox-textfield{padding-left: 5px;}
 div.tox:not([dir=rtl]) .tox-color-input span{right: 4px;top: 7px;left:inherit;}
-
+div.tox .tox-editor-header .tox-menubar .tox-btn-disable{
+	pointer-events: auto;cursor: pointer;opacity:1;
+}
 
 /*右侧线*/
 div.tox .tox-toolbar__group{border-right: 1px solid #eee !important;}

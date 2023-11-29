@@ -37,7 +37,7 @@ kodReady.push(function(){
 	var autoPlayFast = "{{config.videoPlayType}}" == 'normal';
 	var videoLoadSmall = function(filePath,kodApp,$target,success){
 		var timeout = 1000,delay = false;
-		var api = API_URL('plugin/fileThumb/videoSmall','noOutput=1&path='+filePath);
+		var api = API_URL('plugin/fileThumb/videoSmall','noOutput=1&path='+urlEncode(filePath));
 		var lastAjax = false;
 		var request  = function(){
 			lastAjax = $.ajax({url:api,dataType:'json',success:function(data){

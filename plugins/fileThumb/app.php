@@ -7,6 +7,7 @@ class fileThumbPlugin extends PluginBase{
 	public function regist(){
 		$this->hookRegist(array(
 			'user.commonJs.insert'  	=> 'fileThumbPlugin.echoJs',
+			'explorer.list.path.parse'	=> 'fileThumbPlugin.listParse',
 			'explorer.list.itemParse'	=> 'fileThumbPlugin.itemParse',
 		));
 	}
@@ -17,27 +18,117 @@ class fileThumbPlugin extends PluginBase{
 		AutoTask::restart();sleep(1);
 		AutoTask::start();
 	}
+	
+	/**
+	 * 优化版,列表统一集中处理; 拉取列表时加入队列处理(同时加入预览大图转换); 1
+	 * 总大概性能: 1000图片/s; checkCoverExists==>1000条约300ms;  缩略图处理==>1000条约200ms;Cache::get(); 10000次/s; 
+	 */
+	public function listParse($data){
+		$current = is_array($data['current']) ? $data['current']:array();
+		if(!$data || !is_array($data['fileList']) || !count($data['fileList'])){return $data;}
+		if(!$this->getConvert() || !$this->getFFmpeg()){return $data;}
+		if($current && $current['targetType'] == 'system' && strstr($current['pathDisplay'],'plugin/fileThumb/')){return $data;}
+		// if(Model("UserOption")->get('imageThumb') == '0'){return $data;} // 仅前端处理;
+
+		$config 		= $this->getConfig('fileThumb');
+		$supportWeb 	= explode(',','png,jpg,jpeg,bmp,webp,gif');
+		$supportThumb 	= explode(',',$config['fileThumb'].','.implode(',',$supportWeb));
+		$supportView  	= explode(',',$config['fileExt'].','.implode(',',$supportWeb));
+		$cachePath 		= false;$timeStart = timeFloat();
 		
-	public function itemParse($pathInfo){
-		static $supportThumb = false;
-		static $supportView  = false;
-		static $supportBin   = false;
-		if(!$supportThumb){
-			$config 		= $this->getConfig('fileThumb');
-			$supportThumb 	= explode(',',$config['fileThumb']);
-			$supportView  	= explode(',',$config['fileExt']);
-			$supportBin 	= $this->getConvert() && $this->getFFmpeg();
-		}
-		$param = array('path'=>$pathInfo['path'],'etag'=>$pathInfo['size'].'_'.$pathInfo['modifyTime']);
-		if(!in_array($pathInfo['ext'],$supportThumb) || $supportBin != 'ok') return $pathInfo;	
-		if(in_array($pathInfo['ext'],$supportView)){// heic 等支持预览的内容; 
-			$pathInfo['fileShowView'] = Action('user.index')->apiSignMake('plugin/fileThumb/cover',$param).'&size=1200';
-		}
-		if(!kodIO::allowCover($pathInfo)){return $pathInfo;}
-		if(Cache::get('fileCover_'.KodIO::hashPath($pathInfo,false)) == 'no') return $pathInfo;
+		// 遍历文件列表,筛选出需要加入缩略图及显示图的内容(支持预览的,加入fileShowView)
+		$coverList = array();
+		foreach($data['fileList'] as &$file){
+			if(!$file['ext'] || $file['size'] <= 100){continue;}
+			if(!in_array($file['ext'],$supportThumb)){continue;}
+			if(!kodIO::allowCover($file)){continue;}
+			if(timeFloat() - $timeStart >= 10){break;} // 内容太多,超出时间则不再处理;
+			if(in_array($file['ext'],$supportWeb) && $file['size'] <= 1024*100){continue;}
+			
+			if(!$cachePath){$cachePath = $this->pluginCachePath();}
+			$fileHash  = KodIO::hashPath($file);$path = $file['path'];
+			$coverPre  = "cover_{$fileHash}_";
+			$coverList[$path] = array(array('key'=>'fileThumb','width'=>250,"cover"=>$coverPre.'250.png'));
+			if(in_array($file['ext'],$supportView)){
+				$coverList[$path][] = array('key'=>'fileShowView','width'=>1200,"cover"=>$coverPre.'1200.png');
+			}
+		};unset($file);
+		if(!$cachePath || !$coverList){return $data;};//return $data;
+
+		// 处理需要加入缩略图的文件; 查询数据库已存在的缓存图片; 查询redis缓存(已处理,队列中,出错了:不处理)-->未在队列--加入队列;
+		$coverList = $this->checkCoverExists($cachePath,$coverList);
+		$obj = Action('user.index');$objApi = 'plugin/fileThumb/cover';
+		foreach($data['fileList'] as &$file){
+			if(!isset($coverList[$file['path']])){continue;}
+			if(timeFloat() - $timeStart >= 10){break;} // 内容太多,超出时间则不再处理;
+			
+			foreach($coverList[$file['path']] as $item){
+				$coverName = $item['cover'];$thumbKey  = $item['key'];
+				$param = array('path'=>$file['path'],'etag'=>$file['modifyTime'],'width'=>$item['width']);
+				if(isset($item['sourceID']) && $item['sourceID']){
+					$file[$thumbKey] = $obj->apiSignMake($objApi,$param);
+					continue;
+				}
+				
+				// 预览大图,未生成缓存时不等待任务队列处理,立即转换输出;
+				if($thumbKey == 'fileShowView'){$file[$thumbKey] = $obj->apiSignMake($objApi,$param);}
+				$cacheType = Cache::get($coverName);
+				if($cacheType == 'no' || $cacheType == 'queue'){continue;}
+				
+				Cache::set($coverName,'queue',1200);
+				$args = array($cachePath,$file['path'],$coverName,$item['width']);
+				$desc = 'fileThumb.coverMake:size='.$file['size'].';cover='.$coverName.';name='.$file['name'].';path='.$file['path'];
+				TaskQueue::add('fileThumbPlugin.coverMake',$args,$desc,$coverName);
+			}
+			// jpg等图片,有该字段时,前端不自动获取图片缩略图,统一通过此插件转换;
+			// $file['fileThumbDisable'] = 1;//debug ;全部加入不显示缩略图;
+			if(in_array($file['ext'],$supportView) && !$file['fileThumb']){$file['fileThumbDisable'] = 1;}
+		};unset($file);
+		return $data;
+	}
+	
+	// 批量查询缓存图片是否存在;
+	private function checkCoverExists($cachePath,$coverList){
+		if(!$cachePath || !count($coverList)){return $coverList;}
 		
-		$pathInfo['fileThumb'] = Action('user.index')->apiSignMake('plugin/fileThumb/cover',$param).'&size=250';
-		return $pathInfo;
+		$sourceID = kodIO::sourceID($cachePath);
+		$coverArr = array();
+		foreach($coverList as $items){
+			foreach($items as $item){$coverArr[] = $item['cover'];}
+		}
+		$where = array('parentID'=>$sourceID,'name'=>array('in',$coverArr));
+		$lists = Model("Source")->field('sourceID,name')->where($where)->select();
+		$lists = array_to_keyvalue($lists,'name','sourceID');
+		foreach($coverList as $k=>$items){
+			foreach($items as $i=>$item){
+				if(!isset($lists[$item['cover']])){continue;}
+				$coverList[$k][$i]['sourceID'] = $lists[$item['cover']];
+			}
+		}
+		return $coverList;
+	}
+
+	// 单个文件属性处理;
+	public function itemParse($file){
+		if(strtolower(ACT) != 'pathinfo' || $file['type'] == 'folder'){return $file;}
+		$data = $this->listParse(array('folderList'=>array(),'fileList'=>array($file)));
+		return $data['fileList'][0];
+	}
+	
+	public function cover(){
+		$path  = $this->filePath($this->in['path'],false);
+		$width = intval($this->in['width']);
+		$width = ($width && $width > 1000) ? 1200:250;
+		
+		$file = IO::info($path);
+		$fileHash  = KodIO::hashPath($file);
+		$coverName = "cover_".$fileHash."_{$width}.png";
+		
+		$result = $this->coverMake($this->cachePath,$file['path'],"cover_".$fileHash."_{$width}.png",$width);
+		if($width == 1200){$this->coverMake($this->cachePath,$file['path'],"cover_".$fileHash."_250.png",250);}
+		$sourceID = IO::fileNameExist($this->cachePath,$coverName);
+		if($sourceID){IO::fileOut(kodIO::make($sourceID));exit;}
+		echo $result;
 	}
 
 	//linux 注意修改获取bin文件的权限问题;
@@ -98,35 +189,15 @@ class fileThumbPlugin extends PluginBase{
 		$video = new videoResize();
 		$video->videoPreview($this);
 	}
-	
-	// 获取缩略图(首次访问,加入到生成队列;已经生成则直接输出)
-	public function cover(){
-		$path = $this->filePath($this->in['path']);
-		$size = $this->getSize(intval($this->in['size']));
-		$info = IO::info($path);$ext = $info['ext'];
-		$fileHash  = KodIO::hashPath($info,false);
-		$coverName = "cover_".$ext."_{$fileHash}_{$size}.jpg";
-		if(Cache::get('fileCover_'.$fileHash) == 'no'){return;}; //是否有封面处理;
-		if($sourceID = IO::fileNameExist($this->cachePath,$coverName)){
-			return IO::fileOut(KodIO::make($sourceID));
-		}
-
-		$args = array($this->cachePath,$path,$size);
-		$desc = 'fileThumb.coverMake:size='.$info['size'].';name='.$info['name'].';path='.$info['path'];
-		TaskQueue::add('fileThumbPlugin.coverMake',$args,$desc,$coverName);
-		// $this->coverMake($this->cachePath,$path,$size); // 直接调用,调试模式;
-	}
 
 	// 本地文件:local,io-local, {{kod-local}}全量生成;
 	// 远端:(ftp,oss等对象存储)
-	public function coverMake($cachePath,$path,$size){
-		$info = IO::info($path);$ext = $info['ext'];
-		$fileHash  = KodIO::hashPath($info,false);
-		$coverName = "cover_".$ext."_{$fileHash}_{$size}.jpg";
-		
-		if(!is_dir(TEMP_FILES)){mk_dir(TEMP_FILES);}
-		$thumbFile = TEMP_FILES . $coverName;
+	public function coverMake($cachePath,$path,$coverName,$size){
 		if(IO::fileNameExist($cachePath,$coverName)){return 'exists;';}
+		if(!is_dir(TEMP_FILES)){mk_dir(TEMP_FILES);}
+		
+		$info = IO::info($path);$ext = $info['ext'];
+		$thumbFile = TEMP_FILES . $coverName;		
 		$localFile = $this->localFile($path);
 		$movie = '3gp,avi,mp4,m4v,mov,mpg,mpeg,mpe,mts,m2ts,wmv,ogv,webm,vob,flv,f4v,mkv,rmvb,rm';
 		$isVideo = in_array($ext,explode(',',$movie));
@@ -137,8 +208,7 @@ class fileThumbPlugin extends PluginBase{
 			floatval($info['fileInfoMore']['playtime']) <= 3 ){
 			$videoThumbTime = false;
 		}
-		// del_file($thumbFile);
-		if( $isVideo ){
+		if($isVideo){
 			// 不是本地文件; 切片后获取:mp4,mov,mpg,webm,f4v,ogv,avi,mkv,wmv;(部分失败)
 			if(!$localFile){
 				$localTemp = $thumbFile.'.'.$ext;
@@ -147,24 +217,20 @@ class fileThumbPlugin extends PluginBase{
 			}
 			$this->thumbVideo($localFile,$thumbFile,$videoThumbTime);
 		} else {
-			if(!$localFile){
-				// $localTemp = $localFile，可能会转换失败，为避免重新下载，不删除临时文件
-				$localFile = $this->pluginLocalFile($path);	// 下载到本地文件
-			}
+			if(!$localFile){$localFile = $this->pluginLocalFile($path);}
 			if($ext == 'ttf'){
 				$this->thumbFont($localFile,$thumbFile,$size);
 			}else{
 				$this->thumbImage($localFile,$thumbFile,$size,$ext);
 			}
 		}
-
 		// pr(file_exists($thumbFile),$localFile,$thumbFile);exit;
 		if($localTemp){@unlink($localTemp);}
 		if(@file_exists($thumbFile)){
-			Cache::remove('fileCover_'.$fileHash);
+			Cache::remove($coverName);
 			return IO::move($thumbFile,$cachePath);
 		}
-		Cache::set('fileCover_'.$fileHash,'no',600);
+		Cache::set($coverName,'no',600);
 		del_file($thumbFile);
 		return 'error! localFile='.$localFile.';';
 	}
@@ -283,7 +349,6 @@ class fileThumbPlugin extends PluginBase{
 		$this->thumbImageCreate($file,$cacheFile,$maxSize,$ext);
 		$isResize = explode(',','gif,png,bmp,jpe,jpeg,jpg,heic');
 		if(in_array($ext,$isResize)) return;
-
 		ImageThumb::createThumb($cacheFile,$cacheFile,$maxSize,$maxSize);
 	}
 	
@@ -322,13 +387,14 @@ class fileThumbPlugin extends PluginBase{
 
 			// https://legacy.imagemagick.org/Usage/thumbnails/
 			case 'tif':$file.= '[0]';$param = " -flatten ";break;
-			case 'gif':
+			case 'gif':$file.= '[0]';break;
+			case 'webp':
 			case 'png':
 			case 'bmp':
 			case 'jpe':
+			case 'jpg':
 			case 'jpeg':
-			case 'jpg':$param   = "-resize ".$size;break;
-			case 'heic':;$param = "-resize ".$size;break;
+			case 'heic':$param = "-resize ".$size;break;
 			
 			default:
 				$dng = 'dng,cr2,erf,raf,kdc,dcr,mrw,nrw,nef,orf,pef,x3f,srf,arw,sr2';
@@ -344,7 +410,7 @@ class fileThumbPlugin extends PluginBase{
 		$tempPath = $cacheFile;
 		if($GLOBALS['config']['systemOS'] == 'linux' && is_writable('/tmp/')){
 			mk_dir('/tmp/fileThumb');
-			$tempPath = '/tmp/fileThumb/'.rand_string(15).'.jpg';
+			$tempPath = '/tmp/fileThumb/'.rand_string(15).'.png';
 		}
 
 		$script = $command.' '.$param.' "'.$file.'" '.$tempPath.' 2>&1';
@@ -412,9 +478,7 @@ class fileThumbPlugin extends PluginBase{
 			return $config['imagickBin'];
 		}
 		$result = $this->guessBinPath('convert',$check);
-		if($result){
-			return $result;
-		}
+		if($result){return $result;}
 		$findMore = array(
 			'/imagemagick/convert',
 			'/imagemagick/bin/convert',
@@ -423,9 +487,7 @@ class fileThumbPlugin extends PluginBase{
 		);
 		foreach ($findMore as $value) {
 			$result = $this->guessBinPath($value,$check);
-			if($result){
-				return $result;
-			}
+			if($result){return $result;}
 		}
 		return false;
 	}

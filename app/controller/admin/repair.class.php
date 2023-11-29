@@ -43,7 +43,7 @@ class adminRepair extends Controller {
 			Cache::set($cacheKey,time());
 			echoLog('异常数据清理,可在后台任务管理进行中止.');
 		}
-		echoLog('请求参数done=1时,不直接删除已缺失的物理文件,可查看“物理文件不存在的数据记录”,确认需要删除后,再执行done=2进行删除');
+		// echoLog('请求参数done=1时,不直接删除已缺失的物理文件,可查看“物理文件不存在的数据记录”,确认需要删除后,再执行done=2进行删除');
 		echoLog('=====================================================');
 		if ($done == 2) {return $this->clearErrorFile();}
 		// http_close();
@@ -56,9 +56,9 @@ class adminRepair extends Controller {
 		$this->resetSourceHistory();	// 文件历史版本,fileID不存在的内容清理;
 		$this->resetFileLink();			// 重置fileID的linkCount引用计数(source,sourceHistory);
 		$this->clearSameFile();			// 清理重复的文件记录
-		write_log('手动清理执行完成!','sourceRepair');
+		write_log('异常数据清理完成!','sourceRepair');
 		echoLog('=====================================================');
-		echoLog('手动清理执行完成!');
+		echoLog('异常数据清理完成!');
 	}
 
 	// 处理指定目录数据

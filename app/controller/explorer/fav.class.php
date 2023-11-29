@@ -61,9 +61,7 @@ class explorerFav extends Controller{
 				if($item['type'] == 'file'){$info['type'] = 'file';}
 				unset($info['name']);
 				$item = array_merge($item,$info);
-				if($item['type'] == 'file'){
-					$item['ext'] = get_path_ext($item['name']);
-				}
+				if($item['type'] == 'file'){$item['ext'] = get_path_ext($item['name']);}
 			}
 		};unset($item);
 		return $list;

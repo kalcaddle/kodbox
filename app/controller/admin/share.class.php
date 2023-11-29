@@ -13,6 +13,12 @@ class adminShare extends Controller{
         if(isset($this->in['table']) && $this->in['table'] == 'report') {
             return $this->reportList();
         }
+        // 分享详情
+        if ($this->in['shareID']) {
+            $info = $this->model->getInfo($this->in['shareID'], true);
+            show_json($info);
+        }
+        // 分享列表
         $data = Input::getArray(array(
             'timeFrom'  => array('default' => null),
             'timeTo'    => array('default' => null),

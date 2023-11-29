@@ -188,44 +188,23 @@ class explorerIndex extends Controller{
 			'clear'	=> array('default'=>0),
 		));
 		if ($data['clear'] != '1') return;
-		// 临时目录不存在
 		if (!IO::exist(IO_PATH_SYSTEM_TEMP)) show_json(LNG('explorer.success'));
-
+		
+		// 文件封面插件缩略图清理
 		$fileInfo = IO::info($data['path']);
-		// 后端缩略图
-		if ($sourceID = IO::fileNameExist(IO_PATH_SYSTEM_TEMP, 'thumb')) {
-			$imageMd5 = _get($fileInfo,'fileInfo.hashMd5',_get($fileInfo,'fileInfo.hashSimple'));
-			if (!$imageMd5) {
-				$imageMd5 = md5("{$fileInfo['name']}_{$fileInfo['path']}_{$fileInfo['size']}");
-			}
-			$thumbPath = KodIO::make($sourceID);
+		$fileThumbInfo = IO::infoFullSimple(IO_PATH_SYSTEM_TEMP . 'plugin/fileThumb');
+		if($fileThumbInfo && isset($fileThumbInfo['path'])) {
+			$fileHash  = KodIO::hashPath($fileInfo);
 			$thumbList = array(250,600,1200,2000,3000,5000);	// 缩略图尺寸
-			// 循环删除各尺寸缩略图
-			foreach ($thumbList as $width) {
-				$imageName = "{$imageMd5}_{$width}.png";
-				if($sourceID = IO::fileNameExist($thumbPath, $imageName)){
-					$imageTemp = KodIO::make($sourceID);
-					IO::remove($imageTemp, false);
-				}
+			foreach ($thumbList as $width){
+				$coverName = "cover_${$fileHash}_${$width}.png";
+				$sourceID  = IO::fileNameExist($fileThumbInfo['path'],$coverName);
+				Cache::remove($coverName);
+				if(!$sourceID){continue;}
+				IO::remove(KodIO::make($sourceID),false);
 			}
 		}
-		// 插件缩略图
-		$plugin = IO_PATH_SYSTEM_TEMP . 'plugin/fileThumb';
-		$pathInfo = IO::infoFull($plugin);
-		if (isset($pathInfo['path'])) {
-			// 缩略图临时文件目录
-			$folderName = _get($fileInfo,'fileInfo.hashSimple');
-			if (!$folderName) {
-				$columns = array($fileInfo['name'], $fileInfo['path'],$fileInfo['size']);
-				if(isset($fileInfo['parentLevel'])) $columns[] = $fileInfo['parentLevel'];
-				$folderName = md5(implode('_', $columns));
-			}
-			// 直接删除目录
-			if($sourceID = IO::fileNameExist($pathInfo['path'], $folderName)){
-				$thumbPath = KodIO::make($sourceID);
-				IO::remove($thumbPath, false);
-			}
-		}
+		
 		// 删除元数据
 		$cacheKey = 'fileInfo.'.md5($fileInfo['path'].'@'.$fileInfo['size'].$fileInfo['modifyTime']);
 		$fileID   = _get($fileInfo,'fileInfo.fileID',_get($fileInfo,'fileID'));
@@ -879,7 +858,7 @@ class explorerIndex extends Controller{
 			$displayPathArr = explode('/',trim($info['pathDisplay'],'/'));array_shift($displayPathArr);
 			$displayPath = $pathRoot.'/'.implode('/',$displayPathArr);
 			$distPath = kodIO::pathTrue(get_path_father($displayPath).'/'.$add);
-			$distInfo = IO::infoFull($distPath);
+			$distInfo = IO::infoFullSimple($distPath);
 		}
 		// pr($distPath,$distInfo,$parse,[$pathRoot,$displayPath,$info,$shareInfo]);exit;
 		if(!$distInfo || $distInfo['type'] != 'file'){

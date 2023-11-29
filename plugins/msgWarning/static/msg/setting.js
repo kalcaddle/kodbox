@@ -36,6 +36,10 @@ ClassBase.define({
 		// });
 	},
 	saveConfig: function(data){
+        if (_.parseInt(data.useTime) < 10) {
+            this.$('.item-useTime input').focus();
+            return Tips.tips(LNG['msgWarning.config.useTimeTips'], 'warning');
+        }
         G.msgWarningOption = data;
 		if(!data) return false;
 		Tips.loading(LNG['explorer.loading']);
@@ -103,7 +107,8 @@ ClassBase.define({
             },
             'useTime':{
                 'type':'number',
-                'value':'20',
+                'value':'10',
+                "info":{"from":10},
                 'display':LNG['msgWarning.config.useTime'],
                 'desc':LNG['msgWarning.config.useTimeDesc'],
                 'require':1

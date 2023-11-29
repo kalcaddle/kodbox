@@ -26,8 +26,7 @@ class explorerAuthUser extends Controller {
 		$roleInfo = Action('user.authRole')->userRoleAuth($userInfo['roleID']);
 		$isRoot = $roleInfo && ($roleInfo['info']['administrator'] == 1);
 		if(!$roleInfo) return false;
-		if(!$isRoot && !$this->userRoleCheck($roleInfo,$action)) return false;// 没有对应权限;
-		
+		if(!$isRoot && !Action('user.authRole')->canCheckRole($action)){return false;}
 		
 		$parse  = KodIO::parse($path);$ioType = $parse['type'];
 		// 物理路径 io路径拦截；只有管理员且开启了访问才能做相关操作;
@@ -71,25 +70,5 @@ class explorerAuthUser extends Controller {
 		$authList  = Model("SourceAuth")->getSourceList(array($sourceID),false,$userID);
 		if( $authList && isset($authList[$sourceID])) return $authList[$sourceID];
 		return Action('explorer.listGroup')->pathGroupAuthMake($pathInfo['targetID'],$userID);
-	}
-	
-	private function userRoleCheck($roleInfo,$action){
-		$actionMap = array(
-			'view'		=> 'explorer.view',
-			'download'	=> 'explorer.download',
-			'upload'	=> 'explorer.upload',
-			'edit' 		=> 'explorer.edit',
-			'remove'	=> 'explorer.remove',
-			'share'		=> 'explorer.share',
-			'comment'	=> 'explorer.edit',
-			'event'		=> 'explorer.edit',
-			'root'		=> 'explorer.edit',
-		);
-		if(!isset($actionMap[$action])) return false;
-		$theKey = $actionMap[$action];
-		if(!$roleInfo || !isset($roleInfo['roleList'][$theKey])){
-			return false;
-		}
-		return $roleInfo['roleList'][$theKey] == 1;
 	}
 }

@@ -62,7 +62,7 @@ class msgWarningTaskIndex extends Controller {
 		if (empty($target)) return;
 
 		// 3.获取cpu、内存等使用信息，并写入记录
-		// 读取mem、cpu的值；存入日志；删除指定时长之前的日志；取剩余日志量，比如时长为20分钟，理论上会存20条日志，只要达到80%——16条，就发送提醒，占用很高时（99%），直接发送
+		// 读取mem、cpu的值；存入日志；删除指定时长之前的日志；取剩余日志量，比如时长为20分钟，理论上会存20条日志，只要达到80%——16条，就发送提醒；占用很高时（99%）直接发送（废弃）
 		$server	  = new ServerInfo();
 		$warnType = explode(',', $config['warnType']);
 
@@ -72,7 +72,7 @@ class msgWarningTaskIndex extends Controller {
 		if (in_array($type, $warnType)) {
 			$memUsage = $server->memUsage();	// [total=>1024,used=>24]
 			$memValue = $memUsage['total'] > 0 ? round($memUsage['used']/$memUsage['total'], 3) : 0;
-			if($memValue > floatval($config['useRatio'] / 100)) {
+			if($memValue && $memValue > floatval($config['useRatio'] / 100)) {
 				$rest = $this->warnUsage($type, array('value' => $memValue, 'data' => $memUsage));
 				if (!$rest) $data[$type] = $memValue;
 			}
@@ -81,7 +81,7 @@ class msgWarningTaskIndex extends Controller {
 		$type = 'cpu';
 		if (in_array($type, $warnType)) {
 			$cpuUsage = $server->cpuUsage();	// 0.23
-			if($cpuUsage > floatval($config['useRatio'] / 100)) {
+			if($cpuUsage && $cpuUsage > floatval($config['useRatio'] / 100)) {
 				$rest = $this->warnUsage($type, array('value' => $cpuUsage));
 				if (!$rest) $data[$type] = $cpuUsage;
 			}
@@ -121,17 +121,17 @@ class msgWarningTaskIndex extends Controller {
 		Model('SystemWarn')->init($type);
 		$config = $this->getConfig();
 
-		// 1.写入一条记录——超过99%的不写，且删除已有数据，直接发送
-		if ($data['value'] > 0.99) {
-			$useTime = 0;
-		} else {
+		// 1.写入一条记录——超过99%的不写，且删除已有数据，直接发送（废弃）
+		// if ($data['value'] > 0.99) {
+		// 	$useTime = 0;
+		// } else {
 			$insert = array(
 				'value'		=> $data['value'],
 				'content'	=> !empty($data['data']) ? $data['data'] : ''
 			);
 			$data = Model('SystemWarn')->add($insert);
 			$useTime = intval($config['useTime']);
-		}
+		// }
 
 		// 2.获取记录列表，删除指定时长之前的数据
 		$list = Model('SystemWarn')->listData();

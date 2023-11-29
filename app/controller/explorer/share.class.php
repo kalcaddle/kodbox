@@ -48,6 +48,8 @@ class explorerShare extends Controller{
 		}
 		return urlApi('explorer/share/file',"hash={$hash}".$addParam);
 	}
+	
+	// 构造加密链接,相同文件每次一样,确保浏览器能够缓存;
 	public function linkFile($file){
 		$pass = Model('SystemOption')->get('systemPassword');
 		$hash = Mcrypt::encode($file,$pass,false,'kodcloud');
@@ -91,7 +93,7 @@ class explorerShare extends Controller{
 	}
 	// 文件外链解析;
 	private function fileHash($hash){
-		if(!$hash || strlen($hash) > 500) return;
+		if(!$hash || strlen($hash) > 5000) return;
 		$path = Mcrypt::decode($hash,Model('SystemOption')->get('systemPassword'));
 		$fileInfo = $path ? IO::info($path) : false;
 		if(!$fileInfo){show_json(LNG('common.pathNotExists'),false);}
@@ -105,9 +107,7 @@ class explorerShare extends Controller{
 	 */
 	public function sharePathInfo($path,$encode=false,$infoChildren=false){
 		$parse = KodIO::parse($path);
-		if(!$parse || $parse['type'] != KodIO::KOD_SHARE_LINK){
-			return false;
-		}
+		if(!$parse || $parse['type'] != KodIO::KOD_SHARE_LINK){return false;}
 		$check = ActionCallHook('explorer.share.initShare',$parse['id']);
 		if(is_array($check)){
 			$GLOBALS['explorer.sharePathInfo.error'] = $check['data'];
@@ -164,7 +164,7 @@ class explorerShare extends Controller{
 	 * 下载次数，预览次数记录
 	 */
 	public function initShare($hash=''){
-		if($this->share) return;
+		if($this->share && !isset($GLOBALS['isRootCall'])) return;
 		$this->share = $share = $this->model->getInfoByHash($hash);
 		if(!$share || $share['isLink'] != '1'){
 			$this->showError(LNG('explorer.share.notExist'),30100);
@@ -172,6 +172,8 @@ class explorerShare extends Controller{
 		if($share['sourceInfo']['isDelete'] == '1'){
 			$this->showError(LNG('explorer.share.notExist'),30100);
 		}
+		if(isset($GLOBALS['isRootCall']) && $GLOBALS['isRootCall']){return;} //后台任务队列获取属性,不做判断;
+		
 		//外链分享有效性处理: 当分享者被禁用,没有分享权限,所在文件不再拥有分享权限时自动禁用外链分享;
 		if(!Action('explorer.authUser')->canShare($share)){
 			$userInfo = Model('User')->getInfoSimpleOuter($share['userID']);
@@ -279,7 +281,7 @@ class explorerShare extends Controller{
 			show_json(LNG('common.noPermission'),false);
 		}
 		
-		$pathInfo = IO::infoFull($rootSource.$parse['param']);
+		$pathInfo = IO::infoFullSimple($rootSource.$parse['param']);
 		if(!$pathInfo){
 			if($allowNotExist){return $rootSource.$parse['param'];}
 			show_json(LNG('common.noPermission'),false);
@@ -305,6 +307,7 @@ class explorerShare extends Controller{
 				if(is_array($has)){$pathInfo = array_merge($pathInfo,$has);}
 			}
 			$pathInfo = Action('explorer.list')->pathInfoCover($pathInfo);
+			if(is_array($pathInfo['fileInfo'])){unset($pathInfo['fileInfo']);}
 			$result[] = $this->shareItemInfo($pathInfo);
 		}
 		
@@ -366,6 +369,7 @@ class explorerShare extends Controller{
 		ActionCallResult("explorer.editor.fileGet",function(&$res) use($self){
 			if(!$res['code']){return;}
 			$res['data'] = $self->shareItemInfo($res['data']);
+			if(is_array($res['data']['fileInfo'])){unset($res['data']['fileInfo']);}
 		});
 	}
 	
@@ -404,15 +408,14 @@ class explorerShare extends Controller{
 			$data['thisPath'] = $path;
 		}else{
 			$allowPath = explode(',','{block:fileType}'); //允许的目录;虚拟目录;
-			if(!in_array($path,$allowPath)){
-				$this->parsePath($path); //校验path;
-			}
+			if(!in_array($path,$allowPath)){$this->parsePath($path);}
 			$data = Action('explorer.list')->path($path);
 		}
 
 		// 文件快捷方式处理;
 		if($data && $data['fileList']){
 			foreach($data['fileList'] as &$file){
+				if(is_array($file['fileInfo'])){unset($file['fileInfo']);}
 				$this->filterOexeContent($file);
 			}
 		}		
@@ -475,7 +478,7 @@ class explorerShare extends Controller{
 			'name','path','type','size','ext','searchTextFile',
 			'createUser','modifyUser','createTime','modifyTime','sourceID',
 			'hasFolder','hasFile','children','targetType','targetID','pageInfo',
-			'base64','content','charset','oexeContent','fileInfoMore','fileThumb',
+			'base64','content','charset','oexeContent','fileInfoMore','fileInfo','fileThumb',
 			// 'isReadable','isWriteable',//(不处理, 部门文件夹分享显示会有区分)
 		);
 		$theItem = array_field_key($item,$field);

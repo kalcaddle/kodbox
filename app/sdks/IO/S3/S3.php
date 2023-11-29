@@ -1563,6 +1563,7 @@ class S3 {
 
 		$this->headers['Host'] = get_url_domain($endpoint);
 		if ($this->bucket !== '') {
+			// TODO 包含'_'时导致bucket重复
 			if ($this->__dnsBucketName($this->bucket)) {
 				$this->resource = '/' . $this->bucket . $this->uri;
 			} else {
@@ -1665,6 +1666,8 @@ class S3 {
 		curl_setopt($curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
 		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
 		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+		curl_setopt($curl, CURLOPT_CONNECTTIMEOUT,60);	// 建立连接
+		// curl_setopt($curl, CURLOPT_TIMEOUT,60);		// 建立连接+数据传输
 
 		$proxy = $this->proxy;
 		if ($proxy != null && isset($proxy['host'])) {

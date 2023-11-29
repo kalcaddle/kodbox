@@ -160,7 +160,7 @@ class explorerUpload extends Controller{
 		$linkInfo = &$infoData['uploadLinkInfo'];
 		if(isset($linkInfo['host'])){ // 前端上传时,自适应处理(避免http,https混合时浏览器拦截问题; )
 		    $linkInfo['host'] = str_replace("http://",'//',$linkInfo['host']);
-			$linkInfo['host'] = str_replace("https://",'//',$linkInfo['host']);
+			// $linkInfo['host'] = str_replace("https://",'//',$linkInfo['host']);	// 存储只限https访问时去掉会有异常
 		}
 		
 		// 保留参数部分; kod挂载kod的webdav前端上传;

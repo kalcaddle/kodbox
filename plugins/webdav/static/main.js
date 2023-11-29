@@ -37,7 +37,7 @@ kodReady.push(function () {
 	var styles = "";
 	_.each(ioAdd,function(item){
 		var ioIcon = '{{pluginHost}}static/images/'+item.icon;
-		styles += '.x-item-icon.x-io-' + item.type +'{background-image:url("'+ioIcon+'");}';
+		styles += '.x-item-icon.x-io-' + item.type +'{background-image:url("'+ioIcon+'");margin-top:1px;}';
 		styles += '.header-middle .header-address .path-ico.name-io-'+item.type+'{padding-top:4px;}';
 	});
 	$.addStyle(styles);

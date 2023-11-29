@@ -341,7 +341,7 @@ function think_trace($value = '[think]', $label = '', $level = 'DEBUG', $record 
 		return;
 	}
 
-	$logMax 	= 50;//最多纪录前30条sql; 避免额外开销及内存不可控
+	$logMax 	= 10;//最多纪录前10条sql; 避免额外开销及内存不可控
 	$level  	= strtoupper($level);
 	$keyTrace 	= $level.'-trace';
 	$keyList	= $level.'-list';
@@ -354,13 +354,12 @@ function think_trace($value = '[think]', $label = '', $level = 'DEBUG', $record 
 	
 	$useTime = substr($info,strrpos($info,'[ RunTime:')+10,-5);
 	$_trace[$keyTime]  = sprintf('%.5f',$_trace[$keyTime] + $useTime );
+	$timeNow  = timeFloat();$timeNowArr = explode('.',$timeNow.'000');
+	$timeShow = date('i:s.',$timeNowArr[0]).substr($timeNowArr[1],0,4);
+	$index = count($_trace[$keyList]) + 1;
+	$index = $index < 10 ? '0'.$index.'' : $index.'';
+	$_trace[$keyList][$index] = $timeShow.'['.$useTime.'s]: '.substr($info,0,-21);
 	if(count($_trace[$keyList]) < $logMax){
-		$timeNow  = timeFloat();$timeNowArr = explode('.',$timeNow.'000');
-		$timeShow = date('i:s.',$timeNowArr[0]).substr($timeNowArr[1],0,4);
-		$index = count($_trace[$keyList]) + 1;
-		$index = $index < 10 ? '0'.$index.'' : $index.'';
-		$_trace[$keyList][$index] = $timeShow.'['.$useTime.'s]: '.substr($info,0,-21);
-		
 		$trace = array_slice(get_caller_info(),4,-1); // 5ms 每个;
 		$_trace[$keyTrace][$index]= array_merge(array($timeShow.'['.$useTime.'s]: ',$info),$trace);
 	}

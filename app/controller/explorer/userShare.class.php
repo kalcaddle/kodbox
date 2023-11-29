@@ -89,11 +89,12 @@ class explorerUserShare extends Controller{
 			$key = $info['type'] == 'folder' ? 'folderList':'fileList';
 			$this->shareTarget($info,$shareItem);
 			
-			// 协作内容不再有分享权限时处理; 其他人内容--隐藏; 自己的内容-突出显示;
-			if(!Action('explorer.authUser')->canShare($shareItem)){
-				$shareType = $type == 'to' ? 'shareTo':'shareLink';
-				$this->removeShare($shareItem,$shareType);
-				continue;
+			// 协作内容不再有分享权限时处理; 其他人内容--隐藏; 自己的内容-突出显示;(前提:自己有内部协作或外链分享的对应角色权限);
+			$shareType = $type == 'to' ? 'shareTo':'shareLink';
+			$authType  = $shareType == 'shareTo' ? 'explorer.share':'explorer.shareLink';
+			if( Action('user.authRole')->authCan($authType) &&
+				!Action('explorer.authUser')->canShare($shareItem)){
+				$this->removeShare($shareItem,$shareType);continue;
 			}
 			$result[$key][] = $info;
 			if(!$info['sourceID']){$sourceCountIO++;}
@@ -460,7 +461,7 @@ class explorerUserShare extends Controller{
 	 */
 	public function edit(){
 		$data = $this->_getParam('shareID');
-		$this->checkRoleAuth($data['isLink'] ? 'shareLink':'shareTo');
+		$this->checkRoleAuth($data['isLink'] == '1' ? 'shareLink':'shareTo');
 		$shareInfo = $this->model->getInfo($data['shareID']);
 		$this->checkSetAuthAllow($data['authTo'],$shareInfo['sourceInfo']);
 		$result = $this->model->shareEdit($data['shareID'],$data);

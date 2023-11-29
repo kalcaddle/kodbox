@@ -132,6 +132,29 @@ class userAuthRole extends Controller {
 		return $result;
 	}
 	
+	// 操作时,再根据用户权限角色判断是否允许;
+	public function canCheckRole($action){
+		$actionMap = array(
+			// 'show'		=> true, //不判断查看;
+			'view'		=> array('explorer.view'),
+			'download'	=> array('explorer.download'),
+			'upload'	=> array('explorer.upload'),
+			'edit' 		=> array('explorer.edit'),
+			'remove'	=> array('explorer.remove'),
+			'comment'	=> array('explorer.edit'),
+			'event'		=> array('explorer.edit'),
+			'root'		=> array('explorer.edit'),
+			// 'share'		=> array('explorer.share','explorer.shareLink'), // 不判定; 在explorer.userShare.checkRoleAuth中判断;
+		);
+		if(!isset($actionMap[$action])){return true;}
+		
+		//动作可对应多个角色权限点; 任意一个满足则满足;
+		foreach ($actionMap[$action] as $key){
+			if($this->authCan($key)){return true;}
+		}
+		return false;
+	}
+	
 	/**
 	 * 角色权限升级,老数据处理(1.44)
 	 * 分享拆分为=内部协作分享+外链分享 原explorer.share 拆分为 explorer.share+explorer.shareLink

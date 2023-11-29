@@ -54,7 +54,6 @@ class explorerList extends Controller{
 			default:$data = IO::listPath($path);break;
 		}
 		$this->parseData($data,$path,$pathParse,$current);
-		$data = Hook::filter('explorer.list.path.parse',$data);
 		Action('explorer.listView')->listDataSet($data);
 
 		if($thePath) return $data;
@@ -301,6 +300,7 @@ class explorerList extends Controller{
 				$data[$type][$key] = $this->pathInfoParse($item,$data['current'],$infoFull);
 			};unset($item);
 		};unset($list);
+		$data = Hook::filter('explorer.list.path.parse',$data);
 	}
 	
 	public function pathInfoParse($pathInfo,$current=false,$infoFull=true){
@@ -371,6 +371,7 @@ class explorerList extends Controller{
 		if($pathInfo['type'] == 'file' && !$pathInfo['ext']){
 			$pathInfo['ext'] = strtolower($pathInfo['name']);
 		}
+		$pathInfo = $this->pathInfoCover($pathInfo);
 		
 		// 没有下载权限,不显示fileInfo信息;
 		if(!$pathInfo['canDownload'] || !$showMd5){
@@ -379,7 +380,6 @@ class explorerList extends Controller{
 		}
 		if(isset($pathInfo['fileID'])){unset($pathInfo['fileID']);}
 		if(isset($pathInfo['fileInfo']['path'])){unset($pathInfo['fileInfo']['path']);}
-		$pathInfo = $this->pathInfoCover($pathInfo);
 		return $pathInfo;
 	}
 	
@@ -387,11 +387,7 @@ class explorerList extends Controller{
 		// 文件文件夹封面; 自适应当前url;
 		if(is_array($pathInfo['metaInfo']) && $pathInfo['metaInfo']['user_sourceCover']){
 			$pathInfo['fileThumbCover'] = '1';
-			$pathInfo['fileThumb'] = $pathInfo['metaInfo']['user_sourceCover']; 
-			$urlInfo = parse_url($pathInfo['fileThumb']);$port = isset($urlInfo['port']) ? ':'.$urlInfo['port']:'';
-			$urlBase = $urlInfo['scheme']."://".$urlInfo['host'].$port.'/';
-			$pathInfo['fileThumb'] = str_replace($urlBase,HOST,$pathInfo['fileThumb']);
-			$pathInfo['metaInfo']['user_sourceCover'] = $pathInfo['fileThumb'];
+			$pathInfo['fileThumb'] = Action('user.view')->parseUrl($pathInfo['metaInfo']['user_sourceCover']);
 		}
 		if($pathInfo['type'] == 'file'){ // 仅针对文件; 追加缩略图等业务;
 			$pathInfo = Hook::filter('explorer.list.itemParse',$pathInfo);
@@ -557,6 +553,11 @@ class explorerList extends Controller{
 		// 文件封面;
 		if(isset($pathInfo[$infoKey]) && isset($pathInfo[$infoKey]['fileThumb']) ){
 			$fileThumb = $pathInfo[$infoKey]['fileThumb'];
+			if(!IO::exist($fileThumb)){ // 不存在检测处理;
+				unset($pathInfo[$infoKey]);Cache::remove($cacheKey);
+				if($fileID){Model("File")->metaSet($fileID,$infoKey,null);};
+				return $pathInfo;
+			}
 			unset($pathInfo[$infoKey]['fileThumb']);
 			$pathInfo['fileThumb'] = Action('explorer.share')->linkFile($fileThumb);
 		}

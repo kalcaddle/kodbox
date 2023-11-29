@@ -156,7 +156,8 @@ class userView extends Controller{
 		Action('explorer.attachment')->clearCache();
 		Action("admin.repair")->sourceNameInit();
 		
-		AutoTask::start();
+		AutoTask::start();		// 后台计划任务自动启动;已启动则不再处理;
+		TaskQueue::runThread(); // 后台任务队列,允许多个进程处理后台任务队列(最多允许3个,队列没有任务则退出);
 		Cache::clearTimeout();
 		$this->autoSetUploadMax();
 	}
@@ -177,12 +178,27 @@ class userView extends Controller{
 	}
 	
 	public function parseUrl($link){
-		if(!trim($link)) return '';
-		if(substr($link,0,4) == 'http') return $link;
-		if(substr($link,0,2) == './') {
-			$link = substr($link,2);
+		if(!$link || !trim($link)) return '';
+		if(substr($link,0,1) ==  '/'){return HOST.substr($link,1);}
+		if(substr($link,0,2) == './'){return APP_HOST.substr($link,2);}
+		if(substr($link,0,strlen(HOST)) == HOST){return $link;}
+		
+		// 域名切换情况处理(用户头像等信息url缓存情况处理)
+		if(strstr($link,'explorer/share/file&hash')){
+			$hostInfo = parse_url(APP_HOST);
+			$linkInfo = parse_url($link);
+			$linkQuery= parse_url_query($link);
+			if($hostInfo['path'] != $linkInfo['path']){return $link;} // 站点不同则不再继续自适应;
+			if(!isset($linkQuery['hash']) || !$linkQuery['hash']){return $link;}
+			
+			$pathTrue = Mcrypt::decode($linkQuery['hash'],Model('SystemOption')->get('systemPassword'));
+			if(!$pathTrue){return $link;}
+			
+			$linkPort = isset($linkInfo['port']) && $linkInfo['port'] != '80' ? ':'.$linkInfo['port'] : '';
+			$linkHost = _get($linkInfo,'scheme','http').'://'.$linkInfo['host'].$linkPort.'/';
+			return str_replace($linkHost,HOST,$link);
 		}
-		return APP_HOST . $link;
+		return $link;
 	}
 	public function imageRequest(){
 		Action('user.viewImage')->request('start');

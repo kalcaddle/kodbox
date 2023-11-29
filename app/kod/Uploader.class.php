@@ -23,7 +23,7 @@ class Uploader{
 		}else if (isset($in["name"])) {
 			$this->uploadFile = "php://input";
 		}
-		if(isset($in['base64Upload']) && isset($in['base64str'])){
+		if(isset($in['base64Upload']) && isset($in['base64str']) && $in['base64str']){
 			$this->uploadFile = 'base64';
 		}
 

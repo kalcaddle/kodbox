@@ -1,8 +1,8 @@
 @font-face {
   font-family: "kod-svg-font"; /* Project id 1107537 */
-  src: url('iconfont.woff2?t=1695359803103') format('woff2'),
-       url('iconfont.woff?t=1695359803103') format('woff'),
-       url('iconfont.ttf?t=1695359803103') format('truetype');
+  src: url('iconfont.woff2?t=1700815687807') format('woff2'),
+       url('iconfont.woff?t=1700815687807') format('woff'),
+       url('iconfont.ttf?t=1700815687807') format('truetype');
 }
 
 .kod-svg-font {
@@ -11,6 +11,10 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.kod-LandscapePicture:before {
+  content: "\e643";
 }
 
 .kod-folder-safe:before {
@@ -151,10 +155,6 @@
 
 .kod-user-act:before {
   content: "\e630";
-}
-
-.kod-LandscapePicture:before {
-  content: "\e7c7";
 }
 
 .kod-jpg:before {

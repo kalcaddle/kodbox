@@ -106,7 +106,8 @@ class kodZipArchive{
 				@rename($from,$dest.$itemPath);
 			}
 		}
-		move_path($dest,$dest_before);
+		$res = move_path($dest,$dest_before);
+		if(file_exists($dest)){move_path($dest,$dest_before);} // 有出错的情况时再来一次;文件锁定的情况
 		del_dir(rtrim($dest,'/'));
         return array('code'=>$result,'data'=>$result);
     }

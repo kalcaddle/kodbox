@@ -18,7 +18,7 @@ function Model($name = '', $tablePrefix = '', $connection = '') {
 	if(is_string($connection)){
 		$guid .= '_'.$connection;
 	}else if($connection && is_array($connection)){
-		new ModelBase($name, $tablePrefix, $connection);
+		return new ModelBase($name, $tablePrefix, $connection);
 	}
 
 	// 没有该类，则为表名或空model
