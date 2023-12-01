@@ -313,12 +313,12 @@ class PathDriverWebdav extends PathDriverBase {
 	private function _pathInfo($path,$cacheInfo=false){
 		if(!$this->pathCheck($path)) return false;
 		$key = trim($path,'/');
-		if($cacheInfo){$this->infoCache[$key] = $cacheInfo;return;}
-		if(isset($this->infoCache[$key])) return $this->infoCache[$key];
+		if($cacheInfo){self::$infoCache[$key] = $cacheInfo;return;}
+		if(isset(self::$infoCache[$key])) return self::$infoCache[$key];
 		
 		$data = $this->listPath($path);
 		$pathInfo = $data ? $data['current']:false;
-		if($pathInfo){$this->infoCache[$key] = $pathInfo;}
+		if($pathInfo){self::$infoCache[$key] = $pathInfo;}
 		return $pathInfo;
 	}
 	// 文件属性; name/path/type/size/createTime/modifyTime/

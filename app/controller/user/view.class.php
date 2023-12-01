@@ -78,7 +78,7 @@ class userView extends Controller{
 		}
 		$options = Hook::filter('user.view.options.before',$options);
 		$options = Hook::filter('user.view.options.after',$options); 
-		$options = $this->parseMenu($options);
+		$options = $this->parseMenu($options,!!$user);
 		$this->companyInfo($options);
 		
 		if($this->in['full'] == '1'){
@@ -115,16 +115,18 @@ class userView extends Controller{
 	/**
 	 * 根据权限设置筛选菜单;
 	 */
-	private function parseMenu($options){
+	private function parseMenu($options,$user=false){
 		$menus  = &$options['system']['options']['menu'];
 		$result = array();
-		foreach ($menus as $item) {
-			if(!isset($item['pluginAuth'])){
-				$allow = true;
-			}else{
-				$allow = ActionCall("user.authPlugin.checkAuthValue",$item['pluginAuth']);
+		if ($user) {	// 未登录时不显示菜单信息
+			foreach ($menus as $item) {
+				if(!isset($item['pluginAuth'])){
+					$allow = true;
+				}else{
+					$allow = ActionCall("user.authPlugin.checkAuthValue",$item['pluginAuth']);
+				}
+				if($allow){$result[] = $item;}
 			}
-			if($allow){$result[] = $item;}
 		}
 		$menus = $result;
 		return $options;

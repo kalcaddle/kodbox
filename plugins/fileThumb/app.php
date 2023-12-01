@@ -15,7 +15,7 @@ class fileThumbPlugin extends PluginBase{
 		$this->echoFile('static/main.js');
 	}
 	public function onUpdate(){
-		AutoTask::restart();sleep(1);
+		AutoTask::restart();sleep(3);
 		AutoTask::start();
 	}
 	
@@ -28,7 +28,6 @@ class fileThumbPlugin extends PluginBase{
 		if(!$data || !is_array($data['fileList']) || !count($data['fileList'])){return $data;}
 		if(!$this->getConvert() || !$this->getFFmpeg()){return $data;}
 		if($current && $current['targetType'] == 'system' && strstr($current['pathDisplay'],'plugin/fileThumb/')){return $data;}
-		// if(Model("UserOption")->get('imageThumb') == '0'){return $data;} // 仅前端处理;
 
 		$config 		= $this->getConfig('fileThumb');
 		$supportWeb 	= explode(',','png,jpg,jpeg,bmp,webp,gif');
@@ -43,54 +42,58 @@ class fileThumbPlugin extends PluginBase{
 			if(!in_array($file['ext'],$supportThumb)){continue;}
 			if(!kodIO::allowCover($file)){continue;}
 			if(timeFloat() - $timeStart >= 10){break;} // 内容太多,超出时间则不再处理;
-			if(in_array($file['ext'],$supportWeb) && $file['size'] <= 1024*100){continue;}
-			
+			if(in_array($file['ext'],$supportWeb) && $file['size'] <= 1024*50){continue;}
 			if(!$cachePath){$cachePath = $this->pluginCachePath();}
-			$fileHash  = KodIO::hashPath($file);$path = $file['path'];
-			$coverPre  = "cover_{$fileHash}_";
-			$coverList[$path] = array(array('key'=>'fileThumb','width'=>250,"cover"=>$coverPre.'250.png'));
+			
+			$fileHash = KodIO::hashPath($file);$path = $file['path'];
+			$coverList[$path] = array('fileThumb'=>array('cover'=>"cover_".$fileHash."_250.png",'width'=>250));
 			if(in_array($file['ext'],$supportView)){
-				$coverList[$path][] = array('key'=>'fileShowView','width'=>1200,"cover"=>$coverPre.'1200.png');
+				$coverList[$path]['fileShowView'] = array('cover'=>"cover_".$fileHash."_1200.png",'width'=>1200);
 			}
 		};unset($file);
 		if(!$cachePath || !$coverList){return $data;};//return $data;
 
-		// 处理需要加入缩略图的文件; 查询数据库已存在的缓存图片; 查询redis缓存(已处理,队列中,出错了:不处理)-->未在队列--加入队列;
-		$coverList = $this->checkCoverExists($cachePath,$coverList);
-		$obj = Action('user.index');$objApi = 'plugin/fileThumb/cover';
+		// 处理需要加入缩略图的文件; 查询数据库已存在的缓存图片;查询redis缓存(已处理,队列中,出错了:不处理)-->未在队列--加入队列;
+		$needMake  = 0;$makeIndex = 0; // 待生成缩略图数量,不包含大图;
+		$coverList = $this->checkCoverExists($cachePath,$coverList,$needMake);
+		$makeCoverNow = $needMake <= 3 ? true:false; // 待生成列表小于5,则缩略图调用立即生成;
+		$obj = Action('user.index');
 		foreach($data['fileList'] as &$file){
 			if(!isset($coverList[$file['path']])){continue;}
 			if(timeFloat() - $timeStart >= 10){break;} // 内容太多,超出时间则不再处理;
 			
-			foreach($coverList[$file['path']] as $item){
-				$coverName = $item['cover'];$thumbKey  = $item['key'];
-				$param = array('path'=>$file['path'],'etag'=>$file['modifyTime'],'width'=>$item['width']);
-				if(isset($item['sourceID']) && $item['sourceID']){
-					$file[$thumbKey] = $obj->apiSignMake($objApi,$param);
-					continue;
-				}
+			$path = $file['path'];
+			foreach($coverList[$path] as $thumbKey=>$item){
+				$coverName = $item['cover'];// 少量没有缩略图的内容,立即生成处理;
+				$param 	   = array('path'=>$path,'etag'=>$file['modifyTime'],'width'=>$item['width']);
+				$imageSrc  = $obj->apiSignMake('plugin/fileThumb/cover',$param);
+				if(isset($item['sourceID']) && $item['sourceID']){$file[$thumbKey] = $imageSrc;continue;}
+				if($thumbKey == 'fileShowView'){$file[$thumbKey] = $imageSrc;}// 预览大图,不检测是否有缓存
+				if($thumbKey == 'fileThumb' && $makeCoverNow){$file[$thumbKey] = $imageSrc;continue;}
 				
-				// 预览大图,未生成缓存时不等待任务队列处理,立即转换输出;
-				if($thumbKey == 'fileShowView'){$file[$thumbKey] = $obj->apiSignMake($objApi,$param);}
+				// 多张图片待生成缩略图时,第一张处理为触发调用后台任务队列;
+				if($thumbKey == 'fileThumb'){$makeIndex++;}
+				if($thumbKey == 'fileThumb' && $makeIndex <= 2){
+					$file[$thumbKey] = APP_HOST.'index.php?user/view/call&_t='.rand_string(5);
+				}
 				$cacheType = Cache::get($coverName);
 				if($cacheType == 'no' || $cacheType == 'queue'){continue;}
 				
 				Cache::set($coverName,'queue',1200);
-				$args = array($cachePath,$file['path'],$coverName,$item['width']);
-				$desc = 'fileThumb.coverMake:size='.$file['size'].';cover='.$coverName.';name='.$file['name'].';path='.$file['path'];
+				$args = array($cachePath,$path,$coverName,$item['width']);
+				$desc = '[fileThumb.coverMake]:size='.$file['size'].';cover='.$coverName.';name='.$file['name'].';path='.$file['path'];
 				TaskQueue::add('fileThumbPlugin.coverMake',$args,$desc,$coverName);
 			}
 			// jpg等图片,有该字段时,前端不自动获取图片缩略图,统一通过此插件转换;
-			// $file['fileThumbDisable'] = 1;//debug ;全部加入不显示缩略图;
-			if(in_array($file['ext'],$supportView) && !$file['fileThumb']){$file['fileThumbDisable'] = 1;}
+			if(in_array($file['ext'],$supportView) && !isset($file['fileThumb'])){$file['fileThumbDisable'] = 1;}
 		};unset($file);
+		// trace_log([$needMake,$data,$coverList]);
 		return $data;
 	}
 	
 	// 批量查询缓存图片是否存在;
-	private function checkCoverExists($cachePath,$coverList){
+	private function checkCoverExists($cachePath,$coverList,&$needMake){
 		if(!$cachePath || !count($coverList)){return $coverList;}
-		
 		$sourceID = kodIO::sourceID($cachePath);
 		$coverArr = array();
 		foreach($coverList as $items){
@@ -99,11 +102,11 @@ class fileThumbPlugin extends PluginBase{
 		$where = array('parentID'=>$sourceID,'name'=>array('in',$coverArr));
 		$lists = Model("Source")->field('sourceID,name')->where($where)->select();
 		$lists = array_to_keyvalue($lists,'name','sourceID');
-		foreach($coverList as $k=>$items){
-			foreach($items as $i=>$item){
-				if(!isset($lists[$item['cover']])){continue;}
-				$coverList[$k][$i]['sourceID'] = $lists[$item['cover']];
+		foreach($coverList as $i=>$items){
+			foreach($items as $k=>$item){
+				if(isset($lists[$item['cover']])){$coverList[$i][$k]['sourceID'] = $lists[$item['cover']];}
 			}
+			if(!isset($coverList[$i]['fileThumb']['sourceID'])){$needMake++;}
 		}
 		return $coverList;
 	}
@@ -224,7 +227,6 @@ class fileThumbPlugin extends PluginBase{
 				$this->thumbImage($localFile,$thumbFile,$size,$ext);
 			}
 		}
-		// pr(file_exists($thumbFile),$localFile,$thumbFile);exit;
 		if($localTemp){@unlink($localTemp);}
 		if(@file_exists($thumbFile)){
 			Cache::remove($coverName);
@@ -232,7 +234,7 @@ class fileThumbPlugin extends PluginBase{
 		}
 		Cache::set($coverName,'no',600);
 		del_file($thumbFile);
-		return 'error! localFile='.$localFile.';';
+		return 'convert error! localFile='.get_path_this($localFile);
 	}
 	private function getSize($size){
 		$sizeAllow = array(250,1200,3000);
@@ -347,7 +349,7 @@ class fileThumbPlugin extends PluginBase{
 	// convert -colorspace rgb simple.pdf[0] -density 100 -sample 200x200 sample.jpg
 	private function thumbImage($file,$cacheFile,$maxSize,$ext){
 		$this->thumbImageCreate($file,$cacheFile,$maxSize,$ext);
-		$isResize = explode(',','gif,png,bmp,jpe,jpeg,jpg,heic');
+		$isResize = explode(',','gif,png,bmp,jpe,jpeg,jpg,webp,heic');
 		if(in_array($ext,$isResize)) return;
 		ImageThumb::createThumb($cacheFile,$cacheFile,$maxSize,$maxSize);
 	}
@@ -390,18 +392,18 @@ class fileThumbPlugin extends PluginBase{
 			case 'gif':$file.= '[0]';break;
 			case 'webp':
 			case 'png':
-			case 'bmp':
+			case 'bmp':$param = "-resize ".$size;break;
 			case 'jpe':
 			case 'jpg':
 			case 'jpeg':
-			case 'heic':$param = "-resize ".$size;break;
+			case 'heic':$param = "-auto-orient -resize ".$size;break;
 			
 			default:
 				$dng = 'dng,cr2,erf,raf,kdc,dcr,mrw,nrw,nef,orf,pef,x3f,srf,arw,sr2';
 				$dng = $dng.',3fr,crw,dcm,fff,iiq,mdc,mef,mos,plt,ppm,raw,rw2,srw,tst';
 				if(in_array($ext,explode(',',$dng))){
 					$param = "-resize ".$size;
-					$file = 'rgb:'.$file.'[0]';
+					//$file = 'rgb:'.$file.'[0]';
 				}
 				break;
 		}

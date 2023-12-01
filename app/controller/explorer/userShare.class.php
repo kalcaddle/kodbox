@@ -537,8 +537,9 @@ class explorerUserShare extends Controller{
 			if($options['shareLinkAllow'] == '0'){
 				show_json(LNG('admin.setting.shareLinkAllowTips'),false);
 			}
-			if($options['shareLinkPasswordAllowEmpty'] == '0' && !$data['password']){
-				show_json(LNG('explorer.notNull'),false);
+			// 初始化不检测
+			if($data['shareID'] && $options['shareLinkPasswordAllowEmpty'] == '0' && !$data['password']){
+				show_json(LNG('user.pwdNotNull'),false);
 			}
 			if($options['shareLinkAllowGuest'] == '0'){
 				$data["options"]['onlyLogin'] = '1';

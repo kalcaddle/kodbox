@@ -603,7 +603,7 @@ class explorerIndex extends Controller{
 			if(!$info){
 				show_json($GLOBALS['explorer.sharePathInfo.error'], false);
 			}
-			if($info['option'] && $this->share['options']['notDownload'] == '1'){
+			if($info['option'] && $info['option']['notDownload'] == '1'){
 				show_json(LNG('explorer.share.noDownTips'), false);
 			}
 			$list[$i]['path'] = $info['path'];

@@ -122,6 +122,7 @@ class explorerShare extends Controller{
 		
 		// 仅文件,判断预览;
 		if(	$result['type'] == 'file' && 
+			$this->share['options'] && 
 			$this->share['options']['notDownload'] == '1' &&
 			$this->share['options']['notView'] == '1'){
 			return false;
@@ -477,7 +478,7 @@ class explorerShare extends Controller{
 		$field = array(
 			'name','path','type','size','ext','searchTextFile',
 			'createUser','modifyUser','createTime','modifyTime','sourceID',
-			'hasFolder','hasFile','children','targetType','targetID','pageInfo',
+			'hasFolder','hasFile','children','targetType','targetID','pageInfo','searchContentMatch',
 			'base64','content','charset','oexeContent','fileInfoMore','fileInfo','fileThumb',
 			// 'isReadable','isWriteable',//(不处理, 部门文件夹分享显示会有区分)
 		);

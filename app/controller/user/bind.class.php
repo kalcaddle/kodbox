@@ -124,6 +124,13 @@ class userBind extends Controller {
 		$response = url_request($url, 'GET', $post);
 		if ($response['status']) {
 			$data = json_decode($response['data'], true);
+			if (!$data) {	// 平台异常报错（show_tips）
+				if ($response['data']) {
+					preg_match('/<div id="msgbox">(.*?)<\/div>/s', $response['data'], $matches);
+					if ($matches[1]) write_log('API request error: '.$matches[1], 'error');
+				}
+				return array('code' => false, 'data' => LNG('explorer.systemError'));
+			}
 			// secret有变更，和平台不一致
 			if (!$data['code'] && isset($data['info']) && $data['info'] == '40003') {
 				Model('SystemOption')->set('systemSecret', '');

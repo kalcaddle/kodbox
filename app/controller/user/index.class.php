@@ -268,6 +268,7 @@ class userIndex extends Controller {
 		Session::destory();
 		Cookie::remove(SESSION_ID,true);
 		Cookie::remove('kodToken');
+		del_dir($BASIC_PATH.'data/temp/_cache');
 		show_json('ok');
 	}
 

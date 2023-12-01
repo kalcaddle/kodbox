@@ -66,8 +66,8 @@ ClassBase.define({
                 self.doVerify(data);
                 return false;
             },
-            cancel: false,
-            close:false
+            // cancel: false,
+            // close:false
         });
         var $dialog = this.dialog.$main;
         if (tfaInfo.input) {
@@ -95,13 +95,13 @@ ClassBase.define({
                     return false;
                 }
                 $submit.prop("disabled", false);
-                self.sendAfter($btn);
+                self.sendAfter(data.type, $btn);
             });
         });
     },
-    sendAfter: function ($button) {
+    sendAfter: function (type, $button) {
         // 发送成功,button倒计时
-        var time = 60;
+        var time = type == 'email' ? 60 : 90;
         $button.text(time + 's');
         var timer = setInterval(function () {
             if (time > 0) {
