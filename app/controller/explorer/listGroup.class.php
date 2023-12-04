@@ -82,7 +82,7 @@ class explorerListGroup extends Controller{
 	}
 	
 	// 是否允许罗列部门的子部门;
-	private function enableListGroup($groupID){
+	private function enableListGroup($groupID,&$data){
 		$option = Model('SystemOption')->get();
 		if($option['groupSpaceLimit'] == '1'){
 			$groupInfo = $this->modelGroup->getInfoSimple($groupID);
@@ -91,6 +91,16 @@ class explorerListGroup extends Controller{
 		}
 		
 		if( !isset($option['groupListChild']) ) return true;
+		
+		// 仅左侧树目录罗列子部门,不罗列文件文件夹; 文件区域不罗列子部门,仅罗列文件文件夹
+		if($option['groupListChild'] == '2'){
+			if($this->in['fromType'] == 'tree'){
+				$data['folderList'] = array();$data['fileList']   = array();
+				return true;
+			}
+			return false;
+		}
+				
 		$listGroup = $option['groupListChild']=='1';
 		if(!$listGroup) return false;
 		if($groupID == '1'){
@@ -166,7 +176,7 @@ class explorerListGroup extends Controller{
 		//不是根目录
 		$parents = $this->model->parentLevelArray($pathInfo['parentLevel']);
 		if(count($parents) != 0) return false;
-		if(!$this->enableListGroup($pathInfo['targetID'])) return;
+		if(!$this->enableListGroup($pathInfo['targetID'],$data)) return;
 		
 		$groupList  = $this->modelGroup->where(array('parentID'=>$pathInfo['targetID']))->select();
 		$groupListAdd  = $this->groupArray($groupList);

@@ -456,6 +456,7 @@ class userIndex extends Controller {
 
 	// 解析处理;
 	public function apiSignCheck(){
+		if(isset($_REQUEST['accessToken']) && $_REQUEST['accessToken']){return;} // token优先;
 		$actionToken = $this->in['actionToken'];
 		$actionKey   = $this->in['actionKey'];
 		$appSecret	 = $this->appKeySecret($this->in['appKey']);
