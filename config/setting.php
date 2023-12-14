@@ -206,7 +206,7 @@ $config['settings']['appType'] = array(
 	array('type' => 'others','name' => 'common.others','class' => 'ri-more-fill'),
 );
 $config['defaultPlugins'] = array(
-	'adminer','DPlayer','jPlayer','photoSwipe','picasa','pdfjs',
+	'adminer','DPlayer','jPlayer','photoSwipe','picasa','pdfjs','htmlEditor',
 	'simpleClock','client','webodf','webdav','toolsCommon','oauth','fileThumb',
 	'yzOffice','officeViewer','msgWarning',
 );
@@ -501,6 +501,10 @@ if($lang != 'zh-CN' && $lang != 'zh-CN'){
 	$config['settings']['sourceMeta']['user_sourceNumber']['display'] = "Number";
 	$config['settings']['sourceMeta']['user_sourceParticipant']['display'] = "Participant";
 }
+I18n::set(array(
+	'common.iconApp' => 'images/icon/icon_512.png',
+	'common.iconFav' => 'images/icon/fav.png',
+));
 
 /**
  * 无需登录检测权限检测配置;

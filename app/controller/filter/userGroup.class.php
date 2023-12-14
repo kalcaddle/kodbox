@@ -92,9 +92,9 @@ class filterUserGroup extends Controller{
 		if($allow){$allow = $this->userAuthEditCheck();$err=$allow?$err:1;}
 		if($allow && $check['user']){ $allow = $this->allowChangeUser($this->in[$check['user']]);$err=$allow?$err:2;}
 		if($allow && $check['userRole']){$allow = $this->allowChangeUserRole($this->in[$check['userRole']]);$err=$allow?$err:3;}
-		if($allow && $check['roleAuth']){$allow = $this->roleActionAllow($this->in[$check['roleAuth']]);$err=$allow?$err:4;}
+		if($allow && $check['roleAuth'] && isset($this->in['roleID'])){$allow = $this->roleActionAllow($this->in[$check['roleAuth']]);$err=$allow?$err:4;}
 		if($allow && $check['groupArray']){$allow = $this->allowChangeGroupArray($check);$err=$allow?$err:5;}
-		// pr($err,$allow,$check,$this->in,'GET:',$_REQUEST);exit;
+		// trace_log([$err,$allow,$check,$this->in,'GET:',$_REQUEST]);
 		if($allow) return true;
 		$this->checkError($check);
 	}
@@ -291,7 +291,7 @@ class filterUserGroup extends Controller{
 
 	// 权限修改删除范围处理: 只能操作权限包含内容小于等于自己权限包含内容的类型;  设置用户权限也以此为标准;
 	public function allowChangeUserRole($roleID){
-		if(_get($GLOBALS,'isRoot')) return true;
+		if(_get($GLOBALS,'isRoot') || !$roleID) return true;
 		$authInfo = Model('SystemRole')->listData($roleID);
 		if($authInfo && $authInfo['administrator'] == 1) return false; // 系统管理员不允许非系统管理员获取,设置
 		if(!$this->config["ADMIN_ALLOW_ALL_ACTION"]){return true;} // 启用了三权分立,安全保密员允许获取,或设置用户的角色;

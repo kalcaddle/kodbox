@@ -303,14 +303,9 @@ function get_path_father($path){
 function get_path_ext($path){
 	$name = get_path_this($path);
 	$ext = '';
-	if(strstr($name,'.')){
-		$ext = substr($name,strrpos($name,'.')+1);
-		$ext = strtolower($ext);
-	}
-	if (strlen($ext)>3 && preg_match("/([\x81-\xfe][\x40-\xfe])/", $ext, $match)) {
-		$ext = '';
-	}
-	return htmlspecialchars($ext);
+	if(strstr($name,'.')){$ext = substr($name,strrpos($name,'.')+1);}
+	$isMatch = preg_match("/[0-9a-zA-Z_]+/",$ext,$match);// 只允许数字字母和下划线
+	return ($isMatch && $match[0]) ? strtolower($match[0]):'';
 }
 
 

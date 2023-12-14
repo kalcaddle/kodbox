@@ -80,7 +80,7 @@ class explorerTag extends Controller{
 		$result = Model("Source")->listUserTag($tags);
 		$tagInfo= $this->tagsInfo($tags);
 		$tagInfo['pathAddress'] = array(
-			array("name"=> LNG('common.tag'),"path"=>'{block:fileTag}/'),
+			array("name"=> LNG('explorer.userTag.title'),"path"=>'{block:fileTag}/'),
 			array("name"=> $tagInfo['name'],"path"=>$this->in['path']),
 		);
 		$tagInfo['pathDesc'] = LNG('explorer.tag.pathDesc');

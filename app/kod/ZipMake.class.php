@@ -102,20 +102,20 @@ class ZipMake{
 	protected function addFileHeader($name,$zipMethod){
 		$name = preg_replace('/^\\/+/', '', $name);
 		$nlen = strlen($name);
-		$time        = $this->dosTime(time());
-        $fields = array(
+		$time   = $this->dosTime(time());
+        $fields = array(// v=2byte,V=4byte,P=8byte
             array('V', static::FILE_HEADER_SIGNATURE),
             array('v', static::ZIP_VERSION_64),			// 压缩版本
             array('v', 0b00001000),						// General purpose bit flags - data descriptor flag set
-            array('v', $zipMethod),							// Compression method
-            array('V', $time),							// Timestamp (DOS Format)
+            array('v', $zipMethod),						// Compression method
+            array('V', $time),							// Timestamp (DOS Format)  time=2byte/date/2byte
             array('V', 0x00000000),						// CRC32 of data (0 -> moved to data descriptor footer)
-            array('V', 0xFFFFFFFF),						// zip64时全0
+            array('V', 0xFFFFFFFF),						// zip64时全1
             array('V', 0xFFFFFFFF),						// Length of original data (Forced to 0xFFFFFFFF for 64bit extension)
             array('v', $nlen),							// Length of filename
             array('v', 32),								// Extra data (32 bytes)
         );	
-        $fields64 = array(
+        $fields64 = array(// 32Byte;
             array('v', 0x0001),							// 64Bit Extension
             array('v', 28),								// 28bytes of data follows 
             array('P', 0x0000000000000000),				// Length of original data (0 -> moved to data descriptor footer)
@@ -182,7 +182,7 @@ class ZipMake{
             array('v', static::ZIP_VERSION_64),			// Made by version
             array('v', static::ZIP_VERSION_64),			// Extract by version
             array('v', 0b00001000),						// General purpose bit flags - data descriptor flag set
-            array('v', $zipMethod),							// Compression method
+            array('v', $zipMethod),						// Compression method
             array('V', $time),							// Timestamp (DOS Format)
             array('V', $crc),							// CRC32
             array('V', 0xFFFFFFFF),						// Compressed Data Length (Forced to 0xFFFFFFFF for 64bit Extension)
@@ -199,7 +199,7 @@ class ZipMake{
             array('v', 0x0001),							// 64Bit Extension
             array('v', 28),								// 28bytes of data follows 
             array('P', $len),							// Length of original data (0 -> moved to data descriptor footer)
-            array('P', $zipLength),							// Length of compressed data (0 -> moved to data descriptor footer)
+            array('P', $zipLength),						// Length of compressed data (0 -> moved to data descriptor footer)
             array('P', $offset),						// Relative Header Offset
             array('V', 0)								// Disk number
         );

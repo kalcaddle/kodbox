@@ -1,0 +1,11 @@
+.dialog-form.dialog-html-editor .form-box.config-box .panel-form-body{
+	margin:0;padding:0;top:0;left:0;right:0;bottom:0;overflow: hidden;
+}
+
+.dialog-form.dialog-html-editor .panel-form-body .form-row.item-text{margin:0;padding:0;}
+.dialog-form.dialog-html-editor .panel-form-body .form-row.item-text .setting-content{
+	margin:0;padding:0;position: absolute;top:0;left:0;right:0;bottom:0;
+}
+.dialog-form.dialog-html-editor .tox-tinymce{border:none;}
+.dialog-form.dialog-html-editor .tox-tbtn.btn-html-save{position:absolute;right:60px;top:2px;}
+.dialog-form.dialog-html-editor .tox-tbtn.btn-html-save .font-icon{font-size:18px;line-height: 15px;}

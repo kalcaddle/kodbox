@@ -80,7 +80,7 @@ class explorerShare extends Controller{
 			$etag = substr(md5($info['modifyTime'].$info['size']),0,5);
 		}
 		$url = urlApi($apiKey,"path=".rawurlencode($path).'&et='.$etag.'&name=/'.$name);
-		if($token) $url .= '&accessToken='.Action('user.index')->accessToken();
+		if($token) $url .= '&safeToken='.Action('user.index')->safeToken();
 		return $url;
 	}
 	
@@ -327,9 +327,8 @@ class explorerShare extends Controller{
 	//输出文件
 	public function fileOut(){
 		$path = rawurldecode($this->in['path']);//允许中文空格等;
-		if(request_url_safe($path)) {
-			header('Location:' . $path);exit;
-		} 
+		if(request_url_safe($path)){header('Location:'.$path);exit;}
+		
 		$path = $this->parsePath($path);
 		$isDownload = isset($this->in['download']) && $this->in['download'] == 1;
 		Hook::trigger('explorer.fileOut', $path);
@@ -347,6 +346,18 @@ class explorerShare extends Controller{
 	}
 	public function fileDownload(){
 		$this->in['download'] = 1;
+		$this->fileOut();
+	}
+	public function fileOutBy(){
+		$add   = rawurldecode($this->in['add']);
+		$path  = rawurldecode($this->in['path']);
+		if(request_url_safe($path)){header('Location:'.$path);exit;}
+		
+		$distPath = kodIO::pathTrue($path.'/../'.$add);
+		$this->in['path'] = rawurlencode($distPath);
+		if(isset($this->in['type']) && $this->in['type'] == 'getTruePath'){
+			show_json($distPath,true);
+		}
 		$this->fileOut();
 	}
 	
@@ -384,7 +395,7 @@ class explorerShare extends Controller{
 		$url = $this->in['path'];
 		$urlInfo = parse_url_query($url);
 		if( !isset($urlInfo["explorer/share/unzipListHash"]) && 
-			!isset($urlInfo["accessToken"])){
+			!isset($urlInfo["safeToken"])){
 			show_json(LNG('common.pathNotExists'),false);
 		}
 		$index 	  = json_decode(rawurldecode($urlInfo['index']),true);

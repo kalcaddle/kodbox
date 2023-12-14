@@ -114,7 +114,8 @@ class explorerListGroup extends Controller{
 		$groupArray = array_sort_by($groupArray,'sort');// 排序处理;
 		$groupArray	= array_to_keyvalue($groupArray,'groupID');//自己所在的组
 		$this->_filterDisGroup($groupArray);	// 过滤已禁用部门
-		$group = array_remove_value(array_keys($groupArray),1);
+		// $group = array_remove_value(array_keys($groupArray),1);
+		$group = array_keys($groupArray);
 		if(!$group) return array();
 
 		$groupSource = $this->model->sourceRootGroup($group);
@@ -122,11 +123,13 @@ class explorerListGroup extends Controller{
 		$result = array();
 		foreach($groupArray as $group){ // 保持部门查询结构的顺序;
 			$groupID = $group['groupID'];
-			if($groupID == '1') continue; // 去除根部门
+			// if($groupID == '1') continue; // 去除根部门
 			if(!isset($groupSource[$groupID])) continue;
 			
-			$pathInfo = $groupSource[$groupID];			
+			$groupInfo = Model('Group')->getInfo($groupID);
+			$pathInfo  = $groupSource[$groupID];			
 			$pathInfo['sourceRoot'] = 'groupPath';
+			$pathInfo['hasGroup']   = $groupInfo ? $groupInfo['hasChildren']:0;
 			$pathInfo['pathDisplay']= $pathInfo['groupPathDisplay'];
 			if(!$pathInfo['auth']){
 				$pathInfo['auth'] = Model("SourceAuth")->authDeepCheck($pathInfo['sourceID']);
@@ -137,13 +140,6 @@ class explorerListGroup extends Controller{
 				if( !$pathInfo['auth'] || $pathInfo['auth']['authValue'] == 0){ // 放过-1; 打开通路;
 					continue;// 没有权限;
 				}
-			}
-			
-			// 没有子文件夹; 则获取是否有子部门;
-			// if( !$pathInfo['hasFolder'] && !$pathInfo['hasFile'] ){
-			if( !$pathInfo['hasFolder'] ){
-				$groupInfo = Model('Group')->getInfo($groupID);
-				$pathInfo['hasFolder']  = $groupInfo ? $groupInfo['hasChildren']:false;
 			}
 			$result[] = $pathInfo;
 		}

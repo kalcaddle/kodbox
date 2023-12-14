@@ -311,7 +311,10 @@ class explorerIndex extends Controller{
 		if($parse['pathBase']){
 			$path = $parse['param'];
 		}
-		$name = get_path_this($path);
+		$name = trim(get_path_this($path));
+		$name = preg_replace_callback('/./u',function($match){return strlen($match[0]) >= 4 ? '':$match[0];},$name);
+		if(!$name){show_json(LNG('explorer.charNoSupport').'emoji',false);} // 不允许纯emoji表情; 新建后文件名不显示;
+		
 		$checkName = str_replace($notAllow,'_',$name);
 		if($name != $checkName){
 		    show_json(LNG('explorer.charNoSupport').implode(',',$notAllow),false);
@@ -325,7 +328,7 @@ class explorerIndex extends Controller{
 	}
 	
 	public function mkfile(){
-		$this->pathAllowCheck($this->in['path'],true);
+		$this->pathAllowCheck($this->in['path']);
 		$info = IO::info($this->in['path']);
 		if($info && $info['type'] == 'file'){ //父目录为文件;
 			show_json(LNG('explorer.success'),true,IO::pathFather($info['path']));
@@ -841,7 +844,7 @@ class explorerIndex extends Controller{
 		$parse = kodIO::parse($this->in['path']);
 		$allow = array('',kodIO::KOD_IO,kodIO::KOD_USER_DRIVER,kodIO::KOD_SHARE_LINK);
 		if(in_array($parse['type'],$allow)){
-			$distPath = kodIO::pathTrue(get_path_father($parse['path']).'/'.ltrim($add,'/'));
+			$distPath = kodIO::pathTrue($parse['path'].'/../'.$add);
 			$distInfo = IO::info($distPath);
 		}else{//KOD_SOURCE KOD_SHARE_ITEM(source,)
 			$info = IO::info($parse['path']);
@@ -857,12 +860,15 @@ class explorerIndex extends Controller{
 			
 			$displayPathArr = explode('/',trim($info['pathDisplay'],'/'));array_shift($displayPathArr);
 			$displayPath = $pathRoot.'/'.implode('/',$displayPathArr);
-			$distPath = kodIO::pathTrue(get_path_father($displayPath).'/'.$add);
+			$distPath = kodIO::pathTrue($displayPath.'/../'.$add);
 			$distInfo = IO::infoFullSimple($distPath);
 		}
 		// pr($distPath,$distInfo,$parse,[$pathRoot,$displayPath,$info,$shareInfo]);exit;
 		if(!$distInfo || $distInfo['type'] != 'file'){
 			return show_json(LNG('common.pathNotExists'),false);
+		}
+		if(isset($this->in['type']) && $this->in['type'] == 'getTruePath'){
+			show_json($distInfo['path'],true);
 		}
 		
 		ActionCall('explorer.auth.canView',$distInfo['path']);// 再次判断新路径权限;

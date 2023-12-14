@@ -69,7 +69,7 @@ class ImageThumb {
 					break;
 				}
 				$img = @imagecreatefrompng($file);
-				imagesavealpha($img,true);
+				if ($img) imagesavealpha($img,true);
 				break;
 			case IMAGETYPE_XBM:
 				$img = imagecreatefromxbm($file);
@@ -82,6 +82,7 @@ class ImageThumb {
 				break;
 			default:break;
 		}
+		if (!$img) $img = @imagecreatefromstring(file_get_contents($file));
 		return $img;
 	}
 

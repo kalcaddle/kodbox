@@ -1,5 +1,6 @@
 kodReady.push(function(){
 	if(!$.supportCanvas()) return;
+	LNG.set(jsonDecode(urlDecode("{{LNG}}")));
 	Events.bind('explorer.kodApp.before',function(appList){
 		appList.push({
 			name:'{{package.id}}',

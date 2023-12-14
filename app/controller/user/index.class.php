@@ -24,6 +24,7 @@ class userIndex extends Controller {
 			return ActionCall('install.index.check');
 		}
 		$this->initDB();   		//
+		Action('filter.index')->bindBefore();
 		$this->initSession();   //
 		$this->initSetting();   // 
 		init_check_update();	// 升级检测处理;
@@ -51,19 +52,29 @@ class userIndex extends Controller {
 		$this->apiSignCheck();
 		// 入口不处理cookie,兼容服务器启用了全GET缓存情况(输出前一次用户登录的cookie,导致账号登录异常)
 		$action= strtolower(ACTION);
-		if( $action == 'user.index.index' || 
-		    $action == 'user.view.call'){
+		if( $action == 'user.index.index' || $action == 'user.view.call'){
 			Cookie::disable(true);
 		}
 		
-		$systemPassword = Model('SystemOption')->get('systemPassword');
-		$accessToken = isset($_REQUEST['accessToken']) ? $_REQUEST['accessToken'] : '';
-		if($accessToken && strlen($accessToken) < 500){
-			$pass = substr(md5('kodbox_'.$systemPassword),0,15);
-			$sessionSign = Mcrypt::decode($accessToken,$pass);
+		$systemPass = Model('SystemOption')->get('systemPassword');
+		if(isset($_REQUEST['accessToken'])){
+			$token = $_REQUEST['accessToken'];
+			if(!$token || strlen($token) > 500){show_json('token error!',false);}
+
+			$pass = substr(md5('kodbox_'.$systemPass),0,15);
+			$sessionSign = Mcrypt::decode($token,$pass);
 			if(!$sessionSign){show_json(LNG('common.loginTokenError'),ERROR_CODE_LOGOUT);}
-			$this->initAccessToken();
+			if($action == 'user.index.index'){Cookie::disable(false);} // 带token的url跳转入口页面允许cookie输出;
 			Session::sign($sessionSign);
+		}else if(isset($_REQUEST['safeToken'])){
+			// 仅限当前ip使用的token,有效期1天(文件下载等处使用该token,相对更安全)
+			$token = $_REQUEST['safeToken'];
+			if(!$token || strlen($token) > 500){show_json('token error!',false);}
+			
+			$pass = substr(md5('safe_'.get_client_ip().$systemPass),0,15);
+			$sessionSign = Mcrypt::decode($token,$pass);
+			if(!$sessionSign){show_json('safe token error(timeout or ip error)!',false);}
+			if($sessionSign){Session::sign($sessionSign);}
 		}
 		
 		if(!Session::get('kod')){
@@ -73,30 +84,6 @@ class userIndex extends Controller {
 		// 注意: Session设置sessionid的cookie;两个请求时间过于相近,可能导致删除cookie失败的问题;(又有sessionid请求覆盖)
 		// 设置csrf防护;
 		if(!Cookie::get('CSRF_TOKEN')){Cookie::set('CSRF_TOKEN',rand_string(16));}
-	}
-	
-	public function accessTokenCheck($accessToken){
-		$systemPassword = Model('SystemOption')->get('systemPassword');
-		if(!$accessToken || strlen($accessToken) > 500) return false;
-		
-		$pass = substr(md5('kodbox_'.$systemPassword),0,15);
-		$sessionSign = Mcrypt::decode($accessToken,$pass);
-		if(!$sessionSign || $sessionSign != Session::sign()) return false;
-		return true;
-	}
-	
-	// accesstoken 登录前处理;
-	private function initAccessToken(){
-		$action = strtolower(ACTION);
-		$disableCookie = array(
-			'explorer.index.filedownload',
-			'explorer.index.fileout',
-			'explorer.share.filedownload',
-			'explorer.share.fileout',
-		);
-		$enableCookie = array('user.index.index');
-		if(in_array($action,$enableCookie)){Cookie::disable(false);} // 带token的url跳转入口页面允许cookie输出;
-		if(in_array($action,$disableCookie)){Cookie::disable(true);allowCROS();}
 	}
 	
 	private function initSetting(){
@@ -208,17 +195,38 @@ class userIndex extends Controller {
 	}
 
 	public function accessToken(){
-		$pass = Model('SystemOption')->get('systemPassword');
-		$pass = substr(md5('kodbox_'.$pass),0,15);
-		$token = Mcrypt::encode(Session::sign(),$pass,3600*24*30);
-		return $token;
+		$systemPass = Model('SystemOption')->get('systemPassword');
+		$pass = substr(md5('kodbox_'.$systemPass),0,15);
+		return Mcrypt::encode(Session::sign(),$pass,3600*24*30);
 	}
 	public function accessTokenGet(){
-		if(!Session::get('kodUser')){
-			show_json('user not login!',ERROR_CODE_LOGOUT);
-		}
+		if(!Session::get('kodUser')){show_json('user not login!',ERROR_CODE_LOGOUT);}
 		show_json($this->accessToken(),true);
+	}	
+	public function accessTokenCheck($token){
+		if(!$token || strlen($token) > 500) return false;
+
+		$systemPass = Model('SystemOption')->get('systemPassword');
+		$pass = substr(md5('kodbox_'.$systemPass),0,15);
+		$sessionSign = Mcrypt::decode($token,$pass);
+		if(!$sessionSign || $sessionSign != Session::sign()) return false;
+		return true;
 	}
+	
+	public function safeToken(){
+		$systemPass = Model('SystemOption')->get('systemPassword');
+		$pass = substr(md5('safe_'.get_client_ip().$systemPass),0,15);
+		return Mcrypt::encode(Session::sign(),$pass,3600*24);
+	}
+	public function safeTokenCheck($token){
+		if(!$token || strlen($token) > 500) return false;
+		
+		$systemPass = Model('SystemOption')->get('systemPassword');
+		$pass = substr(md5('safe_'.get_client_ip().$systemPass),0,15);
+		$sessionSign = Mcrypt::decode($token,$pass);
+		if(!$sessionSign || $sessionSign != Session::sign()) return false;
+		return true;
+	}	
 	
 	// 登录校验并自动跳转 (已登录则直接跳转,未登录则登录成功后跳转)
 	public function autoLogin(){

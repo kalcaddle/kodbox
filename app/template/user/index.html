@@ -17,10 +17,10 @@
 	<title><?php echo LNG('title').LNG('common.copyright.name')." - ".LNG('common.copyright.powerBy');?></title>
 	
 	<link href="<?php echo APP_HOST;?>index.php?user/view/manifest" rel="manifest" />
-	<meta itemprop="image" content="<?php linkHref('images/icon/icon_512.png');?>" />
-	<link head-type='kod' href="<?php linkHref('images/icon/icon_512.png');?>" rel="apple-touch-icon"/>
-	<link head-type='kod' href="<?php linkHref('images/icon/fav.png');?>" rel="Shortcut Icon" type="image/x-icon" />
-	<link head-type='kod' href="<?php linkHref('images/icon/fav.png');?>" rel="icon" type="image/x-icon" />
+	<meta itemprop="image" content="<?php linkHref(LNG('common.iconApp'));?>" />
+	<link head-type='kod' href="<?php linkHref(LNG('common.iconApp'));?>" rel="apple-touch-icon"/>
+	<link head-type='kod' href="<?php linkHref(LNG('common.iconFav'));?>" rel="Shortcut Icon" type="image/x-icon" />
+	<link head-type='kod' href="<?php linkHref(LNG('common.iconFav'));?>" rel="icon" type="image/x-icon" />
 	
 	<!-- <meta name="theme-color" content="#1b6de1" /> -->
 	<meta name="apple-touch-fullscreen" content="yes" />
@@ -54,9 +54,7 @@
 	<script type="text/javascript">
 		window.API_HOST = "<?php echo appHostGet();?>";
 		window.STATIC_PATH = "<?php echo STATIC_PATH;?>";
-        if(navigator.serviceWorker){
-			navigator.serviceWorker.register('<?php echo APP_HOST;?>?user/view/manifestJS');
-		}
+		try{navigator.serviceWorker && navigator.serviceWorker.register('<?php echo APP_HOST;?>?user/view/manifestJS');}catch(err){}
 		var isDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 		var theTheme = "<?php echo Model('userOption')->get('theme');?>";
 		var darkMode = theTheme == 'dark-mode' ? true: (theTheme == 'auto' && isDark); 

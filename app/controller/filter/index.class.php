@@ -17,6 +17,10 @@ class filterIndex extends Controller{
 	function __construct() {
 		parent::__construct();
 	}
+	
+	public function bindBefore(){
+		Action("filter.fileOut")->bind();
+	}
 	public function bind(){
 		Action("filter.userRequest")->bind();
 		Action("filter.userCheck")->bind();

@@ -180,7 +180,7 @@ class adminSetting extends Controller {
 	public function server(){
 		$data = Input::getArray(array(
 			'tab'	 => array('default'=>'', 'aliasKey'=>'type'),
-			'action' => array('check'=>'in', 'param'=>array('get', 'phpinfo', 'save', 'task', 'clear'))
+			'action' => array('check'=>'in', 'param'=>array('get', 'pinfo', 'save', 'task', 'clear'))
 		));
 		$function = ($data['type'] ? $data['type'] : 'srv') . ucfirst($data['action']);
 		// srvGet/cacheSave/dbSave/recoverySave

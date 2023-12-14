@@ -31,7 +31,9 @@ class explorerApi extends Controller{
 	}
 	public function checkAccessToken(){
 		$config = Model('Plugin')->getConfig('fileView');
-		if(!$config['apiKey']) return;
+		if(!$config || !$config['apiKey']){
+			show_tips('fileView not open ,or apiKey is empty!');
+		}
 
 		$timeTo = isset($this->in['timeTo'])?intval($this->in['timeTo']):'';
 		$token = md5($this->in['path'].$timeTo.$config['apiKey']);

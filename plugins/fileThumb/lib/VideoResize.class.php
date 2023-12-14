@@ -230,7 +230,8 @@ class videoResize {
 		}
 		$logEnd  = get_caller_msg();
 		$logTime = 'time='.(time() - $timeStart);	
-		if($data['total'] && intval($data['total']) == intval($data['finished']) && file_exists($tempPath)){
+		if( $data['total'] && intval($data['total']) == intval($data['finished']) && 
+			file_exists($tempPath) && is_file($thumbFile) && filesize($thumbFile) > 0 ){
 			$runError = true;
 			$destPath = IO::move($tempPath,$cachePath);
 			$checkStr = IO::fileSubstr($destPath,0,10);
@@ -311,7 +312,7 @@ class videoResize {
 	// 通过命令行及参数查找到进程pid; 兼容Linux,window,mac
 	// http://blog.kail.xyz/post/2018-03-28/other/windows-find-kill.html
 	public function processFind($search){
-		$cmd = "ps -eo user,pid,ppid,args | grep '".$search."' | grep -v grep | awk '{print $2}'";
+		$cmd = "ps -eo user,pid,ppid,args | grep '.escapeShell($search).' | grep -v grep | awk '{print $2}'";
 		if($GLOBALS['config']['systemOS'] != 'windows'){return trim(@shell_exec($cmd));}
 		
 		// windows 获取pid;
@@ -366,7 +367,7 @@ class videoResize {
 		$tile  = '10x'.ceil($pickCount / 10).''; 
 		$scale = 'scale='.$sizeW.':-2'; //,pad='.$sizeW.':'.$sizeH.':-1:-1 -q:v 1~5 ;质量从最好到最差;
 		$args  = '-sws_flags accurate_rnd -q:v 4 -an'; //更多参数; 设置图片缩放算法(不设置缩小时可能产生绿色条纹花屏);
-		$cmd = 'ffmpeg -y -i "'.$localFile.'" -vf "fps='.$fps.','.$scale.',tile='.$tile.'" '.$args.' "'.$tempPath.'"';
+		$cmd = 'ffmpeg -y -i '.escapeShell($localFile).' -vf "fps='.$fps.','.$scale.',tile='.$tile.'" '.$args.' '.escapeShell($tempPath);
 		$this->log('[videoPreview start] '.$fileInfo['name'].';size='.size_format($fileInfo['size']),0,0);$timeStart = timeFloat();
 		$this->log('[videoPreview run] '.$cmd,0,0);
 		@shell_exec($cmd);//pr($cmd);exit;
@@ -402,7 +403,7 @@ class videoResize {
 
 	// 解析视频文件信息;
 	private function parseVideoInfo($command,$video){
-		$result  = shell_exec($command.' -i "'.$video.'" 2>&1');
+		$result  = shell_exec($command.' -i '.escapeShell($video).' 2>&1');
 		$info    = array('playtime'=>0,'createTime'=>'','audio'=>array());
 		if(preg_match("/Duration:\s*([0-9\.\:]+),/", $result, $match)) {
 			$total = explode(':', $match[1]);

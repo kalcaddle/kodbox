@@ -83,8 +83,8 @@ class explorerEditor extends Controller{
 	private function fileGetZipContentCheck($path){
 		if(!request_url_safe($path)) return;
 		$urlInfo = parse_url_query($path);
-		if(!isset($urlInfo['index']) || !isset($urlInfo['path']) || !isset($urlInfo['accessToken'])) return;
-		if(!Action('user.index')->accessTokenCheck($urlInfo['accessToken'])){return;}
+		if(!isset($urlInfo['index']) || !isset($urlInfo['path']) || !isset($urlInfo['safeToken'])) return;
+		if(!Action('user.index')->safeTokenCheck($urlInfo['safeToken'])){return;}
 		
 		$zipFile  = rawurldecode($urlInfo['path']);
 		$indexArr = @json_decode(rawurldecode($urlInfo['index']),true);

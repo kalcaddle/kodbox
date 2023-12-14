@@ -196,6 +196,14 @@
     margin: auto;height: 80%;min-width: 40%;
 }
 
+.pswp__button.pswp__button--show-true{
+	margin-right:5px;background-image: none !important;
+	width: auto;font-size: 12px;padding: 0 8px 0 28px;
+}
+.pswp__button.pswp__button--show-true:before{
+	content:"\ee4a";font-size: 18px;position: absolute;margin:-3px 0 0 -20px;
+}
+
 .pswp .file-panel *{box-sizing: initial;}
 .pswp__button.pswp__button--info{background-image: none !important;}
 .pswp__button.pswp__button--info:before{content:"\ee58";}

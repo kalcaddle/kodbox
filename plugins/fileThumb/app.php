@@ -228,12 +228,13 @@ class fileThumbPlugin extends PluginBase{
 			}
 		}
 		if($localTemp){@unlink($localTemp);}
-		if(@file_exists($thumbFile)){
+		if(@file_exists($thumbFile) && @is_file($thumbFile) && filesize($thumbFile) > 0){
 			Cache::remove($coverName);
 			return IO::move($thumbFile,$cachePath);
 		}
 		Cache::set($coverName,'no',600);
 		del_file($thumbFile);
+		$this->log('cover=makeError:'.$localFile.';temp='.$thumbFile,'fileThumb');
 		return 'convert error! localFile='.get_path_this($localFile);
 	}
 	private function getSize($size){
@@ -319,7 +320,7 @@ class fileThumbPlugin extends PluginBase{
 
 		$maxWidth = 800;
 		$timeAt   = $videoThumbTime ? '-ss 00:00:03' : '';
-		$script   = $command.' -i "'.$file.'" -y -f image2 '.$timeAt.' -vframes 1 '.$tempPath.' 2>&1';
+		$script   = $command.' -i '.escapeShell($file).' -y -f image2 '.$timeAt.' -vframes 1 '.escapeShell($tempPath).' 2>&1';
 		$out = shell_exec($script);
 		if(!file_exists($tempPath)) {
 			if ($this->thumbVideoByLink($cacheFile)) return;
@@ -412,10 +413,12 @@ class fileThumbPlugin extends PluginBase{
 		$tempPath = $cacheFile;
 		if($GLOBALS['config']['systemOS'] == 'linux' && is_writable('/tmp/')){
 			mk_dir('/tmp/fileThumb');
-			$tempPath = '/tmp/fileThumb/'.rand_string(15).'.png';
+			if(is_writable('/tmp/fileThumb')){ // 可能有不可写的情况;
+				$tempPath = '/tmp/fileThumb/'.rand_string(15).'.png';
+			}
 		}
 
-		$script = $command.' '.$param.' "'.$file.'" '.$tempPath.' 2>&1';
+		$script = $command.' '.$param.' '.escapeShell($file).' '.escapeShell($tempPath).' 2>&1';
 		$out = shell_exec($script);
 		if(!file_exists($tempPath)) return $this->log('image thumb error:'.$out.';cmd='.$script);
 		move_path($tempPath,$cacheFile);

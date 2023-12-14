@@ -183,7 +183,8 @@ class adminLog extends Controller{
      */
     private function filterIn(){
         $in = $this->in;
-        unset($in['URLrouter'],$in['URLremote'],$in['HTTP_DEBUG_URL'],$in['CSRF_TOKEN'],$in['accessToken'],$in[str_replace(".", "/", ACTION)]);
+        unset($in['URLrouter'],$in['URLremote'],$in['HTTP_DEBUG_URL'],$in['CSRF_TOKEN'],
+			$in['safeToken'],$in['accessToken'],$in[str_replace(".", "/", ACTION)]);
         return $in;
     }
 

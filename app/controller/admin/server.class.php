@@ -9,7 +9,7 @@ class adminServer extends Controller {
 	}
 
 	// phpinfo
-	public function srvPhpinfo(){
+	public function srvPinfo(){
 		phpinfo();exit;
 	}
 

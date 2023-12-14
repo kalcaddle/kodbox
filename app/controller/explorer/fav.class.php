@@ -125,10 +125,12 @@ class explorerFav extends Controller{
 		$data = Input::getArray(array(
 			"name"		=> array("check"=>"require"),
 			"newName"	=> array("check"=>"require"),
+			"path"		=> array("check"=>"require","default"=>false),
 		));
 		$res = $this->model->rename($data['name'],$data['newName']);
 		$msg = !!$res ? LNG('explorer.success') : LNG('explorer.repeatError');
-		show_json($msg,!!$res);
+		$info = $res && $data['path'] ? $data['path']:false;
+		show_json($msg,!!$res,$data['path']);
 	}
 	
 	/**

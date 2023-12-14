@@ -281,7 +281,7 @@ class explorerList extends Controller{
 		}else if($pathParse['type'] == KodIO::KOD_USER_FILE_TAG){
 			$list = Action('explorer.tag')->tagList();
 			$current = $list[$pathParse['id']];
-			$current['name'] = LNG('common.tag').' - '.$current['name'];
+			$current['name'] = LNG('explorer.userTag.title').' - '.$current['name'];
 		}
 		$current['type'] = 'folder';
 		$current['path'] = $path;

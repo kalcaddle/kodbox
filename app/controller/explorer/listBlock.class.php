@@ -62,7 +62,7 @@ class explorerListBlock extends Controller{
 			'files'		=> array('name'=>LNG('common.position'),'open'=>true), 
 			'tools'		=> array('name'=>LNG('common.tools'),'open'=>true),
 			'fileType'	=> array('name'=>LNG('common.fileType'),'open'=>false,'children'=>true,'pathDesc'=> LNG('explorer.pathDesc.fileType')),
-			'fileTag'	=> array('name'=>LNG('common.tag'),'open'=>false,'children'=>true,'pathDesc'=> LNG('explorer.pathDesc.tag')),
+			'fileTag'	=> array('name'=>LNG('explorer.userTag.title'),'open'=>false,'children'=>true,'pathDesc'=> LNG('explorer.pathDesc.tag')),
 			'driver'	=> array('name'=>LNG('common.mount').' (admin)','open'=>false,'pathDesc'=> LNG('explorer.pathDesc.mount')),
 		);
 		return $list;
@@ -120,9 +120,10 @@ class explorerListBlock extends Controller{
 		// 没有所在部门时不显示;
 		if(isset($list['myGroup'])){
 			$selfGroup 	= Session::get("kodUser.groupInfo");
-			$groupArray = array_to_keyvalue($selfGroup,'','groupID');//自己所在的组
-			$group 		= array_remove_value($groupArray,$groupInfo['groupID']);
-			if(!$group){unset($list['myGroup']);}
+			// $groupArray = array_to_keyvalue($selfGroup,'','groupID');//自己所在的组
+			// $group 		= array_remove_value($groupArray,$groupInfo['groupID']);
+			// if(!$group){unset($list['myGroup']);}
+			if(!$selfGroup){unset($list['myGroup']);}
 		}
 
 		$explorer = Action('explorer.list');

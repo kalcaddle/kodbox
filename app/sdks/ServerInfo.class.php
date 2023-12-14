@@ -19,25 +19,37 @@ class ServerInfo {
         return $this->$action();
     }
 
+    // 获取/proc/xx文件内容
+    private static function getFileContent($file){
+        static $readList = array();
+        if (!isset($readList[$file])) {
+            $readList[$file] = @is_readable($file);
+        }
+        if ($readList[$file]) {
+            return file_get_contents($file);
+        }
+        return shell_exec('cat '.$file);
+    }
+
     /**
      * cpu使用率-linux
      * @return void
      */
     public function cpuUsageLinux(){
-        $filePath = ('/proc/stat');
-        if ( !@is_readable($filePath)) {
-            return 0;
-        }
-        $stat1  = file($filePath);
+        $filePath = '/proc/stat';
+        $stat1  = self::getFileContent($filePath);
+        if (!$stat1) return 0;
         sleep(1);
-        $stat2  = file($filePath);
-        $info1  = explode(' ', preg_replace('!cpu +!', '', $stat1[0]));
-        $info2  = explode(' ', preg_replace('!cpu +!', '', $stat2[0]));
-        $total1 = array_sum($info1);
-        $total2 = array_sum($info2);
-        $time1  = $total1 - $info1[3];
-        $time2  = $total2 - $info2[3];
-        return round(($time2 - $time1) / ($total2 - $total1), 3);
+        $stat2  = self::getFileContent($filePath);
+        $info1  = explode(" ", preg_replace("!cpu +!", "", $stat1));
+        $info2  = explode(" ", preg_replace("!cpu +!", "", $stat2));
+        $dif    = array();
+        $dif['user']    = $info2[0] - $info1[0];
+        $dif['nice']    = $info2[1] - $info1[1];
+        $dif['sys']     = $info2[2] - $info1[2];
+        $dif['idle']    = $info2[3] - $info1[3];
+        $total  = array_sum($dif);
+        return round(($total - $dif['idle']) / $total, 3);
     }
     
     /**
@@ -90,11 +102,11 @@ class ServerInfo {
         static $memInfo = null;
         if (null === $memInfo) {
             $memInfoFile = '/proc/meminfo';
-            if ( !@is_readable($memInfoFile)) {
+            $memInfo = self::getFileContent($memInfoFile);
+            if (!$memInfo) {
                 $memInfo = 0;
                 return 0;
             }
-            $memInfo = file_get_contents($memInfoFile);
             $memInfo = str_replace(array(
                 ' kB',
                 '  ',

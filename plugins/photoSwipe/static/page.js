@@ -20,6 +20,7 @@ define(function(require, exports) {
 				src:item.src,
 				$dom:item.$dom || false,
 				msrc:item.msrc || item.src,
+				trueImage:item.trueImage || '',
 				title:htmlEncode(title),
 				w:item.width  || 0,h:item.height  || 0,
 				data:item,
@@ -298,6 +299,39 @@ define(function(require, exports) {
 		});
 	};
 	
+	// 显示原图; 如果设置有原图的情况;
+	var bindShowImateTrue = function(){
+		if($('.pswp__button--show-true').length) return;
+		var html = '<button class="pswp__button pswp__button--show-true">'+LNG['photoSwipe.showTrue']+'</button>';
+		var $button = $(html).insertAfter('.pswp__button--zoom');
+		
+		var imageChange = function(){
+			var currItem = gallery.currItem;
+			if(!currItem || !currItem.src){return;}
+			var method = currItem.trueImage ? 'removeClass':'addClass';
+			$button[method]('hidden');
+		};imageChange();
+		gallery.listen('afterChange',imageChange);
+		
+		$button.bind('click', function(e){
+			var currItem  = gallery.currItem;
+			if(!currItem || !currItem.trueImage){return;}
+			currItem._src = currItem.src;currItem.src = currItem.trueImage;
+
+			var $img = $(currItem.container).find('.pswp__img:not(.pswp__img--placeholder)');
+			var loading = $(".pswp__item.current").loadingMask(LNG['explorer.getting'])
+			$img.attr('src',currItem.src).bind('load',function(){
+				currItem.trueImage = false;imageChange();
+				loading.close();
+				$img.hide().fadeIn();
+			}).bind('error',function(){
+				loading.close();
+				Tips.pop(LNG['explorer.error']);
+			});
+			photoSwipeView.updateSize();
+		});
+	};
+	
 	var itemInfoOpen = false;
 	var bindItemInfo = function(){
 		itemInfoOpen = false;
@@ -378,6 +412,7 @@ define(function(require, exports) {
 			bindRotate();
 			bindRemove();
 			bindItemInfo();
+			bindShowImateTrue();
 		});
 	};
 });

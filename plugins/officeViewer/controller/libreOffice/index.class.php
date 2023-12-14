@@ -90,7 +90,7 @@ class officeViewerlibreOfficeIndex extends Controller {
         $fpath = get_path_father($tempPath);
         // 转换类型'pdf'改为'新文件名.pdf'，会生成'源文件名.新文件名.pdf'
 		$export = 'export HOME=/tmp/libreOffice && ';
-        $script = $export.$command . ' --headless --invisible --convert-to '.$fname.' "'.$file.'" --outdir '.$fpath;
+        $script = $export.$command . ' --headless --invisible --convert-to '.escapeShell($fname).' "'.escapeShell($file).'" --outdir '.$fpath;
 		$out = shell_exec($script);
 
         $tname = substr(end(explode('/', $file)), 0, -strlen('.'.$ext));
@@ -127,6 +127,7 @@ class officeViewerlibreOfficeIndex extends Controller {
 
     //linux 注意修改获取bin文件的权限问题;
 	public function check(){
+		if(!$GLOBALS['isRoot']){show_tips(LNG('explorer.noPermissionAction'));}
         $bin = $this->in['soffice'];
 		$plugin = Action($this->pluginName);
         if(!empty($bin)) {
@@ -150,7 +151,7 @@ class officeViewerlibreOfficeIndex extends Controller {
         $check = 'LibreOffice';
 		$data = Action($this->pluginName)->_appConfig('lb');
         $bin = isset($data['soffice']) ? $data['soffice'] : '';
-		$bin = '"'.trim(iconv_system($bin)).'"';	// win路径空格处理
+		$bin = escapeShell(iconv_system($bin));	// win路径空格处理
         $result = $this->checkBin($bin,$check);
         return $result ? $bin : false;
     }
