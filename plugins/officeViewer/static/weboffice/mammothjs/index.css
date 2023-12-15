@@ -90,8 +90,11 @@ body .page-box.fit-content {
     background: none;
 }
 body .page-box.fit-content #output{
-    margin-bottom: 8px;
+	margin-bottom: 100px;
     background: #fff;
+    margin-top: 20px;
+    border-radius: 4px;
+    box-shadow: 0 2px 30px #00000010;
 }
 
 .page-box #output ol {

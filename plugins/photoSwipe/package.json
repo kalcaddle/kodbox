@@ -2,7 +2,7 @@
 	"id":"photoSwipe",
 	"name":"{{LNG['photoSwipe.meta.name']}}",
 	"title":"{{LNG['photoSwipe.meta.title']}}",
-	"version":"1.56",
+	"version":"1.57",
 	"source":{
 		"className":"x-item-icon x-gif",
 		"screenshoot":[

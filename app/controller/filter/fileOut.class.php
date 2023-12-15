@@ -24,7 +24,17 @@ class filterFileOut extends Controller{
 			'explorer.share.fileout',
 			'explorer.share.fileoutby',
 		);
-		if(in_array($action,$disableCookie)){Cookie::disable(true);allowCROS();}
+		if(in_array($action,$disableCookie)){
+			Cookie::disable(true);allowCROS();
+			
+			// 仅限当前ip使用的token,有效期1天(该token仅限文件获取几个接口使用)
+			$token = isset($_REQUEST['safeToken']) ? $_REQUEST['safeToken']:'';
+			if($token && strlen($token) < 500){
+				$pass = substr(md5('safe_'.get_client_ip().Model('SystemOption')->get('systemPassword')),0,15);
+				$sessionSign = Mcrypt::decode($token,$pass);
+				if($sessionSign){Session::sign($sessionSign);}
+			}
+		}
 		Hook::bind('PathDriverBase.fileOut.before',array($this,'fileOut'));
 	}
 	

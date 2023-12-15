@@ -1,5 +1,6 @@
 kodReady.push(function(){
 	Events.bind('explorer.kodApp.before',function(appList){
+		if(!_.get(window,'kodApp.pathModel.fileSave')){return;} //外链分享不支持html编辑;
 		appList.push({
 			name:'{{package.id}}',
 			title:'{{package.name}}',
@@ -70,7 +71,8 @@ kodReady.push(function(){
 		form.editor = form.$('.tox-tinymce').data('editor');
 		if(form.editor){form.editor.focus();}
 		
-		var title   = 'title="'+LNG['common.save'] + '(ctrl+s)" title-timeout="100" ';
+		form.$el.attr('title-root-set','1').attr('title-timeout','100');//title延迟时间统一缩短;
+		var title   = 'title="'+LNG['common.save'] + '(ctrl+s)"';
 		var btnHtml = '<button class="tox-tbtn btn-html-save" '+title+'><i class="mce-i-icon mce-i-save"></i></button>';
 		var $btn = $(btnHtml).insertAfter(form.$(".toolbar-fullscreen"));
 		if(!supportSave){$btn.addClass('disable');}

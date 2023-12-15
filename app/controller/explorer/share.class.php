@@ -80,7 +80,7 @@ class explorerShare extends Controller{
 			$etag = substr(md5($info['modifyTime'].$info['size']),0,5);
 		}
 		$url = urlApi($apiKey,"path=".rawurlencode($path).'&et='.$etag.'&name=/'.$name);
-		if($token) $url .= '&safeToken='.Action('user.index')->safeToken();
+		if($token) $url .= '&accessToken='.Action('user.index')->accessToken();
 		return $url;
 	}
 	
@@ -395,7 +395,7 @@ class explorerShare extends Controller{
 		$url = $this->in['path'];
 		$urlInfo = parse_url_query($url);
 		if( !isset($urlInfo["explorer/share/unzipListHash"]) && 
-			!isset($urlInfo["safeToken"])){
+			!isset($urlInfo["accessToken"])){
 			show_json(LNG('common.pathNotExists'),false);
 		}
 		$index 	  = json_decode(rawurldecode($urlInfo['index']),true);

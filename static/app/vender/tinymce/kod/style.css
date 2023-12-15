@@ -833,7 +833,8 @@ div.tox .tox-menu.tox-collection.tox-collection--list + .tox-menu{
 }
 div.tox .tox-collection--list .tox-collection__item{padding:0px 10px 2px 5px;border-radius: 4px;transition: all 0.2s;}
 
-
-.app-wap-small div.tox .tox-toolbar__group{padding: 0px 2px 1px 2px;}
+.app-wap-small div.tox .tox-toolbar{white-space: nowrap;}
+.app-wap-small div.tox .tox-toolbar.tox-toolbar--scrolling{padding-right: 40px;margin-right: 40px;}
+.app-wap-small div.tox .tox-toolbar__group{padding: 0px 2px 1px 2px;float:none;}
 .app-wap-small div.tox .tox-editor-header .tox-toolbar .toolbar-fontselect{width:77px;}
 .app-wap-small div.tox .tox-editor-header .tox-toolbar .toolbar-lineheight{margin-right: 9px;}
