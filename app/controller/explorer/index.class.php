@@ -51,13 +51,17 @@ class explorerIndex extends Controller{
 		return $result;
 	}
 
+	public  function pathInfoItem($path){
+		$pathInfo = IO::info($path);
+		if(!$pathInfo) return false;
+		return $this->itemInfoMore($pathInfo);
+	}
 	private function itemInfoMore($item){
 		$result  = Model('SourceAuth')->authOwnerApply($item);
 		$showMd5 = Model('SystemOption')->get('showFileMd5') != '0';
 		if($result['type'] != 'file') return $item;
-		if(!$showMd5) return $item;
 		
-		if( !_get($result,'fileInfo.hashMd5') && 
+		if($showMd5 && !_get($result,'fileInfo.hashMd5') && 
 			($result['size'] <= 100*1024*1024 || _get($this->in,'getMore') || _get($this->in,'getChildren'))  ){
 			$result['hashMd5'] = IO::hashMd5($result['path']);
 		}
@@ -308,10 +312,10 @@ class explorerIndex extends Controller{
 	public function pathAllowCheck($path){
 		$notAllow = array('/', '\\', ':', '*', '?', '"', '<', '>', '|');
 		$parse = KodIO::parse($path);
-		if($parse['pathBase']){
-			$path = $parse['param'];
-		}
+		if($parse['pathBase']){$path = $parse['param'];}
+		
 		$name = trim(get_path_this($path));
+		if(!$name){return;} // 允许纯为空情况; 新建文件夹: {source:xxx}/ 允许该情况;
 		$name = preg_replace_callback('/./u',function($match){return strlen($match[0]) >= 4 ? '':$match[0];},$name);
 		if(!$name){show_json(LNG('explorer.charNoSupport').'emoji',false);} // 不允许纯emoji表情; 新建后文件名不显示;
 		

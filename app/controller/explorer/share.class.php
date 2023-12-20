@@ -307,9 +307,12 @@ class explorerShare extends Controller{
 				$has = IO::has($path,true);
 				if(is_array($has)){$pathInfo = array_merge($pathInfo,$has);}
 			}
-			$pathInfo = Action('explorer.list')->pathInfoCover($pathInfo);
-			if(is_array($pathInfo['fileInfo'])){unset($pathInfo['fileInfo']);}
-			$result[] = $this->shareItemInfo($pathInfo);
+			
+			$pathInfoOut = $this->shareItemInfo($pathInfo);
+			if(is_array($pathInfo['fileInfo'])){$pathInfoOut['fileInfo'] = $pathInfo['fileInfo'];} // 用户hash获取等;
+			$pathInfoOut = Action('explorer.list')->pathInfoCover($pathInfoOut);//path参数需要是外链路径;
+			if(is_array($pathInfoOut['fileInfo'])){unset($pathInfoOut['fileInfo']);}
+			$result[] = $pathInfoOut;
 		}
 		
 		if(count($fileList) == 1){

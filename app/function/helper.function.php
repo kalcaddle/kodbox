@@ -4,13 +4,16 @@ if(!function_exists('gzinflate')){
     show_tips("不支持gzinflate ,<br/>请安装php-zlib 扩展后再试");exit;
 }
 function allowCROS(){
+	if(isset($GLOBALS['_allowCROS'])){return;} // 只调用一次;
+	$GLOBALS['_allowCROS'] = true;
+	
 	$allowMethods = 'GET, POST, OPTIONS, DELETE, HEAD, MOVE, COPY, PUT, MKCOL, PROPFIND, PROPPATCH, LOCK, UNLOCK';
 	$allerHeaders = 'ETag, Content-Type, Content-Length, Accept-Encoding, X-Requested-with, Origin, Authorization';
 	header('Access-Control-Allow-Origin: *');    				// 允许的域名来源;
 	header('Access-Control-Allow-Methods: '.$allowMethods); 	// 允许请求的类型
 	header('Access-Control-Allow-Headers: '.$allerHeaders);		// 允许请求时带入的header
 	header('Access-Control-Allow-Credentials: true'); 			// 设置是否允许发送 cookie; js需设置:xhr.withCredentials = true;
-	header('Access-Control-Max-Age: 3600');
+	header('Access-Control-Max-Age: 3600');	
 }
 
 //扩展名权限判断 有权限则返回1 不是true

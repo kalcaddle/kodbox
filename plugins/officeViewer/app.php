@@ -50,13 +50,7 @@ class officeViewerPlugin extends PluginBase{
 
 	// 入口
 	public function index(){
-		$path = $this->filePath($this->in['path']);
-		if (isset($this->fileInfo['fileID'])) {
-			$tmpInfo = Model('File')->fileInfo($this->fileInfo['fileID']);
-			if (!$tmpInfo || !IO::exist($tmpInfo['path'])) {
-				show_tips(LNG('common.pathNotExists'));
-			}
-		}
+		$path   = $this->filePath($this->in['path'],true,true);
 		$config = $this->getConfig();
 		$openType = isset($config['openType']) ? $config['openType'] : '';
 		if ($openType == 'js') $openType = 'wb';	// 兼容旧版
@@ -101,8 +95,8 @@ class officeViewerPlugin extends PluginBase{
 		if (!in_array($ext, $extAll)) return false;
 		// 某些文件可能只是命名为旧格式，根据前2个字符(PK)区分
 		if ($type == 'wb' && $inlet && in_array($ext, array('doc', 'ppt'))) {
-			$path = $this->in['path'];
-			$prfx = IO::fileSubstr($path, 0, 2);
+			// 使用解析后的文件路径;打开压缩包内的doc文件直接用path会报错
+			$prfx = IO::fileSubstr($this->fileInfo['path'], 0, 2); 
 			return strtolower($prfx) == 'pk' ? true : false;
 		}
 		return true;

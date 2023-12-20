@@ -68,15 +68,15 @@ div.tox .tox-swatches__picker-btn{
 div.tox .tox-toolbar .tox-menubar{
 	background:none;
 	height: 30px;
-    position: relative;top: -1px;left:-2px;
+    position: relative;top: -1px;left: -2px;
+    white-space: nowrap;vertical-align: top;
 }
 div.tox .tox-editor-header {
+	border-bottom: 1px solid #ddd;
     background: linear-gradient(0deg,#fafcff,#fff);
 }
 div.tox .tox-toolbar-overlord {
-    /*background-color: #fafafa;*/
-    background:none;
-    border-bottom: 1px solid #ddd;
+	background:none;
 }
 
 div.tox .tox-collection__item-icon{
@@ -103,7 +103,7 @@ div.tox .tox-tbtn{
     font-size: inherit;
 	transition:none;
 	display: inline-block;
-	align-items: inherit;
+	align-items: inherit;vertical-align: top;
 }
 
 div.tox .tox-toolbar__group{
@@ -111,17 +111,20 @@ div.tox .tox-toolbar__group{
 	margin: 0;
 	height: 28px;overflow: hidden;
 	padding: 1px 2px 1px 4px;
-	display: inline-block;
-	flex-wrap: inherit;
-	float: left;
+	display: inline-block;vertical-align: top;
+	flex-wrap: inherit;align-items:inherit;
+	float: none;white-space: nowrap;
 }
-div.tox .tox-menubar{display:inline-block;float: left;}
+div.tox .tox-split-button{vertical-align: top;}
+div.tox .tox-menubar{display:inline-block;float: none;}
 div.tox .tox-toolbar__group:last-child:after {display: none;}
 div.tox .tox-toolbar{
-	height:30px;
-	overflow: hidden;
-    overflow-x: auto;
+	height:30px;overflow: hidden;white-space: nowrap;
+	width: fit-content;padding-right:30px;
 }
+div.tox .tox-pop .tox-toolbar{padding-right:0;}
+div.tox .tox-toolbar-overlord{overflow: hidden;overflow-x: auto;}
+
 div.tox .tox-toolbar:after{    
 	content: "";
 	clear: both;float: none;
@@ -359,8 +362,8 @@ div.tox .tox-toolbar__group:after{
     padding: 0;margin:0;
     float: none;clear: both;
 }
-div.tox .tox-toolbar__group .tox-tbtn{float:left;}
-div.tox .tox-toolbar__group .tox-split-button{float:left;}
+div.tox .tox-toolbar__group .tox-tbtn{float:none;}
+div.tox .tox-toolbar__group .tox-split-button{float:none;}
 
 
 div.tox .tox-split-button .tox-tbtn{

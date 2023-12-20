@@ -193,8 +193,9 @@ class explorerList extends Controller{
 
 		$countSource = $sourceArr ? Model("SourceHistory")->historyCount($sourceArr):array();
 		$countLocal  = $pathArr   ? IOHistory::historyCount($pathArr):array();
-		if(!$countSource && !$countLocal) return;
+		// if(!$countSource && !$countLocal) return;
 		foreach ($data['fileList'] as $key=>$file){
+			$data['fileList'][$key]['historyCount'] = 0; //默认设置为0
 			if($file['sourceID'] && $countSource[$file['sourceID']]){
 				$data['fileList'][$key]['historyCount'] = intval($countSource[$file['sourceID']]);
 			}

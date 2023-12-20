@@ -7,7 +7,7 @@
 	margin:0;padding:0;position: absolute;top:0;left:0;right:0;bottom:0;
 }
 .dialog-form.dialog-html-editor .tox-tinymce{border:none;}
-.dialog-form.dialog-html-editor .tox-tbtn.btn-html-save{position:absolute;right: 2px;top:28px;}
+.dialog-form.dialog-html-editor .tox-tbtn.btn-html-save{position:absolute;right: 2px;top:33px;}
 .dialog-form.dialog-html-editor .tox-tbtn.btn-html-save .font-icon{font-size:18px;line-height: 15px;}
 .dialog-form.dialog-html-editor .tox .tox-tbtn.toolbar-codeView{
 	position: absolute;margin-left: 82px;

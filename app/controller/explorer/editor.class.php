@@ -19,8 +19,7 @@ class explorerEditor extends Controller{
 			$driver   = new PathDriverUrl();
 			return $this->fileGetMake($path,$driver->info($path),$path);
 		}
-		$pathInfo = IO::info($path);
-		$pathInfo = Action('explorer.list')->pathInfoParse($pathInfo);
+		$pathInfo = Action('explorer.index')->pathInfoItem($path);
 		Action('explorer.index')->updateLastOpen($path);
 		$this->fileGetMake($path,$pathInfo);
 	}
@@ -186,7 +185,8 @@ class explorerEditor extends Controller{
 		}
 		$result = IO::setContent($data['path'],$content);
 		$msg = $result ? LNG("explorer.saveSuccess") : IO::getLastError(LNG('explorer.saveError'));
-		show_json($msg,!!$result);
+		$pathInfo = Action('explorer.index')->pathInfoItem($data['path']);
+		show_json($msg,!!$result,$pathInfo);
 	}
 	
 	/*

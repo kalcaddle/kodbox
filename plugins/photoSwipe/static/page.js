@@ -274,7 +274,7 @@ define(function(require, exports) {
 		if($('.pswp__button--rotate').length) return;
 		var html = '<button class="pswp__button pswp__button--rotate"></button>';
 		var $button = $(html).insertAfter('.pswp__button--close');
-		$button.bind('click', function(e){
+		$button.unbind('click').bind('click', function(e){
 			var radius = parseInt(imageRotateItem(gallery.currItem,'get')) + 90;
 			imageRotateItem(gallery.currItem,radius,true);
 			$('.pswp__ui--hidden').removeClass('pswp__ui--hidden');
@@ -285,26 +285,28 @@ define(function(require, exports) {
 		if($('.pswp__button--remove').length) return;
 		var html = '<button class="pswp__button pswp__button--remove"></button>';
 		var $button = $(html).insertAfter('.pswp__button--close');
-		$button.bind('click', function(e){
+		$button.unbind('click').bind('click', function(e){
 			gallery.removeImage && gallery.removeImage();
 			$('.pswp__ui--hidden').removeClass('pswp__ui--hidden');
 		});
 
 		// 快捷键删除;
-		$('.pswp').bind('keyup',function(e){
+		var keyUp = function(e){
 			if(!$('.pswp').hasClass('pswp--open')) return;
 			if(e.key == 'Delete'){
 				$('.pswp .pswp__button--remove').trigger('click');
 			}
-		});
+		};
+		$('.pswp').unbind('keyup',keyUp).bind('keyup',keyUp);
 	};
 	
 	// 显示原图; 如果设置有原图的情况;
 	var bindShowImateTrue = function(){
-		if($('.pswp__button--show-true').length) return;
-		var html = '<button class="pswp__button pswp__button--show-true">'+LNG['photoSwipe.showTrue']+'</button>';
-		var $button = $(html).insertAfter('.pswp__button--zoom');
-		
+		var $button = $('.pswp__button--show-true');
+		if(!$button.length){
+			var html = '<button class="pswp__button pswp__button--show-true">'+(LNG['photoSwipe.showTrue'] || '')+'</button>';
+			$button = $(html).insertAfter('.pswp__button--zoom');
+		}
 		var imageChange = function(){
 			var currItem = gallery.currItem;
 			if(!currItem || !currItem.src){return;}
@@ -313,7 +315,7 @@ define(function(require, exports) {
 		};imageChange();
 		gallery.listen('afterChange',imageChange);
 		
-		$button.bind('click', function(e){
+		$button.unbind('click').bind('click', function(e){
 			var currItem  = gallery.currItem;
 			if(!currItem || !currItem.trueImage){return;}
 			currItem._src = currItem.src;currItem.src = currItem.trueImage;
@@ -367,8 +369,7 @@ define(function(require, exports) {
 			lastImageList.imageInfoCallback(gallery.currItem.data,$('.file-panel-info'));
 			photoSwipeView.updateSize();
 		}
-		
-		$button.bind('click', function(e){
+		$button.unbind('click').bind('click', function(e){
 			itemInfoOpen ? closeView():openView();
 		});
 		$('.pswp_content').delegate('.panel-close','click',closeView);

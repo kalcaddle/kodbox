@@ -28,7 +28,7 @@ class filterFileOut extends Controller{
 			Cookie::disable(true);allowCROS();
 			
 			// 仅限当前ip使用的token,有效期1天(该token仅限文件获取几个接口使用)
-			$token = isset($_REQUEST['safeToken']) ? $_REQUEST['safeToken']:'';
+			$token = isset($_REQUEST['viewToken']) ? $_REQUEST['viewToken']:'';
 			if($token && strlen($token) < 500){
 				$pass = substr(md5('safe_'.get_client_ip().Model('SystemOption')->get('systemPassword')),0,15);
 				$sessionSign = Mcrypt::decode($token,$pass);
@@ -59,16 +59,26 @@ class filterFileOut extends Controller{
 		$this->output($content);
 	}
 	private function scriptParse($content){
-		$self = $this;
-		$content = preg_replace_callback("/self\.importScripts\s*\(\s*['\"]*(.*?)['\"]*\s*\)/",function($matchs) use($self){
-			return 'self.importScripts("'.$self->urlFilter($matchs[1]).'")';
+		$self = $this;$contentOld = $content;
+		$content = preg_replace_callback("/self\.importScripts\s*\(\s*([`'\"].*?[`'\"])\s*\)/",function($matchs) use($self){
+			$char = substr($matchs[1],0,1);$url = substr($matchs[1],1,strlen($matchs[1])-2);
+			return 'self.importScripts('.$char.$self->urlFilter($url).$char.')';
 		},$content);
-		$content = preg_replace_callback("/\s+from\s+['\"](.*?\.js)['\"]/",function($matchs) use($self){
-			return ' from "'.$self->urlFilter($matchs[1]).'"';
+		$content = preg_replace_callback("/\s+from\s+([`'\"].*?['\"`])/",function($matchs) use($self){
+			$char = substr($matchs[1],0,1);$url = substr($matchs[1],1,strlen($matchs[1])-2);
+			return ' from '.$char.$self->urlFilter($url).$char;
 		},$content);
-		$content = preg_replace_callback("/import\s+['\"](.*?\.js)['\"]/",function($matchs) use($self){
-			return 'import "'.$self->urlFilter($matchs[1]).'"';
+		$content = preg_replace_callback("/import\s+(['\"`].*?['\"`])/",function($matchs) use($self){
+			$char = substr($matchs[1],0,1);$url = substr($matchs[1],1,strlen($matchs[1])-2);
+			return 'import '.$char.$self->urlFilter($url).$char;
 		},$content);
+		
+		// await import( `./Sidebar.Geometry.${ geometry.type }.js` ); 该情况兼容;
+		$content = preg_replace_callback("/import\s*\(\s*(['\"`].*?['\"`])\s*\)/",function($matchs) use($self){
+			$char = substr($matchs[1],0,1);$url = substr($matchs[1],1,strlen($matchs[1])-2);
+			return 'import('.$char.$self->urlFilter($url).$char.')';
+		},$content);
+		// var_dump($contentOld,$content);exit;
 		$this->output($content);
 	}
 	private function scriptParseWasm($content){
@@ -82,13 +92,18 @@ class filterFileOut extends Controller{
 	private function urlFilter($url){
 		if(strpos($url,'?') > 0){$url = substr($url,0,strpos($url,'?'));}
 		if(strpos($url,'#') > 0){$url = substr($url,0,strpos($url,'#'));}
-		
+
+		$path = rawurldecode($_GET['path']);// $this->in['path'], 外链分享时可能被替换;
 		// 采用相对路径重新计算; 确保多个位置import 最后引用路径一致; 
 		// 路径有变化时js多个地方import同一个文件,但url路径不一致,时会导致重复执行;
-		$addNew = kodIO::pathTrue($this->in['add'].'/../'.$url);
-		$param  = '&safeToken='.$this->in['safeToken'].'&replaceType='.$this->in['replaceType'];
-		$url = APP_HOST.'?'.str_replace('.','/',ACTION);
-		return $url.$param.'&path='.rawurlencode($this->in['path']).'&add='.rawurlencode($addNew);
+		$addNew  = kodIO::pathTrue($this->in['add'].'/../'.$url);
+		
+		// 路径中不替换部分; 兼容js中url字符串带`${v}`变量情况;
+		$addNew  = str_replace(array('%24','%20','%7B','%7D'),array('$',' ','{','}'),rawurlencode($addNew)); 
+		$shareID = isset($this->in['shareID']) ? '&shareID='.$this->in['shareID']:'';
+		$param   = '&viewToken='.$this->in['viewToken'].$shareID.'&replaceType='.$this->in['replaceType'];
+		$url = APP_HOST.'index.php?'.str_replace('.','/',ACTION); // chrome xhr跨域options目录预检处理;需要带上index.php
+		return $url.$param.'&path='.rawurlencode($path).'&add='.$addNew;
 	}
 	private function output($content){
 		header('HTTP/1.1 200 OK');
