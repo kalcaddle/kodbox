@@ -232,7 +232,7 @@ div.tox .tox-toolbar .toolbar-lineheight .tox-tbtn__select-chevron{right: 6px;}
 
 div.tox .tox-collection--list .tox-collection__group{border-color: #eee;padding:4px 0;}
 div.tox .tox-collection--list .tox-collection__item {
-	padding:1px 10px;
+	padding:1px 10px;white-space: nowrap;
 	display:block;position: relative;
 	line-height:20px;border-radius: 0px;
 }
@@ -241,7 +241,7 @@ div.tox .tox-collection--list .tox-collection__item .tox-collection__item-icon{
 	width:20px;height: 18px;font-size: 20px;display:inline-block;
 }
 div.tox .tox-collection--list .tox-collection__item .tox-collection__item-label{
-	padding-right:60px;font-size: 13px;
+	font-size: 13px;min-width: 100px;
 	display: inline-block;
 }
 div.tox .tox-collection--list .tox-collection__item .tox-collection__item-caret{
@@ -841,3 +841,5 @@ div.tox .tox-collection--list .tox-collection__item{padding:0px 10px 2px 5px;bor
 .app-wap-small div.tox .tox-toolbar__group{padding: 0px 2px 1px 2px;float:none;}
 .app-wap-small div.tox .tox-editor-header .tox-toolbar .toolbar-fontselect{width:77px;}
 .app-wap-small div.tox .tox-editor-header .tox-toolbar .toolbar-lineheight{margin-right: 9px;}
+.app-wap-small div.tox .tox-tbtn.toolbar-fullscreen{display: none !important;}
+.app-wap-small div.tox .tox-tbtn.toolbar-codeView {position:static !important;}
