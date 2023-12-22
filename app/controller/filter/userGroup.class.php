@@ -76,7 +76,17 @@ class filterUserGroup extends Controller{
 		if(!isset($actions[$action])) return;
 		if(!Session::get("kodUser")){show_json(LNG('user.loginFirst'),ERROR_CODE_LOGOUT);}
 		$check = $actions[$action];
-		if($check['read'] == 'allow'){return $this->checkItemRead($check,$action);}
+		
+		if($check['read'] == 'allow'){			
+			// 部门管理员,从后台搜索部门; 仅限在有权限的部门中搜索;
+			$isFromAdmin = isset($this->in['requestFromType']) && $this->in['requestFromType'] == 'admin';
+			$adminGroup = $this->userGroupAdmin();
+			$isSearch    = in_array($action,array('admin.member.search','admin.group.search'));
+			if( $isSearch && $isFromAdmin && !isset($this->in[$check['group']])){
+				$this->in[$check['group']] = implode(',',$adminGroup);
+			}
+			return $this->checkItemRead($check,$action);
+		}
 
 		$allow = true;
 		if($allow && $check['group']){

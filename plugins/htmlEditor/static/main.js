@@ -1,17 +1,49 @@
 kodReady.push(function(){
+	var htmlSafe = false;
+	var supportView = "{{config.fileView}}" != '0';
+	var supportEdit = "{{config.fileEdit}}" != '0';
 	Events.bind('explorer.kodApp.before',function(appList){
-		if(!_.get(window,'kodApp.pathModel.fileSave')){return;} //外链分享不支持html编辑;
-		appList.push({
-			name:'{{package.id}}',
-			title:'{{package.name}}',
-			ext:"{{config.fileExt}}",
-			sort:"{{config.fileSort}}",
-			icon:'x-item-icon x-html',
-			callback:showView
+		requireAsync("{{pluginHost}}static/htmlSafe.js?v={{package.version}}",function(View){
+			htmlSafe = new View();
+			if(!supportView || !htmlSafe.support()){return;}
+			kodApp.htmlSafe = htmlSafe;
+			kodApp.add({ // kodApp 加载后,加载htmlSafe资源; 
+				name:'htmlView',
+				title:"{{LNG['htmlEditor.app.show']}}",
+				ext:"{{config.fileExt}}",
+				sort:parseInt("{{config.fileViewSort}}") || 10,
+				icon:'x-item-icon x-html',
+				callback:function(filePath,ext,name,args){
+					var pathModel  = kodApp.pathModel,uuid = md5(filePath);
+					var findDialog = $.dialog.list[uuid];
+					if(findDialog){findDialog.display(true).zIndex().$main.flash();return;}
+					
+					var dialog  = core.openDialog('',core.icon('html'),name,uuid,{iframeAttr:htmlSafe.iframeAttr()});
+					if(!dialog || !dialog.$main){return;}
+					
+					var $iframe = dialog.$main.find('.aui-content iframe');
+					dialog.$main.find('.iframe-mask').remove();
+					dialog.refreshSupport = true;
+					dialog.refresh = function(){htmlSafe.loadContent($iframe,filePath,pathModel);return dialog;};
+					htmlSafe.loadContent($iframe,filePath,pathModel);
+				}
+			});
 		});
+		
+		//外链分享不支持html编辑;
+		if(supportEdit && _.get(window,'kodApp.pathModel.fileSave')){
+			appList.push({
+				name:'htmlEdit',
+				title:"{{LNG['htmlEditor.app.edit']}}",
+				ext:"{{config.fileExt}}",
+				sort:parseInt("{{config.fileEditSort}}") || 5,
+				icon:'x-item-icon x-html',
+				callback:showEdit
+			});
+		}
 	});
 	
-	var showView = function(filePath,ext,name){
+	var showEdit = function(filePath,ext,name){
 		if( !kodApp.pathModel || !kodApp.pathModel.fileContent || !kodApi.formMaker){
 			return Tips.tips(LNG['explorer.error'],'warning');
 		}
@@ -45,7 +77,6 @@ kodReady.push(function(){
 	var bindEvent = function(form,filePath){
 		var iframeWindow = form.$('iframe').get(0).contentWindow;
 		if(!iframeWindow){return;}
-
 		$(iframeWindow.document.body).css({padding:'10px 20px'});
 		var supportSave = true;
 		if(!kodApp.pathModel.fileSave){supportSave = false;}

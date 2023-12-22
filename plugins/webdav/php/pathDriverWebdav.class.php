@@ -25,6 +25,7 @@ class PathDriverWebdav extends PathDriverBase {
 		$this->davServerKod 	= false;
 		$this->uploadChunkSize  = 1024*1024*5; 	// patch分片上传时; 分片大小;
 		
+		if(!is_string($config['dav'])){return;}
 		$davSupport = $config['dav'] ? $config['dav']:'';
 		$davSupport = explode(',',$davSupport);
 		foreach($davSupport as $key => $type){$davSupport[$key] = trim($type);}

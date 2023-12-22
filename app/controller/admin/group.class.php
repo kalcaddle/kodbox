@@ -98,9 +98,23 @@ class adminGroup extends Controller{
 	public function search() {
 		$data = Input::getArray(array(
 			"words" 		=> array("check"=>"require"),
-			"parentGroup"	=> array("check"=>"int",'default'=>false),
+			"parentGroup"	=> array("check"=>"require",'default'=>false),// 支持多个父部门,多个逗号隔开;
 		));
-		$result = $this->model->listSearch($data);
+
+		if(!$data['parentGroup']){
+			$result = $this->model->listSearch($data);
+		}else{
+			$groupArr = explode(',',$data['parentGroup']);$result = false;
+			foreach ($groupArr as $groupID) {
+				$data['parentGroup'] = intval($groupID);
+				$listSearch = $this->model->listSearch($data);
+				if(!$result){$result = $listSearch;continue;}
+				$result['list'] = array_merge($result['list'],$listSearch['list']);
+			}
+			if(is_array($result) && is_array($result['list'])){
+				$result = array_page_split(array_unique($result['list']),$result['pageInfo']['page'],$result['pageInfo']['pageNum']);
+			}
+		}
 		show_json($result,true);
 	}
 	

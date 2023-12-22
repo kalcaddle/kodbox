@@ -2,7 +2,7 @@
 	"id":"htmlEditor",
 	"name":"{{LNG['htmlEditor.meta.title']}}",
 	"title":"{{LNG['htmlEditor.meta.title']}}",
-	"version":"1.01",
+	"version":"1.02",
 	"source":{
 		"className":"x-item-icon x-html",
 		"icon":""
@@ -22,18 +22,41 @@
 			"desc":"{{LNG['admin.plugin.authDesc']}}",
 			"require":1
 		},
-		"sep1001":"<hr/>",
 		"fileExt":{
 			"type":"tags",
 			"display":"{{LNG['admin.plugin.fileExt']}}",
 			"desc":"{{LNG['admin.plugin.fileExtDesc']}}",
 			"value":"htm,html,shtml"
 		},
-		"fileSort":{
+		"sep1001":"<hr/>",
+		
+		"fileView":{
+			"type":"switch",
+			"display":"{{LNG['htmlEditor.app.show']}}",
+			"desc":"{{LNG['htmlEditor.app.showDesc']}}",
+			"value":"1",
+			"switchItem":{"1":"fileViewSort"}
+		},
+		"fileViewSort":{
+			"type":"number",
+			"display":"{{LNG['admin.plugin.fileSort']}}",
+			"desc":"{{LNG['admin.plugin.fileSortDesc']}}",
+			"value":10
+		},
+		
+		"sep1002":"<hr/>",
+		"fileEdit":{
+			"type":"switch",
+			"display":"{{LNG['htmlEditor.app.edit']}}",
+			"desc":"{{LNG['htmlEditor.app.editDesc']}}",
+			"value":"1",
+			"switchItem":{"1":"fileEditSort"}
+		},
+		"fileEditSort":{
 			"type":"number",
 			"display":"{{LNG['admin.plugin.fileSort']}}",
 			"desc":"{{LNG['admin.plugin.fileSortDesc']}}",
 			"value":5
-		}
+		}	
 	}
 }
