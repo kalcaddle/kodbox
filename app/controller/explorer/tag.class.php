@@ -247,11 +247,10 @@ class explorerTag extends Controller{
 		}
 		$res = $this->modelSource->removeFromTag($files,$data['tagID']);
 		if(!$res && count($files) == 1){ // 部分老数据处理; 文件夹统一去除结尾斜杠;
-			$files[0] = rtrim($files[0],'/').'/';
+			$files[0] = rtrim($files[0],'/');
 			$res = $this->modelSource->removeFromTag($files,$data['tagID']);
 		}
-		$msg = $res ? LNG('explorer.success') : LNG('explorer.error');
-		show_json($msg,!!$res);
+		show_json(LNG('explorer.success'),true);
 	}
 	
 	//添加文档到tag;
