@@ -117,7 +117,7 @@ class explorerListFileType extends Controller{
 		$fileList 	= array_sort_by($data['fileList'],'imageTime',true);
 
 		$groupBy 	= Input::get('photoListBy','in','month',array('year','month','day'));// 分组类型
-		$pageNum 	= $pageNum <= 100 ? 100 : $pageNum;
+		$pageNum 	= intval($pageNum) <= 100 ? 100 : intval($pageNum);
 		$pageTotal  = ceil(count($fileList) / $pageNum);
 		$page 		= isset($this->in['page']) ? intval($this->in['page']) : 1;
 		$page 		= $page <= 1 ? 1 : ($page >= $pageTotal ? $pageTotal : $page); 
