@@ -215,7 +215,7 @@ class webdavClient {
 		if(!$body) return $result;
 
 		$error = $status ? '':$header['0'];
-		if(strstr($header['content-type'],'/json')){
+		if(strstr($header['content-type'],'/json') || strstr($header['Content-Type'],'/json')){
 			$result['data']  = @json_decode($body,true);
 			if( !$status && is_array($result['data']) && 
 				array_key_exists('code',$result['data']) &&
