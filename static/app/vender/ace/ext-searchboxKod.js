@@ -206,7 +206,7 @@ ace.define("ace/ext/searchboxKod", ["require", "exports", "module", "ace/lib/dom
 					html += '<li><a href="javascript:void(0);" draggable="false">'+htmlEncode(history[i])+'</a></li>'
 					history[i]
 				}
-				$('[aria-labelledby=history_search]').html(html);
+				$('[aria-labelledby=history_search]').html('<div class="list-content">'+html+'</div>');
 
 				html = '';
 				history = that.historyReplace.list();
@@ -214,7 +214,7 @@ ace.define("ace/ext/searchboxKod", ["require", "exports", "module", "ace/lib/dom
 					html += '<li><a href="javascript:void(0);">'+htmlEncode(history[i])+'</a></li>'
 					history[i]
 				}
-				$('[aria-labelledby=history_replace]').html(html);
+				$('[aria-labelledby=history_replace]').html('<div class="list-content">'+html+'</div>');
 			});
 
 			$('.ace_search .dropdown-menu li a').live('mouseup',function(){
