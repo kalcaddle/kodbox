@@ -18,7 +18,7 @@ $config['settings'] = array(
 	'downloadUrlTime'	=> 0,			 	//下载地址生效时间，按秒计算，0代表不限制
 	'apiLoginToken'		=> '',			 	//设定则认为开启服务端api通信登录，同时作为加密密匙
 	'paramRewrite'		=> false,		 	//开启url 去除? 直接跟参数
-	'ioAvailed'			=> 'local,ftp,oss,qiniu,cos,s3,oos,uss,minio,eos,eds',		//显示的io类型，多个以','分隔
+	'ioAvailed'			=> 'local,ftp,oss,qiniu,cos,s3,oos,uss,minio,eos,eds,obs',		//显示的io类型，多个以','分隔
 	'ioFileOutServer'	=> false,
 	'ioUploadServer'	=> false,
 	
@@ -91,6 +91,8 @@ $config['settings']['ioClassList'] = array(
 	'minio'				=> 'MinIO',
 	'eos'				=> 'EOS',
 	'eds'				=> 'EDS',
+	'obs'				=> 'OBS',
+	// 'bos'				=> 'BOS',
 
 	'moss'				=> 'MOSS',
 	'nos'				=> 'NOS',

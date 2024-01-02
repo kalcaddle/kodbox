@@ -138,8 +138,8 @@ ClassBase.define({
 		// html内容展示,src相对路径处理(url处理: './test.js','test.js','../img/test.js');
 		var script = `
 		(function(){
-			window._hash  = "`+(addPath || '')+`";
 			var linkPre   = "${linkPre}",filePath ="${filePath}",basePath="${basePath}";
+			window._hash  = "`+(addPath || '')+`";window._location_ = `+JSON.stringify(window.location)+`
 			var domSrcMap =`+jsonEncode(domSrcMap)+`;
 			var urlFilter =`+this.urlFilter.toString()+`;
 			var isPathUrl =`+this.isPathUrl.toString()+`;
@@ -151,7 +151,6 @@ ClassBase.define({
 		})();`;
 		return '<script>'+script+'</script>'+contentNew;
 	},
-	
 
 	// ================================================================
 	// ====================以下为运行在iframe中的代码====================
@@ -178,7 +177,7 @@ ClassBase.define({
 		return url;
 	},
 	urlFilter:function(url,replaceType,_isPathUrl,_pathUrlParse){
-		//console.error(101,url)
+		// console.error(101,url,document.baseURI)
 		var paramAdd = '',urlOld = url;// 保持之前参数;
 		if( url && url.substr(0,4) == 'http' && 
 			url.indexOf('&_s_=/') > 0 && url.indexOf('&_s_=/&') === -1){ // 根据url拼接出的url处理;
@@ -193,7 +192,7 @@ ClassBase.define({
 		if(url.indexOf('.wasm.js') != -1){replaceType = 'script-wasm';} // wasm 引入; "*.wasm" 将被自动替换;
 		if(replaceType){result += '&replaceType='+replaceType;}
 		result += '&path='+encodeURIComponent(filePath)+"&add="+encodeURIComponent(url)+paramAdd;
-		//console.error('urlFilter',[urlOld,url,result,paramAdd]);
+		// console.error('urlFilter',[urlOld,url,result,paramAdd]);
 		return result;
 	},
 	htmlContentParse:function(html,domSrcMap,_urlFilter){
@@ -221,11 +220,12 @@ ClassBase.define({
 		});
 
 		var getElementsByAttribute = function(attr,value,fromNode,result){
-			fromNode = fromNode || document.body;
 			if(!result){result = [];}
-			if(fromNode.hasAttribute(attr) && 
+			if(fromNode && fromNode.hasAttribute && fromNode.hasAttribute(attr) && 
 			   (value === false || fromNode.getAttribute(attr) == value)
 			){result.push(fromNode);}
+			if(!fromNode || !fromNode.children){return result;}
+			
 			var children = fromNode.children;
 			for(var i = children.length; i--;){
 				getElementsByAttribute(attr,value,children[i],result);
@@ -243,7 +243,20 @@ ClassBase.define({
 			contentNew = contentNew.replace(reg,'src="" _src_="'+url+'"');
 		});
 		// console.error("htmlContentParse:",html,contentNew);
-		// html中style background-image提前处理;		
+		
+		// html中style background-image提前处理;
+		var nodes = getElementsByAttribute('style',false,doc);
+		nodes.forEach(function(node){
+			var style = node.getAttribute('style');
+			if(!style || !style.indexOf("url(") ){return;}			
+			var styleNew = style.replace(/url\s*\(\s*(['"]*.*?['"]*)\s*\)/g,function(str,url){
+				var q = url.substr(0,1);
+				if(q != "'" && q != '"'){q = '';}
+				if(q){url = url.substr(1,url.length -2);}
+				return 'url('+q+_urlFilter(url)+q+')';
+			});
+			contentNew = contentNew.replace(style,styleNew);
+		});
 		return contentNew;
 	},
 	
@@ -363,7 +376,7 @@ ClassBase.define({
 					descriptor["set"] = function(){
 						var result = setterFunc.apply(this,arguments);
 						if(result === false){return;} // 返回false不处理;
-						return _setter.apply(this,result);
+						return _setter.apply(this,result || arguments);
 					}
 				}
 				if(getterFunc){
@@ -434,8 +447,17 @@ ClassBase.define({
 		// 通过a标签获取url的情况支持;(aceEditor,worker; a标签设置js再获取url的情况)
 		functionHookSetter(HTMLAnchorElement.prototype,'href',function(href){
 			if(href && ( has(href,'.js') || has(href,'.css') )){
-				arguments[0] = urlFilter(href);return arguments;
+				arguments[0] = urlFilter(href);
 			}
+			return arguments;
+		});
+		
+		// 通过a标签获取host等情况处理(angular,载入html白名单处理情况)
+		var linkGetterHost = 'protocol,host,port,hostname'.split(',');
+		linkGetterHost.forEach(function(key){
+			functionHookSetter(HTMLAnchorElement.prototype,key,false,function(){
+				if(!this.parentNode){return _location_[key];} // 如果a节点未添加到dom中,则使用默认url
+			});
 		});
 		
 		// iframe 处理(仅处理相对路径引用的文件; 当前页面发出消息(带上uuid,获取内容及路径信息; kod页面进行处理)
@@ -472,12 +494,13 @@ ClassBase.define({
 		// worker 请求中 fetch处理;
 		var requestWorker = function(url,type,name){
 			var url  = urlFilter(url,'script-import');
-			var obj  = {onmessage:noop,postMessage:noop,onerror:noop,terminate:noop};
+			var obj  = {onmessage:noop,postMessage:noop,onerror:noop,terminate:noop,addEventListener:noop};
 			// return type == 'Worker'? (new _Worker(url)) : new _SharedWorker(url,name);
 			
 			var scriptAdd = `
 			;(function(){
 				var linkPre   = "${linkPre}",filePath ="${filePath}",basePath="${basePath}";
+				var _location = `+JSON.stringify(_location_)+`
 				var urlFilter =`+urlFilter.toString()+`;
 				var isPathUrl =`+isPathUrl.toString()+`;
 				var pathUrlParse =`+pathUrlParse.toString()+`;
@@ -502,6 +525,7 @@ ClassBase.define({
 				worker.onmessage = obj.onmessage;worker.onerror = obj.onerror; // 设置调用覆盖临时变量
 				obj.postMessage  = function(){worker.postMessage.apply(worker,arguments);};
 				obj.terminate 	 = function(){worker.terminate.apply(worker,arguments);};
+				obj.addEventListener = function(){worker.addEventListener.apply(worker,arguments);};
 			});
 			return obj;//返回临时变量,worker构造后需要覆盖;
 		};		
@@ -520,12 +544,17 @@ ClassBase.define({
 		};
 		// chrome xhr跨域options目录预检处理;需要带上index.php
 		XMLHttpRequest.prototype.open = function(){
-		    arguments[1] = urlFilter(arguments[1]);
+			arguments[1] = urlFilter(arguments[1]);
+			if(arguments[1] === _location_.href){// 获取url位自身时,采用当前文件名(document.baseURI的情况兼容)
+				arguments[1] = linkPre + '&path='+encodeURIComponent(filePath+'/t.html')+'&add='; // 需要到上层;
+			}
+			
 		    var result = _ajaxOpen.apply(this,arguments);
 			this.withCredentials = false;
 			return result;
 		},
 
+		// functionHookSetter(document,'baseURI',false,function(){return filePath;});		
 		functionHook(document,'write',function(code){
 			arguments[0] = htmlContentParse(code,domSrcMap,urlFilter);return arguments;
 		});
@@ -584,7 +613,7 @@ ClassBase.define({
 		
 		// url跳转拦截(a跳转,a.href修改; window.open; window.location.href==无法支持,无法setter)
 		var gotoPage = function(url){
-			if(url.substr(0,1)== '#'){window.location.hash = url;return true;} 
+			if(url && url.substr(0,1)== '#'){window.location.hash = url;return true;} 
 			if(!isPathUrl(url)){return false;}
 			url = pathUrlParse(url,basePath);
 			window.parent.postMessage({type:'iframe.event',event:'iframeLinkHref',url:url},'*');
@@ -619,7 +648,6 @@ ClassBase.define({
 		// location 跳转监听,暂时无解; //onhashchange,popstate,locationchange...
 		// https://stackoverflow.com/questions/6390341/how-to-detect-if-url-has-changed-after-hash-in-javascript
 		// window.addEventListener('popstate',function(e){});
-				
 		var _open = window.open;
 		window.open = function(url){
 			if(gotoPage(url)){return;};

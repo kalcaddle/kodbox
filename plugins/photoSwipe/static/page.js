@@ -6,7 +6,7 @@ define(function(require, exports) {
 		kodApp.imageList = false;
 		if(!imageList) {
 			imageList = {items:[{
-				src:core.pathImage(filePath,1200),
+				src:core.pathImage(filePath,1200),srcFile:core.pathImage(filePath,false),
 				msrc:core.pathImage(filePath,250),
 				trueImage:core.pathImage(filePath,false),
 				title:htmlEncode(name || ''),
@@ -17,7 +17,7 @@ define(function(require, exports) {
 			var parse = $.parseUrl(item.src);
 			var title = item.title || _.get(parse,'params.name') || pathTools.pathThis(item.src);
 			items.push({
-				src:item.src,
+				src:item.src,srcFile:item.srcFile || '',
 				$dom:item.$dom || false,
 				msrc:item.msrc || item.src,
 				trueImage:item.trueImage || '',
@@ -134,6 +134,17 @@ define(function(require, exports) {
 		
 		gallery.init();
 		gallery.listen('bindEvents',imageRotateAuto);
+		gallery.listen('imageErrorBefore',function(item){ //图片加载失败时,尝试加载原图;只处理一次;
+			if(!item.srcFile || item._loadErrorCount){return;}
+
+			item.img.src  = item.srcFile;
+			item.src = item.srcFile;
+			item._loadErrorCount = 1;
+			$(item.img).bind('load',function(e){
+				item.trueImage = false;
+				gallery.shout('afterErrorReload');
+			});
+		});
 		
 		// 最后一个处理; 缩放位置异常还原;
 		if(imageCount >= 3 && imageCount == imageList.index + 1){
@@ -314,6 +325,7 @@ define(function(require, exports) {
 			$button[method]('hidden');
 		};imageChange();
 		gallery.listen('afterChange',imageChange);
+		gallery.listen('afterErrorReload',imageChange);
 		
 		$button.unbind('click').bind('click', function(e){
 			var currItem  = gallery.currItem;

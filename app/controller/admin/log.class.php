@@ -337,15 +337,16 @@ class adminLog extends Controller{
     // 文件预览日志
     public function fileViewLog($path){
         if (MOD == 'plugin' && ACT != 'index') return;
+        $in = $this->in;
         if (strtolower(ACT) == 'fileout') {
-            $in = $this->in;
-            if (isset($in['download']) && $in['download'] == 1) return;
+            // if (isset($in['download']) && $in['download'] == 1) return;
             if(isset($in['type']) && $in['type'] == 'image'){
                 if (isset($in['width']) && $in['width'] == '250') return;
             }
             // 该参数由插件打开时filePathLink调用fileOut追加，排除
             if (isset($in['et'])) return;
         }
+        if (isset($in['download']) && $in['download'] == 1) return; // 分享下载：fileDownload=>fileOut
         if (!$this->checkHttpRange()) return;
 
         // 获取文件信息，写入日志

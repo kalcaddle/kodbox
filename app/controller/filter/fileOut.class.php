@@ -17,25 +17,37 @@ class filterFileOut extends Controller{
 	public function bind(){
 		$action = strtolower(ACTION);
 		$disableCookie = array(
+			'explorer.index.fileoutby',
+			'explorer.share.fileoutby',
 			'explorer.index.filedownload',
 			'explorer.index.fileout',
-			'explorer.index.fileoutby',
 			'explorer.share.filedownload',
 			'explorer.share.fileout',
+		);
+		$allowViewToken = array(
+			'explorer.index.fileoutby',
 			'explorer.share.fileoutby',
 		);
+		
 		if(in_array($action,$disableCookie)){
 			Cookie::disable(true);allowCROS();
-			
-			// 仅限当前ip使用的token,有效期1天(该token仅限文件获取几个接口使用)
+		}
+		
+		// 仅限当前ip使用的token,有效期1天(该token仅限文件相对路径获取使用)
+		if(in_array($action,$allowViewToken)){
 			$token = isset($_REQUEST['viewToken']) ? $_REQUEST['viewToken']:'';
 			if($token && strlen($token) < 500){
 				$pass = substr(md5('safe_'.get_client_ip().Model('SystemOption')->get('systemPassword')),0,15);
 				$sessionSign = Mcrypt::decode($token,$pass);
 				if($sessionSign){Session::sign($sessionSign);}
+				
+				$parse = kodIO::parse($this->in['path']);// 不允许以相对路径获取php扩展名文件;避免管理员被钓鱼攻击;
+				$distPath = kodIO::pathTrue($parse['path'].'/../'.rawurldecode($this->in['add']));
+				if(get_path_ext($distPath) == 'php'){show_json('not allow',false);}
+				// header("Status: 404 Not Found [viewToken]");exit;
 			}
+			Hook::bind('PathDriverBase.fileOut.before',array($this,'fileOut'));
 		}
-		Hook::bind('PathDriverBase.fileOut.before',array($this,'fileOut'));
 	}
 	
 	public function fileOut($file,$fileSize,$filename,$ext){

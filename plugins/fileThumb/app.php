@@ -320,6 +320,7 @@ class fileThumbPlugin extends PluginBase{
 
 		$maxWidth = 800;
 		$timeAt   = $videoThumbTime ? '-ss 00:00:03' : '';
+		setlocale(LC_CTYPE, "UTF8", "en_US.UTF-8");
 		$script   = $command.' -i '.escapeShell($file).' -y -f image2 '.$timeAt.' -vframes 1 '.escapeShell($tempPath).' 2>&1';
 		$out = shell_exec($script);
 		if(!file_exists($tempPath)) {
@@ -417,7 +418,7 @@ class fileThumbPlugin extends PluginBase{
 				$tempPath = '/tmp/fileThumb/'.rand_string(15).'.png';
 			}
 		}
-
+		setlocale(LC_CTYPE, "UTF8", "en_US.UTF-8");
 		$script = $command.' '.$param.' '.escapeShell($file).' '.escapeShell($tempPath).' 2>&1';
 		$out = shell_exec($script);
 		if(!file_exists($tempPath)) return $this->log('image thumb error:'.$out.';cmd='.$script);

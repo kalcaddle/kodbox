@@ -225,7 +225,7 @@ class explorerUserShare extends Controller{
 	
 	public function shareDisplay(){
 		$data = Input::getArray(array(
-			"shareArr"	=> array("check"=>"json","default"=>''),
+			"shareArr"	=> array("check"=>"json","default"=>array()),
 			"isHide"	=> array("check"=>"bool","default"=>'1'),
 		));
 		
@@ -517,8 +517,8 @@ class explorerUserShare extends Controller{
 			"title"		=> array("check"=>"require","default"=>''),
 			"password"	=> array("default"=>''),//密码设置为空处理;
 			"timeTo"	=> array("check"=>"require","default"=>0),
-			"options"	=> array("check"=>"json",	"default"=>''),
-			"authTo"	=> array("check"=>"json", 	"default"=>''),
+			"options"	=> array("check"=>"json",	"default"=>array()),
+			"authTo"	=> array("check"=>"json", 	"default"=>array()),
 		);
 		//修改，默认值为null不修改；
 		if($key == 'shareID'){

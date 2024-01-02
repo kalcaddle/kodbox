@@ -198,15 +198,18 @@ class explorerIndex extends Controller{
 		$fileInfo = IO::info($data['path']);
 		$fileThumbInfo = IO::infoFullSimple(IO_PATH_SYSTEM_TEMP . 'plugin/fileThumb');
 		if($fileThumbInfo && isset($fileThumbInfo['path'])) {
+			$hasFind   = false;
 			$fileHash  = KodIO::hashPath($fileInfo);
 			$thumbList = array(250,600,1200,2000,3000,5000);	// 缩略图尺寸
 			foreach ($thumbList as $width){
-				$coverName = "cover_${$fileHash}_${$width}.png";
+				$coverName = "cover_{$fileHash}_{$width}.png";
 				$sourceID  = IO::fileNameExist($fileThumbInfo['path'],$coverName);
 				Cache::remove($coverName);
 				if(!$sourceID){continue;}
+				$hasFind = true;
 				IO::remove(KodIO::make($sourceID),false);
 			}
+			if($hasFind){IO::setModifyTime($data['path'],time());} // 有缩略图清除,则更新最后修改时间,防止浏览器缓存
 		}
 		
 		// 删除元数据
@@ -232,7 +235,7 @@ class explorerIndex extends Controller{
 		);
 		$data = Input::getArray(array(
 			'path'	=> array('check'=>'require'),
-			'auth'	=> array('check'=>'json','default'=>''),
+			'auth'	=> array('check'=>'json','default'=>array()),
 			'action'=> array('check'=>'in','default'=>'','param'=>$actionAllow),
 		));
 		
@@ -846,7 +849,7 @@ class explorerIndex extends Controller{
 		// 拼接转换相对路径;
 		$add   = rawurldecode($this->in['add']);
 		$parse = kodIO::parse($this->in['path']);
-		$allow = array('',kodIO::KOD_IO,kodIO::KOD_USER_DRIVER,kodIO::KOD_SHARE_LINK);
+		$allow = array('',false,kodIO::KOD_IO,kodIO::KOD_USER_DRIVER,kodIO::KOD_SHARE_LINK);
 		if(in_array($parse['type'],$allow)){
 			$distPath = kodIO::pathTrue($parse['path'].'/../'.$add);
 			$distInfo = IO::info($distPath);
