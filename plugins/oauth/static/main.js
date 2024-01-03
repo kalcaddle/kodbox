@@ -57,13 +57,14 @@ kodReady.push(function(){
         formData.list.value = "<div class='type-list'>"+(_.join(list,''))+"</div>";
         formData.loginWith.value = loginWith;
     });
-    Events.bind("plugin.config.formAfter", function(self){
-        var formMaker = self['form{{pluginName}}'];
-        if (!formMaker) return;
+    Events.bind("plugin.config.formAfter", function(_this){
+        var form = _this['form{{pluginName}}'];
+		if (!form || !form.$el) return;
+
         // 可能保存失败，暂不做处理
-        formMaker.bind('onSave', function(result){
+        form.bind('onSave', function(result){
             var loginWith = [];
-            formMaker.$el.find("input[name=type]").each(function(){
+            form.$("input[name=type]").each(function(){
                 if ($(this).is(":checked")) {
                     loginWith.push($(this).val());
                 }

@@ -62,6 +62,7 @@ class webdavPlugin extends PluginBase{
 		include_once($this->pluginPath.'php/pathDriverSamba.class.php');
 
 		if(strtolower(MOD.'.'.ST) == 'plugin.index') exit;
+		if(strtolower(ACTION) == 'plugin.webdav.check'){return;}
 		$this->_checkConfig();
 		if(MOD === 'dav'){
 			$uriDav = '/index.php/dav/';
@@ -128,6 +129,7 @@ class webdavPlugin extends PluginBase{
 		$this->onGetConfig($config);
 	}
 	public function onGetConfig($config){
+		if(!is_array($config) || $config['isOpen'] != '1'){return;}
 		$this->autoApplyApache();
 		if($this->checkSupport()) return;
 		show_tips(

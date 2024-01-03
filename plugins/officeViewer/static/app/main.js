@@ -19,8 +19,9 @@ kodReady.push(function(){
 
 	// wb支持的格式禁止修改
 	Events.bind('plugin.config.formAfter', function(_this){
-		if (!_this['form{{pluginName}}']) return;
-		_this['form{{pluginName}}'].$('.item-wbFileExt .setting-content').css('pointer-events','none');
+		var form = _this['form{{pluginName}}'];
+		if (!form || !form.$el) return;
+		form.$('.item-wbFileExt .setting-content').css('pointer-events','none');
 		return;
 	});
 	
