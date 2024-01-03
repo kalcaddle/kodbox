@@ -82,7 +82,9 @@ class ImageThumb {
 				break;
 			default:break;
 		}
-		if (!$img) $img = @imagecreatefromstring(file_get_contents($file));
+		if (!$img && function_exists('imagecreatefromstring')) {
+			$img = @imagecreatefromstring(file_get_contents($file));
+		}
 		return $img;
 	}
 

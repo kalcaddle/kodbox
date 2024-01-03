@@ -161,9 +161,11 @@ class userAuthRole extends Controller {
 	 * 用户编辑拆分为=用户编辑+用户权限设置; 原admin.member.userEdit 拆分为 admin.member.userEdit+admin.member.userAuth
 	 */
 	private function authShareLinkUpdate(){
-		$option = Model("SystemOption")->get(false,'system');
-		if($option['explorerShareUpate'] == '1') return;
-		Model("SystemOption")->set('explorerShareUpate','1','system');
+		$model = Model("SystemOption");
+		$key   = 'explorerShareUpate';$type = 'system';
+		if($model->get($key,$type) == '1.01') return;
+		$model->remove($key,$type);$model->set($key,'1.01',$type);
+		
 		$roleList = Model('SystemRole')->listData();
 		foreach ($roleList as $role){
 			$auth = $role['auth'];

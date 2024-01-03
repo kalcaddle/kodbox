@@ -285,7 +285,7 @@ class explorerShare extends Controller{
 		$pathInfo = IO::infoFullSimple($rootSource.$parse['param']);
 		if(!$pathInfo){
 			if($allowNotExist){return $rootSource.$parse['param'];}
-			show_json(LNG('common.noPermission'),false);
+			show_json(LNG('common.pathNotExists'),false);
 		}
 		return $pathInfo['path'];
 	}
@@ -486,6 +486,12 @@ class explorerShare extends Controller{
 		// 物理路径,io路径;
 		if($this->share['sourceID'] == '0'){
 			$rootPath = KodIO::clear($this->share['sourcePath']);
+			
+			// io路径(本地磁盘挂载时); 外链分享搜索时会处理为真实路径情况处理;
+			if(substr($item['path'],0,strlen($rootPath)) != $rootPath){
+			    $io = IO::init($rootPath);
+			    $rootPath = $io->path;
+			}
 		}
 		$item['pathDisplay'] = $item['pathDisplay'] ? $item['pathDisplay']:$item['path'];
 

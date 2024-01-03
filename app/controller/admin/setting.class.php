@@ -186,5 +186,27 @@ class adminSetting extends Controller {
 		// srvGet/cacheSave/dbSave/recoverySave
 		Action('admin.server')->$function();
 	}
-
+	
+	// 将mysql表转为mb4编码; >= 5.53支持mb4;
+	public function updateMysqlCharset(){
+		$dbType = $this->config['database']['DB_TYPE'];
+		if($dbType != 'mysql' && $dbType != 'mysqli'){echoLog("not Mysql!");return;}
+		
+		$version = Model()->query('select VERSION() as version');
+		$version = ($version[0] && isset($version[0]['version'])) ? floatval($version[0]['version']) : 0;
+		if($version < 5.53){echoLog("Mysql version need bigger than 5.53");return;}
+		
+		//CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+		$charset = isset($this->in['reset']) ? 'utf8_general_ci':'utf8mb4_unicode_ci';
+		$tables  = Model()->db()->getTables();
+		$tables  = is_array($tables) ? $tables:array();
+		
+		echoLog("tabls:".count($tables)."\n".str_repeat('-',50)."\n");
+		foreach ($tables as $i=>$table){
+			echoLog($table.":".$charset.'; '.($i+1).'/'.count($tables));
+			$sql = "ALTER TABLE `".$table."` COLLATE '".$charset."'";
+			Model()->db()->execute($sql);
+		}
+		echoLog(str_repeat('-',50));echoLog("Successfull!");
+	}
 }

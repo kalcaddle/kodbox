@@ -11,7 +11,7 @@ CREATE TABLE "comment" (
   "userID" integer NOT NULL,
   "targetType" smallint NOT NULL,
   "targetID" integer NOT NULL,
-  "content" text NOT NULL,
+  "content" text CHARACTER SET utf8 NOT NULL,
   "praiseCount" integer NOT NULL,
   "commentCount" integer NOT NULL,
   "status" smallint NOT NULL,
@@ -33,8 +33,8 @@ DROP TABLE IF EXISTS "comment_meta";
 CREATE TABLE "comment_meta" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "commentID" integer NOT NULL,
-  "key" varchar(255) NOT NULL,
-  "value" text NOT NULL,
+  "key" varchar(255) CHARACTER SET utf8 NOT NULL,
+  "value" text CHARACTER SET utf8 NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -63,10 +63,10 @@ CREATE INDEX 'idx_comment_praise_createTime' ON 'comment_praise' ("createTime");
 DROP TABLE IF EXISTS "group";
 CREATE TABLE "group" (
   "groupID" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-  "name" varchar(255) NOT NULL,
+  "name" varchar(255) CHARACTER SET utf8 NOT NULL,
   "parentID" integer NOT NULL,
-  "parentLevel" varchar(1000) NOT NULL,
-  "extraField" varchar(100) DEFAULT NULL,
+  "parentLevel" varchar(1000) CHARACTER SET utf8 NOT NULL,
+  "extraField" varchar(100) CHARACTER SET utf8 DEFAULT NULL,
   "sort" integer NOT NULL,
   "sizeMax" double unsigned NOT NULL,
   "sizeUse" integer NOT NULL,
@@ -86,8 +86,8 @@ DROP TABLE IF EXISTS "group_meta";
 CREATE TABLE "group_meta" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "groupID" integer NOT NULL,
-  "key" varchar(255) NOT NULL,
-  "value" text NOT NULL,
+  "key" varchar(255) CHARACTER SET utf8 NOT NULL,
+  "value" text CHARACTER SET utf8 NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -100,12 +100,12 @@ CREATE INDEX 'idx_group_meta_key' ON 'group_meta' ("key");
 DROP TABLE IF EXISTS "io_file";
 CREATE TABLE "io_file" (
   "fileID" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-  "name" varchar(255) NOT NULL,
+  "name" varchar(255) CHARACTER SET utf8 NOT NULL,
   "size" integer NOT NULL,
   "ioType" integer NOT NULL,
-  "path" varchar(255) NOT NULL,
-  "hashSimple" varchar(100) NOT NULL,
-  "hashMd5" varchar(100) NOT NULL,
+  "path" varchar(255) CHARACTER SET utf8 NOT NULL,
+  "hashSimple" varchar(100) CHARACTER SET utf8 NOT NULL,
+  "hashMd5" varchar(100) CHARACTER SET utf8 NOT NULL,
   "linkCount" integer NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
@@ -124,7 +124,7 @@ CREATE INDEX 'idx_io_file_name' ON 'io_file' ("name");
 DROP TABLE IF EXISTS "io_file_contents";
 CREATE TABLE "io_file_contents" (
   "fileID" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-  "content" mediumtext NOT NULL,
+  "content" mediumtext CHARACTER SET utf8 NOT NULL,
   "createTime" integer NOT NULL
 );
 -- index io_file_contents:
@@ -136,8 +136,8 @@ DROP TABLE IF EXISTS "io_file_meta";
 CREATE TABLE "io_file_meta" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "fileID" integer NOT NULL,
-  "key" varchar(255) NOT NULL,
-  "value" text NOT NULL,
+  "key" varchar(255) CHARACTER SET utf8 NOT NULL,
+  "value" text CHARACTER SET utf8 NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -150,16 +150,16 @@ CREATE INDEX 'idx_io_file_meta_key' ON 'io_file_meta' ("key");
 DROP TABLE IF EXISTS "io_source";
 CREATE TABLE "io_source" (
   "sourceID" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-  "sourceHash" varchar(20) NOT NULL,
+  "sourceHash" varchar(20) CHARACTER SET utf8 NOT NULL,
   "targetType" smallint NOT NULL,
   "targetID" integer NOT NULL,
   "createUser" integer NOT NULL,
   "modifyUser" integer NOT NULL,
   "isFolder" smallint NOT NULL,
-  "name" varchar(256) NOT NULL,
-  "fileType" varchar(10) NOT NULL,
+  "name" varchar(256) CHARACTER SET utf8 NOT NULL,
+  "fileType" varchar(10) CHARACTER SET utf8 NOT NULL,
   "parentID" integer NOT NULL,
-  "parentLevel" varchar(2000) NOT NULL,
+  "parentLevel" varchar(2000) CHARACTER SET utf8 NOT NULL,
   "fileID" integer NOT NULL,
   "isDelete" smallint NOT NULL,
   "size" integer NOT NULL,
@@ -212,8 +212,8 @@ CREATE TABLE "io_source_event" (
   "sourceID" integer NOT NULL,
   "sourceParent" integer NOT NULL,
   "userID" integer NOT NULL,
-  "type" varchar(255) NOT NULL,
-  "desc" text NOT NULL,
+  "type" varchar(255) CHARACTER SET utf8 NOT NULL,
+  "desc" text CHARACTER SET utf8 NOT NULL,
   "createTime" integer NOT NULL
 );
 -- index io_source_event:
@@ -231,7 +231,7 @@ CREATE TABLE "io_source_history" (
   "userID" integer NOT NULL,
   "fileID" integer NOT NULL,
   "size" integer NOT NULL,
-  "detail" varchar(1024) NOT NULL,
+  "detail" varchar(1024) CHARACTER SET utf8 NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -246,8 +246,8 @@ DROP TABLE IF EXISTS "io_source_meta";
 CREATE TABLE "io_source_meta" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "sourceID" integer NOT NULL,
-  "key" varchar(255) NOT NULL,
-  "value" text NOT NULL,
+  "key" varchar(255) CHARACTER SET utf8 NOT NULL,
+  "value" text CHARACTER SET utf8 NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -264,7 +264,7 @@ CREATE TABLE "io_source_recycle" (
   "targetID" integer NOT NULL,
   "sourceID" integer NOT NULL,
   "userID" integer NOT NULL,
-  "parentLevel" varchar(2000) NOT NULL,
+  "parentLevel" varchar(2000) CHARACTER SET utf8 NOT NULL,
   "createTime" integer NOT NULL
 );
 -- index io_source_recycle:
@@ -279,19 +279,19 @@ CREATE INDEX 'idx_io_source_recycle_targetID' ON 'io_source_recycle' ("targetID"
 DROP TABLE IF EXISTS "share";
 CREATE TABLE "share" (
   "shareID" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-  "title" varchar(255) NOT NULL,
-  "shareHash" varchar(50) NOT NULL,
+  "title" varchar(255) CHARACTER SET utf8 NOT NULL,
+  "shareHash" varchar(50) CHARACTER SET utf8 NOT NULL,
   "userID" integer NOT NULL,
   "sourceID" integer NOT NULL,
-  "sourcePath" varchar(1024) NOT NULL,
-  "url" varchar(255) NOT NULL,
+  "sourcePath" varchar(1024) CHARACTER SET utf8 NOT NULL,
+  "url" varchar(255) CHARACTER SET utf8 NOT NULL,
   "isLink" smallint NOT NULL,
   "isShareTo" smallint NOT NULL,
-  "password" varchar(255) NOT NULL,
+  "password" varchar(255) CHARACTER SET utf8 NOT NULL,
   "timeTo" integer NOT NULL,
   "numView" integer NOT NULL,
   "numDownload" integer NOT NULL,
-  "options" varchar(1000) NOT NULL,
+  "options" varchar(1000) CHARACTER SET utf8 NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -313,12 +313,12 @@ DROP TABLE IF EXISTS "share_report";
 CREATE TABLE "share_report" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "shareID" integer NOT NULL,
-  "title" varchar(255) NOT NULL,
+  "title" varchar(255) CHARACTER SET utf8 NOT NULL,
   "sourceID" integer NOT NULL,
   "fileID" integer NOT NULL,
   "userID" integer NOT NULL,
   "type" smallint NOT NULL,
-  "desc" text NOT NULL,
+  "desc" text CHARACTER SET utf8 NOT NULL,
   "status" smallint NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
@@ -355,10 +355,10 @@ CREATE INDEX 'idx_share_to_authID' ON 'share_to' ("authID");
 DROP TABLE IF EXISTS "system_log";
 CREATE TABLE "system_log" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-  "sessionID" varchar(128) NOT NULL,
+  "sessionID" varchar(128) CHARACTER SET utf8 NOT NULL,
   "userID" integer NOT NULL,
-  "type" varchar(255) NOT NULL,
-  "desc" text NOT NULL,
+  "type" varchar(255) CHARACTER SET utf8 NOT NULL,
+  "desc" text CHARACTER SET utf8 NOT NULL,
   "createTime" integer NOT NULL
 );
 -- index system_log:
@@ -371,9 +371,9 @@ CREATE INDEX 'idx_system_log_sessionID' ON 'system_log' ("sessionID");
 DROP TABLE IF EXISTS "system_option";
 CREATE TABLE "system_option" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-  "type" varchar(50) NOT NULL,
-  "key" varchar(255) NOT NULL,
-  "value" text NOT NULL,
+  "type" varchar(50) CHARACTER SET utf8 NOT NULL,
+  "key" varchar(255) CHARACTER SET utf8 NOT NULL,
+  "value" text CHARACTER SET utf8 NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -386,9 +386,9 @@ CREATE INDEX 'idx_system_option_modifyTime' ON 'system_option' ("modifyTime");
 DROP TABLE IF EXISTS "system_session";
 CREATE TABLE "system_session" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-  "sign" varchar(128) NOT NULL,
+  "sign" varchar(128) CHARACTER SET utf8 NOT NULL,
   "userID" integer NOT NULL,
-  "content" text NOT NULL,
+  "content" text CHARACTER SET utf8 NOT NULL,
   "expires" integer NOT NULL,
   "modifyTime" integer NOT NULL,
   "createTime" integer NOT NULL
@@ -403,14 +403,14 @@ CREATE INDEX 'idx_system_session_modifyTime' ON 'system_session' ("modifyTime");
 DROP TABLE IF EXISTS "user";
 CREATE TABLE "user" (
   "userID" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-  "name" varchar(255) NOT NULL,
+  "name" varchar(255) CHARACTER SET utf8 NOT NULL,
   "roleID" integer NOT NULL,
-  "email" varchar(255) NOT NULL,
-  "phone" varchar(20) NOT NULL,
-  "nickName" varchar(255) NOT NULL,
-  "avatar" varchar(255) NOT NULL,
+  "email" varchar(255) CHARACTER SET utf8 NOT NULL,
+  "phone" varchar(20) CHARACTER SET utf8 NOT NULL,
+  "nickName" varchar(255) CHARACTER SET utf8 NOT NULL,
+  "avatar" varchar(255) CHARACTER SET utf8 NOT NULL,
   "sex" smallint NOT NULL,
-  "password" varchar(100) NOT NULL,
+  "password" varchar(100) CHARACTER SET utf8 NOT NULL,
   "sizeMax" double unsigned NOT NULL,
   "sizeUse" integer NOT NULL,
   "status" smallint NOT NULL,
@@ -435,9 +435,9 @@ CREATE TABLE "user_fav" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "userID" integer NOT NULL,
   "tagID" integer NOT NULL,
-  "name" varchar(255) NOT NULL,
-  "path" varchar(2048) NOT NULL,
-  "type" varchar(20) NOT NULL,
+  "name" varchar(255) CHARACTER SET utf8 NOT NULL,
+  "path" varchar(2048) CHARACTER SET utf8 NOT NULL,
+  "type" varchar(20) CHARACTER SET utf8 NOT NULL,
   "sort" integer NOT NULL,
   "modifyTime" integer NOT NULL,
   "createTime" integer NOT NULL
@@ -474,8 +474,8 @@ DROP TABLE IF EXISTS "user_meta";
 CREATE TABLE "user_meta" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "userID" integer NOT NULL,
-  "key" varchar(255) NOT NULL,
-  "value" text NOT NULL,
+  "key" varchar(255) CHARACTER SET utf8 NOT NULL,
+  "value" text CHARACTER SET utf8 NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -489,9 +489,9 @@ DROP TABLE IF EXISTS "user_option";
 CREATE TABLE "user_option" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "userID" integer NOT NULL,
-  "type" varchar(50) NOT NULL,
-  "key" varchar(255) NOT NULL,
-  "value" text NOT NULL,
+  "type" varchar(50) CHARACTER SET utf8 NOT NULL,
+  "key" varchar(255) CHARACTER SET utf8 NOT NULL,
+  "value" text CHARACTER SET utf8 NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
