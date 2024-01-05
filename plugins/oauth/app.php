@@ -69,8 +69,12 @@ class oauthPlugin extends PluginBase{
 	 * @return void
 	 */
 	public function bind() {
-		$action = Input::get('method','in','',array('bind', 'log'));
-		return $this->action()->$action();
+		$method = Input::get('method', 'require');
+		$action = $this->action();
+		if (!method_exists($action, $method)) {
+			show_json(LNG('common.invalidParam').'[method]', false);
+		}
+		return $action->$method();
 	}
 	/**
 	 * 兼容app相关调用
