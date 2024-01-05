@@ -116,9 +116,9 @@ class videoResize {
 		
 		$tempPath = TEMP_FILES.$tempFileName;
 		if($GLOBALS['config']['systemOS'] == 'linux' && is_writable('/tmp/')){
-			mk_dir('/tmp/fileThumb/');
 			$tempPath = '/tmp/fileThumb/'.$tempFileName;
 		}
+		mk_dir(get_path_father($tempPath));
 
 		if(Cache::get($taskID) == 'running') return self::STATUS_RUNNING;
 		$runTaskMax   = intval($config['videoConvertTask']);
@@ -168,9 +168,11 @@ class videoResize {
 		$this->log('[start] '.$task->task['currentTitle'].'; pid='.$pid);
 		while(true){
 			$data = $this->progressGet($logFile);clearstatcache();
-			if($data['total'] && $data['finished'] == $data['total']){break;}
-			if(time() - @filemtime($logFile) >= 20){break;}
-			if(!$this->processFind($tempName)){break;} //进程已不存在; 转码报错或者意外终止或者其他情况的进程终止;
+			
+			//进程已不存在; 转码报错或者意外终止或者其他情况的进程终止;
+			if($data['total'] && $data['finished'] == $data['total']){$this->log('stop-finished;');break;}
+			if(time() - @filemtime($logFile) >= 20){$this->log('stop-time;');break;}
+			if(!$this->processFind($tempName)){$this->log('stop-pid;');break;} 
 
 			$task->task['taskFinished'] = round($data['finished'],3);
 			CacheLock::lock("video-process-update");
@@ -226,13 +228,12 @@ class videoResize {
 		}
 		if( preg_match("/frame=\s+(\d+)/",$output,$match)){
 			$errorTips = 'Stoped!';
-			$this->log('[Stoped] '.$output);
 			$runError  = false;
 		}
 		$logEnd  = get_caller_msg();
 		$logTime = 'time='.(time() - $timeStart);	
 		if( $data['total'] && intval($data['total']) == intval($data['finished']) && 
-			file_exists($tempPath) && is_file($thumbFile) && filesize($thumbFile) > 0 ){
+			file_exists($tempPath) && is_file($tempPath) && filesize($tempPath) > 100 ){
 			$runError = true;
 			$destPath = IO::move($tempPath,$cachePath);
 			$checkStr = IO::fileSubstr($destPath,0,10);
