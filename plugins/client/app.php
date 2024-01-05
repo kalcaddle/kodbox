@@ -13,16 +13,6 @@ class clientPlugin extends PluginBase{
 	}
 
 	public function echoJs(){
-		// 注册hook事件
-		$version = '1.26';
-		$config = $this->getConfig();
-		if ($config['registVer'] != $version) {
-			$plugin = $this->modelPlugin->loadList('client');
-			if (!isset($plugin['regiest']['user.index.loginAfter'])) {
-				$this->regist();
-			}
-			$this->setConfig('registVer', $version);
-		}
 		$this->echoFile('static/main.js');
 	}
 

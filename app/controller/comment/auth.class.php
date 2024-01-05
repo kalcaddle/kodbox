@@ -48,9 +48,7 @@ class CommentAuth extends Controller {
 				$this->canEdit($info['targetType'],$info['targetID']);
 				break;
 			case 'comment.index.listbyuser':
-				if(!_get($GLOBALS,'isRoot')){
-					show_json(LNG('explorer.noPermissionAction'),false);
-				}
+				KodUser::checkRoot();
 				break;
 			case 'comment.index.listself':;break;
 			case 'comment.index.listchildren':
@@ -79,7 +77,7 @@ class CommentAuth extends Controller {
 	private function checkSelf($info,$action='edit'){
 		if($this->checkHook('comment.checkSelf',$info['targetType'],$info['targetID'],$action)) return true;
 		if($info['userID'] == USER_ID) return true;
-		if(_get($GLOBALS,'isRoot')) return true;
+		if(KodUser::isRoot()) return true;
 		show_json(LNG('explorer.noPermissionAction'),false);
 	}
 	private function checkHook($event,$targetType,$targetID,$param=''){
@@ -114,7 +112,12 @@ class CommentAuth extends Controller {
 		if($targetType == CommentModel::TYPE_SOURCE){
 			$pathInfo = Model("Source")->pathInfo($targetID,true);
 		}else if($targetType == CommentModel::TYPE_SHARE){
-			$pathInfo = Model('Share')->getInfoAuth($targetID);
+			$shareInfo = Model('Share')->getInfoAuth($targetID);
+			
+			if(!$shareInfo){show_json(LNG('common.notExists'),false);}
+            if($shareInfo['userID'] == USER_ID){return true;} // 自己的分享;
+            $pathInfo = isset($shareInfo['sourceInfo']) ? $shareInfo['sourceInfo']:false;
+            if($pathInfo){$pathInfo['auth'] = $shareInfo['auth'];} // 物理路径处理;
 		}
 		if(!$pathInfo){ // || $pathInfo['isDelete'] == '1'
 			show_json(LNG('common.notExists'),false);

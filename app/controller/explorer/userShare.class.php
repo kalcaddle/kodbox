@@ -484,7 +484,7 @@ class explorerUserShare extends Controller{
 	}
 	
 	private function checkRoleAuth($shareType){
-		if($GLOBALS['isRoot']){return;}
+		if(KodUser::isRoot()){return;}
 		$canShareTo   = Action('user.authRole')->authCan('explorer.share');
 		$canShareLink = Action('user.authRole')->authCan('explorer.shareLink');
 		if($shareType == 'shareTo' && !$canShareTo){

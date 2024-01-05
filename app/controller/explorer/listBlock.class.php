@@ -41,7 +41,7 @@ class explorerListBlock extends Controller{
 	private function blockRoot(){
 		$list = $this->blockItems();
 		if(!$this->pathEnable('fileType')){unset($list['fileType']);}
-		if(!_get($GLOBALS,'isRoot') || !$this->pathEnable('driver')){unset($list['driver']);}
+		if(!KodUser::isRoot() || !$this->pathEnable('driver')){unset($list['driver']);}
 		if(!$this->pathEnable('fileTag')){unset($list['fileTag']);}
 		$result = array();
 		foreach ($list as $type => $item) {
@@ -120,9 +120,9 @@ class explorerListBlock extends Controller{
 		// 没有所在部门时不显示;
 		if(isset($list['myGroup'])){
 			$selfGroup 	= Session::get("kodUser.groupInfo");
-			// $groupArray = array_to_keyvalue($selfGroup,'','groupID');//自己所在的组
-			// $group 		= array_remove_value($groupArray,$groupInfo['groupID']);
-			// if(!$group){unset($list['myGroup']);}
+			$groupArray = array_to_keyvalue($selfGroup,'','groupID');//自己所在的组
+			$group 		= array_remove_value($groupArray,$groupInfo['groupID']);
+			if(!$group && !isset($list['rootGroup'])){unset($list['myGroup']);}
 			if(!$selfGroup){unset($list['myGroup']);}
 		}
 

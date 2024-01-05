@@ -121,7 +121,7 @@ class userIndex extends Controller {
 	 * 通过session或kodToken检测登录
 	 */
 	public function loginCheck() {
-		if( is_array(Session::get('kodUser')) ){
+		if( KodUser::isLogin() ){
 			return $this->userDataInit();
 		}
 		if(Session::get('kodUserLogoutTrigger')){return;} //主动设置退出,不自动登录;
@@ -190,7 +190,7 @@ class userIndex extends Controller {
 		return Mcrypt::encode(Session::sign(),$pass,3600*24*30);
 	}
 	public function accessTokenGet(){
-		if(!Session::get('kodUser')){show_json('user not login!',ERROR_CODE_LOGOUT);}
+		if(!KodUser::isLogin()){show_json('user not login!',ERROR_CODE_LOGOUT);}
 		show_json($this->accessToken(),true);
 	}	
 	public function accessTokenCheck($token){
@@ -210,7 +210,7 @@ class userIndex extends Controller {
 
 		$errorTips = _get($this->in,'msg','');
 		$errorTips = $errorTips == '[API LOGIN]' ? '':$errorTips; // 未登录标记,不算做登录错误;
-		if(Session::get('kodUser') && !$errorTips){
+		if(KodUser::isLogin() && !$errorTips){
 			$param = 'kodTokenApi='.$this->accessToken();
 			if($this->in['callbackToken'] == '1'){
 				$link .= strstr($link,'?') ? '&'.$param:'?'.$param;
@@ -490,7 +490,7 @@ class userIndex extends Controller {
 		// Model('SystemOption')->set('maintenance',0);exit;
 		if($update) return Model('SystemOption')->set('maintenance', $value);
 		// 管理员or未启动维护，返回
-		if(_get($GLOBALS,'isRoot') || !Model('SystemOption')->get('maintenance')) return;
+		if(KodUser::isRoot() || !Model('SystemOption')->get('maintenance')) return;
 		show_tips(LNG('common.maintenanceTips'), '','',LNG('common.tips'));
 	}
 }

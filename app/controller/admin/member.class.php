@@ -16,7 +16,7 @@ class adminMember extends Controller{
 	}
 
 	public function authCheck(){
-		if(_get($GLOBALS,'isRoot')) return;
+		if(KodUser::isRoot()) return;
 		if(MOD == 'install') return;
 		$data = Input::getArray(array(
 			"userID"	=> array("default"=>null),
@@ -105,7 +105,7 @@ class adminMember extends Controller{
 			$groupParentAll = array_unique($groupParentAll);
 			$allowShow = array_intersect($groupParentAll,$userGroupRootShow)  ? true : false; //是否有交集
 			$allowFull = array_intersect($groupParentAll,$userGroupAdmin) ? true : false;
-			if($GLOBALS['isRoot']){$allowFull = true;$allowShow = true;}//超级管理员(不受权限限制)
+			if(KodUser::isRoot()){$allowFull = true;$allowShow = true;}//超级管理员(不受权限限制)
 			
 			if(!$allowShow){continue;}
 			if($allowFull && $requestAdmin){$userAllow[] = $user;continue;}

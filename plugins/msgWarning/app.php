@@ -128,7 +128,7 @@ class msgWarningPlugin extends PluginBase{
     // 待提醒消息详情
     public function message($ret = false){
         $user = Session::get('kodUser');
-        if (!$user || _get($GLOBALS,'isRoot') != 1) {
+        if (!$user || !KodUser::isRoot()) {
             if ($ret) return false;
             show_json(LNG('msgWarning.main.msgSysOK'));
         }

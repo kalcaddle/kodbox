@@ -52,6 +52,7 @@ class oauthPlugin extends PluginBase{
 	 * @return void
 	 */
 	public function adminSetBefore(){
+		KodUser::checkLogin();
 		$data = json_decode($this->in['data'], true);
 		$loginWith = $data['loginWith'];
 		unset($data['loginWith']);
@@ -68,7 +69,7 @@ class oauthPlugin extends PluginBase{
 	 * @return void
 	 */
 	public function bind() {
-		$action = Input::get('method', 'require');
+		$action = Input::get('method','in','',array('bind', 'log'));
 		return $this->action()->$action();
 	}
 	/**

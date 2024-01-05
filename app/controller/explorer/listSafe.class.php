@@ -84,7 +84,7 @@ class explorerListSafe extends Controller{
 	private function appendSafeUserRootAdmin(&$data){
 		if(!$this->config["ADMIN_ALLOW_USER_SAFE"]){return;}
 		$pathInfo = $data['current'];
-		if(!$GLOBALS['isRoot'] || !$pathInfo || !$pathInfo['sourceID']){return;}
+		if(!KodUser::isRoot() || !$pathInfo || !$pathInfo['sourceID']){return;}
 		if($pathInfo['parentID'] != 0 || $pathInfo['targetType'] != 'user') return;
 		if($pathInfo['targetID'] == USER_ID) return;//自己的根目录;
 		$userInfo = $userInfo = Model("User")->getInfoFull($pathInfo['targetID']);
@@ -121,7 +121,7 @@ class explorerListSafe extends Controller{
 	private function spaceInfo(){
 		static $result = false;
 		if(is_array($result)) return $result;
-		if(!Session::get('kodUser')){show_json('not login',false);}
+		KodUser::checkLogin();
 		
 		$uesrID     = Session::get('kodUser.userID');
 		$userInfo   = Model("User")->getInfoFull($uesrID);

@@ -29,7 +29,7 @@ class adminTask extends Controller {
 		
 		// 后台任务运行状态;
 		$taskInfo = false;
-		if($GLOBALS['isRoot']){
+		if(KodUser::isRoot()){
 			$taskInfo = array(//status,running,lastRun,delay
 				'autoTask' 			=> AutoTask::valueGet(false), 
 				'taskQueue'			=> TaskQueue::count(),

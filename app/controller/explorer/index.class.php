@@ -84,7 +84,7 @@ class explorerIndex extends Controller{
 			if($item['menuType'] == 'menu-default-open'){
 				$item['menuType'] = 'menu-default';
 			}
-			if(!_get($GLOBALS,'isRoot') && $item['rootNeed']){
+			if(!KodUser::isRoot() && $item['rootNeed']){
 				unset($desktopApps[$key]);
 			}
 		};unset($item);
@@ -170,7 +170,7 @@ class explorerIndex extends Controller{
 		if($pathInfo['targetType'] != 'group') return;
 		if($systemOption['sourceSecret'] != '1') return;
 		$allowUser  = explode(',',$systemOption['sourceSecretSetUser']);
-		if(!$GLOBALS['isRoot'] && !in_array(USER_ID,$allowUser)) return;
+		if(!KodUser::isRoot() && !in_array(USER_ID,$allowUser)) return;
 		
 		$sourceID = $pathInfo['sourceID'];
 		$model = Model('SourceSecret');

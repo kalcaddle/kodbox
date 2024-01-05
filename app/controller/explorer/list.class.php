@@ -526,7 +526,7 @@ class explorerList extends Controller{
 			if(!isset($pathInfo['sourceID'])){Cache::remove($cacheKey);} //不使用缓存;
 		}
 		
-		$debug = $GLOBALS['isRoot'] == 1 && $this->in['debug'] == '1'; // 调试模式,直接立即获取;
+		$debug = KodUser::isRoot() && $this->in['debug'] == '1'; // 调试模式,直接立即获取;
 		if($debug){
 			unset($pathInfo[$infoKey]);Cache::remove($cacheKey);//debug
 			if($fileID){Model("File")->metaSet($fileID,$infoKey,null);};

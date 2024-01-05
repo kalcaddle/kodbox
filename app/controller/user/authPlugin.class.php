@@ -44,7 +44,7 @@ class userAuthPlugin extends Controller{
 		
 		$config = $plugin['config'];
 		if (isset($config['pluginAuthOpen']) && $config['pluginAuthOpen']) return true;
-		if ($GLOBALS['isRoot'] == 1){
+		if (KodUser::isRoot()){
 			if($GLOBALS['config']["ADMIN_ALLOW_ALL_ACTION"] || !$GLOBALS['config']["ADMIN_AUTH_LIMIT_PLUGINS"]) return true;
 			$disablePlugin = explode(',',strtolower($GLOBALS['config']["ADMIN_AUTH_LIMIT_PLUGINS"]));
 			return in_array(strtolower($appName),$disablePlugin) ? false : true;//系统管理员,开启三权分立时,限制插件处理;
@@ -63,15 +63,14 @@ class userAuthPlugin extends Controller{
 		if( is_string($auth) ){
 			$auth = @json_decode($auth, true);
 		}
-		// pr($auth,Session::get('kodUser'));
 		if (isset($auth['all']) && $auth['all'] == '1') return true; // 全部则无需登录也可以访问;
 		if (!$user){$user = Session::get('kodUser');}
 		if (!$auth || !$user || !is_array($auth)) return false;
 		
 		// all:代表任意登录用户; root:代表系统管理员;
 		if ($auth['user'] == 'all')  return true;
-		if ($auth['user'] == 'admin' && $GLOBALS['isRoot'] == 1) return true;
-		if ($auth['role'] === '1' && $GLOBALS['isRoot'] == 1) return true;
+		if ($auth['user'] == 'admin' && KodUser::isRoot()) return true;
+		if ($auth['role'] === '1' && KodUser::isRoot()) return true;
 		
 		$groups  = array_to_keyvalue($user['groupInfo'],'','groupID');
 		$auth['user']  = $auth['user']  ? explode(',',$auth['user']) :  array();

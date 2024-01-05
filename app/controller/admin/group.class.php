@@ -33,7 +33,7 @@ class adminGroup extends Controller{
 			if($requestAdmin && $userGroupAdmin){$data['parentID'] = $userGroupAdmin;}
 			if(!$requestAdmin && $userGroupAt && $data['parentID'] != 'rootOuter'){$data['parentID']   = $userGroupAt;}
 			if($data['parentID'] == 'rootOuter'){$data['parentID'] = $userGroupRootShow;}
-			if($GLOBALS['isRoot']){$data['parentID'] = array('1');}
+			if(KodUser::isRoot()){$data['parentID'] = array('1');}
 		}
 		// pr($userGroupAdmin,$userGroupAt,$userGroupRootShow,$data);exit;		
 		if($data['rootParam']){// 有缓存未更新是否有子部门及用户的问题;

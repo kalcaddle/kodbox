@@ -117,7 +117,7 @@ class adminLog extends Controller{
         ));
 		
 		// 部门管理员, 只能查询自己为部门管理员部门下的成员操作日志;
-		if(!_get($GLOBALS,'isRoot')){
+		if(!KodUser::isRoot()){
 			$filter = Action("filter.UserGroup");
 			if($data['userID'] && !$filter->allowChangeUser($data['userID'])){
 				show_json(LNG('explorer.noPermissionAction'),false);

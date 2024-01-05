@@ -95,7 +95,10 @@ class explorerUpload extends Controller{
 		$info = IO::info($path);
 		// 记录文件本身最后修改时间;
 		if($info && $this->in['modifyTime']){
-			IO::setModifyTime($path,substr($this->in['modifyTime'],0,10));
+			$modifyTime = abs(intval(substr($this->in['modifyTime'],0,10)));
+			if($modifyTime > 1000 && $modifyTime < time()){
+				IO::setModifyTime($path,$modifyTime);
+			}
 		}
 		
 		if($this->in['fileInfo'] != '1') return $path;

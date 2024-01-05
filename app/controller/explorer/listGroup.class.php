@@ -24,6 +24,7 @@ class explorerListGroup extends Controller{
 	// 我所在的部门, 罗列自己有权限的部门(通路)
 	public function groupSelfAppendAllow(&$listData){
 		if(intval($this->in['page']) > 1) return;// 第一页才罗列;
+		if(isset($this->in['fromType']) && $this->in['fromType']=='tree'){return;} // 树目录不显示,仅在文件区域显示;
 		$groupArray = Action('filter.userGroup')->userGroupRootShow();
 	    if(!$groupArray || empty($groupArray[0])) return false;
 
@@ -114,20 +115,25 @@ class explorerListGroup extends Controller{
 		$groupArray = array_sort_by($groupArray,'sort');// 排序处理;
 		$groupArray	= array_to_keyvalue($groupArray,'groupID');//自己所在的组
 		$this->_filterDisGroup($groupArray);	// 过滤已禁用部门
-		// $group = array_remove_value(array_keys($groupArray),1);
 		$group = array_keys($groupArray);
 		if(!$group) return array();
 
+		// 部门目录是否显示子部门; 0 不显示;1 全部显示;2=仅树目录显示
+		$isFromTree    = isset($this->in['fromType']) && $this->in['fromType']=='tree';
+		$groupListType = Model('SystemOption')->get('groupListChild'); 
+		
 		$groupSource = $this->model->sourceRootGroup($group);
 		$groupSource = array_to_keyvalue($groupSource,'targetID');
 		$result = array();
 		foreach($groupArray as $group){ // 保持部门查询结构的顺序;
 			$groupID = $group['groupID'];
-			// if($groupID == '1') continue; // 去除根部门
+			if($groupID == '1'){// 去除根部门(未禁用显示企业网盘时去除)
+				if(Action('explorer.listBlock')->pathEnable('rootGroup')){continue;}
+			}
 			if(!isset($groupSource[$groupID])) continue;
 			
 			$groupInfo = Model('Group')->getInfo($groupID);
-			$pathInfo  = $groupSource[$groupID];			
+			$pathInfo  = $groupSource[$groupID];
 			$pathInfo['sourceRoot'] = 'groupPath';
 			$pathInfo['hasGroup']   = $groupInfo ? $groupInfo['hasChildren']:0;
 			$pathInfo['pathDisplay']= $pathInfo['groupPathDisplay'];
@@ -135,7 +141,14 @@ class explorerListGroup extends Controller{
 				$pathInfo['auth'] = Model("SourceAuth")->authDeepCheck($pathInfo['sourceID']);
 			}
 			
-			$userRootShow = _get($GLOBALS,'isRoot') && $GLOBALS['config']["ADMIN_ALLOW_SOURCE"];
+			// 部门根目录是否有文件夹取决于[有文件夹,或有子部门]; 后台设置--仅树目录显示子部门时,是否可展开取决于是否有子部门;
+			$pathInfo['hasFolder'] = $pathInfo['hasFolder'] || $pathInfo['hasGroup'];
+			if($isFromTree && $groupListType == '2'){
+				$pathInfo['hasFolder'] = $pathInfo['hasGroup'];
+				$pathInfo['hasFile'] = false;
+			}
+						
+			$userRootShow = KodUser::isRoot() && $GLOBALS['config']["ADMIN_ALLOW_SOURCE"];
 			if(!$userRootShow){
 				if( !$pathInfo['auth'] || $pathInfo['auth']['authValue'] == 0){ // 放过-1; 打开通路;
 					continue;// 没有权限;

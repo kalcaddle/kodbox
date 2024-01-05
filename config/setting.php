@@ -280,6 +280,7 @@ $config['settingSystemDefault'] = array(
 	
 	
 	'treeOpen'			=> 'my,myFav,myGroup,rootGroup,recentDoc,fileType,fileTag,driver',//树目录开启功能;
+	'groupListChild'	=> '2',//罗列子部门; 0=不罗列;1=全部罗列;2=仅树目录罗列;
 	'wallpageDesktop'	=> "1,2,3,4,5,6,7,8,9,10,11,12,13",
 	'wallpageLogin'		=> "2,3,6,8,9,11,12",
 	'emailType'			=> "0",			// 邮件方式

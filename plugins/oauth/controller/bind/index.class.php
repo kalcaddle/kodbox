@@ -16,12 +16,12 @@ class oauthBindIndex extends Controller {
 			'google'	=> array('type' => 'gg', 'title' => 'Google'),
 			'facebook'	=> array('type' => 'fb', 'title' => 'Facebook'),
 		);
-		$this->checkAuth();
+		$this->_checkAuth();
     }
 
 	// 检查是否有用户编辑权限
-	private function checkAuth(){
-		if(!Session::get('kodUser')) return;
+	private function _checkAuth(){
+		if(!KodUser::isLogin()) return;
 		$check = array(
 			'bind',
 			'bindApi',

@@ -14,13 +14,12 @@ class userAuthRole extends Controller {
 	function __construct() {
 		parent::__construct();
 	}
-	public function isRoot(){return isset($GLOBALS['isRoot'])?!!$GLOBALS['isRoot']:false;} 
 	public function authCanSearch(){return $this->authCan('explorer.search');}
 	public function authCanRead(){return $this->authCan('explorer.view');}
 	public function authCanEdit(){return $this->authCan('explorer.edit');}
 	public function authCanDownload(){return $this->authCan('explorer.download');}
 	public function authCan($action){ // action 区分大小写; 与$config['authRoleAction'] key保持一致;
-		if($this->isRoot()) return true;
+		if(KodUser::isRoot()) return true;
 		$userRole = $this->userRoleAuth();
 		return $userRole['roleList'][$action] == 1 ? true : false;
 	}
@@ -59,7 +58,7 @@ class userAuthRole extends Controller {
 		}
 		$this->authShareLinkUpdate();//分享拆分,老数据迁移;
 		//系统管理员不受权限限制
-		if($this->isRoot()) return true;
+		if(KodUser::isRoot()) return true;
 		
 		$userRole = $this->userRoleAuth();
 		$allowAction = $userRole['allowAction'];

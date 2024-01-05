@@ -57,7 +57,7 @@ class explorerShare extends Controller{
 	}
 	
 	public function linkSafe($path,$downFilename=''){
-		if(!Session::get('kodUser')){return $this->link($path,$downFilename);}
+		if(!KodUser::isLogin()){return $this->link($path,$downFilename);}
 		if(!$path || !$info = IO::info($path)) return;
 		$link = Action('user.index')->apiSignMake('explorer/index/fileOut',array('path'=>$path));
 		

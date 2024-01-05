@@ -127,7 +127,7 @@ class officeViewerlibreOfficeIndex extends Controller {
 
     //linux 注意修改获取bin文件的权限问题;
 	public function check(){
-		if(!$GLOBALS['isRoot']){show_tips(LNG('explorer.noPermissionAction'));}
+		KodUser::checkRoot();
         $bin = $this->in['soffice'];
 		$plugin = Action($this->pluginName);
         if(!empty($bin)) {

@@ -27,13 +27,13 @@ class userView extends Controller{
 				'userID'		=> USER_ID ? USER_ID:'',
 				'myhome'    	=> defined('MY_HOME') ? MY_HOME : '',
 				'desktop'   	=> defined('MY_DESKTOP') ? MY_DESKTOP : '',
-				'isRoot'		=> _get($GLOBALS,'isRoot',0),
+				'isRoot'		=> KodUser::isRoot() ? 1:0,//固定数值,true/false Android会异常;
 				'info'			=> $user,
 				'role'			=> Action('user.authRole')->userRoleAuth(),
 				'config'		=> $this->config['settingDefault'],
 				'editorConfig'	=> $this->config['editorDefault'],
 				'isRootAllowIO'	=> $this->config["ADMIN_ALLOW_IO"], //后端处理
-				'isRootAllowAll'	=> _get($GLOBALS,'isRoot',0) ? $this->config["ADMIN_ALLOW_ALL_ACTION"] : 1,
+				'isRootAllowAll'	=> KodUser::isRoot() ? $this->config["ADMIN_ALLOW_ALL_ACTION"] : 1,
 			),
 			"system" => array(
 				'settings'		=> $this->config['settings'],
@@ -62,7 +62,7 @@ class userView extends Controller{
 			$options['user']['config'] = array_merge($options['user']['config'],$userOptions);
 		}
 		
-		if(_get($GLOBALS,'isRoot')){
+		if(KodUser::isRoot()){
 			$options['kod']['WEB_ROOT']   = WEB_ROOT;
 			$options['kod']['BASIC_PATH'] = BASIC_PATH;
 			$options['kod']['systemOS']   = $this->config['systemOS'];
@@ -98,7 +98,7 @@ class userView extends Controller{
 
 		$groupSelf  = array_to_keyvalue(Session::get("kodUser.groupInfo"),'','groupID');
 		$groupCompany = $GLOBALS['config']['settings']['groupCompany'];
-		if(!$groupCompany || !$groupSelf || $GLOBALS['isRoot']) return false;
+		if(!$groupCompany || !$groupSelf || KodUser::isRoot()) return false;
 
 		$groupAllowShow = Model('Group')->groupShowRoot($groupSelf[0],$groupCompany);
 		$groupInfo = Model('Group')->getInfo($groupAllowShow[0]);

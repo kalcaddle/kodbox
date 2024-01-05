@@ -17,7 +17,7 @@ class filterUserRequest extends Controller {
 	public function taskCheck(){
 		$taskAllowMax = $this->config['systemOption']['userTaskAllowMax'];
 		$userID = Session::get('kodUser.userID');
-		if(!$taskAllowMax || _get($GLOBALS,'isRoot') || !$userID) return;
+		if(!$taskAllowMax || KodUser::isRoot() || !$userID) return;
 		
 		$result  = Task::listData($userID);
 		if(count($result) > $taskAllowMax){
@@ -32,7 +32,7 @@ class filterUserRequest extends Controller {
 	 */
 	public function checkRequestMany(){
 		//每分钟最大请求数; 300个则每秒5个,每5秒25个, 25个内小于5s
-		if(_get($GLOBALS,'isRoot')) return;
+		if(KodUser::isRoot()) return;
 		$requestPerMinuteMax = $this->config['systemOption']['requestPerMinuteMax'];
 		$requestAllowPerMinuteMax = $this->config['systemOption']['requestAllowPerMinuteMax'];
 		if(!$requestPerMinuteMax || !$requestAllowPerMinuteMax) return;

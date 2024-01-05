@@ -217,7 +217,7 @@ class explorerAuth extends Controller {
 	 * 操作屏蔽：remove不支持根目录：用户根目录，部门根目录，分享根目录；
 	 */
 	public function can($path,$action){
-		$isRoot = _get($GLOBALS,'isRoot');
+		$isRoot = KodUser::isRoot();
 		$parse  = KodIO::parse($path);
 		$ioType = $parse['type'];
 		
@@ -303,7 +303,7 @@ class explorerAuth extends Controller {
 	}
 	
 	public function allowRootSourceInfo($pathInfo){
-		$isRoot = _get($GLOBALS,'isRoot');
+		$isRoot = KodUser::isRoot();
 		if($isRoot && $this->config["ADMIN_ALLOW_SOURCE"]) return true;
 		if($isRoot && $pathInfo && $pathInfo['pathType'] == '{systemRecycle}') return true;
 		return false;
@@ -347,7 +347,7 @@ class explorerAuth extends Controller {
 	 * $method: view,show,...   AuthModel::authCheckShow...
 	 */
 	private function checkAuthMethod($auth,$method){
-		if(_get($GLOBALS,'isRoot') && $this->config["ADMIN_ALLOW_SOURCE"]) return true;
+		if(KodUser::isRoot() && $this->config["ADMIN_ALLOW_SOURCE"]) return true;
 		$auth = intval($auth);
 		if(!$auth || $auth == 0){
 			return $this->errorMsg(LNG('explorer.noPermissionAction'),1005);

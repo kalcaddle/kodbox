@@ -98,7 +98,7 @@ class explorerListRecent extends Controller{
 			'size'			=> array('>',0),
 		);
 		// 内部协作分享,修改上传内容; 普通用户可能没有权限进入处理;
-		if($GLOBALS['isRoot']){
+		if(KodUser::isRoot()){
 			if(in_array($timeType,array('createTime','modifyTime')) ){
 				unset($where['targetID']);
 				$where['targetType'] = array('in',array(SourceModel::TYPE_USER,SourceModel::TYPE_GROUP));

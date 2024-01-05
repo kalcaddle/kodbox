@@ -169,7 +169,7 @@ class videoResize {
 		while(true){
 			$data = $this->progressGet($logFile);clearstatcache();
 			if($data['total'] && $data['finished'] == $data['total']){break;}
-			if(time() - @filemtime($logFile) >= 5){break;}
+			if(time() - @filemtime($logFile) >= 20){break;}
 			if(!$this->processFind($tempName)){break;} //进程已不存在; 转码报错或者意外终止或者其他情况的进程终止;
 
 			$task->task['taskFinished'] = round($data['finished'],3);
@@ -226,6 +226,7 @@ class videoResize {
 		}
 		if( preg_match("/frame=\s+(\d+)/",$output,$match)){
 			$errorTips = 'Stoped!';
+			$this->log('[Stoped] '.$output);
 			$runError  = false;
 		}
 		$logEnd  = get_caller_msg();
@@ -312,7 +313,7 @@ class videoResize {
 	// 通过命令行及参数查找到进程pid; 兼容Linux,window,mac
 	// http://blog.kail.xyz/post/2018-03-28/other/windows-find-kill.html
 	public function processFind($search){
-		$cmd = "ps -eo user,pid,ppid,args | grep '.escapeShell($search).' | grep -v grep | awk '{print $2}'";
+		$cmd = "ps -eo user,pid,ppid,args | grep '".escapeShell($search)."' | grep -v grep | awk '{print $2}'";
 		if($GLOBALS['config']['systemOS'] != 'windows'){return trim(@shell_exec($cmd));}
 		
 		// windows 获取pid;

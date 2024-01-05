@@ -15,7 +15,7 @@ class filterUserGroup extends Controller{
 	}
 
 	public function check(){
-		if(_get($GLOBALS,'isRoot')){
+		if(KodUser::isRoot()){
 			if($this->config["ADMIN_ALLOW_ALL_ACTION"]){return;}
 			//三权分立,限制系统管理员设置用户角色及所在部门权限; 还原设置数据;
 			return $this->userAuthEditCheck();
@@ -148,7 +148,7 @@ class filterUserGroup extends Controller{
 		$action = strtolower(ACTION);
 		$allowUserAuth 	= Action('user.authRole')->authCan('admin.member.userAuth');
 		$allowUserEdit 	= Action('user.authRole')->authCan('admin.member.userEdit');
-		if(_get($GLOBALS,'isRoot')){
+		if(KodUser::isRoot()){
 			$allowUserEdit = true;
 			$allowUserAuth = $this->config["ADMIN_ALLOW_ALL_ACTION"] == 1 ? true:false;
 		}
@@ -301,7 +301,7 @@ class filterUserGroup extends Controller{
 
 	// 权限修改删除范围处理: 只能操作权限包含内容小于等于自己权限包含内容的类型;  设置用户权限也以此为标准;
 	public function allowChangeUserRole($roleID){
-		if(_get($GLOBALS,'isRoot') || !$roleID) return true;
+		if(KodUser::isRoot() || !$roleID) return true;
 		$authInfo = Model('SystemRole')->listData($roleID);
 		if($authInfo && $authInfo['administrator'] == 1) return false; // 系统管理员不允许非系统管理员获取,设置
 		if(!$this->config["ADMIN_ALLOW_ALL_ACTION"]){return true;} // 启用了三权分立,安全保密员允许获取,或设置用户的角色;

@@ -14,7 +14,7 @@ class explorerListDriver extends Controller{
 	 * 用户存储挂载列表
 	 */
 	public function get(){
-		if(_get($GLOBALS,'isRoot')) return $this->rootList();
+		if(KodUser::isRoot()) return $this->rootList();
 		return false;//普通用户挂载暂不支持;
 	}
 	
