@@ -10,7 +10,7 @@
 | userID | bigint(20) unsigned    | 评论用户id |
 | targetType | smallint(5) unsigned    | 评论对象类型1分享2文件3文章4...... |
 | targetID | bigint(20) unsigned    | 评论对象id |
-| content | longtext    | 评论内容 |
+| content | text    | 评论内容 |
 | praiseCount | int(11) unsigned    | 点赞统计 |
 | commentCount | int(11) unsigned    | 评论统计 |
 | status | tinyint(3) unsigned    | 状态 1正常 2异常 3其他 |
@@ -24,7 +24,7 @@
 | id | bigint(20) unsigned   `自动增量` |
 | commentID | bigint(20) unsigned    | 评论id |
 | key | varchar(255)    | 字段key |
-| value | mediumtext    | 字段值 |
+| value | text    | 字段值 |
 | createTime | int(11) unsigned    | 创建时间 |
 | modifyTime | int(11) unsigned    | 最后修改 |
 
@@ -60,7 +60,7 @@
 | id | bigint(20) unsigned   `自动增量`  | 自增id |
 | groupID | bigint(20) unsigned    | 部门id |
 | key | varchar(255)    | 存储key |
-| value | longtext    | 对应值 |
+| value | text    | 对应值 |
 | createTime | int(11) unsigned    | 创建时间 |
 | modifyTime | int(11) unsigned    | 最后修改时间 |
 
@@ -84,7 +84,7 @@
 | 字段 | 类型 | 字段说明 |
 | ---- | ---- | ---- |
 | fileID | bigint(20) unsigned   `自动增量`  | 文件ID |
-| content | longtext    | 文本文件内容,最大16M |
+| content | mediumtext    | 文本文件内容,最大16M |
 | createTime | int(11) unsigned    | 创建时间 |
 
 
@@ -94,7 +94,7 @@
 | id | bigint(20) unsigned   `自动增量`  | 自增id |
 | fileID | bigint(20) unsigned    | 文件id |
 | key | varchar(255)    | 存储key |
-| value | longtext    | 对应值 |
+| value | text    | 对应值 |
 | createTime | int(11) unsigned    | 创建时间 |
 | modifyTime | int(11) unsigned    | 最后修改时间 |
 
@@ -142,7 +142,7 @@
 | sourceParent | bigint(20) unsigned    | 文档父文件夹id |
 | userID | bigint(20) unsigned    | 操作者id |
 | type | varchar(255)    | 事件类型 |
-| desc | longtext    | 数据详情，根据type内容意义不同 |
+| desc | text    | 数据详情，根据type内容意义不同 |
 | createTime | int(11) unsigned    | 创建时间 |
 
 
@@ -165,7 +165,7 @@
 | id | bigint(20) unsigned   `自动增量`  | 自增id |
 | sourceID | bigint(20) unsigned    | 文档id |
 | key | varchar(255)    | 存储key |
-| value | longtext    | 对应值 |
+| value | text    | 对应值 |
 | createTime | int(11) unsigned    | 创建时间 |
 | modifyTime | int(11) unsigned    | 最后修改时间 |
 
@@ -213,7 +213,7 @@
 | fileID | bigint(20) unsigned    | 举报文件id,文件夹则该处为0 |
 | userID | bigint(20) unsigned    | 举报用户id |
 | type | tinyint(3) unsigned    | 举报类型 (1-侵权,2-色情,3-暴力,4-政治,5-其他) |
-| desc | longtext    | 举报原因（其他）描述 |
+| desc | text    | 举报原因（其他）描述 |
 | status | tinyint(3) unsigned    | 处理状态(0-未处理,1-已处理,2-禁止分享) |
 | createTime | int(11) unsigned    | 创建时间 |
 | modifyTime | int(11) unsigned    | 最后修改时间 |
@@ -239,7 +239,7 @@
 | sessionID | varchar(128)    | session识别码，用于登陆时记录ip,UA等信息 |
 | userID | bigint(20) unsigned    | 用户id |
 | type | varchar(255)    | 日志类型 |
-| desc | longtext    | 详情 |
+| desc | text    | 详情 |
 | createTime | int(11) unsigned    | 创建时间 |
 
 
@@ -249,7 +249,7 @@
 | id | int(11) unsigned   `自动增量` |
 | type | varchar(50)    | 配置类型 |
 | key | varchar(255)   |
-| value | longtext   |
+| value | text   |
 | createTime | int(11) unsigned    | 创建时间 |
 | modifyTime | int(11) unsigned    | 最后更新时间 |
 
@@ -260,7 +260,7 @@
 | id | int(10) unsigned   `自动增量` |
 | sign | varchar(128)    | session标识 |
 | userID | bigint(20) unsigned    | 用户id |
-| content | longtext    | value |
+| content | text    | value |
 | expires | int(10) unsigned    | 过期时间 |
 | modifyTime | int(10) unsigned    | 修改时间 |
 | createTime | int(10) unsigned    | 创建时间 |
@@ -318,7 +318,7 @@
 | id | bigint(20) unsigned   `自动增量`  | 自增id |
 | userID | bigint(20) unsigned    | 用户id |
 | key | varchar(255)    | 存储key |
-| value | longtext    | 对应值 |
+| value | text    | 对应值 |
 | createTime | int(11) unsigned    | 创建时间 |
 | modifyTime | int(11) unsigned    | 最后修改时间 |
 
@@ -330,7 +330,7 @@
 | userID | bigint(20) unsigned    | 用户id |
 | type | varchar(50)    | 配置类型,全局配置类型为空,编辑器配置type=editor |
 | key | varchar(255)    | 配置key |
-| value | longtext    | 配置值 |
+| value | text    | 配置值 |
 | createTime | int(11) unsigned    | 创建时间 |
 | modifyTime | int(11) unsigned    | 最后修改时间 |
 

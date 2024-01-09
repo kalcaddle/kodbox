@@ -11,7 +11,7 @@ CREATE TABLE "comment" (
   "userID" integer NOT NULL,
   "targetType" smallint NOT NULL,
   "targetID" integer NOT NULL,
-  "content" longtext NOT NULL,
+  "content" text NOT NULL,
   "praiseCount" integer NOT NULL,
   "commentCount" integer NOT NULL,
   "status" smallint NOT NULL,
@@ -34,7 +34,7 @@ CREATE TABLE "comment_meta" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "commentID" integer NOT NULL,
   "key" varchar(255) NOT NULL,
-  "value" mediumtext NOT NULL,
+  "value" text NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -87,7 +87,7 @@ CREATE TABLE "group_meta" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "groupID" integer NOT NULL,
   "key" varchar(255) NOT NULL,
-  "value" longtext NOT NULL,
+  "value" text NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -124,7 +124,7 @@ CREATE INDEX 'idx_io_file_hashMd5' ON 'io_file' ("hashMd5");
 DROP TABLE IF EXISTS "io_file_contents";
 CREATE TABLE "io_file_contents" (
   "fileID" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-  "content" longtext NOT NULL,
+  "content" mediumtext NOT NULL,
   "createTime" integer NOT NULL
 );
 -- index io_file_contents:
@@ -137,7 +137,7 @@ CREATE TABLE "io_file_meta" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "fileID" integer NOT NULL,
   "key" varchar(255) NOT NULL,
-  "value" longtext NOT NULL,
+  "value" text NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -213,7 +213,7 @@ CREATE TABLE "io_source_event" (
   "sourceParent" integer NOT NULL,
   "userID" integer NOT NULL,
   "type" varchar(255) NOT NULL,
-  "desc" longtext NOT NULL,
+  "desc" text NOT NULL,
   "createTime" integer NOT NULL
 );
 -- index io_source_event:
@@ -247,7 +247,7 @@ CREATE TABLE "io_source_meta" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "sourceID" integer NOT NULL,
   "key" varchar(255) NOT NULL,
-  "value" longtext NOT NULL,
+  "value" text NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -318,7 +318,7 @@ CREATE TABLE "share_report" (
   "fileID" integer NOT NULL,
   "userID" integer NOT NULL,
   "type" smallint NOT NULL,
-  "desc" longtext NOT NULL,
+  "desc" text NOT NULL,
   "status" smallint NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
@@ -358,7 +358,7 @@ CREATE TABLE "system_log" (
   "sessionID" varchar(128) NOT NULL,
   "userID" integer NOT NULL,
   "type" varchar(255) NOT NULL,
-  "desc" longtext NOT NULL,
+  "desc" text NOT NULL,
   "createTime" integer NOT NULL
 );
 -- index system_log:
@@ -373,7 +373,7 @@ CREATE TABLE "system_option" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "type" varchar(50) NOT NULL,
   "key" varchar(255) NOT NULL,
-  "value" longtext NOT NULL,
+  "value" text NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -389,7 +389,7 @@ CREATE TABLE "system_session" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "sign" varchar(128) NOT NULL,
   "userID" integer NOT NULL,
-  "content" longtext NOT NULL,
+  "content" text NOT NULL,
   "expires" integer NOT NULL,
   "modifyTime" integer NOT NULL,
   "createTime" integer NOT NULL
@@ -476,7 +476,7 @@ CREATE TABLE "user_meta" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "userID" integer NOT NULL,
   "key" varchar(255) NOT NULL,
-  "value" longtext NOT NULL,
+  "value" text NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -492,7 +492,7 @@ CREATE TABLE "user_option" (
   "userID" integer NOT NULL,
   "type" varchar(50) NOT NULL,
   "key" varchar(255) NOT NULL,
-  "value" longtext NOT NULL,
+  "value" text NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
