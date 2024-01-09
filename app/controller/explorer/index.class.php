@@ -312,15 +312,17 @@ class explorerIndex extends Controller{
 		return $authList;
 	}
 	
-	public function pathAllowCheck($path){
+	public function pathAllowCheck(&$path){
 		$notAllow = array('/', '\\', ':', '*', '?', '"', '<', '>', '|');
-		$parse = KodIO::parse($path);
-		if($parse['pathBase']){$path = $parse['param'];}
+		$db = $this->config['database'];// 文件文件夹名emoji是否支持处理;
+		if(!isset($db['DB_CHARSET']) || $db['DB_CHARSET'] != 'utf8mb4'){
+			$path = preg_replace_callback('/./u',function($match){return strlen($match[0]) >= 4 ? '-':$match[0];},$path);
+		}
 		
-		$name = trim(get_path_this($path));
+		$name  = trim(get_path_this($path));
+		$parse = KodIO::parse($path);
+		if($parse['pathBase']){$name = trim(get_path_this($parse['param']));}
 		if(!$name){return;} // 允许纯为空情况; 新建文件夹: {source:xxx}/ 允许该情况;
-		$name = preg_replace_callback('/./u',function($match){return strlen($match[0]) >= 4 ? '':$match[0];},$name);
-		if(!$name){show_json(LNG('explorer.charNoSupport').'emoji',false);} // 不允许纯emoji表情; 新建后文件名不显示;
 		
 		$checkName = str_replace($notAllow,'_',$name);
 		if($name != $checkName){

@@ -8,7 +8,7 @@ CREATE TABLE `comment` (
   `userID` bigint(20) unsigned NOT NULL COMMENT '评论用户id',
   `targetType` smallint(5) unsigned NOT NULL COMMENT '评论对象类型1分享2文件3文章4......',
   `targetID` bigint(20) unsigned NOT NULL COMMENT '评论对象id',
-  `content` text NOT NULL COMMENT '评论内容',
+  `content` longtext NOT NULL COMMENT '评论内容',
   `praiseCount` int(11) unsigned NOT NULL COMMENT '点赞统计',
   `commentCount` int(11) unsigned NOT NULL COMMENT '评论统计',
   `status` tinyint(3) unsigned NOT NULL COMMENT '状态 1正常 2异常 3其他',
@@ -30,13 +30,13 @@ CREATE TABLE `comment_meta` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `commentID` bigint(20) unsigned NOT NULL COMMENT '评论id',
   `key` varchar(255) NOT NULL COMMENT '字段key',
-  `value` text NOT NULL COMMENT '字段值',
+  `value` mediumtext NOT NULL COMMENT '字段值',
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   `modifyTime` int(11) unsigned NOT NULL COMMENT '最后修改',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `commentID_key` (`commentID`,`key`),
+  UNIQUE KEY `commentID_key` (`commentID`,`key`(200)),
   KEY `commentID` (`commentID`),
-  KEY `key` (`key`)
+  KEY `key` (`key`(200))
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='评论表扩展字段';
 
 DROP TABLE IF EXISTS `comment_praise`;
@@ -67,12 +67,12 @@ CREATE TABLE `group` (
   `modifyTime` int(11) unsigned NOT NULL COMMENT '最后修改时间',
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`groupID`),
-  KEY `name` (`name`),
   KEY `parentID` (`parentID`),
   KEY `createTime` (`createTime`),
   KEY `modifyTime` (`modifyTime`),
   KEY `order` (`sort`),
-  KEY `parentLevel` (`parentLevel`(333))
+  KEY `parentLevel` (`parentLevel`(250)),
+  KEY `name` (`name`(200))
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='群组表';
 
 DROP TABLE IF EXISTS `group_meta`;
@@ -80,13 +80,13 @@ CREATE TABLE `group_meta` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增id',
   `groupID` bigint(20) unsigned NOT NULL COMMENT '部门id',
   `key` varchar(255) NOT NULL COMMENT '存储key',
-  `value` text NOT NULL COMMENT '对应值',
+  `value` longtext NOT NULL COMMENT '对应值',
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   `modifyTime` int(11) unsigned NOT NULL COMMENT '最后修改时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `groupID_key` (`groupID`,`key`),
+  UNIQUE KEY `groupID_key` (`groupID`,`key`(200)),
   KEY `groupID` (`groupID`),
-  KEY `key` (`key`)
+  KEY `key` (`key`(200))
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='用户数据扩展表';
 
 DROP TABLE IF EXISTS `io_file`;
@@ -103,23 +103,23 @@ CREATE TABLE `io_file` (
   `modifyTime` int(11) unsigned NOT NULL COMMENT '最后修改时间',
   PRIMARY KEY (`fileID`),
   KEY `size` (`size`),
-  KEY `path` (`path`),
-  KEY `hash` (`hashSimple`),
   KEY `linkCount` (`linkCount`),
   KEY `createTime` (`createTime`),
   KEY `ioType` (`ioType`),
-  KEY `hashMd5` (`hashMd5`),
-  KEY `name` (`name`)
+  KEY `path` (`path`(200)),
+  KEY `name` (`name`(200)),
+  KEY `hash` (`hashSimple`),
+  KEY `hashMd5` (`hashMd5`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='文档存储表';
 
 DROP TABLE IF EXISTS `io_file_contents`;
 CREATE TABLE `io_file_contents` (
   `fileID` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '文件ID',
-  `content` mediumtext NOT NULL COMMENT '文本文件内容,最大16M',
+  `content` longtext NOT NULL COMMENT '文本文件内容,最大16M',
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`fileID`),
   KEY `createTime` (`createTime`),
-  KEY `content` (`content`(333))
+  KEY `content` (`content`(250))
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='文件id';
 
 DROP TABLE IF EXISTS `io_file_meta`;
@@ -127,13 +127,13 @@ CREATE TABLE `io_file_meta` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增id',
   `fileID` bigint(20) unsigned NOT NULL COMMENT '文件id',
   `key` varchar(255) NOT NULL COMMENT '存储key',
-  `value` text NOT NULL COMMENT '对应值',
+  `value` longtext NOT NULL COMMENT '对应值',
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   `modifyTime` int(11) unsigned NOT NULL COMMENT '最后修改时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `fileID_key` (`fileID`,`key`),
+  UNIQUE KEY `fileID_key` (`fileID`,`key`(200)),
   KEY `fileID` (`fileID`),
-  KEY `key` (`key`)
+  KEY `key` (`key`(200))
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='文件扩展表';
 
 DROP TABLE IF EXISTS `io_source`;
@@ -160,9 +160,8 @@ CREATE TABLE `io_source` (
   KEY `targetID` (`targetID`),
   KEY `createUser` (`createUser`),
   KEY `isFolder` (`isFolder`),
-  KEY `fileType` (`fileType`),
   KEY `parentID` (`parentID`),
-  KEY `parentLevel` (`parentLevel`(333)),
+  KEY `parentLevel` (`parentLevel`(250)),
   KEY `fileID` (`fileID`),
   KEY `isDelete` (`isDelete`),
   KEY `size` (`size`),
@@ -172,7 +171,8 @@ CREATE TABLE `io_source` (
   KEY `modifyUser` (`modifyUser`),
   KEY `targetType_targetID_parentID` (`targetType`,`targetID`,`parentID`),
   KEY `parentID_isDelete` (`parentID`,`isDelete`),
-  KEY `name` (`name`)
+  KEY `name` (`name`(200)),
+  KEY `fileType` (`fileType`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='文档数据表';
 
 DROP TABLE IF EXISTS `io_source_auth`;
@@ -200,7 +200,7 @@ CREATE TABLE `io_source_event` (
   `sourceParent` bigint(20) unsigned NOT NULL COMMENT '文档父文件夹id',
   `userID` bigint(20) unsigned NOT NULL COMMENT '操作者id',
   `type` varchar(255) NOT NULL COMMENT '事件类型',
-  `desc` text NOT NULL COMMENT '数据详情，根据type内容意义不同',
+  `desc` longtext NOT NULL COMMENT '数据详情，根据type内容意义不同',
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`),
   KEY `sourceID` (`sourceID`),
@@ -232,13 +232,13 @@ CREATE TABLE `io_source_meta` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增id',
   `sourceID` bigint(20) unsigned NOT NULL COMMENT '文档id',
   `key` varchar(255) NOT NULL COMMENT '存储key',
-  `value` text NOT NULL COMMENT '对应值',
+  `value` longtext NOT NULL COMMENT '对应值',
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   `modifyTime` int(11) unsigned NOT NULL COMMENT '最后修改时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `sourceID_key` (`sourceID`,`key`),
+  UNIQUE KEY `sourceID_key` (`sourceID`,`key`(200)),
   KEY `sourceID` (`sourceID`),
-  KEY `key` (`key`)
+  KEY `key` (`key`(200))
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='文档扩展表';
 
 DROP TABLE IF EXISTS `io_source_recycle`;
@@ -254,7 +254,7 @@ CREATE TABLE `io_source_recycle` (
   KEY `sourceID` (`sourceID`),
   KEY `userID` (`userID`),
   KEY `createTime` (`createTime`),
-  KEY `parentLevel` (`parentLevel`(333)),
+  KEY `parentLevel` (`parentLevel`(250)),
   KEY `targetType` (`targetType`),
   KEY `targetID` (`targetID`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='文档回收站';
@@ -288,7 +288,7 @@ CREATE TABLE `share` (
   KEY `numView` (`numView`),
   KEY `numDownload` (`numDownload`),
   KEY `isShareTo` (`isShareTo`),
-  KEY `url` (`url`)
+  KEY `url` (`url`(250))
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='分享数据表';
 
 DROP TABLE IF EXISTS `share_report`;
@@ -300,7 +300,7 @@ CREATE TABLE `share_report` (
   `fileID` bigint(20) unsigned NOT NULL COMMENT '举报文件id,文件夹则该处为0',
   `userID` bigint(20) unsigned NOT NULL COMMENT '举报用户id',
   `type` tinyint(3) unsigned NOT NULL COMMENT '举报类型 (1-侵权,2-色情,3-暴力,4-政治,5-其他)',
-  `desc` text NOT NULL COMMENT '举报原因（其他）描述',
+  `desc` longtext NOT NULL COMMENT '举报原因（其他）描述',
   `status` tinyint(3) unsigned NOT NULL COMMENT '处理状态(0-未处理,1-已处理,2-禁止分享)',
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   `modifyTime` int(11) unsigned NOT NULL COMMENT '最后修改时间',
@@ -338,7 +338,7 @@ CREATE TABLE `system_log` (
   `sessionID` varchar(128) NOT NULL COMMENT 'session识别码，用于登陆时记录ip,UA等信息',
   `userID` bigint(20) unsigned NOT NULL COMMENT '用户id',
   `type` varchar(255) NOT NULL COMMENT '日志类型',
-  `desc` text NOT NULL COMMENT '详情',
+  `desc` longtext NOT NULL COMMENT '详情',
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`id`),
   KEY `userID` (`userID`),
@@ -352,13 +352,14 @@ CREATE TABLE `system_option` (
   `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
   `type` varchar(50) NOT NULL COMMENT '配置类型',
   `key` varchar(255) NOT NULL,
-  `value` text NOT NULL,
+  `value` longtext NOT NULL,
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   `modifyTime` int(11) unsigned NOT NULL COMMENT '最后更新时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `key_type` (`key`,`type`),
+  UNIQUE KEY `key_type` (`key`(200),`type`),
   KEY `createTime` (`createTime`),
-  KEY `modifyTime` (`modifyTime`)
+  KEY `modifyTime` (`modifyTime`),
+  KEY `type` (`type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='系统配置表';
 
 DROP TABLE IF EXISTS `system_session`;
@@ -366,7 +367,7 @@ CREATE TABLE `system_session` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `sign` varchar(128) NOT NULL COMMENT 'session标识',
   `userID` bigint(20) unsigned NOT NULL COMMENT '用户id',
-  `content` text NOT NULL COMMENT 'value',
+  `content` longtext NOT NULL COMMENT 'value',
   `expires` int(10) unsigned NOT NULL COMMENT '过期时间',
   `modifyTime` int(10) unsigned NOT NULL COMMENT '修改时间',
   `createTime` int(10) unsigned NOT NULL COMMENT '创建时间',
@@ -395,13 +396,13 @@ CREATE TABLE `user` (
   `modifyTime` int(11) unsigned NOT NULL COMMENT '最后修改时间',
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`userID`),
-  KEY `name` (`name`),
-  KEY `email` (`email`),
+  KEY `name` (`name`(250)),
+  KEY `email` (`email`(250)),
   KEY `status` (`status`),
   KEY `modifyTime` (`modifyTime`),
   KEY `lastLogin` (`lastLogin`),
   KEY `createTime` (`createTime`),
-  KEY `nickName` (`nickName`),
+  KEY `nickName` (`nickName`(250)),
   KEY `phone` (`phone`),
   KEY `sizeUse` (`sizeUse`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='用户表';
@@ -420,10 +421,10 @@ CREATE TABLE `user_fav` (
   PRIMARY KEY (`id`),
   KEY `createTime` (`createTime`),
   KEY `userID` (`userID`),
-  KEY `name` (`name`),
+  KEY `name` (`name`(250)),
   KEY `sort` (`sort`),
   KEY `tagID` (`tagID`),
-  KEY `path` (`path`(333)),
+  KEY `path` (`path`(250)),
   KEY `type` (`type`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='用户文档标签表';
 
@@ -449,13 +450,13 @@ CREATE TABLE `user_meta` (
   `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '自增id',
   `userID` bigint(20) unsigned NOT NULL COMMENT '用户id',
   `key` varchar(255) NOT NULL COMMENT '存储key',
-  `value` text NOT NULL COMMENT '对应值',
+  `value` longtext NOT NULL COMMENT '对应值',
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   `modifyTime` int(11) unsigned NOT NULL COMMENT '最后修改时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `userID_metaKey` (`userID`,`key`),
+  UNIQUE KEY `userID_metaKey` (`userID`,`key`(200)),
   KEY `userID` (`userID`),
-  KEY `metaKey` (`key`)
+  KEY `metaKey` (`key`(200))
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='用户数据扩展表';
 
 DROP TABLE IF EXISTS `user_option`;
@@ -464,13 +465,13 @@ CREATE TABLE `user_option` (
   `userID` bigint(20) unsigned NOT NULL COMMENT '用户id',
   `type` varchar(50) NOT NULL COMMENT '配置类型,全局配置类型为空,编辑器配置type=editor',
   `key` varchar(255) NOT NULL COMMENT '配置key',
-  `value` text NOT NULL COMMENT '配置值',
+  `value` longtext NOT NULL COMMENT '配置值',
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   `modifyTime` int(11) unsigned NOT NULL COMMENT '最后修改时间',
   PRIMARY KEY (`id`),
-  UNIQUE KEY `userID_key_type` (`userID`,`key`,`type`),
+  UNIQUE KEY `userID_key_type` (`userID`,`key`(200),`type`),
   KEY `userID` (`userID`),
-  KEY `key` (`key`),
-  KEY `type` (`type`)
+  KEY `type` (`type`),
+  KEY `key` (`key`(200))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='用户数据配置表';
 

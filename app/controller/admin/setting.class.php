@@ -196,17 +196,68 @@ class adminSetting extends Controller {
 		$version = ($version[0] && isset($version[0]['version'])) ? floatval($version[0]['version']) : 0;
 		if($version < 5.53){echoLog("Mysql version need bigger than 5.53");return;}
 		
-		//CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-		$charset = isset($this->in['reset']) ? 'utf8_general_ci':'utf8mb4_unicode_ci';
-		$tables  = Model()->db()->getTables();
+		//CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci
+		$db = Model()->db();
+		$reset   = isset($this->in['reset']) && $this->in['reset'] == '1';
+		$charsetSimple = $reset ? 'utf8':'utf8mb4';
+		$charset = $reset ? 'utf8_general_ci':'utf8mb4_general_ci';
+		$tables  = $db->getTables();
 		$tables  = is_array($tables) ? $tables:array();
 		
-		echoLog("tabls:".count($tables)."\n".str_repeat('-',50)."\n");
-		foreach ($tables as $i=>$table){
-			echoLog($table.":".$charset.'; '.($i+1).'/'.count($tables));
-			$sql = "ALTER TABLE `".$table."` COLLATE '".$charset."'";
-			Model()->db()->execute($sql);
+		$sqlArray = array(// 索引长度要小于1000;否则转为utf8mb4_general_ci会失败(转mb4后会变成4字节)
+			"ALTER TABLE `comment_meta` ADD INDEX `key` (`key`(200)),DROP INDEX `key`",
+			"ALTER TABLE `group` ADD INDEX `name` (`name`(200)),DROP INDEX `name`",
+			"ALTER TABLE `comment_meta` ADD UNIQUE `commentID_key` (`commentID`, `key`(200)),DROP INDEX `commentID_key`",
+			"ALTER TABLE `group_meta` ADD INDEX `key` (`key`(200)),DROP INDEX `key`",
+			"ALTER TABLE `group_meta` ADD UNIQUE `groupID_key` (`groupID`, `key`(200)),DROP INDEX `groupID_key`;",
+			"ALTER TABLE `io_file` ADD INDEX `name` (`name`(200)),	DROP INDEX `name`",
+			"ALTER TABLE `io_file` ADD INDEX `path` (`path`(200)),	DROP INDEX `path`",
+			"ALTER TABLE `io_file_meta` ADD INDEX `key` (`key`(200)),DROP INDEX `key`",
+			"ALTER TABLE `io_file_meta` ADD UNIQUE `fileID_key` (`fileID`, `key`(200)),DROP INDEX `fileID_key`",
+			"ALTER TABLE `io_source` ADD INDEX `name` (`name`(200)),DROP INDEX `name`",
+			
+			"ALTER TABLE `io_source_meta` ADD INDEX `key` (`key`(200)),DROP INDEX `key`",
+			"ALTER TABLE `io_source_meta` ADD UNIQUE `sourceID_key` (`sourceID`, `key`(200)),DROP INDEX `sourceID_key`",
+			"ALTER TABLE `user_meta` ADD INDEX `metaKey` (`key`(200)),DROP INDEX `metaKey`",
+			"ALTER TABLE `user_meta` ADD UNIQUE `userID_metaKey` (`userID`, `key`(200)),DROP INDEX `userID_metaKey`",
+			"ALTER TABLE `user_option` ADD INDEX `key` (`key`(200)),DROP INDEX `key`",
+			"ALTER TABLE `user_option` ADD UNIQUE `userID_key_type` (`userID`, `key`(200), `type`),DROP INDEX `userID_key_type`",
+			"ALTER TABLE `system_option` ADD UNIQUE `key_type` (`key`(200), `type`),DROP INDEX `key_type`",
+		);
+		
+		echoLog("update index:".count($sqlArray));
+		foreach ($sqlArray as $i=>$sql){
+			// $sql = str_replace('(200)','',$sql);
+			echoLog($sql);
+			try{
+				$db->execute($sql);
+			}catch(Exception $e){echoLog("==error==:".$e->getMessage());}
 		}
-		echoLog(str_repeat('-',50));echoLog("Successfull!");
+		
+		// $config['databaseDefault'] = array('DB_CHARSET' => 'utf8')      // 数据库编码默认采用utf8
+		// ALTER TABLE `group_meta` CHANGE `key` `key` varchar(255) NOT NULL COMMENT '存储key'
+		echoLog(str_repeat('-',50)."\ntabls:".count($tables)." (speed ≈ 5w row/s);\n".str_repeat('-',50)."\n");
+		foreach ($tables as $i=>$table){ //速度取决于表大小; 5w/s; 
+			echoLog($table.":".$charset.";row=".Model($table)->count().'; '.($i+1).'/'.count($tables));
+			//$res = $db->query('show create table `'.$table.'`');// 字段varchar 编码和表编码维持一致;
+			// $sql = "ALTER TABLE `".$table."` COLLATE ".$charset;
+			$sql = "ALTER TABLE `".$table."` convert to character set ".$charsetSimple." collate ".$charset;
+			try {
+				$db->execute($sql);
+			}catch(Exception $e){echoLog("==error==:".$e->getMessage());}
+		}
+		
+		// 自动更新数据库配置charset;
+		$content = file_get_contents(BASIC_PATH.'config/setting_user.php');
+		$content = preg_replace("/[ \t]*'DB_CHARSET'\s*=\>.*\n?/",'',$content);
+		if(!$reset){
+			$replaceTo = "  'DB_SQL_BUILD_CACHE'=>false,\n  'DB_CHARSET'=>'utf8mb4',\n";
+			$content = preg_replace("/[ \t]*'DB_SQL_BUILD_CACHE'\s*=\>.*\n?/",$replaceTo,$content);
+		}
+		file_put_contents(BASIC_PATH.'config/setting_user.php',$content);
+		
+		echoLog(str_repeat('-',50));
+		echoLog("update config/setting_user.php DB_CHARSET'=>'${charsetSimple}',");
+		echoLog("Successfull!");
 	}
 }

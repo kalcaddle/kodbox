@@ -13,6 +13,10 @@ class explorerUpload extends Controller{
 	}
 	public function pathAllowReplace($path){
 		$notAllow = array('\\', ':', '*', '?', '"', '<', '>', '|',"\r","\n");//不允许字符
+		$db = $this->config['database'];// 文件文件夹名emoji是否支持处理;
+		if(!isset($db['DB_CHARSET']) || $db['DB_CHARSET'] != 'utf8mb4'){
+			$path = preg_replace_callback('/./u',function($match){return strlen($match[0]) >= 4 ? '-':$match[0];},$path);
+		}
 		return str_replace($notAllow,'_',$path);
 	}
 	

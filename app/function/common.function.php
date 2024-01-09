@@ -325,7 +325,7 @@ function echoLog($log,$replace=false){
 	if($replace){$replaceID = $replaceID ? $replaceID:rand_string(10);}
 	
 	if(!strstr($log,'<')){$log = str_replace(array(" "),array("&nbsp;"),$log);} // 没有html标签时替换空格
-	$log = str_replace(array('`',"\n"),array('\\`',"<br/>"),$log);
+	$log = str_replace(array('`',"\n"),array('`',"<br/>"),$log);
 	$timeStyle  = '<span style="display:inline-block;width:100px;font-size:14px;color:#888;font-family:monospace;padding-right:10px;">';
 	$textStyle  = '<span style="display:inline-block;font-size:14px;color:#0084fe;font-family:monospace;">';
 	$logNow 	= $timeStyle.$timeNow."</span>".$textStyle.$log.'</span>';

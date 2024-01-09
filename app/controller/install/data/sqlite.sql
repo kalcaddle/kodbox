@@ -11,7 +11,7 @@ CREATE TABLE "comment" (
   "userID" integer NOT NULL,
   "targetType" smallint NOT NULL,
   "targetID" integer NOT NULL,
-  "content" text NOT NULL,
+  "content" longtext NOT NULL,
   "praiseCount" integer NOT NULL,
   "commentCount" integer NOT NULL,
   "status" smallint NOT NULL,
@@ -34,7 +34,7 @@ CREATE TABLE "comment_meta" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "commentID" integer NOT NULL,
   "key" varchar(255) NOT NULL,
-  "value" text NOT NULL,
+  "value" mediumtext NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -75,19 +75,19 @@ CREATE TABLE "group" (
 );
 -- index group:
 CREATE INDEX 'idx_group_primary_key' ON 'group' ("groupID");
-CREATE INDEX 'idx_group_name' ON 'group' ("name");
 CREATE INDEX 'idx_group_parentID' ON 'group' ("parentID");
 CREATE INDEX 'idx_group_createTime' ON 'group' ("createTime");
 CREATE INDEX 'idx_group_modifyTime' ON 'group' ("modifyTime");
 CREATE INDEX 'idx_group_order' ON 'group' ("sort");
 CREATE INDEX 'idx_group_parentLevel' ON 'group' ("parentLevel");
+CREATE INDEX 'idx_group_name' ON 'group' ("name");
 
 DROP TABLE IF EXISTS "group_meta";
 CREATE TABLE "group_meta" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "groupID" integer NOT NULL,
   "key" varchar(255) NOT NULL,
-  "value" text NOT NULL,
+  "value" longtext NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -113,18 +113,18 @@ CREATE TABLE "io_file" (
 -- index io_file:
 CREATE INDEX 'idx_io_file_primary_key' ON 'io_file' ("fileID");
 CREATE INDEX 'idx_io_file_size' ON 'io_file' ("size");
-CREATE INDEX 'idx_io_file_path' ON 'io_file' ("path");
-CREATE INDEX 'idx_io_file_hash' ON 'io_file' ("hashSimple");
 CREATE INDEX 'idx_io_file_linkCount' ON 'io_file' ("linkCount");
 CREATE INDEX 'idx_io_file_createTime' ON 'io_file' ("createTime");
 CREATE INDEX 'idx_io_file_ioType' ON 'io_file' ("ioType");
-CREATE INDEX 'idx_io_file_hashMd5' ON 'io_file' ("hashMd5");
+CREATE INDEX 'idx_io_file_path' ON 'io_file' ("path");
 CREATE INDEX 'idx_io_file_name' ON 'io_file' ("name");
+CREATE INDEX 'idx_io_file_hash' ON 'io_file' ("hashSimple");
+CREATE INDEX 'idx_io_file_hashMd5' ON 'io_file' ("hashMd5");
 
 DROP TABLE IF EXISTS "io_file_contents";
 CREATE TABLE "io_file_contents" (
   "fileID" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-  "content" mediumtext NOT NULL,
+  "content" longtext NOT NULL,
   "createTime" integer NOT NULL
 );
 -- index io_file_contents:
@@ -137,7 +137,7 @@ CREATE TABLE "io_file_meta" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "fileID" integer NOT NULL,
   "key" varchar(255) NOT NULL,
-  "value" text NOT NULL,
+  "value" longtext NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -173,7 +173,6 @@ CREATE INDEX 'idx_io_source_targetType' ON 'io_source' ("targetType");
 CREATE INDEX 'idx_io_source_targetID' ON 'io_source' ("targetID");
 CREATE INDEX 'idx_io_source_createUser' ON 'io_source' ("createUser");
 CREATE INDEX 'idx_io_source_isFolder' ON 'io_source' ("isFolder");
-CREATE INDEX 'idx_io_source_fileType' ON 'io_source' ("fileType");
 CREATE INDEX 'idx_io_source_parentID' ON 'io_source' ("parentID");
 CREATE INDEX 'idx_io_source_parentLevel' ON 'io_source' ("parentLevel");
 CREATE INDEX 'idx_io_source_fileID' ON 'io_source' ("fileID");
@@ -186,6 +185,7 @@ CREATE INDEX 'idx_io_source_modifyUser' ON 'io_source' ("modifyUser");
 CREATE INDEX 'idx_io_source_targetType_targetID_parentID' ON 'io_source' ("targetType","targetID","parentID");
 CREATE INDEX 'idx_io_source_parentID_isDelete' ON 'io_source' ("parentID","isDelete");
 CREATE INDEX 'idx_io_source_name' ON 'io_source' ("name");
+CREATE INDEX 'idx_io_source_fileType' ON 'io_source' ("fileType");
 
 DROP TABLE IF EXISTS "io_source_auth";
 CREATE TABLE "io_source_auth" (
@@ -213,7 +213,7 @@ CREATE TABLE "io_source_event" (
   "sourceParent" integer NOT NULL,
   "userID" integer NOT NULL,
   "type" varchar(255) NOT NULL,
-  "desc" text NOT NULL,
+  "desc" longtext NOT NULL,
   "createTime" integer NOT NULL
 );
 -- index io_source_event:
@@ -247,7 +247,7 @@ CREATE TABLE "io_source_meta" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "sourceID" integer NOT NULL,
   "key" varchar(255) NOT NULL,
-  "value" text NOT NULL,
+  "value" longtext NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -318,7 +318,7 @@ CREATE TABLE "share_report" (
   "fileID" integer NOT NULL,
   "userID" integer NOT NULL,
   "type" smallint NOT NULL,
-  "desc" text NOT NULL,
+  "desc" longtext NOT NULL,
   "status" smallint NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
@@ -358,7 +358,7 @@ CREATE TABLE "system_log" (
   "sessionID" varchar(128) NOT NULL,
   "userID" integer NOT NULL,
   "type" varchar(255) NOT NULL,
-  "desc" text NOT NULL,
+  "desc" longtext NOT NULL,
   "createTime" integer NOT NULL
 );
 -- index system_log:
@@ -373,7 +373,7 @@ CREATE TABLE "system_option" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "type" varchar(50) NOT NULL,
   "key" varchar(255) NOT NULL,
-  "value" text NOT NULL,
+  "value" longtext NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -382,13 +382,14 @@ CREATE INDEX 'idx_system_option_primary_key' ON 'system_option' ("id");
 CREATE UNIQUE INDEX 'idx_system_option_key_type' ON 'system_option' ("key","type");
 CREATE INDEX 'idx_system_option_createTime' ON 'system_option' ("createTime");
 CREATE INDEX 'idx_system_option_modifyTime' ON 'system_option' ("modifyTime");
+CREATE INDEX 'idx_system_option_type' ON 'system_option' ("type");
 
 DROP TABLE IF EXISTS "system_session";
 CREATE TABLE "system_session" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "sign" varchar(128) NOT NULL,
   "userID" integer NOT NULL,
-  "content" text NOT NULL,
+  "content" longtext NOT NULL,
   "expires" integer NOT NULL,
   "modifyTime" integer NOT NULL,
   "createTime" integer NOT NULL
@@ -475,7 +476,7 @@ CREATE TABLE "user_meta" (
   "id" integer NOT NULL PRIMARY KEY AUTOINCREMENT,
   "userID" integer NOT NULL,
   "key" varchar(255) NOT NULL,
-  "value" text NOT NULL,
+  "value" longtext NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -491,7 +492,7 @@ CREATE TABLE "user_option" (
   "userID" integer NOT NULL,
   "type" varchar(50) NOT NULL,
   "key" varchar(255) NOT NULL,
-  "value" text NOT NULL,
+  "value" longtext NOT NULL,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );
@@ -499,6 +500,6 @@ CREATE TABLE "user_option" (
 CREATE INDEX 'idx_user_option_primary_key' ON 'user_option' ("id");
 CREATE UNIQUE INDEX 'idx_user_option_userID_key_type' ON 'user_option' ("userID","key","type");
 CREATE INDEX 'idx_user_option_userID' ON 'user_option' ("userID");
-CREATE INDEX 'idx_user_option_key' ON 'user_option' ("key");
 CREATE INDEX 'idx_user_option_type' ON 'user_option' ("type");
+CREATE INDEX 'idx_user_option_key' ON 'user_option' ("key");
 
