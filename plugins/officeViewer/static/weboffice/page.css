@@ -75,3 +75,81 @@ body.weboffice-page.lb .page-box #output>iframe {
 .weboffice-page>.edit-btn button i {
     vertical-align: text-top;
 }
+
+/* iframe下的 loading 框 */
+.loading-msg {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+    right: 0px;
+    bottom: 0px;
+    z-index: 9999;
+    color: #666;
+    text-align: center;
+    pointer-events: none
+}
+.loading-msg .loading-msg-content {
+    position: absolute;
+    width: 100px;
+    padding-bottom: 10px;
+    cursor: progress;
+    left: 50%;
+    top: 50%;
+    margin: -50px 0 0 -50px;
+    border-radius: 6px;
+    background: rgba(255,255,255,0.7);
+    box-shadow: 2px 4px 10px rgba(0,0,0,0.07)
+}
+.loading-msg .loading-msg-content .loading-msg-box {
+    font-size: 30px;
+    margin: 25px auto 6px auto
+}
+.loading-msg .loading-msg-content .loading-msg-box img {
+    max-height: 32px;
+    max-width: 32px;
+    opacity: .8;
+    border-radius: 4px
+}
+.loading-msg .loading-msg-content .loading-msg-box .loader {
+    display: none
+}
+.loading-msg .loading-msg-content .loading-msg-title {
+    padding: 2px 4px;
+    color: #888;
+    min-height: 10px;
+    word-break: break-word
+}
+.loading-msg .loading-mask {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    opacity: 0;
+    background: #fff;
+    -ms-transition: all .2s;
+    -webkit-transition: all .2s;
+    -moz-transition: all .2s;
+    -o-transition: all .2s;
+    transition: all .2s
+}
+.loading-msg.tips-small .loading-msg-content {
+    background: none;
+    box-shadow: none;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    margin: -10px 0 0 -10px
+}
+.loading-msg.tips-small .loading-msg-content .loading-msg-box {
+    margin: 0;
+    height: 18px;
+    line-height: 14px
+}
+.loading-msg.tips-small .loading-msg-content .loading-msg-box img {
+    width: 18px;
+    height: 18px
+}
+.loading-msg.tips-small .loading-msg-content .loading-msg-title {
+    display: none
+}

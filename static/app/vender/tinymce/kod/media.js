@@ -13,6 +13,7 @@ tinymce.pluginResetAdd.push(function(editor){
         		}
             };
             var view = new kodApi.pathSelect(param);
+			$.formPopTarget($(editor.editorContainer),view.$dialog).show();
         });
     };
     
@@ -101,9 +102,7 @@ tinymce.pluginResetAdd.push(function(editor){
         
         resetView($dialog);
         $dialog.find('.tox-dialog__body-nav-item').first().bind('click',function(){
-            setTimeout(function() {
-                resetView($dialog);
-            },0);
+            setTimeout(function() {resetView($dialog);},0);
         });
     };
     editor.addCommand('mceMedia',thePlugin.showDialog);
@@ -111,11 +110,8 @@ tinymce.pluginResetAdd.push(function(editor){
 
 
 tinymce.pluginResetAdd.push(function(editor){
-    var thePlugin = editor.plugins.image;
-    thePlugin.afterShowDialog = function(){
-        setTimeout(resetView,0);
-    }
-    
+	//  app/vender/tinymce/plugins/image/plugin.min.js  windowManager.open 后;加入 e.plugins.image.afterShowDialog();
+    editor.plugins.image.afterShowDialog = function(){setTimeout(resetView,0);}
     var resetView = function(){
         var $dialog = $('.tox-dialog__body');
         if($dialog.length == 0) return;

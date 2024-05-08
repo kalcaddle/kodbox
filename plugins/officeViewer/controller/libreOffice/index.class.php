@@ -89,8 +89,9 @@ class officeViewerlibreOfficeIndex extends Controller {
         $fname = get_path_this($tempPath);
         $fpath = get_path_father($tempPath);
         // 转换类型'pdf'改为'新文件名.pdf'，会生成'源文件名.新文件名.pdf'
+		$this->setLctype($fname,$file);
 		$export = 'export HOME=/tmp/libreOffice && ';
-        $script = $export.$command . ' --headless --invisible --convert-to '.escapeShell($fname).' "'.escapeShell($file).'" --outdir '.$fpath;
+        $script = $export.$command . ' --headless --invisible --convert-to '.escapeShell($fname).' '.escapeShell($file).' --outdir '.$fpath;
 		$out = shell_exec($script);
 
         $tname = substr(end(explode('/', $file)), 0, -strlen('.'.$ext));
@@ -100,6 +101,13 @@ class officeViewerlibreOfficeIndex extends Controller {
         }
 		$res = move_path($tfile,$cacheFile);
 		if (!$res) write_log('libreoffice move file error: '.$tfile.'=>'.$cacheFile, 'error');
+	}
+	// 设置地区字符集，避免中文被过滤
+	private function setLctype($path,$path2=''){
+		if (stripos(setlocale(LC_CTYPE, 0), 'utf-8') !== false) return;
+		if (Input::check($path,'hasChinese') || ($path2 && Input::check($path2,'hasChinese'))) {
+			setlocale(LC_CTYPE, "en_US.UTF-8");
+		}
 	}
 
     // 获取文件 hash

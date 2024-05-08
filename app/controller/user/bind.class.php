@@ -40,8 +40,11 @@ class userBind extends Controller {
 		Action('user.setting')->checkMsgFreq($data);	// 消息发送频率检查
 
 		// 2 发送邮件/短信
-		$func = $type == 'email' ? 'sendEmail' : 'sendSms';
-		$res = $this->$func($data['input'], $type.'_'.$data['source']);
+		if($type == 'email'){
+			$res = $this->sendEmail($data['input'], $type.'_'.$data['source']);
+		}else{
+			$res = $this->sendSms($data['input'], $type.'_'.$data['source']);
+		}
 		if (!$res['code']) {
 			show_json(LNG('user.sendFail') . ': ' . $res['data'], false);
 		}
@@ -64,7 +67,8 @@ class userBind extends Controller {
 	public function sendEmail($input, $action,$title = '',$code = false) {
 		$systemName = Model('SystemOption')->get('systemName');
 		$user = Session::get('kodUser');
-		$name = _get($user,'nickName',_get($user,'name',''));
+		$name = _get($user,'name','');
+		$name = _get($user,'nickName',$name);// _get 连续获取,部分安全软件会误报;
 		$desc = Model('SystemOption')->get('systemDesc');
 		$code = $code ? $code : rand_string(6,1);
 		if(!$name && isset($user['name'])){$name = $user['name'];}
@@ -74,7 +78,7 @@ class userBind extends Controller {
 			'action'	=> $action,
 			'config'	=> array(
 				'address'	=> $input,
-				'subject'	=> "[{$systemName}]" . LNG('user.emailVerify').$title,
+				'subject'	=> "[".$systemName."]" . LNG('user.emailVerify').$title,
 				'content'	=> array(
 					'type'	=> 'code', 
 					'data'	=> array('user' => $name,'code' => $code)

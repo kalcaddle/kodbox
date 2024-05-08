@@ -29,7 +29,7 @@ ClassBase.define({
                 }
             });
         });
-        Events.trigger('client.down.link.loaded',_this,type);
+        Events.trigger('client.down.link.loaded',_this,type);   // 菜单链接
     },
 
     showDownDg: function(){
@@ -100,14 +100,17 @@ ClassBase.define({
         var key  = 'kodbox.client.link';
         var result = LocalData.get(key);
             result = jsonDecode(result);
-        if (result) return setLink(result);
+        if (result && result.time && result.time > time()) {
+            return setLink(result);
+        }
         $.ajax({
             url: 'https://api.kodcloud.com/?app/version',
             dataType:'jsonp',
             success:function(result){
-                var time = 60*30;
+                var time = 3600*2;
                 if(!result || !result.data) time = 60*5;
-                LocalData.set(key, jsonEncode(result), time);
+                result.time = time()+time;  // 过期时间：正常2小时，失败5分钟
+                LocalData.set(key, jsonEncode(result));
                 setLink(result);
             }
         });

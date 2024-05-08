@@ -16,7 +16,9 @@ class kodZipArchive{
         }
 		if(!class_exists('ZipArchive')){
 			$result = false;
-		}
+		} 
+		// else { $result = true; }
+		return $result;
     }
     static function listContent($file){
 		$file_hash = hash_path($file);

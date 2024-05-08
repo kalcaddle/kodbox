@@ -30,19 +30,26 @@ class oauthPlugin extends PluginBase{
 	 * @return void
 	 */
 	public function updateOption($options) {
-		$config = $this->getConfig();
-		// 插件配置中该参数是在后台保存时添加，如果不存在，从后台原数据中获取
-		if (!isset($config['loginWith'])) {
-			$regist = Model('SystemOption')->get('regist');
-			if (!isset($regist['loginWith'])) {
-				$loginWith = array('qq', 'weixin');	// 全新安装不含此参数，则赋默认值
-			} else {
-				$loginWith = _get($regist,'loginWith',array());
-			}
-			$this->setConfig(array('loginWith' => implode(',', $loginWith)));
-		} else {
-			$loginWith = explode(',', _get($config, 'loginWith', ''));
-		}
+		$regist = Model('SystemOption')->get('regist');
+	    if (isset($regist['loginWith'])) {	// 只有定制插件默认安装时后台存在该参数（空），不存在时从插件配置中获取（安装时自动保存默认配置）
+	        $loginWith = _get($regist,'loginWith',array());
+	    } else {
+	        $config = $this->getConfig();
+	        $loginWith = explode(',', _get($config, 'loginWith', ''));
+	    }
+		// $config = $this->getConfig();
+		// // 插件配置中该参数是在后台保存时添加，如果不存在，从后台原数据中获取
+		// if (!isset($config['loginWith'])) {
+		// 	$regist = Model('SystemOption')->get('regist');
+		// 	if (!isset($regist['loginWith'])) {
+		// 		$loginWith = array('qq', 'weixin');	// 全新安装不含此参数，则赋默认值
+		// 	} else {
+		// 		$loginWith = _get($regist,'loginWith',array());
+		// 	}
+		// 	$this->setConfig(array('loginWith' => implode(',', $loginWith)));
+		// } else {
+		// 	$loginWith = explode(',', _get($config, 'loginWith', ''));
+		// }
 		$options['system']['options']['loginConfig']['loginWith'] = array_filter($loginWith);
 		return $options;
 	}
@@ -52,7 +59,9 @@ class oauthPlugin extends PluginBase{
 	 * @return void
 	 */
 	public function adminSetBefore(){
-		KodUser::checkLogin();
+		if(!Action('user.authRole')->authCan('admin.setting.set')){
+			show_json(LNG('explorer.noPermissionAction'),false);
+		}
 		$data = json_decode($this->in['data'], true);
 		$loginWith = $data['loginWith'];
 		unset($data['loginWith']);

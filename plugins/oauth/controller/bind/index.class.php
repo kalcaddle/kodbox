@@ -503,9 +503,9 @@ class oauthBindIndex extends Controller {
 		}
 		// 密码是否为空
 		$data = array('bind' => $bindInfo, 'emptyPwd' => 0);
-		if(array_sum($bindInfo)){
+		// if(array_sum($bindInfo)){
 			$data['emptyPwd'] = (int) $this->isEmptyPwd($userInfo['userID']);
-		}
+		// }
 		show_json($data);
 	}
 	private function isEmptyPwd($userID){

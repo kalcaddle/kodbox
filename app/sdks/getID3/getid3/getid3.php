@@ -572,7 +572,7 @@ class getID3
 				throw new getid3_exception('Remote files are not supported - please copy the file locally first');
 			}
 
-			$filename = str_replace('/', DIRECTORY_SEPARATOR, $filename);
+			// $filename = str_replace('/', DIRECTORY_SEPARATOR, $filename);
 			//$filename = preg_replace('#(?<!gs:)('.preg_quote(DIRECTORY_SEPARATOR).'{2,})#', DIRECTORY_SEPARATOR, $filename);
 
 			// open local file

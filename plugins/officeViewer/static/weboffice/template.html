@@ -7,6 +7,7 @@
 	<link rel="icon" href="<?php $this->url('static/images/icon.png');?>">
 	<script>var kodSdkConfig = {api:'<?php echo APP_HOST;?>'};</script>
 	<?php $this->link('app/dist/sdk.js','static');?>
+	<!-- <?php $this->link('style/dist/main.css','static');?> -->
 	<?php $this->link('style/lib/font-icon/style.css','static');?>
 	<?php $this->link('static/weboffice/page.css');?>
 	<script>
@@ -151,7 +152,7 @@
 				} else {
 					var $button = $('body.weboffice-page>.edit-btn button');
 				}
-				// 以可编辑的方式打开
+				// 解析失败时，优先以可编辑的方式（如果有）打开
 				if ($button.attr('apptype')) return $button.click();
 				// 切换其他方式
 				// page.showTips('正在加载...');	// 解析失败，正在切换...

@@ -214,7 +214,8 @@ class explorerIndex extends Controller{
 		
 		// 删除元数据
 		$cacheKey = 'fileInfo.'.md5($fileInfo['path'].'@'.$fileInfo['size'].$fileInfo['modifyTime']);
-		$fileID   = _get($fileInfo,'fileInfo.fileID',_get($fileInfo,'fileID'));
+		$fileID   = _get($fileInfo,'fileID');
+		$fileID   = _get($fileInfo,'fileInfo.fileID',$fileID);
 		Cache::remove($cacheKey);
 		if($fileInfo['sourceID']){Model('Source')->metaSet($fileInfo['sourceID'],'modifyTimeShow',time());}
 		if(_get($fileInfo,'metaInfo.user_sourceCover')){ // 清空缩略图,包含清空文件设定的封面;
@@ -829,13 +830,10 @@ class explorerIndex extends Controller{
 			if($info['size'] >= 1024*200 &&
 				function_exists('imagecolorallocate') &&
 				in_array($info['ext'],$imageThumb) 
-			){
-				return IO::fileOutImage($path,$width);
-			}
+			){return IO::fileOutImage($path,$width);}
 			return IO::fileOut($path,$isDownload,$downFilename); // 不再记录打开时间;
 		}
-		$this->updateLastOpen($path);
-		IO::fileOut($path,$isDownload,$downFilename);
+		$this->fileOutUpdate($path,$isDownload,$downFilename);
 	}
 	/*
 	相对某个文件访问其他文件; 权限自动处理;支持source,分享路径,io路径,物理路径;
@@ -881,25 +879,34 @@ class explorerIndex extends Controller{
 		}
 		
 		ActionCall('explorer.auth.canView',$distInfo['path']);// 再次判断新路径权限;
-		$this->updateLastOpen($distInfo['path']);
 		Hook::trigger('explorer.fileOut', $distInfo['path']);
-		IO::fileOut($distInfo['path'],false);
+		$this->fileOutUpdate($distInfo['path'],false);
 	}
 	
-	/**
-	 * 打开自己的文档；更新最后打开时间
-	 */
+	public function fileOutUpdate($path,$isDownload=false,$downFilename=''){
+		$this->updateLastOpen($path);
+		IO::fileOut($path,$isDownload,$downFilename);
+	}
+	
+	// 打开文档,更新最后打开时间
 	public function updateLastOpen($path){
+		static  $LAST_PATH = false;
+		if($LAST_PATH && $LAST_PATH == trim($path,'/')){return;}
+
+		$LAST_PATH = trim($path,'/'); // 一次请求只处理一次
 		$driver = IO::init($path);
 		if($driver->pathParse['type'] != KodIO::KOD_SOURCE) return;
-
-		$sourceID = $driver->pathParse['id'];
-		$sourceInfo = $this->model->sourceInfo($sourceID);
-		if( $sourceInfo['targetType'] == SourceModel::TYPE_USER && 
-			$sourceInfo['targetID'] == USER_ID ){
-			$data = array('viewTime' => time());
-			$this->model->where(array('sourceID'=>$sourceID))->save($data);
+		
+		if(isset($_SERVER['HTTP_RANGE'])){ // 分片下载, 不是从头开始不再记录;
+			$match = preg_match('/bytes=\s*(\d+)-(\d*)[\D.*]?/i',$_SERVER['HTTP_RANGE'],$matches);
+			if($match && $matches[1] && intval($matches[1]) < 10){return;}
 		}
+
+		$sourceInfo = $this->model->sourceInfo($driver->pathParse['id']);
+		if(!$sourceInfo || $sourceInfo['isDelete'] == '1' || $sourceInfo['isFolder'] == '1' || $sourceInfo['size'] == 0){return;}
+		if($sourceInfo['targetType'] != SourceModel::TYPE_USER && $sourceInfo['targetType'] != SourceModel::TYPE_GROUP){return;}
+		$this->model->where(array('sourceID'=>$sourceInfo['sourceID']))->save(array('viewTime' => time()));
+		//write_log($this->in['URLrouter'].'; path='.$path.'; range='.($matches ? $matches[1]:''),'test');
 	}
 	
 	//通用保存

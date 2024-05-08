@@ -20,10 +20,13 @@ class explorerAuthUser extends Controller {
 	 * action: view,download,upload,edit,remove,share,comment,event,root
 	 */
 	public function can($path,$action,$userID){
-		$userInfo = Model('User')->getInfo($userID);
-		if($userInfo['status'] == '0' || !$userInfo['roleID']) return false;//用户已禁用;
+		$user = Model('User')->getInfo($userID);
+		if(!$user || !$user['roleID']) return false;//用户不存在或角色为空;
+		
+		// 用户被禁用时, 开启了禁用用户时屏蔽该用户分享时则不再可用;
+		if($user['status'] == '0' && Model('SystemOption')->get('shareLinkUserDisableSkip') == '1'){return false;}
 
-		$roleInfo = Action('user.authRole')->userRoleAuth($userInfo['roleID']);
+		$roleInfo = Action('user.authRole')->userRoleAuth($user['roleID']);
 		$isRoot = $roleInfo && ($roleInfo['info']['administrator'] == 1);
 		if(!$roleInfo) return false;
 		if(!$isRoot && !Action('user.authRole')->canCheckRole($action)){return false;}
@@ -31,7 +34,8 @@ class explorerAuthUser extends Controller {
 		$parse  = KodIO::parse($path);$ioType = $parse['type'];
 		// 物理路径 io路径拦截；只有管理员且开启了访问才能做相关操作;
 		if( $ioType == KodIO::KOD_IO || $ioType == false ){
-			if($isRoot && $this->config["ADMIN_ALLOW_IO"]) return true;
+			$allowIO = $isRoot || ($roleInfo['allowAction']['admin.storage.edit'] == 1);
+			if($allowIO && $this->config["ADMIN_ALLOW_IO"]) return true;
 			return false;
 		}
 		

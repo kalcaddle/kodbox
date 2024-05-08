@@ -232,7 +232,7 @@ class userAuthRole extends Controller {
 		return $userRoleAllow;
 	}
 	private function authCheckAliasParent($theKey,&$alias,&$result=array()){
-		$parents = $alias[$theKey];
+		$parents = _get($alias, $theKey, '');
 		if(!$parents) return false;
 		for ($i=0; $i < count($parents); $i++) {
 			if(isset($result[$parents[$i]])) continue;

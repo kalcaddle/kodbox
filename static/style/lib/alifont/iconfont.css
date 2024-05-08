@@ -1,8 +1,8 @@
 @font-face {
   font-family: "kod-svg-font"; /* Project id 1107537 */
-  src: url('iconfont.woff2?t=1700815687807') format('woff2'),
-       url('iconfont.woff?t=1700815687807') format('woff'),
-       url('iconfont.ttf?t=1700815687807') format('truetype');
+  src: url('iconfont.woff2?t=1710242637142') format('woff2'),
+       url('iconfont.woff?t=1710242637142') format('woff'),
+       url('iconfont.ttf?t=1710242637142') format('truetype');
 }
 
 .kod-svg-font {
@@ -11,6 +11,426 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.kod-filter1:before {
+  content: "\e86a";
+}
+
+.kod-git-commit:before {
+  content: "\e86c";
+}
+
+.kod-maximize:before {
+  content: "\e86d";
+}
+
+.kod-minimize:before {
+  content: "\e86e";
+}
+
+.kod-sliders:before {
+  content: "\e876";
+}
+
+.kod-sort:before {
+  content: "\e6a3";
+}
+
+.kod-address:before {
+  content: "\e6a4";
+}
+
+.kod-camera:before {
+  content: "\e6a5";
+}
+
+.kod-headset:before {
+  content: "\e6a6";
+}
+
+.kod-nicon-copy:before {
+  content: "\e6aa";
+}
+
+.kod-poster:before {
+  content: "\e6ab";
+}
+
+.kod-personal_service:before {
+  content: "\e6b1";
+}
+
+.kod-icon_record:before {
+  content: "\e6ae";
+}
+
+.kod-icon_revision_accepted:before {
+  content: "\e6af";
+}
+
+.kod-icon_edit_reject:before {
+  content: "\e6b0";
+}
+
+.kod-Crop:before {
+  content: "\e644";
+}
+
+.kod-Filter:before {
+  content: "\e645";
+}
+
+.kod-3column:before {
+  content: "\e663";
+}
+
+.kod-column-4:before {
+  content: "\e664";
+}
+
+.kod-adjust:before {
+  content: "\e665";
+}
+
+.kod-chart-bar:before {
+  content: "\e667";
+}
+
+.kod-attachment:before {
+  content: "\e669";
+}
+
+.kod-comment:before {
+  content: "\e66a";
+}
+
+.kod-column-vertical:before {
+  content: "\e66b";
+}
+
+.kod-column-horizontal:before {
+  content: "\e66c";
+}
+
+.kod-delete:before {
+  content: "\e66d";
+}
+
+.kod-cut:before {
+  content: "\e66e";
+}
+
+.kod-drag:before {
+  content: "\e66f";
+}
+
+.kod-filter:before {
+  content: "\e672";
+}
+
+.kod-success:before {
+  content: "\e67f";
+}
+
+.kod-setting:before {
+  content: "\e67d";
+}
+
+.kod-survey:before {
+  content: "\e680";
+}
+
+.kod-user2:before {
+  content: "\e682";
+}
+
+.kod-icon_alarm:before {
+  content: "\e646";
+}
+
+.kod-icon_document:before {
+  content: "\e647";
+}
+
+.kod-icon_list:before {
+  content: "\e648";
+}
+
+.kod-icon_group:before {
+  content: "\e649";
+}
+
+.kod-icon_edit:before {
+  content: "\e64a";
+}
+
+.kod-icon_dpm:before {
+  content: "\e64b";
+}
+
+.kod-icon_mail_receive:before {
+  content: "\e64c";
+}
+
+.kod-icon_mail_unread:before {
+  content: "\e64d";
+}
+
+.kod-icon_meeting:before {
+  content: "\e64e";
+}
+
+.kod-icon_meeting_manage:before {
+  content: "\e64f";
+}
+
+.kod-icon_mail_success:before {
+  content: "\e650";
+}
+
+.kod-icon_message1:before {
+  content: "\e651";
+}
+
+.kod-icon_more:before {
+  content: "\e652";
+}
+
+.kod-icon_time:before {
+  content: "\e653";
+}
+
+.kod-icon_tel:before {
+  content: "\e654";
+}
+
+.kod-icon_share:before {
+  content: "\e655";
+}
+
+.kod-icon_tips:before {
+  content: "\e656";
+}
+
+.kod-icon_unit:before {
+  content: "\e658";
+}
+
+.kod-icon_mail_draft:before {
+  content: "\e659";
+}
+
+.kod-icon_lock:before {
+  content: "\e65b";
+}
+
+.kod-icon_download:before {
+  content: "\e65d";
+}
+
+.kod-icon_document1:before {
+  content: "\e65e";
+}
+
+.kod-icon_unlock:before {
+  content: "\e65f";
+}
+
+.kod-icon_collect:before {
+  content: "\e662";
+}
+
+.kod-icon_img:before {
+  content: "\e666";
+}
+
+.kod-icon_cloud:before {
+  content: "\e670";
+}
+
+.kod-icon_set:before {
+  content: "\e671";
+}
+
+.kod-icon_set1:before {
+  content: "\e673";
+}
+
+.kod-icon_search:before {
+  content: "\e674";
+}
+
+.kod-icon_form:before {
+  content: "\e675";
+}
+
+.kod-icon_clean:before {
+  content: "\e676";
+}
+
+.kod-icon_enlarge1:before {
+  content: "\e677";
+}
+
+.kod-icon_send:before {
+  content: "\e678";
+}
+
+.kod-icon_add:before {
+  content: "\e679";
+}
+
+.kod-icon_text:before {
+  content: "\e67a";
+}
+
+.kod-icon_address:before {
+  content: "\e67b";
+}
+
+.kod-icon_Q:before {
+  content: "\e67e";
+}
+
+.kod-icon_lengthways:before {
+  content: "\e681";
+}
+
+.kod-icon_play:before {
+  content: "\e683";
+}
+
+.kod-icon_home:before {
+  content: "\e684";
+}
+
+.kod-icon_invisible:before {
+  content: "\e685";
+}
+
+.kod-icon_crosswise:before {
+  content: "\e686";
+}
+
+.kod-icon_zoomin:before {
+  content: "\e688";
+}
+
+.kod-icon_descend:before {
+  content: "\e689";
+}
+
+.kod-icon_ascend:before {
+  content: "\e68a";
+}
+
+.kod-icon_zoomout:before {
+  content: "\e68b";
+}
+
+.kod-icon_board:before {
+  content: "\e68c";
+}
+
+.kod-icon_tag:before {
+  content: "\e68d";
+}
+
+.kod-icon_box:before {
+  content: "\e68e";
+}
+
+.kod-icon_texts:before {
+  content: "\e68f";
+}
+
+.kod-icon_scan:before {
+  content: "\e690";
+}
+
+.kod-icon_screen:before {
+  content: "\e691";
+}
+
+.kod-icon_waiting:before {
+  content: "\e692";
+}
+
+.kod-icon_off:before {
+  content: "\e693";
+}
+
+.kod-icon_on:before {
+  content: "\e694";
+}
+
+.kod-icon_close:before {
+  content: "\e695";
+}
+
+.kod-icon_next:before {
+  content: "\e696";
+}
+
+.kod-icon_edit1:before {
+  content: "\e698";
+}
+
+.kod-icon_top:before {
+  content: "\e699";
+}
+
+.kod-icon_recall:before {
+  content: "\e69a";
+}
+
+.kod-icon_more2:before {
+  content: "\e69b";
+}
+
+.kod-icon_previous:before {
+  content: "\e69e";
+}
+
+.kod-icon_folder:before {
+  content: "\e69f";
+}
+
+.kod-icon_folder_open:before {
+  content: "\e6a0";
+}
+
+.kod-icon_download1:before {
+  content: "\e6a1";
+}
+
+.kod-icon_upload1:before {
+  content: "\e6a2";
+}
+
+.kod-icon_next1:before {
+  content: "\e6a7";
+}
+
+.kod-icon_previous1:before {
+  content: "\e6a8";
+}
+
+.kod-icon_double_screen:before {
+  content: "\e6a9";
+}
+
+.kod-icon_writing:before {
+  content: "\e6ac";
+}
+
+.kod-icon_output:before {
+  content: "\e6ad";
+}
+
+.kod-MP4:before {
+  content: "\e7a8";
 }
 
 .kod-LandscapePicture:before {
@@ -49,7 +469,7 @@
   content: "\eb16";
 }
 
-.kod-sort:before {
+.kod-sort-list:before {
   content: "\e8b3";
 }
 

@@ -379,13 +379,15 @@ class adminMember extends Controller{
 	private function import(){
 		if(!isset($this->in['isImport'])) return;
 		// 1.上传
-		if(!isset($this->in['filePath'])) {
-			$path = IO::mkdir(TEMP_FILES . 'import_' . time());
-			$this->in['path'] = $path;
-			$res = ActionCallHook('explorer.upload.fileUpload');
-			if(!$res['code']) show_json($res['data'], false);
-
-			$file = $res['info'];
+		if(empty($this->in['filePath'])) {
+			// 1.1 上传文件——返回前端：>100kb上传分多次请求，无法直接获取结果
+			if (empty($this->in['path'])) {
+				$path = IO::mkdir(TEMP_FILES . 'import_' . time());
+				$this->in['path'] = $path;
+				Action('explorer.upload')->fileUpload();
+			}
+			// 1.2 获取上传文件内容
+			$file = $this->in['path'];
 			$data = $this->getImport($file);
 			del_file($file);
 			if(empty($data['list'])) show_json(LNG('admin.member.uploadInvalid'), false);
@@ -394,8 +396,20 @@ class adminMember extends Controller{
 			Cache::set(md5('memberImport'.$filename), $data);
 			show_json('success', true, $filename);
 		}
-		// 2.读取数据并新增
 		$filename = Input::get('filePath','require');
+		// 获取新增用户进度
+		$taskId = md5('import-user-'.$filename);
+		if (isset($this->in['process'])) {
+			$cache = Cache::get($taskId);
+			if ($cache) {
+				Cache::remove($taskId);
+				show_json($cache,true,1);
+			}
+			$data = Task::get($taskId);
+			show_json($data);
+		}
+		Cache::remove($taskId);
+		// 2.读取数据并新增
 		$fileData = Cache::get(md5('memberImport'.$filename));
 		Cache::remove(md5('memberImport'.$filename));
 		if(!$fileData || empty($fileData['list'])) show_json(LNG('admin.member.uploadDataInvalid'), false);
@@ -406,13 +420,18 @@ class adminMember extends Controller{
 			'groupInfo' => array('check' => 'require'),
 		));
 		$total	 = (int) $fileData['total'];
+		$task	 = new Task($taskId,'importUser',$total,LNG('admin.member.userImport'));
 		$error	 = array();
 		foreach($fileData['list'] as $value) {
+			$task->update(1);
 			if(!is_array($value)) continue;
 			$this->in = array_merge($value, $data);
 			$res = ActionCallHook('admin.member.add');
 			if (!$res['code']) $error[$this->in['name']] = $res['data'];
 		}
+		$task->task['error'] = $error;
+		Cache::set($taskId, $task->task);
+		$task->end();
 		$success = $total - count($error);
 		$info = array(
 			'total'		=> $total,
@@ -422,6 +441,21 @@ class adminMember extends Controller{
 		$code  = (boolean) $success;
 		$data  = $code ? LNG('admin.member.importSuccess') : LNG('admin.member.importFail');
 		show_json($data, $code, $info);
+	}
+
+	// 获取csv分隔符——编辑后的csv文件不一定是默认的','
+	private function getCsvSep($line) {
+		if (empty($line)) return ',';
+		$data = array();
+		$separators = array(',', ';', ':', "\t", '|');
+		foreach ($separators as $separator) {  
+			$fields = explode($separator, $line);
+			$fields = array_filter($fields, 'trim');
+			$data[$separator] = count($fields);
+		}  
+		// 找到字段数量最多的分隔符
+		$maxCnt = max($data);  
+		return array_search($maxCnt, $data);  
 	}
 
 	/**
@@ -434,8 +468,10 @@ class adminMember extends Controller{
 			del_file($file);
 			show_json('read file error.', false);
 		}
-        $dataList = array();
-		while (($data = fgetcsv($handle)) !== false) {
+		$line = fgets($handle);	// 获取分隔符
+		$separator = $this->getCsvSep(trim($line));
+		$dataList = array();
+		while (($data = fgetcsv($handle,0,$separator)) !== false) {
             $dataList[] = $data;
 		}
         fclose($handle);
@@ -443,13 +479,16 @@ class adminMember extends Controller{
         unset($dataList[0]);
 		$dataList = array_filter($dataList);
         $list = array();
-        $keys = array('name','nickName','password','sex','phone','email');
+        $keys = array('name'=>'','nickName'=>'','password'=>'','sex'=>1,'phone'=>'','email'=>'');
         foreach($dataList as $value) {
             $tmp = array();
-            foreach($keys as $i => $key) {
-				if($key == 'name' && empty($value[$i])) break;
-				if($key == 'password' && empty($value[$i])) break;
-				$val = $value[$i];
+			$i = 0;
+            foreach($keys as $key => $val) {
+				$val = trim($value[$i]);
+				$i++;
+				if($key == 'name' && empty($val)) break;
+				if($key == 'password' && empty($val)) break;
+				if (is_null($val)) $val = '';
                 switch($key) {
 					case 'name':
 					case 'nickName':
@@ -460,7 +499,7 @@ class adminMember extends Controller{
                         break;
                     case 'phone':
                     case 'email':
-                        // 检测手机号、邮箱
+						$val = preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $val);	// 删除不可见的特殊字符，如null
 						if(!Input::check($val, $key)) $val = '';
                         break;
                     default: break;
@@ -469,14 +508,18 @@ class adminMember extends Controller{
 			}
 			if(empty($tmp) || empty($tmp['name']) || empty($tmp['password'])) continue;
 			if(isset($list[$tmp['name']])) continue;
-            $list[$tmp['name']] = $tmp;
+            $list[$tmp['name']] = array_merge($keys,$tmp);
         }
         return array(
 			'list'	=> array_values($list), 
 			'total' => count($list), 
 		);
 	}
+	// 部分文件转换无效
 	private function iconvValue($value){
+		// $encoding = array('GB2312', 'GBK', 'GB18030', 'UTF-8', 'ASCII', 'BIG5');
+		// $charset = mb_detect_encoding($value,$encoding);
+		// $value = iconv_to($value,$charset,'utf-8');
 		$charset = get_charset($value);
 		if(!in_array($charset,array('utf-8','ascii'))){
 			$value = iconv_to($value, $charset, 'utf-8');

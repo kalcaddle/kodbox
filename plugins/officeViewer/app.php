@@ -54,9 +54,14 @@ class officeViewerPlugin extends PluginBase{
 		$config = $this->getConfig();
 		$openType = isset($config['openType']) ? $config['openType'] : '';
 		if ($openType == 'js') $openType = 'wb';	// 兼容旧版
-		$types = $openType == 'wb' ? array_keys($this->appList) : array($openType);
+		$types	= $openType == 'wb' ? array_keys($this->appList) : array($openType);
+		// 过滤关闭的服务
+		foreach ($types as $i => $type) {
+			$open = $type.'Open';
+			if (isset($config[$open]) && $config[$open] == '0') unset($types[$i]);
+		}
 		// 按顺序依次调用
-		$skip = (isset($this->in['skip']) && $this->in['skip'] == 'wb') ? true : false;
+		$skip 	= (isset($this->in['skip']) && $this->in['skip'] == 'wb') ? true : false;
 		foreach ($this->appList as $type => $app) {
 			if ($type == 'wb' && $skip) continue;
 			if (!in_array($type, $types) || !$this->allowExt($type,true)) continue;

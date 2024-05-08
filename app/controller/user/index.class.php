@@ -278,9 +278,7 @@ class userIndex extends Controller {
 		}
 		$user = $this->userInfo($data['name'],$data['password']);
 		if (!is_array($user)){
-			$error = UserModel::errorLang($user);
-			$error = $error ? $error:LNG('user.pwdError');
-			show_json($error,false);
+			show_json($this->loginErrMsg($user),false);
 		}
 		if(!$user['status']){
 			show_json(LNG('user.userEnabled'), ERROR_CODE_USER_INVALID);
@@ -382,7 +380,7 @@ class userIndex extends Controller {
 		// 登录管控
 		$result = Hook::trigger('user.index.loginBefore',$user);
 		if($result !== true) {
-			show_tips(userModel::errorLang($result), APP_HOST);exit;
+			show_tips($this->loginErrMsg($result), APP_HOST);exit;
 		}
 		Hook::trigger('user.index.loginAfter',$user);
 
@@ -400,7 +398,14 @@ class userIndex extends Controller {
 		$this->userDataInit($user);
 		Hook::trigger("user.loginSuccess",$user);
 	}
-
+	// 登录时模糊提示消息
+	private function loginErrMsg($code){
+		if (in_array($code, array('-1','-2'))) {
+			return LNG('user.pwdError');
+		}
+		$error = UserModel::errorLang($code);
+		return $error ? $error : LNG('user.pwdError');
+	}
 	
 	/**
 	 * 以当前用户身份临时授权访问接口请求构造
@@ -440,9 +445,10 @@ class userIndex extends Controller {
 	// 解析处理;
 	public function apiSignCheck(){
 		if(isset($_REQUEST['accessToken']) && $_REQUEST['accessToken']){return;} // token优先;
-		$actionToken = $this->in['actionToken'];
-		$actionKey   = $this->in['actionKey'];
-		$appSecret	 = $this->appKeySecret($this->in['appKey']);
+		$actionToken = _get($this->in, 'actionToken', '');
+		$actionKey	 = _get($this->in, 'actionKey', '');
+		$appKey   	 = _get($this->in, 'appKey', '');
+		$appSecret	 = $this->appKeySecret($appKey);
 		if(!$actionToken || !$actionToken || !$appSecret) return;
 		if(strlen($actionToken) > 500) return;
 		

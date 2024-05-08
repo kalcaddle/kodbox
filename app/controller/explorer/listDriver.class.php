@@ -20,7 +20,9 @@ class explorerListDriver extends Controller{
 	
 	
 	private function rootList(){
+		$GLOBALS['STORE_WITH_SIZEUSE'] = true;
 		$dataList = Model('Storage')->listData();
+		unset($GLOBALS['STORE_WITH_SIZEUSE']);
 		$list = array();
 		
 		if($GLOBALS['config']['systemOption']['systemListDriver'] == '1'){

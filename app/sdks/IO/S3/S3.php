@@ -38,6 +38,8 @@ class S3 {
 	public $progressFunction 		= null;	// 传输进度回调方法
 	public $signVer 				= 'v4';	// 默认签名版本
 
+	public $headValid 				= true;	// head请求有效
+
 	// s3 request相关
 	// private $endpoint;			// AWS URI.
 	private $verb;					// Verb.
@@ -157,6 +159,15 @@ class S3 {
 	}
 
 	/**
+	 * 设置head请求是否可用，不可用时替换为get请求
+	 * head请求通常是可用的，但在使用nginx转发，开启缓存且无特别指定时（proxy_cache_methods GET HEAD;），head会被转为get导致签名异常
+	 * https://serverfault.com/questions/530763/nginx-proxy-cache-key-and-head-get-request
+	 */
+	public function setHeadValid($enabled = true){
+		$this->headValid = $enabled;
+	}
+
+	/**
 	 * Set AWS time correction offset (use carefully).
 	 * This can be used when an inaccurate system time is generating
 	 * invalid request signatures.  It should only be used as a last
@@ -236,6 +247,38 @@ class S3 {
 	}
 
 	/**
+	 * Get response error message.
+	 */
+	private function __errorMessage($body) {
+		if (!$body || !is_array($body)) return '';
+		$body = array_change_key_case($body, CASE_LOWER);
+
+		static $lang = null;
+		if (!$lang) $lang = I18n::getType();
+		if ($lang != 'zh-CN') return _get($body, 'message', '');
+		$data = array(
+			'AccessDenied' 			=> '拒绝访问，请检查配置参数及资源权限。',
+			'InvalidArgument' 		=> '参数格式错误。',
+			'InternalError' 		=> '内部服务器错误。',
+			'InvalidAccessKeyId' 	=> '无效的AccessKeyId。',
+			'InvalidBucketName' 	=> '无效的Bucket名称。',
+			'InvalidObjectName' 	=> '无效的文件名称。',
+			'NoSuchBucket' 			=> '指定的Bucket不存在。',
+			'NoSuchKey' 			=> '指定的文件不存在。',
+			'SignatureDoesNotMatch' => '签名错误，请检查密码等参数是否正确。',
+		);
+		if (isset($body['code'])) {
+			$code = strtolower($body['code']);
+			$data = array_change_key_case($data, CASE_LOWER);
+			if (isset($data[$code])) return $data[$code];
+		}
+		$message = _get($body, 'message', '');
+		if (!$message) return '';
+		if (stripos($message, 'timed out')) return '连接超时，检查网络及节点地址是否正常。';
+		return str_replace('Could not resolve host', '无法连接主机', $message);
+	}
+
+	/**
 	 * Process CURL response
 	 * @param type $rest
 	 * @param type $function
@@ -245,23 +288,26 @@ class S3 {
 	 * @return boolean
 	 */
 	private function __execReponse($rest, $function, $noBody = 0, $params = array(), $code = 200) {
+		$body = false;
+		if (isset($rest->body)) {
+			if (is_string($rest->body)) {
+				$body = xml2json($rest->body);
+			} else {
+				$body = json_decode(json_encode($rest->body), true);
+			}
+		}
 		if ($rest->error === false && $rest->code !== $code) {
-			write_log(array('S3 request error',$rest->code,$rest->response, get_caller_info()), 'S3');
-			$rest->error = array('code' => $rest->code, 'message' => 'Unexpected HTTP status');
+			$message = $this->__errorMessage($body);
+			if (!$message) $message = 'Unexpected HTTP status.['.$rest->code.']';
+			$rest->error = array('code' => $rest->code, 'message' => $message);
 		}
 		if ($rest->error !== false) {
 			$param = implode(',', $params);
-			$this->__triggerError('S3->'.$function.'('.$param.') ['.$rest->error['code'].'] '.$rest->error['message'], __FILE__, __LINE__);
+			$message = $this->__errorMessage($rest->error);
+			$this->__triggerError('S3->'.$function.'('.$param.') ['.$rest->error['code'].'] '.$message, __FILE__, __LINE__);
 			return false;
 		}
-		if($noBody) return true;
-
-		if (is_string($rest->body)) {
-			$body = xml2json($rest->body);
-		} else {
-			$body = json_decode(json_encode($rest->body), true);
-		}
-		return $body;
+		return $noBody ? true : $body;
 	}
 
 	/**
@@ -363,7 +409,7 @@ class S3 {
 						'name'	 => $c['Key'],
 						'time'	 => strtotime($c['LastModified']),
 						'size'	 => (int) $c['Size'],
-						'hash'	 => substr($c['ETag'], 1, -1),
+						'hash'	 => trim($c['ETag'], '"'),
 					);
 					$nextMarker = $c['Key'];
 				}
@@ -428,6 +474,22 @@ class S3 {
 		$rest = $rest->getResponse();
 		$code = $rest->code == '200' ? 200 : 204;
 		return $this->__execReponse($rest, __FUNCTION__, 1, array($bucket), $code);
+	}
+
+	/**
+	 * get location(region) of bucket
+	 * @param [type] $bucket
+	 * @return void
+	 */
+	public function getBucketRegion($bucket) {
+		$rest = $this->s3Request('GET', $bucket, '', $this->endpoint);
+		$rest->setParameter('location', '');
+		$rest = $rest->getResponse();
+
+		if (!$body = $this->__execReponse($rest, __FUNCTION__, 0, array($bucket)))
+			return false;
+			
+		return isset($body[0]) ? $body[0] : 'us-east-1';	// LocationConstraint
 	}
 
 	/**
@@ -643,6 +705,7 @@ class S3 {
 	 * @return bool
 	 */
 	public function putObjectFile($file, $bucket, $uri, $acl = self::ACL_PRIVATE, $metaHeaders = array(), $contentType = null) {
+		// TODO jos返回结果中size=0，不能直接使用其结果，其他待确认
 		return $this->putObject($this->inputFile($file), $bucket, $uri, $acl, $metaHeaders, $contentType);
 	}
 
@@ -992,7 +1055,6 @@ class S3 {
 		}
 
 		if ($rest->response->error === false && $rest->response->code !== 200 && $rest->response->code !== 206) {
-			write_log(array('S3 request error [getObject]',$rest->code,$rest->response, get_caller_info()), 'S3');
 			$rest->response->error = array('code' => $rest->response->code, 'message' => 'Unexpected HTTP status');
 		}
 		if ($rest->response->error !== false) {
@@ -1015,7 +1077,6 @@ class S3 {
 		$rest = $rest->getResponse();
 
 		if ($rest->error === false && ($rest->code !== 200 && $rest->code !== 404)) {
-			write_log(array('S3 request error [getObjectInfo]',$rest->code,$rest->response, get_caller_info()), 'S3');
 			$rest->error = array('code' => $rest->code, 'message' => 'Unexpected HTTP status');
 		}
 		if ($rest->error !== false) {
@@ -1142,7 +1203,8 @@ class S3 {
 	public function getAuthenticatedURL($bucket, $uri, $lifetime, $subResource = array()){
 		// $expires = $this->__getTime() + $lifetime;
 		$expires = strtotime(date('Ymd 23:59:59')); // kodbox：签名链接有效期，改为当天有效
-		$uri = str_replace(array('%2F', '%2B'), array('/', '+'), rawurlencode($uri));
+		// $uri = str_replace(array('%2F', '%2B'), array('/', '+'), rawurlencode($uri));	// 文件名含+时会导致签名错误
+		$uri = str_replace('%2F', '/', rawurlencode($uri));
 		ksort($subResource);
 		$ext = http_build_query($subResource);
 		$url = sprintf(
@@ -1563,7 +1625,7 @@ class S3 {
 
 		$this->headers['Host'] = get_url_domain($endpoint);
 		if ($this->bucket !== '') {
-			// TODO 包含'_'时导致bucket重复
+			// 包含'_'时会导致bucket重复，前端已做检查，此处忽略
 			if ($this->__dnsBucketName($this->bucket)) {
 				$this->resource = '/' . $this->bucket . $this->uri;
 			} else {
@@ -1625,6 +1687,12 @@ class S3 {
 		$this->data = $value;
 	}
 
+	// 获取有效的请求方式
+	private function getVerb(){
+		if ($this->verb == 'HEAD' && !$this->headValid) return 'GET';
+		return $this->verb;
+	}
+
 	/**
 	 * Get the S3 response.
 	 *
@@ -1666,7 +1734,7 @@ class S3 {
 		curl_setopt($curl, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
 		curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
 		curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
-		curl_setopt($curl, CURLOPT_CONNECTTIMEOUT,60);	// 建立连接
+		curl_setopt($curl, CURLOPT_CONNECTTIMEOUT,30);	// 建立连接
 		// curl_setopt($curl, CURLOPT_TIMEOUT,60);		// 建立连接+数据传输
 
 		$proxy = $this->proxy;
@@ -1715,7 +1783,7 @@ class S3 {
 			} else {
 				if ($this->signVer == 'v2') {
 					$headers[] = 'Authorization: ' . $this->__getSignature(
-							$this->verb . "\n" .
+							$this->getVerb() . "\n" .
 							$this->headers['Content-MD5'] . "\n" .
 							$this->headers['Content-Type'] . "\n" .
 							$this->headers['Date'] . $amz . "\n" .
@@ -1723,7 +1791,7 @@ class S3 {
 					);
 				} else {
 					$amzHeaders = $this->__getSignatureV4(
-							$this->amzHeaders, $this->headers, $this->verb, $this->uri, $this->data
+							$this->amzHeaders, $this->headers, $this->getVerb(), $this->uri, $this->data
 					);
 					foreach ($amzHeaders as $k => $v) {
 						$headers[] = $k . ': ' . $v;
@@ -1758,8 +1826,14 @@ class S3 {
 				}
 				break;
 			case 'HEAD':
-				curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'HEAD');
-				curl_setopt($curl, CURLOPT_NOBODY, true);
+				if ($this->getVerb() == $this->verb) {
+					curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'HEAD');
+					curl_setopt($curl, CURLOPT_NOBODY, true);
+				} else {
+					curl_setopt($curl, CURLOPT_HEADER, true);
+					curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'GET');
+					curl_setopt($curl, CURLOPT_NOBODY, true);
+				}
 				break;
 			case 'DELETE':
 				curl_setopt($curl, CURLOPT_CUSTOMREQUEST, 'DELETE');
@@ -1795,7 +1869,7 @@ class S3 {
 		// Parse body into XML
 		if ($this->response->error === false && isset($this->response->headers['type']) &&
 			$this->response->headers['type'] == 'application/xml' && isset($this->response->body)) {
-			if (substr($this->response->body, 0, 4) == 'HTTP') {
+			if (strtolower(substr($this->response->body, 0, 4)) == 'http') {
 				$temp = explode(PHP_EOL, $this->response->body);
 				$body = array();
 				foreach($temp as $value) {
@@ -1912,7 +1986,7 @@ class S3 {
 		if (($strlen = strlen($data)) <= 2) {
 			return $strlen;
 		}
-		if (substr($data, 0, 4) == 'HTTP') {
+		if (strtolower(substr($data, 0, 4)) == 'http') {
 			$this->response->code = (int) substr($data, 9, 3);
 		} else {
 			$data = trim($data);
@@ -1920,17 +1994,17 @@ class S3 {
 				return $strlen;
 			}
 			list($header, $value) = explode(': ', $data, 2);
-			if ($header == 'Last-Modified') {
+			$header = strtolower($header);
+			if ($header == 'last-modified') {			// Last-Modified
 				$this->response->headers['time'] = strtotime($value);
-			} elseif ($header == 'Date') {
+			} elseif ($header == 'date') {				// Date
 				$this->response->headers['date'] = strtotime($value);
-			} elseif ($header == 'Content-Length') {
+			} elseif ($header == 'content-length') {	// Content-Length
 				$this->response->headers['size'] = (int) $value;
-			} elseif ($header == 'Content-Type') {
+			} elseif ($header == 'content-type') {		// Content-Type
 				$this->response->headers['type'] = $value;
-			// } elseif ($header == 'ETag') {
-			} elseif (strtolower($header) == 'etag') {
-				$this->response->headers['hash'] = $value[0] == '"' ? substr($value, 1, -1) : $value;
+			} elseif ($header == 'etag') {				// ETag
+				$this->response->headers['hash'] = trim($value, '"');
 			} elseif (preg_match('/^x-amz-meta-.*$/', $header)) {
 				$this->response->headers[$header] = $value;
 			}

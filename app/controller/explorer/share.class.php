@@ -89,8 +89,9 @@ class explorerShare extends Controller{
 		$path = $this->fileHash($this->in['hash']);
 		$isDownload = isset($this->in['download']) && $this->in['download'] == 1;
 		$downFilename = !empty($this->in['downFilename']) ? $this->in['downFilename'] : false;
-		IO::fileOut($path,$isDownload,$downFilename);
+		Action('explorer.index')->fileOutUpdate($path,$isDownload,$downFilename);
 	}
+	
 	// 文件外链解析;
 	private function fileHash($hash){
 		if(!$hash || strlen($hash) > 5000) return;
@@ -239,6 +240,7 @@ class explorerShare extends Controller{
 		$where = array("shareID"=>$share['shareID']);
 		if($ACT == 'get'){
 			$this->model->where($where)->setAdd('numView');
+			$this->cacheShareClear();
 		}
 		//权限检测；是否允许下载、预览、上传;
 		if( $share['options'] && 
@@ -268,7 +270,14 @@ class explorerShare extends Controller{
 			// 下载计数; 分片下载时仅记录起始为0的项(并忽略长度为0的请求),忽略head请求;
 			if(!Action('admin.log')->checkHttpRange()){return;}
 			$this->model->where($where)->setAdd('numDownload');
+			$this->cacheShareClear();
 		}
+	}
+	// 清除分享方法缓存
+	private function cacheShareClear(){
+		$share = $this->share;
+		$this->model->cacheFunctionClear('listSimple', $share['userID']);
+		$this->model->cacheFunctionClear('getInfo', $share['shareID']);
 	}
 	/**
 	 * 检测并获取真实路径;
@@ -338,15 +347,16 @@ class explorerShare extends Controller{
 		if(isset($this->in['type']) && $this->in['type'] == 'image'){
 			$info = IO::info($path);
 			$imageThumb = array('jpg','png','jpeg','bmp');
-			if ($info['size'] >= 1024*200 &&
+			$width = isset($this->in['width']) ? intval($this->in['width']) :0;
+			if($isDownload || !$width || $width >= 2000){Action('explorer.index')->updateLastOpen($path);}
+			if($info['size'] >= 1024*200 &&
 				function_exists('imagecolorallocate') &&
 				in_array($info['ext'],$imageThumb) 
-			){
-				return IO::fileOutImage($path,$this->in['width']);
-			}
+			){return IO::fileOutImage($path,$this->in['width']);}
 		}
-		IO::fileOut($path,$isDownload);
+		Action('explorer.index')->fileOutUpdate($path,$isDownload);
 	}
+	
 	public function fileDownload(){
 		$this->in['download'] = 1;
 		$this->fileOut();
@@ -499,7 +509,7 @@ class explorerShare extends Controller{
 			'name','path','type','size','ext','searchTextFile',
 			'createUser','modifyUser','createTime','modifyTime','sourceID',
 			'hasFolder','hasFile','children','targetType','targetID','pageInfo','searchContentMatch',
-			'base64','content','charset','oexeContent','fileInfoMore','fileInfo','fileThumb',
+			'base64','content','charset','oexeContent','oexeSourceInfo','fileInfoMore','fileInfo','fileThumb',
 			// 'isReadable','isWriteable',//(不处理, 部门文件夹分享显示会有区分)
 		);
 		$theItem = array_field_key($item,$field);
@@ -535,6 +545,11 @@ class explorerShare extends Controller{
 		$path = KodIO::makePath(KodIO::KOD_SHARE_LINK,$this->share['shareHash']);
 		$pathDisplay = ltrim(substr($pathDisplay,strlen($rootPath)),'/');
 		$theItem['oexeContent']['value'] = rtrim($path,'/').'/'.$pathDisplay;
+		
+		if($sourceInfo){
+			$sourceInfo['path'] = $theItem['oexeContent']['value'];
+			$theItem['oexeSourceInfo'] =  $sourceInfo;
+		}
 	}
 	private function filterUserInfo($userInfo){
 		$name = !empty($userInfo['nickName']) ? $userInfo['nickName'] : $userInfo['name'];

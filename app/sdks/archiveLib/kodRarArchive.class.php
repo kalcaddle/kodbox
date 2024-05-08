@@ -29,7 +29,7 @@ class kodRarArchive {
 		$file = str_replace('\\','/',$file);
 		
 		// 兼容不同系统;
-		$os = strtolower(@php_uname());
+		$os = strtolower(@php_uname('a'));
 		if(strstr($os,'darwin')){
 			$file .= '_mac';	// mac
 		}else if(strstr($os,'win') ){
@@ -78,41 +78,26 @@ class kodRarArchive {
 		$dest_before = $dest;
 		$dest = $dest_before.md5(rand_string(40).time()).'/';mk_dir($dest);
 		$passwd  = $passwd ?" -p".escapeShell($passwd).' ':'';
+		
+		$paramAdd = $partName ? (is_array($partName) ? $partName[0] : $partName):'';
+		$paramAdd = $paramAdd ? ' '.escapeShell(trim($paramAdd,'/')):'';
+		$paramType = (!$partName || is_array($partName)) ? ' x':' e';// 为空或数组=>保持文件夹结构;传入字符串则单纯解压文件,不保留文件夹结构;
 		if($ext == 'rar'){
-			$param = ' -y '.$passwd.escapeShell($file).' '.escapeShell($dest).' ';
-			if($partName === false){
-				$command = self::bin('rar').' x'.$param;
-			}else if(is_array($partName)){
-				$command = self::bin('rar').' x'.$param.escapeShell($partName[0]);
-			}else{
-				$command = self::bin('rar').' e'.$param.escapeShell($partName);
-			}
+			$param = $paramType.' -y '.$passwd.escapeShell($file).' '.escapeShell($dest);
+			$command   = self::bin('rar').$param.$paramAdd;
 		}else{
-			if($ext == 'bz2'){
-				$ext = 'bzip2';
-			}
-			$param = ' -y -t'.escapeShell($ext).$passwd.' -o'.escapeShell($dest).' '.escapeShell($file).' ';
-			if($partName === false){
-				$command = self::bin('7z').' x'.$param;
-			}else if(is_array($partName)){
-				$command = self::bin('7z').' x'.$param.escapeShell($partName[0]);
-			}else{
-				$command = self::bin('7z').' e'.$param.escapeShell($partName);
-			}
+			if($ext == 'bz2'){$ext = 'bzip2';}
+			$param     = $paramType.' -y -t'.escapeShell($ext).$passwd.' -o'.escapeShell($dest).' '.escapeShell($file);
+			$command   = self::bin('7z').$param.$paramAdd;
 		}
+		//pr($command,$partName,$paramAdd);exit;
 		$result = self::run($command);
 
         //7za 兼容 rar解压大文件
 		if(strstr($result['data'],'is not RAR archive') && shell_exec('7za')){
-		    $param = ' -y -o'.escapeShell($dest).' '.escapeShell($file).' ';
-			if($partName === false){
-				$command = '7za  x'.$param;
-			}else if(is_array($partName)){
-				$command = '7za  x'.$param.escapeShell($partName[0]);
-			}else{
-				$command = '7za  e'.$param.escapeShell($partName);
-			}
-			$result = self::run($command);
+			$param   = $paramType.' -y -o'.escapeShell($dest).' '.escapeShell($file);
+		    $command = '7za '.$param.$paramAdd;
+			$result  = self::run($command);
 		}
 		
 		//echo "<pre>";var_dump($result,$command,$ext,$partName);exit;

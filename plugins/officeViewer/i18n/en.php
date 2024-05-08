@@ -26,7 +26,7 @@ return array(
 	"officeViewer.main.invalidExt"				=> "Invalid file format",
 
 	"officeViewer.webOffice.name"				=> "Auto Parsing",
-	'officeViewer.webOffice.desc'				=> "When [Auto Parsing] is selected, if the current method does not support analysis, it will automatically switch to the next method;<br/>If you want to unify the analysis style or support more formats, you can choose one of the other opening methods.",
+	'officeViewer.webOffice.desc'				=> "When [Auto Parsing] is selected, if the current method is not supported, it will automatically switch to the next one;<br/>If you want to have a unified parsing style or support more formats, you can fix it to a certain parsing method.",
 
 	"officeViewer.libreOffice.desc" 			=> "<div style='margin-top:3px;'>Through LibreOffice on the server, convert the file to pdf format to achieve file preview.</div>",
 	"officeViewer.libreOffice.checkError"		=> "Libreoffice call failed. Check whether the software is installed or whether you have execution permission.",

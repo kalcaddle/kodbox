@@ -75,7 +75,8 @@
 			"value":"0",
 			"className":"row-inline",
 			"display":"{{LNG['fileThumb.config.debug']}}",
-			"desc":"{{LNG['fileThumb.config.debugDesc']}}"
+			"desc":"{{LNG['fileThumb.config.debugDesc']}}",
+			"className":"hidden",
 		},
 		
 		"videoConvertDesc":"<h4>{{LNG['fileThumb.video.title']}}</h4>

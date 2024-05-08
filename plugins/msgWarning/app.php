@@ -154,7 +154,7 @@ class msgWarningPlugin extends PluginBase{
         $defDriver = $this->defaultDriver();    // 默认存储
         if ($sysDriver) {
             $sizeFree = ($sysDriver['sizeMax'] - $sysDriver['sizeUse']);
-            if ($sysDriver['sizeMax'] > 0 && $sizeFree < 1024*1024*1024*2) {    // 暂时固定为10GB
+            if ($sysDriver['sizeMax'] > 0 && $sizeFree < 1024*1024*1024*10) {    // 暂时固定为10GB
                 $size = size_format($sizeFree);
                 $data['disk'][] = sprintf(LNG('msgWarning.main.msgSysSizeErr'), $size);
             }
@@ -164,7 +164,7 @@ class msgWarningPlugin extends PluginBase{
             $data['disk'][] = sprintf(LNG('msgWarning.main.msgDefPathErr'), $drvUrl);
         } else {
             $sizeFree = ($defDriver['sizeMax'] - $defDriver['sizeUse']);
-            if ($defDriver['sizeMax'] > 0 && $sizeFree < 1024*1024*1024*2) {
+            if ($defDriver['sizeMax'] > 0 && $sizeFree < 1024*1024*1024*10) {
                 $size = size_format(abs($sizeFree));    // 如果调整了存储大小，这里可能为负值，format返回为空
                 if ($sizeFree < 0) $size = '-'.$size;
                 $data['disk'][] = sprintf(LNG('msgWarning.main.msgDefSizeErr'), $drvUrl, $size);

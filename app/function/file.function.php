@@ -307,6 +307,11 @@ function get_path_ext($path){
 	$isMatch = preg_match("/[0-9a-zA-Z_]+/",$ext,$match);// 只允许数字字母和下划线
 	return ($isMatch && $match[0]) ? strtolower($match[0]):'';
 }
+function get_path_ext_name($path){
+	$name = get_path_this($path);
+	$ext  = get_path_ext($name);
+	return $ext ? substr($name,0,strripos($name,'.'.$ext)):$name;
+}
 
 
 
@@ -1037,7 +1042,7 @@ function write_log($log, $type = 'default', $level = 'log'){
 	}
 	if(!file_exists($target)){
 		error_log("<?php exit;?>\n", 3,$target);
-		@chmod($target,0777);
+		@chmod($target,_get($GLOBALS,'config.DEFAULT_PERRMISSIONS',0777));
 	}
 
 	if(is_object($log) || is_array($log)){

@@ -56,6 +56,7 @@ class fileThumbPlugin extends PluginBase{
 		// 处理需要加入缩略图的文件; 查询数据库已存在的缓存图片;查询redis缓存(已处理,队列中,出错了:不处理)-->未在队列--加入队列;
 		$needMake  = 0;$makeIndex = 0; // 待生成缩略图数量,不包含大图;
 		$coverList = $this->checkCoverExists($cachePath,$coverList,$needMake);
+		$driver	   = KodIO::defaultDriver();
 		$makeCoverNow = $needMake <= 3 ? true:false; // 待生成列表小于5,则缩略图调用立即生成;
 		$obj = Action('user.index');
 		foreach($data['fileList'] as &$file){
@@ -70,6 +71,12 @@ class fileThumbPlugin extends PluginBase{
 				if(isset($item['sourceID']) && $item['sourceID']){$file[$thumbKey] = $imageSrc;continue;}
 				if($thumbKey == 'fileShowView'){$file[$thumbKey] = $imageSrc;}// 预览大图,不检测是否有缓存
 				if($thumbKey == 'fileThumb' && $makeCoverNow){$file[$thumbKey] = $imageSrc;continue;}
+				
+				// 访问默认存储路径,不添加到队列;
+				if(is_array($driver["config"]) && stristr($path,$driver["config"]['basePath'])){
+					$file[$thumbKey] = $imageSrc;
+					continue;
+				}
 				
 				// 多张图片待生成缩略图时,第一张处理为触发调用后台任务队列;
 				if($thumbKey == 'fileThumb'){$makeIndex++;}
@@ -127,9 +134,27 @@ class fileThumbPlugin extends PluginBase{
 		$fileHash  = KodIO::hashPath($file);
 		$coverName = "cover_".$fileHash."_{$width}.png";
 		
+		// 存储目录访问,不自动生成缩略图(未生成过则显示时触发生成;已经是缩略图文件,则返回自身(1200访问250时自适应))
+		$driver	= KodIO::defaultDriver();
+		if(is_array($driver["config"]) && stristr($file['path'],$driver["config"]['basePath'])){
+			$isCover  = preg_match("/^cover_(\w{0,32})(\d+)_(\d+)\.png$/",$file['name'],$match);
+			$thumbImg = $isCover ? $file['path'] : get_path_father($file['path']).'/'.$coverName;
+			if($isCover && $match[3] == 1200 && $width == 250){
+				$thumbImg = str_replace('_1200.png','_250.png',$thumbImg);
+			}
+			// 未生成时处理(或者生成的缩略图在其他文件夹),或小文件时直接输出;
+			if(!$isCover && !IO::exist($thumbImg)){
+				$thumbImg = $file['size'] <= 1024*500 ? $file['path']:false;
+			}
+			// pr($coverName,$match,$thumbImg,$file);exit;
+			if($thumbImg){IO::fileOut($thumbImg);}
+			exit;
+		}
+		
 		$result = $this->coverMake($this->cachePath,$file['path'],"cover_".$fileHash."_{$width}.png",$width);
 		if($width == 1200){$this->coverMake($this->cachePath,$file['path'],"cover_".$fileHash."_250.png",250);}
 		$sourceID = IO::fileNameExist($this->cachePath,$coverName);
+		// pr(IO::Info(kodIO::make($sourceID)));exit;
 		if($sourceID){IO::fileOut(kodIO::make($sourceID));exit;}
 		echo $result;
 	}
@@ -230,7 +255,13 @@ class fileThumbPlugin extends PluginBase{
 		if($localTemp){@unlink($localTemp);}
 		if(@file_exists($thumbFile) && @is_file($thumbFile) && filesize($thumbFile) > 0){
 			Cache::remove($coverName);
-			return IO::move($thumbFile,$cachePath);
+			$destFile = IO::move($thumbFile,$cachePath);
+			$pathInfo = KodIO::parse($destFile);
+			if($pathInfo['type'] == KodIO::KOD_SOURCE){
+				Model('Source')->setDesc($pathInfo['id'],$path);
+				//write_log(get_caller_info(),'test');
+			}
+			return $destFile;
 		}
 		Cache::set($coverName,'no',600);
 		del_file($thumbFile);
@@ -320,7 +351,7 @@ class fileThumbPlugin extends PluginBase{
 
 		$maxWidth = 800;
 		$timeAt   = $videoThumbTime ? '-ss 00:00:03' : '';
-		setlocale(LC_CTYPE, "UTF8", "en_US.UTF-8");
+		$this->setLctype($file,$tempPath);
 		$script   = $command.' -i '.escapeShell($file).' -y -f image2 '.$timeAt.' -vframes 1 '.escapeShell($tempPath).' 2>&1';
 		$out = shell_exec($script);
 		if(!file_exists($tempPath)) {
@@ -364,6 +395,7 @@ class fileThumbPlugin extends PluginBase{
 		}
 		$size  = $maxSize.'x'.$maxSize;
 		$param = "-auto-orient -alpha off -quality 90 -size ".$size;
+		$tempName = rand_string(15).'.png';
 		switch ($ext){
 			case 'eps':
 			case 'psb':
@@ -390,8 +422,13 @@ class fileThumbPlugin extends PluginBase{
 			case 'docx':$file.= '[0]';break;
 
 			// https://legacy.imagemagick.org/Usage/thumbnails/
-			case 'tif':$file.= '[0]';$param = " -flatten ";break;
-			case 'gif':$file.= '[0]';break;
+			case 'tif':$file.= '[0]';$param .= " -flatten ";break;
+			//case 'gif':$file.= '[0]';break;
+			case 'gif':
+				$param = "-thumbnail ".$size;
+				$tempName = rand_string(15).'.gif';
+				break;
+			
 			case 'webp':
 			case 'png':
 			case 'bmp':$param = "-resize ".$size;break;
@@ -410,20 +447,28 @@ class fileThumbPlugin extends PluginBase{
 				break;
 		}
 
-		//linux下$cacheFile不可写问题，先生成到/tmp下;再复制出来
+		//linux下$cacheFile不可写问题，先生成到/tmp下;再移动出来
 		$tempPath = $cacheFile;
 		if($GLOBALS['config']['systemOS'] == 'linux' && is_writable('/tmp/')){
 			mk_dir('/tmp/fileThumb');
 			if(is_writable('/tmp/fileThumb')){ // 可能有不可写的情况;
-				$tempPath = '/tmp/fileThumb/'.rand_string(15).'.png';
+				$tempPath = '/tmp/fileThumb/'.$tempName;
 			}
 		}
-		setlocale(LC_CTYPE, "UTF8", "en_US.UTF-8");
+		$this->setLctype($file,$tempPath);
 		$script = $command.' '.$param.' '.escapeShell($file).' '.escapeShell($tempPath).' 2>&1';
 		$out = shell_exec($script);
 		if(!file_exists($tempPath)) return $this->log('image thumb error:'.$out.';cmd='.$script);
 		move_path($tempPath,$cacheFile);
 		return true;
+	}
+
+	// 设置地区字符集，避免中文被过滤
+	private function setLctype($path,$path2=''){
+		if (stripos(setlocale(LC_CTYPE, 0), 'utf-8') !== false) return;
+		if (Input::check($path,'hasChinese') || ($path2 && Input::check($path2,'hasChinese'))) {
+			setlocale(LC_CTYPE, "en_US.UTF-8");
+		}
 	}
 	
 	

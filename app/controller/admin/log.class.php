@@ -69,6 +69,7 @@ class adminLog extends Controller{
 				'admin.member.add,admin.member.edit,admin.member.remove,admin.member.addGroup,admin.member.removeGroup,admin.member.switchGroup,admin.member.status' => LNG('log.member.edit'),
 				'admin.role.add,admin.role.edit,admin.role.remove' => LNG('log.role.edit'),
 				'admin.auth.add,admin.auth.edit,admin.auth.remove' => LNG('log.auth.edit'),
+				'admin.storage.add,admin.storage.edit,admin.storage.remove' => LNG('admin.menu.storageDriver'),
 			),
 		);
 		foreach($list as $listKey => $item) {
@@ -207,7 +208,7 @@ class adminLog extends Controller{
      * @return void
      */
     public function loginLog(){
-		if($GLOBALS['loginLogSaved'] == 1) return;
+		if($GLOBALS['loginLogSaved'] == 1 || !Session::get('kodUser')) return;
 		$GLOBALS['loginLogSaved'] = 1;
         $data = array(
             'is_wap' => is_wap(),
@@ -276,8 +277,8 @@ class adminLog extends Controller{
      * @return void
      */
     public function hookBind(){
-        // 账号管理：删除操作只有id，没有名称，故提前获取
-        if (MOD == 'admin' && ACT == 'remove') {
+        // 账号、存储管理：删除（及编辑等）操作只有id，没有名称，故提前获取
+        if (MOD == 'admin' && in_array(ACT, array('edit','status','remove'))) {
             if (!isset($this->in['name'])) {
                 switch (ST) {
                     case 'group':
@@ -309,6 +310,15 @@ class adminLog extends Controller{
                 )
             );
             return $this->autoLog($data);
+        }
+        // 存储管理，部分操作参数只有id
+        if (MOD.'.'.ST == 'admin.storage' && in_array(ACT,array('add','edit','remove'))) {
+            if (ACT == 'remove' && isset($this->in['progress'])) return;
+            if (empty($this->in['name'])) {
+                $info = Model('Storage')->listData($this->in['id']);
+                $this->in['name'] = $info['name'];
+                $this->in['driver'] = $info['driver'];  // 谨慎追加参数，避免影响主方法调用
+            }
         }
         Hook::bind('show_json', array($this, 'autoLog'));
         Hook::bind('explorer.fileDownload', array($this, 'autoLog'));

@@ -18,7 +18,7 @@ $config['settings'] = array(
 	'downloadUrlTime'	=> 0,			 	//下载地址生效时间，按秒计算，0代表不限制
 	'apiLoginToken'		=> '',			 	//设定则认为开启服务端api通信登录，同时作为加密密匙
 	'paramRewrite'		=> false,		 	//开启url 去除? 直接跟参数
-	'ioAvailed'			=> 'local,ftp,oss,qiniu,cos,s3,oos,uss,minio,eos,eds,obs',		//显示的io类型，多个以','分隔
+	'ioAvailed'			=> 'local,ftp,oss,qiniu,cos,s3,oos,uss,minio,eos,eds,obs,jos',		//显示的io类型，多个以','分隔
 	'ioFileOutServer'	=> false,
 	'ioUploadServer'	=> false,
 	
@@ -92,7 +92,8 @@ $config['settings']['ioClassList'] = array(
 	'eos'				=> 'EOS',
 	'eds'				=> 'EDS',
 	'obs'				=> 'OBS',
-	// 'bos'				=> 'BOS',
+	'jos'				=> 'JOS',
+	// 'bos'				=> 'BOS',	// 未实现
 
 	'moss'				=> 'MOSS',
 	'nos'				=> 'NOS',
@@ -263,7 +264,7 @@ $config['settingSystemDefault'] = array(
 	'showFileLink'		=> '1',			// 文件外链展示开关;默认开启; (关闭后,文件属性不再显示外链连接)
 	'showFileMd5'		=> '1',			// 文件md5是否展示; 默认开启; (关闭后,文件属性不再显示文件md5)
 	'systemRecycleOpen' => '0',			// 系统回收站开启关闭;
-	'systemRecycleClear'=> '10',		// 系统回收站自动清除,N天以前内容;
+	'systemRecycleClear'=> '180',		// 系统回收站自动清除,N天以前内容;
 	'systemBackup'		=> '1',			// 文档自动备份;
 	'groupTagAllow' 	=> '0',			// 是否启用部门公共标签
 	'groupSpaceLimit'	=> '0',			// 部门网盘层级限制; 超过部门的层级不显示部门网盘
@@ -276,11 +277,12 @@ $config['settingSystemDefault'] = array(
 	'shareLinkZip'		=> '1',			// 外链分享,开启关闭文件夹打包下载; 默认开启
 	'shareLinkPasswordAllowEmpty'	=> '1',		// 外链分享允许密码为空,关闭后将强制设置密码;
 	'shareLinkAllowGuest'			=> '1',		// 外链分享允许未登录游客访问
+	'shareLinkUserDisableSkip'		=> '1',		// 账号被禁用时,屏蔽该用户的外链分享
 	'desktopAppDisable'				=> '',		// 桌面默认快捷方式入口隐藏项;
 	
 	
 	'treeOpen'			=> 'my,myFav,myGroup,rootGroup,recentDoc,fileType,fileTag,driver',//树目录开启功能;
-	'groupListChild'	=> '2',//罗列子部门; 0=不罗列;1=全部罗列;2=仅树目录罗列;
+	'groupListChild'	=> '1',//罗列子部门; 0=不罗列;1=全部罗列;2=仅树目录罗列;
 	'wallpageDesktop'	=> "1,2,3,4,5,6,7,8,9,10,11,12,13",
 	'wallpageLogin'		=> "2,3,6,8,9,11,12",
 	'emailType'			=> "0",			// 邮件方式

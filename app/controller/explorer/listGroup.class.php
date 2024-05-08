@@ -93,12 +93,17 @@ class explorerListGroup extends Controller{
 		
 		if( !isset($option['groupListChild']) ) return true;
 		
-		// 仅左侧树目录罗列子部门,不罗列文件文件夹; 文件区域不罗列子部门,仅罗列文件文件夹
+		// 仅左侧树目录罗列子部门,不罗列文件文件夹; 文件区域不罗列子部门,仅罗列文件文件夹;
+		// app 忽略树目录设定; 编辑请求忽略树目录设定;
 		if($option['groupListChild'] == '2'){
+			$device = Action('filter.userCheck')->getDevice();
+			if($device && $device['type'] == 'app'){return true;} // app忽略此设定;
+			if(isset($this->in['listTree']) && $this->in['listTree'] == 'all'){return true;}
+			
 			if($this->in['fromType'] == 'tree'){
 				$data['folderList'] = array();$data['fileList']   = array();
 				return true;
-			}
+			}			
 			return false;
 		}
 				
@@ -120,7 +125,10 @@ class explorerListGroup extends Controller{
 
 		// 部门目录是否显示子部门; 0 不显示;1 全部显示;2=仅树目录显示
 		$isFromTree    = isset($this->in['fromType']) && $this->in['fromType']=='tree';
-		$groupListType = Model('SystemOption')->get('groupListChild'); 
+		$groupListType = Model('SystemOption')->get('groupListChild');
+		if(isset($this->in['listTree']) && $this->in['listTree'] == 'all'){
+			$isFromTree = false;$groupListType = '1';
+		}
 		
 		$groupSource = $this->model->sourceRootGroup($group);
 		$groupSource = array_to_keyvalue($groupSource,'targetID');
@@ -147,7 +155,7 @@ class explorerListGroup extends Controller{
 				$pathInfo['hasFolder'] = $pathInfo['hasGroup'];
 				$pathInfo['hasFile'] = false;
 			}
-						
+			
 			$userRootShow = KodUser::isRoot() && $GLOBALS['config']["ADMIN_ALLOW_SOURCE"];
 			if(!$userRootShow){
 				if( !$pathInfo['auth'] || $pathInfo['auth']['authValue'] == 0){ // 放过-1; 打开通路;

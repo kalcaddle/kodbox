@@ -70,7 +70,7 @@ class explorerAuth extends Controller {
 			case 'explorer.index.pathdelete':$this->checkAuthArray('remove');break;
 			case 'explorer.index.pathcopy':$this->checkAuthArray('download');break;
 			case 'explorer.index.pathcute':
-				$this->checkAuthArray('edit');
+				$this->checkAuthArray('remove');
 				break;
 			case 'explorer.index.pathcopyto':
 				$data = json_decode($this->in['dataArr'],true);
@@ -90,7 +90,7 @@ class explorerAuth extends Controller {
 				$this->canWrite($this->in['path']);
 				break;
 			case 'explorer.index.pathcuteto':
-				$this->checkAuthArray('edit');
+				$this->checkAuthArray('remove');
 				$this->canWrite($this->in['path']);
 				break;
 			default:
@@ -389,6 +389,9 @@ class explorerAuth extends Controller {
 			$sourceInfo = $shareInfo['sourceInfo'];
 			if( $sourceInfo['targetType'] == 'user' && $sourceInfo['targetID'] == USER_ID ){
 				return Action('user.authRole')->canCheckRole($method);
+			}
+			if(!$shareInfo['sourceInfo']['auth']){ // 自己内部协作分享 io路径(拥有后台存储管理权限的角色)
+				return Action('explorer.authUser')->can($shareInfo['sourcePath'],$method,$shareInfo['userID']);
 			}
 			return $this->checkAuthMethod($shareInfo['sourceInfo']['auth']['authValue'],$method);
 		}

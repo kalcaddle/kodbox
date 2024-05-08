@@ -69,7 +69,7 @@ class explorerRecycleDriver extends Controller{
 				}
 			}
 			$ioType = IO::getType($toPath);
-			$allowInfo = $ioType == 'local'; // 仅允许本地存储属性访问; 访问速度优化处理;
+			$allowInfo = $ioType == 'local' || $ioType == 'dbshareitem'; // 仅允许本地存储属性访问; 访问速度优化处理;
 			if(!$allowInfo){
 				$name = get_path_this($toPath);
 				$info = array(
@@ -92,6 +92,17 @@ class explorerRecycleDriver extends Controller{
 				unset($listNew[$toPath]);
 				continue;
 			}
+			
+			// 协作分享,删除到回收站的内容; 有权限时数据会重复/去重处理;
+			if($info['sourceID']){
+				foreach($data['fileList'] as $i=>$item) {
+					if($info['sourceID'] == $item['sourceID']){unset($data['fileList'][$i]);}
+				}
+				foreach($data['folderList'] as $index=>$item) {
+					if($info['sourceID'] == $item['sourceID']){unset($data['folderList'][$i]);}
+				}
+			}
+			
 			$info['path'] = rtrim($fromPath,'/').'/'.$info['name'];
 			if($parse['type'] == KodIO::KOD_SHARE_ITEM){$info['path'] = $toPath;}
 			if($info['type'] == 'folder'){
@@ -105,6 +116,9 @@ class explorerRecycleDriver extends Controller{
 		if(count($listNew) != count($list)){
 			$this->resetList($listNew);
 		}
+		$data['folderList'] = array_values($data['folderList']);
+		$data['fileList']   = array_values($data['fileList']);
+		// pr($data);exit;
 	}
 	
 	// 彻底删除;

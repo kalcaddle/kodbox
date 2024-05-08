@@ -574,7 +574,7 @@ ClassBase.define({
 			get:function(){return '';},
 		});
 		var noop = function(){};
-		var _localData = {getItem:noop,setItem:noop,clear:noop,removeItem:noop,length:0};
+		var _localData = {getItem:noop,setItem:noop,clear:noop,removeItem:noop,length:0,getObject:noop,setObject:noop};
 		Object.defineProperty(window,"localStorage",{
 			get: function(){return _localData;},
 		});

@@ -395,6 +395,10 @@ class explorerUserShare extends Controller{
 				$isWriteable = array_key_exists('isWriteable',$source) ?  $source['isWriteable'] : true;
 				$isReadable  = array_key_exists('isReadable',$source)  ?  $source['isReadable']  : true;
 			}
+			// 物理路径分享,自己访问自己分享的内容时权限处理;
+			if($share['sourceID'] == '0' && $share['userID'] == USER_ID){
+				$source['auth']['authValue'] = AuthModel::authAll();
+			}
 			$source['isWriteable'] = $isWriteable && AuthModel::authCheckEdit($source['auth']['authValue']);
 			$source['isReadable']  = $isReadable  && AuthModel::authCheckView($source['auth']['authValue']);
 		}

@@ -2,7 +2,7 @@
 	"id":"officeViewer",
 	"name":"{{LNG['officeViewer.meta.name']}}",
 	"title":"{{LNG['officeViewer.meta.title']}}",
-	"version":"1.25",
+	"version":"1.28",
 	"category":"file",
 	"source":{
 		"icon":"{{pluginHost}}static/images/icon.png"
@@ -18,7 +18,7 @@
 			"className":"form-box-title-left",
 			"tabs":{
 				"{{LNG['admin.setting.base']}}":"pluginAuth,sep001,openWith,fileSort,fileExt",
-				"{{LNG['officeViewer.meta.service']}}":"openType,sep002,wbDesc,wbFileExt,lbDesc,lbSoffice,lbFileExt,olDesc,olApiServer,olFileExt,yzDesc,yzFileExt"
+				"{{LNG['officeViewer.meta.service']}}":"openType,sep002,wbDesc,wbFileExt,lbOpen,lbSoffice,lbFileExt,olOpen,olApiServer,olFileExt,yzOpen,yzFileExt"
 			},
 			"loadFile":"{{pluginHost}}static/libreoffice/check.js"
 		},
@@ -50,7 +50,7 @@
 			"display":"{{LNG['admin.plugin.fileExt']}}",
 			"desc":"{{LNG['admin.plugin.fileExtDesc']}}",
 			"className": "hidden",
-			"value":"doc,docx,xls,xlsx,ppt,pptx,csv"
+			"value":"docx,doc,xlsx,xls,csv,pptx,ppt"
 		},
 
 		"openType":{
@@ -65,9 +65,9 @@
 			},
 			"switchItem":{
 				"wb":"wbDesc,wbFileExt",
-				"lb":"lbDesc,lbSoffice,lbFileExt",
-				"ol":"olDesc,olApiServer,olFileExt",
-				"yz":"yzDesc,yzFileExt"
+				"lb":"lbOpen,lbSoffice,lbFileExt",
+				"ol":"olOpen,olApiServer,olFileExt",
+				"yz":"yzOpen,yzFileExt"
 			}
 		},
 		"sep002":"<hr/>",
@@ -81,13 +81,15 @@
 			"type":"tags",
 			"display":"{{LNG['admin.plugin.fileExt']}}",
 			"desc":"{{LNG['admin.plugin.fileExtDesc']}}",
-			"value":"doc,docx,xls,xlsx,ppt,pptx,csv"
+			"value":"docx,doc,xlsx,xls,csv,pptx,ppt"
 		},
 
-		"lbDesc":{
-			"type":"html",
-			"display":"{{LNG['officeViewer.meta.instruction']}}",
-			"desc":"{{LNG['officeViewer.libreOffice.desc']}}"
+		"lbOpen":{
+			"type":"switch",
+			"value":1,
+			"display":"启用服务",
+			"desc":"{{LNG['officeViewer.libreOffice.desc']}}",
+			"switchItem":{"0":"","1":"lbSoffice,lbFileExt"}
 		},
 		"lbSoffice":{
 			"type":"input",
@@ -103,10 +105,12 @@
 			"value":"doc,docx,ods,xls,xlsx,odt,ppt,pps,pptx,odp,rtf,csv,tsv"
 		},
 
-		"olDesc":{
-			"type":"html",
-			"display":"{{LNG['officeViewer.meta.instruction']}}",
-			"desc":"{{LNG['officeViewer.officeLive.desc']}}"
+		"olOpen":{
+			"type":"switch",
+			"value":1,
+			"display":"启用服务",
+			"desc":"{{LNG['officeViewer.officeLive.desc']}}",
+			"switchItem":{"0":"","1":"olApiServer,olFileExt"}
 		},
 		"olApiServer":{
 			"type":"input",
@@ -122,10 +126,12 @@
 			"value":"doc,docx,docm,dot,dotx,dotm,rtf,xls,xlsx,xlt,xlsb,xlsm,csv,ppt,pptx,pps,ppsx,pptm,potm,ppam,potx,ppsm,odt,ods,odp,ott,ots,otp,wps,wpt"
 		},
 
-		"yzDesc":{
-			"type":"html",
-			"display":"{{LNG['officeViewer.meta.instruction']}}",
-			"desc":"{{LNG['officeViewer.yzOffice.desc']}}"
+		"yzOpen":{
+			"type":"switch",
+			"value":1,
+			"display":"启用服务",
+			"desc":"{{LNG['officeViewer.yzOffice.desc']}}",
+			"switchItem":{"0":"","1":"yzFileExt"}
 		},
 		"yzFileExt":{
 			"type":"tags",

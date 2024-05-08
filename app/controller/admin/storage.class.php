@@ -10,15 +10,18 @@ class adminStorage extends Controller {
 		$result = $this->model->listData();
 		$ids = array_to_keyvalue($result, '', 'id');
 
-		// 获取各存储中文件数(io_file)
-		$res = array();
-		if ($ids) {
+		// 获取各存储中占用空间、文件数(io_file)
+		$key = md5('io.list.get.'.implode(',',$ids));
+		$res = Cache::get($key);
+		if ($ids && !$res) {
 			$where = array('ioType'=>array('in',implode(',',$ids)));
-			$res = Model('File')->field(array('ioType'=>'id','count(ioType)'=>'cnt'))->where($where)->group('ioType')->select();
-			$res = array_to_keyvalue($res, 'id', 'cnt');
+			$res = Model('File')->field(array('ioType'=>'id','count(ioType)'=>'cnt','sum(size)'=>'size'))->where($where)->group('ioType')->select();
+			$res = array_to_keyvalue($res, 'id');
+			Cache::set($key, $res, 120);	// 2分钟
 		}
 		foreach ($result as &$item) {
-			$item['fileNum'] = isset($res[$item['id']]) ? intval($res[$item['id']]) : 0;
+			$item['sizeUse'] = intval(_get($res, $item['id'].'.size', 0));
+			$item['fileNum'] = intval(_get($res, $item['id'].'.cnt', 0));
 		}
 		show_json($result,true);
 	}
@@ -79,39 +82,51 @@ class adminStorage extends Controller {
 	 * 删除、迁移
 	 */
 	public function remove() {
-		$data = Input::getArray(array(
-			'id'		=> array('check'=>'int'),
-			'action'	=> array('check'=>'in','default'=>'remove','param'=>array('remove','move')),
-			'progress'	=> array('default'=>null),
-		));
-		if(!isset($data['progress'])) {
-			$this->removeDone($data);
+		$id = Input::get('id','int');
+		$action = Input::get('action','in',null,array('remove','move'));
+
+		// 1.获取删除（迁移）进度
+		$taskId = $action.'.storage.'.$id;	// remove/move.storage.id
+		if (isset($this->in['progress'])) {
+			$data = Cache::get($taskId);
+			if ($data) {
+				Cache::remove($taskId);
+				show_json($data, true, 1);
+			}
+			$data = Task::get($taskId);
+			show_json($data);
 		}
-		// 获取进度
-		$result = $this->model->progress($data['id'], $data['action']);
-		show_json($result);
-	}
-	private function removeDone($data){
-		$id = $data['id'];
+		Cache::remove($taskId);
+
+		// 2.删除存储
+		$done = isset($this->in['done']) ? true : false;
 		// 备份数据没有数据库记录，需单独处理
-		$backup	= Model('Backup')->listData();
-		$backup = array_to_keyvalue($backup,'','io');
-		if (in_array($id, $backup)) {
-			show_json(LNG('admin.storage.delStoreTips'), false);
+		if (!$done && $action == 'remove') {
+			if (Model('Backup')->findByKey('io', $id)) {
+				show_json(LNG('admin.storage.ifRmBakNow'), false, 100110);
+			}
 		}
-		// 有file记录先返回结果，再执行迁移任务
+		// 存储中有file记录，先迁移文件再删除存储，否则直接删除存储
 		$cnt = Model('File')->where(array('ioType' => $id))->count();
 		if($cnt) {
 			$info = $this->model->listData($id);
-			$this->model->checkConfig($info);
-			echo json_encode(array('code'=>true,'data'=>'OK'));
-			http_close();
-			$res = $this->model->removeWithFile($id, $data['action']);
+			$chks = $this->model->checkConfig($info,true);
+			// 存储无法链接，确认后直接删除
+			if ($chks !== true) {
+				if ($action == 'move') {
+					show_json(LNG('admin.storage.moveErr'), false);
+				}
+				if (!$done) {
+					show_json(LNG('admin.storage.ifRmErrNow'), false, 100110);
+				}
+			}
+			$res = $this->model->removeWithFile($id, $action, $info, $done);
 		}else{
-			$res = $data['action'] == 'remove' ? $this->model->remove($id) : true;
+			$res = $action == 'remove' ? $this->model->remove($id) : true;
 		}
-		$msg = $res ? LNG('explorer.success') : LNG('explorer.error');
-		show_json($msg,!!$res,true);
+		$code = !!$res;
+		$msg = $code ? LNG('explorer.success') : LNG('explorer.error');
+		show_json($msg,$code,($code ? 1 : ''));
 	}
 	
 	// 系统回收站,自动清空;

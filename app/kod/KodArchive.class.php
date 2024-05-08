@@ -96,8 +96,10 @@ class KodArchive {
 			//不允许相对路径
 			$result[$i]['filename'] = str_replace(array('../','..\\'),"_",$result[$i]['filename']);
 			if($output){
-				$charset = get_charset($result[$i]['filename']);
-				if($charsetAll != $charset && $charset == 'utf-8'){$charset = $charsetAll;}
+				// $charset = get_charset($result[$i]['filename']);
+				// if($charsetAll != $charset && $charset == 'utf-8'){$charset = $charsetAll;}
+				$encoding = array('GB2312', 'GBK', 'GB18030', 'UTF-8', 'ASCII', 'BIG5');
+				$charset = mb_detect_encoding($result[$i]['filename'],$encoding);
 				$result[$i]['filename'] = iconv_to($result[$i]['filename'],$charset,'utf-8');
 				unset($result[$i]['stored_filename']);
 			}

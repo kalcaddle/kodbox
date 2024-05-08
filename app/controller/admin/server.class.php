@@ -145,7 +145,7 @@ class adminServer extends Controller {
 			'upTime'	=> '',
 			'softWare'	=> $server['SERVER_SOFTWARE'],
 			'phpVersion'=> $phpVersion,
-			'system'	=> php_uname(),
+			'system'	=> php_uname('a'),
 			'webPath'	=> BASIC_PATH,
 		);
 
@@ -524,7 +524,7 @@ class adminServer extends Controller {
 		if($cache['taskFinished'] > 0 && $cache['taskTotal'] == $cache['taskFinished']) {
 			$cache['success'] = 1;
 		}
-		// 某些环境下进度请求获取不到缓存，加上过期时间后正常，原因未知
+		// 某些环境下进度请求获取不到缓存，加上过期时间后正常，原因未知——应该是时间过短，被即刻删除了
 		$key = !empty($task->task['id']) ? $task->task['id'] : $id;
 		Cache::set('task_'.$key, $cache, 3600*24);
 		$task->end();
@@ -634,9 +634,13 @@ class adminServer extends Controller {
 		}
 		$tableOld = Model()->db()->getTables();
 		$tableOld = array_diff($tableOld, array('______', 'sqlite_sequence'));
-		$diff = array_diff($tableOld, $tableNew);
+		$diff = array_diff($tableOld, $tableNew);	// 当前表vs备份表，当前有新增表时会失败
 		if(!empty($diff)) {
-			show_json(LNG('admin.setting.recDbFileErr'), false);
+			$cnt = count($diff);
+			$msg = str_replace('[0]',$cnt, LNG('admin.setting.recDbFileErr'));
+			if ($cnt > 5) $diff = array_slice($diff, 0, 5);
+			$msg .= '<br/>'.implode(',',$diff).($cnt > 5 ? '...' : '');
+			show_json($msg, false);
 		}
 		// 检测结果直接返回
 		if(Input::get('check', null, false)) {
@@ -785,10 +789,9 @@ class adminServer extends Controller {
 	private function taskClear($type){
 		if(!Input::get('clear', null, 0)) return;
 		if(Input::get('success', null, false)) {
-			Cache::clearTimeout();
-			Cache::deleteAll();
-			del_dir(TEMP_PATH);
-			show_json(LNG('explorer.success'));
+			echo json_encode(array('code'=>true,'data'=>LNG('explorer.success')));
+			http_close();
+			Action('admin.setting')->clearCache();exit;
 		}
 		// 1.杀掉任务、清除缓存
 		$task = $this->actTask($type);

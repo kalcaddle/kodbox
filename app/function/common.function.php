@@ -988,7 +988,7 @@ function get_caller_trace($trace,$needArgs = true) {
 			$call['object'] = $call['class'];
 		}
 		
-		$file = $call['file'] ? get_path_this(get_path_father($call['file'])).'/'.get_path_this($call['file']) : '';
+		$file = isset($call['file']) ? get_path_this(get_path_father($call['file'])).'/'.get_path_this($call['file']) : '';
 		$traceText[$i] = isset($call['line']) ? $file.'['.$call['line'].'] ' : $file;
 		$traceText[$i].= empty($call['object'])? '': $call['object'].$call['type']; 
 		if( $method =='show_json' || $method =='think_trace'){

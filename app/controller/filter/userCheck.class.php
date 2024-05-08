@@ -193,7 +193,7 @@ class filterUserCheck extends Controller {
 		
 		$system = $device['system'] ? '-'.$device['system'] : '';
 		$currentType = $device['type'].$system;
-		if(strstr($check,$currentType)) return true;
+		if(strstr($check,$currentType) || strstr($currentType,$check)) return true;	// $device['system']=>'android 12'
 		return false;
 	}
 	private function _checkConfig(){
@@ -210,6 +210,9 @@ class filterUserCheck extends Controller {
 		iosApp:'kodCloud-System:iOS;Device:iPhone 7 Plus;softwareVerison:15.0.2;AppVersion:2.0.0;Language:zh-Hans'
 	 */
 	public function getDevice(){
+		static $_device = false;
+		if($_device){return $_device;}
+		
 		$ua = $_SERVER['HTTP_USER_AGENT'].';';
 		$platform 	= isset($this->in['HTTP_X_PLATFORM']) ? json_decode($this->in['HTTP_X_PLATFORM'],1):false;
 		$device 	= array(
@@ -243,6 +246,7 @@ class filterUserCheck extends Controller {
 			$device['moreInfo'] 	 = $platform;
 		}
 		$device = Hook::filter('filter.getDevice',$device);
+		$_device = $device;
 		return $device;
 	}
 	

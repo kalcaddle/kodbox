@@ -512,8 +512,9 @@ class explorerList extends Controller{
 		if($pathInfo['targetType'] == 'system') return $pathInfo;
 		
 		$infoKey  = 'fileInfoMore';
-		$cacheKey = 'fileInfo.'.md5($pathInfo['path'].'@'.$pathInfo['size'].$pathInfo['modifyTime']);
-		$fileID   = _get($pathInfo,'fileInfo.fileID',_get($pathInfo,'fileID'));
+		$cacheKey = md5($pathInfo['path'].'@'.$pathInfo['size'].$pathInfo['modifyTime']);
+		$fileID   = _get($pathInfo,'fileID');
+		$fileID   = _get($pathInfo,'fileInfo.fileID',$fileID);
 		if(!isset($pathInfo['sourceID'])){
 			$infoMore = Cache::get($cacheKey);
 			if(is_array($infoMore)){$pathInfo[$infoKey] = $infoMore;}
@@ -603,18 +604,18 @@ class explorerList extends Controller{
 		$maxSize = 1024*1024*1;
 		if($pathInfo['ext'] != 'oexe' || $pathInfo['size'] > $maxSize) return $pathInfo;
 		if($pathInfo['size'] == 0) return $pathInfo;
-		if(isset($pathInfo['oexeContent'])) return $pathInfo;
-
-		// 文件读取缓存处理; 默认缓存7天;
-		$pathHash = KodIO::hashPath($pathInfo);
-		$content  = Cache::get($pathHash);
-		if(!$content){
-			$content = $this->pathGetContent($pathInfo);
-			Cache::set($pathHash,$content,3600*24*7);
+		if(!isset($pathInfo['oexeContent'])){
+			// 文件读取缓存处理; 默认缓存7天;
+			$pathHash = KodIO::hashPath($pathInfo);
+			$content  = Cache::get($pathHash);
+			if(!$content){
+				$content = $this->pathGetContent($pathInfo);
+				Cache::set($pathHash,$content,3600*24*7);
+			}
+			if(!is_string($content) || !$content) return $pathInfo;
+			$pathInfo['oexeContent'] = json_decode($content,true);
 		}
-		
-		if(!is_string($content) || !$content) return $pathInfo;
-		$pathInfo['oexeContent'] = json_decode($content,true);
+				
 		if( $pathInfo['oexeContent']['type'] == 'path' && 
 			isset($pathInfo['oexeContent']['value']) ){
 			$linkPath = $pathInfo['oexeContent']['value'];

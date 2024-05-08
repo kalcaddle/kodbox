@@ -2,8 +2,9 @@
 	"id":"oauth",
 	"name":"{{LNG['oauth.meta.name']}}",
 	"title":"{{LNG['oauth.meta.title']}}",
-	"version":"1.11",
+	"version":"1.13",
 	"category":"tools,others",
+	"hidden":1,
 	"source":{
 		"className":"font-icon ri-shield-user-line bg-blue-6"
 	},

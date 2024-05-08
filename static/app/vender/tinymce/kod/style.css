@@ -8,6 +8,8 @@ div.tox .tox-sidebar-wrap{position: relative;}
 }
 .tox-dialog iframe{border: 1px solid #ddd;}
 
+/* 避免全屏时,弹出的对话框在界面下面 */
+body .tox.tox-tinymce.tox-fullscreen{z-index: 300;}
 
 .toc-form-code-editor.dialog-form.target-form .form-box.config-box .panel-form-body{
     padding: 0 !important;border-radius: 0;bottom: 0;margin-top:0px;

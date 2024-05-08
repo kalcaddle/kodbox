@@ -191,39 +191,56 @@ function get_charset(&$str) {
 	$charsetGet = $charset;
 	if ($charset == 'cp936'){
 		// 有交叉，部分文件无法识别
-		if(charset_check($str,'ISO-8859-4') && !charset_check($str,'gbk') && !charset_check($str,'big5')){
-			$charset = 'ISO-8859-4';
-		}elseif(charset_check($str,'gbk') && !charset_check($str,'big5')){
-			$charset = 'gbk';
-		}else if(charset_check($str,'big5')){
-			$charset = 'big5';
-		}
+		$is8559 = charset_check($str,'ISO-8859-4');
+		$isGbk  = charset_check($str,'gbk');
+		$isBig5 = charset_check($str,'big5');
+		
+		if($isBig5){$charset = 'big5';}
+		if($isGbk && !$isBig5){$charset = 'gbk';}
+		if($is8559 && !$isGbk && !$isBig5){$charset = 'ISO-8859-4';}
 	}else if ($charset == 'euc-cn'){
 		$charset = 'gbk';
 	}else if ($charset == 'ascii'){
 		$charset = 'utf-8';
 	}
+	if($charset == 'utf-16'){
+		if(charset_check($str,'utf-8','utf-16')){$charset = 'utf-8';}
+	}
+	
 	if ($charset == 'iso-8859-1'){
-		//检测详细编码;value为用什么编码检测；为空则用utf-8
+		//检测详细编码;value为用什么编码检测
 		$check = array(
-			'utf-8'       => $charset,
+			'utf-8'       => 'iso-8859-1',
 			'utf-16'      => 'gbk',
 			'iso-8859-1'  => 'utf-8',
 		);
 		foreach($check as $key => $val){
-			if(charset_check($str,$key,$val)){
-				if($val == ''){
-					$val = 'utf-8';
-				}
-				$charset = $key;
-				break;
-			}
+			if(!charset_check($str,$key,$val)){continue;}
+			$charset = $key;break;
 		}
+		if(charset_check($str,'gbk') && checkGBK($str)){$charset = 'gbk';}
 	}else if ($charset == 'sjis-win'){
 		if(charset_check($str,'iso-8859-1')){$charset = 'iso-8859-1';}
 	}
 	// pr(charset_check($str,'utf-8'),charset_check($str,'iso-8859-1'),$charset,$charsetGet);exit;
 	return $charset;
+}
+
+// 无法区分编码时,检测内容处理(iso-8859-1/iso-8859-5/gbk; 编码区域重合情况; 常用字500)
+function checkGBK($str){
+	static $_chars = '';
+	if(!$_chars){
+		$chars = '的一了是我不在人们有他这上着个地到大里说就去子得也和那要下看天时过出小么起你都把好还多没为又可家学只以主会样年想能生同老中十从自面前头道它后然走很像见两用她国动进成回什边作对开而己些现山民候经发工向事命给长水几义三声于高正妈手知理眼志点心战二问但身方实吃做叫当住听革打呢真党全才四已所敌之最光产情路分总条白话东席次亲如被花口放儿常西气五第使写军吧文运再果怎定许快明行因别飞外树物活部门无往船望新带队先力完间却站代员机更九您每风级跟笑啊孩万少直意夜比阶连车重便斗马哪化太指变社似士者干石满日决百原拿群究各六本思解立河爸村八难早论吗根共让相研今其书坐接应关信觉死步反处记将千找争领或师结块跑谁草越字加脚紧爱等习阵怕月青半火法题建赶位唱海七女任件感准张团屋爷离色脸片科倒睛利世病刚且由送切星导晚表够整认响雪流未场该并底深刻平伟忙提确近亮轻讲农古黑告界拉名呀土清阳照办史改历转画造嘴此治北必服雨穿父内识验传业菜爬睡兴形量咱观苦体众通冲合破友度术饭公旁房极南枪读沙岁线野坚空收算至政城劳落钱特围弟胜教热展包歌类渐强数乡呼性音答哥际旧神座章帮啦受系令跳非何牛取入岸敢掉忽种装顶急林停息句娘区衣般报叶压母慢叔背细的';
+		$charsGBK = @mb_convert_encoding($chars,'gbk','utf-8');
+		$_chars = '';
+		for ($i=0; $i <= strlen($charsGBK); $i+=2) { 
+			$_chars .= $charsGBK[$i].$charsGBK[$i+1].'|';
+		}
+		$_chars = rtrim($_chars,'|');
+	}
+	preg_match_all("/(".$_chars.")/",$str,$match);
+	if($match && is_array($match) && count($match[1]) >= 3) return true;
+	return false;
 }
 
 /**
@@ -243,14 +260,14 @@ function serverInfo(){
 	foreach($lib as $key=>$val){
 		$libStr .= $key.'='.$val.';';
 	}
-	$system = explode(" ", php_uname());
+	$system = explode(" ", php_uname('a'));
 	$env = array(
 		"sys"   => strtolower($system[0]),
 		"php"	=> floatval(PHP_VERSION),
 		"server"=> $_SERVER['SERVER_SOFTWARE'],
 		"lib"	=> $libStr,
 		"bit" 	=> PHP_INT_SIZE,
-		"info"	=> php_uname().';php='.PHP_VERSION,
+		"info"	=> php_uname('a').';php='.PHP_VERSION,
 	);
 	$result = str_replace("\/","@",json_encode($env));
 	return $result;

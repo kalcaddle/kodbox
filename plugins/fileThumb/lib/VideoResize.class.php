@@ -314,6 +314,7 @@ class videoResize {
 	// 通过命令行及参数查找到进程pid; 兼容Linux,window,mac
 	// http://blog.kail.xyz/post/2018-03-28/other/windows-find-kill.html
 	public function processFind($search){
+		$this->setLctype($search);
 		$cmd = "ps -eo user,pid,ppid,args | grep '".escapeShell($search)."' | grep -v grep | awk '{print $2}'";
 		if($GLOBALS['config']['systemOS'] != 'windows'){return trim(@shell_exec($cmd));}
 		
@@ -369,6 +370,7 @@ class videoResize {
 		$tile  = '10x'.ceil($pickCount / 10).''; 
 		$scale = 'scale='.$sizeW.':-2'; //,pad='.$sizeW.':'.$sizeH.':-1:-1 -q:v 1~5 ;质量从最好到最差;
 		$args  = '-sws_flags accurate_rnd -q:v 4 -an'; //更多参数; 设置图片缩放算法(不设置缩小时可能产生绿色条纹花屏);
+		$this->setLctype($localFile,$tempPath);
 		$cmd = 'ffmpeg -y -i '.escapeShell($localFile).' -vf "fps='.$fps.','.$scale.',tile='.$tile.'" '.$args.' '.escapeShell($tempPath);
 		$this->log('[videoPreview start] '.$fileInfo['name'].';size='.size_format($fileInfo['size']),0,0);$timeStart = timeFloat();
 		$this->log('[videoPreview run] '.$cmd,0,0);
@@ -390,7 +392,8 @@ class videoResize {
 	private function storeVideoMetadata($fileInfo,$videoInfo){
 		$infoMore = _get($fileInfo,'fileInfoMore',array());
 		$cacheKey = 'fileInfo.'.md5($fileInfo['path'].'@'.$fileInfo['size'].$fileInfo['modifyTime']);
-		$fileID   = _get($fileInfo,'fileInfo.fileID',_get($fileInfo,'fileID'));
+		$fileID   = _get($fileInfo,'fileID');
+		$fileID   = _get($fileInfo,'fileInfo.fileID',$fileID);
 
 		$audio    = $videoInfo['audio'];
 		$infoMore['audio'] = is_array($infoMore['audio']) ? array_merge($audio,$infoMore['audio']) : $audio;
@@ -405,6 +408,7 @@ class videoResize {
 
 	// 解析视频文件信息;
 	private function parseVideoInfo($command,$video){
+		$this->setLctype($video);
 		$result  = shell_exec($command.' -i '.escapeShell($video).' 2>&1');
 		$info    = array('playtime'=>0,'createTime'=>'','audio'=>array());
 		if(preg_match("/Duration:\s*([0-9\.\:]+),/", $result, $match)) {
@@ -452,5 +456,13 @@ class videoResize {
 			}
 		}
 		return $path;
+	}
+
+	// 设置地区字符集，避免中文被过滤
+	private function setLctype($path,$path2=''){
+		if (stripos(setlocale(LC_CTYPE, 0), 'utf-8') !== false) return;
+		if (Input::check($path,'hasChinese') || ($path2 && Input::check($path2,'hasChinese'))) {
+			setlocale(LC_CTYPE, "en_US.UTF-8");
+		}
 	}
 }
