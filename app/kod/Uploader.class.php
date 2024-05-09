@@ -23,6 +23,9 @@ class Uploader{
 		}else if (isset($in["name"])) {
 			$this->uploadFile = "php://input";
 		}
+		// $fp  = @fopen("php://input","rb");$head = fread($fp, 1024*10);fclose($fp);$S = $_SERVER;
+		// write_log([$in,$this->uploadFile,@filesize($this->uploadFile),$S['CONTENT_LENGTH'],$S['CONTENT_TYPE'],$head],'test');
+		
 		if(isset($in['base64Upload']) && isset($in['base64str']) && $in['base64str']){
 			$this->uploadFile = 'base64';
 		}

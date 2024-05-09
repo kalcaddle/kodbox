@@ -1,7 +1,18 @@
 kodReady.push(function(){
 	var staticPath	= "{{pluginHost}}static/";
 	var version		= '?v={{package.version}}';
-	G.clientOption = jsonDecode(urlDecode("{{config}}"));
+	G.clientOption  = {
+		appLoginApp: "1",
+		appLoginAppConfirm: "0",
+		appLoginWeb: "1",
+
+		backupOpen: "1",
+		fileOpenSupport: "1",
+		backupAuth: '{"all":"1","user":"","group":"","role":""}',
+		fileOpen: '[{"ext":"doc,docx,ppt,pptx,xls,xlsx,dwg,dxf,dwf","sort":"10000"}]',
+	};
+	_.extend(G.clientOption,jsonDecode(urlDecode("{{config}}")));
+	
 	LNG.set(jsonDecode(urlDecode("{{LNG}}")));
 	Events.bind("admin.leftMenu.before",function(menuList){
 		menuList.push({
@@ -113,9 +124,10 @@ kodReady.push(function(){
 			type:'POST',data:{token:token},
 			success:function(data){
 				if(!data || !data.code) return Tips.tips(data,'warning',5000);
-				Tips.tips(LNG['common.loginSuccess'],true,3000);
+				// Tips.tips(LNG['common.loginSuccess'],true,3000);
+				var dialog = $.dialog.alert(LNG['common.loginSuccess'],false,'succeed');
 				setTimeout(function(){viewLogin.loginSuccess();},1500);
-				setTimeout(function(){Router.setParam({loginAppID:''});},2000);
+				setTimeout(function(){dialog.close();Router.setParam({loginAppID:''});},2000);
 			}
 		});
 	};

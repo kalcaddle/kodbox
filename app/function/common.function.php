@@ -994,15 +994,19 @@ function get_caller_trace($trace,$needArgs = true) {
 		if( $method =='show_json' || $method =='think_trace'){
 			$traceText[$i].= $method.'(args)';
 		}else{
-			$temp  = (isset($call['args']) && is_array($call['args'])) ? $call['args'] : array();
+			$temp  = (isset($call['args']) && is_array($call['args'])) ? array_values($call['args']) : array();
 			$args  = array();	// 深拷贝，避免引用传参被修改
+			$maxLength = 200;//参数最长长度
 			foreach($temp as $j=>$value){
-				if(!$needArgs && !in_array($method,$keepArgs)){$args[] = $j;continue;}
+				if(!$needArgs && !in_array($method,$keepArgs)){
+					$param = (is_string($value) || is_numeric($value) || !$value) ? $value.'':'[obj]';
+					if(strlen($param) > $maxLength){$param = mb_substr($param,0,$maxLength).'...';}
+					$args[] = '"'.$param.'"';continue;
+				}
 				$value = @json_decode(@json_encode($value));
 				$param = json_encode(array_parse_deep($value));
 				$param = str_replace(array('\\/','\/','\\\\/','\"'),array('/','/','/',"'"),$param);
 				if(substr($param,0,1) == '['){$param = substr($param,1,-1);}
-				$maxLength = 200;//参数最长长度
 				if(strlen($param) > $maxLength){$param = mb_substr($param,0,$maxLength).'...';}
 				$args[] = $param;
 			}

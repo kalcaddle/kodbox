@@ -33,13 +33,18 @@ class explorerIndex extends Controller{
 	private function itemInfo($item){
 		$path = $item['path'];
 		$type = _get($item,'type');
-		if($this->in['getChildren'] == '1'){
-			$result = IO::infoWithChildren($path);
-		}else if($type == 'simple'){
-			$result = IO::info($path);
-		}else{
-			$result = IO::infoFull($path);
+		try{// 收藏或访问的io路径不存在情况报错优化;
+			if($this->in['getChildren'] == '1'){
+				$result = IO::infoWithChildren($path);
+			}else if($type == 'simple'){
+				$result = IO::info($path);
+			}else{
+				$result = IO::infoFull($path);
+			}
+		}catch(Exception $e){
+			$result = false;
 		}
+		
 		if(!$result) return false;
 		// $canLink = Action('explorer.auth')->fileCanDownload($path);
 		$canLink = Action('explorer.auth')->fileCan($path,'edit');//edit,share; 有编辑权限才能生成外链;

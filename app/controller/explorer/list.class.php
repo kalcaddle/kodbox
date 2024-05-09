@@ -252,7 +252,13 @@ class explorerList extends Controller{
 
 	public function pathCurrent($path,$loadInfo = true){
 		$pathParse = KodIO::parse($path);
-		$driver    = IO::init($path);
+		try{// 收藏或访问的io路径不存在情况报错优化;
+			$driver = IO::init($path); 
+		}catch(Exception $e){
+			$current = array('type'=>'folder','path'=>$path,'exists'=>false);
+			return $current;
+		}
+		
 		if($pathParse['isTruePath']){
 			$current = array('type'=>'folder','path'=>$path);
 			if(!$driver) {$current['exists'] = false;}

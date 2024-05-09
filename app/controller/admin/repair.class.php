@@ -60,6 +60,11 @@ class adminRepair extends Controller {
 		echoLog('=====================================================');
 		echoLog('异常数据清理完成!');
 	}
+	
+	public function clearEmptyFile(){
+		Model('File')->clearEmpty(0);
+		pr('ok');
+	}
 
 	// 处理指定目录数据
 	private function resetPathSource(){

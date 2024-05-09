@@ -4,6 +4,9 @@
  * 用户相关信息处理
  */
 class KodUser{
+	public static function id(){
+		return defined('USER_ID') ? USER_ID:0;
+	}
 	public static function isLogin(){
 		$user = Session::get('kodUser');
 		return (is_array($user) && isset($user['userID'])) ? 1 : 0;

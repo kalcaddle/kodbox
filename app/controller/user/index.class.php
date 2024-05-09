@@ -449,7 +449,7 @@ class userIndex extends Controller {
 		$actionKey	 = _get($this->in, 'actionKey', '');
 		$appKey   	 = _get($this->in, 'appKey', '');
 		$appSecret	 = $this->appKeySecret($appKey);
-		if(!$actionToken || !$actionToken || !$appSecret) return;
+		if(!$actionToken || !$actionKey || !$appSecret) return;
 		if(strlen($actionToken) > 500) return;
 		
 		$action  = str_replace('.','/',ACTION);

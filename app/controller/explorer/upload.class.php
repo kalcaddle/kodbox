@@ -169,6 +169,7 @@ class explorerUpload extends Controller{
 		    $linkInfo['host'] = str_replace("http://",'//',$linkInfo['host']);
 			// $linkInfo['host'] = str_replace("https://",'//',$linkInfo['host']);	// 存储只限https访问时去掉会有异常
 		}
+		$this->checkAllowUploadWeb($infoData);
 		
 		// 保留参数部分; kod挂载kod的webdav前端上传;
 		if($this->in['addUploadParam']){$infoData['addUploadParam'] = $this->in['addUploadParam'];} // server;
@@ -185,6 +186,12 @@ class explorerUpload extends Controller{
 		}else{
 			show_json(LNG('explorer.success'),true,$infoData);
 		}
+	}
+	
+	// 检测, 是否允许前端对象存储直传(腾讯cos+Android浏览器form分片上传时,)
+	private function checkAllowUploadWeb(&$infoData){
+		if(!$infoData['uploadLinkInfo']){return;}
+		// if(stristr($_SERVER['HTTP_USER_AGENT'],'android')){$infoData['uploadLinkInfo'] = false;}
 	}
 
 	/**
