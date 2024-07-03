@@ -34,6 +34,7 @@ class adminBackup extends Controller{
     public function config(){
 		$this->bakConfig();
 		$data	= $this->model->config();		// 备份配置信息
+		if (!$data) show_json('初始化异常', false);
 		$database = array_change_key_case($GLOBALS['config']['database']);
 		$data['dbType'] = Action('admin.server')->_dbType($database);	// mysql/sqlite
 		$last	= $this->model->lastItem();		// 最近一条备份记录
