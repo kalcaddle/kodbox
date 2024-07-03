@@ -950,6 +950,7 @@ return array(
     "admin.backup.ifAutoStorage"     => "現在の場所がデフォルトのストレージとして自動的に作成されます。続行しますか?",
     "admin.backup.errAutoStore"      => "ストレージの作成に失敗しました。手動で作成してください",
     "admin.backup.withFileDesc"      => "認可されたバージョンのみがデータベースとファイルの同時バックアップをサポートします",
+    "admin.backup.errInitTask"       => "初期化に失敗しました。データベースとキャッシュが正常かどうかを確認してください。",
     "admin.backup.action"            => "運用管理",
     "admin.backup.recovery"          => "割引",
     "admin.backup.sysRecovery"       => "システムの復元",

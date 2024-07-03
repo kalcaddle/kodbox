@@ -950,6 +950,7 @@ return array(
     "admin.backup.ifAutoStorage"     => "Поточне розташування є сховищем за замовчуванням. Ви хочете продовжити?",
     "admin.backup.errAutoStore"      => "Не вдалося створити сховище. Створіть його вручну",
     "admin.backup.withFileDesc"      => "Тільки авторизована версія підтримує одночасне резервне копіювання бази даних і файлів",
+    "admin.backup.errInitTask"       => "Помилка ініціалізації, будь ласка, перевірте, чи в нормі база даних і кеш!",
     "admin.backup.action"            => "Управління операцією",
     "admin.backup.recovery"          => "скорочення",
     "admin.backup.sysRecovery"       => "відновлення системи",

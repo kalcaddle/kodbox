@@ -950,6 +950,7 @@ return array(
     "admin.backup.ifAutoStorage"     => "Der aktuelle Speicherort ist der Standardspeicher. Ein Speicher wird automatisch als Backup-Speicher erstellt. Möchten Sie fortfahren?",
     "admin.backup.errAutoStore"      => "Die Speichererstellung ist fehlgeschlagen. Bitte erstellen Sie sie manuell",
     "admin.backup.withFileDesc"      => "Nur die autorisierte Version unterstützt die gleichzeitige Sicherung von Datenbank und Dateien",
+    "admin.backup.errInitTask"       => "Die Initialisierung ist fehlgeschlagen. Bitte überprüfen Sie, ob die Datenbank und der Cache normal sind!",
     "admin.backup.action"            => "Betriebsführung",
     "admin.backup.recovery"          => "die Ermäßigung",
     "admin.backup.sysRecovery"       => "Systemwiederherstellung",

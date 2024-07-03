@@ -950,6 +950,7 @@ return array(
     "admin.backup.ifAutoStorage"     => "La posizione corrente è l'archivio predefinito. Verrà creato automaticamente un archivio come archivio di backup. Vuoi continuare?",
     "admin.backup.errAutoStore"      => "Creazione dello spazio di archiviazione non riuscita, crealo manualmente",
     "admin.backup.withFileDesc"      => "Solo la versione autorizzata supporta il backup simultaneo di database e file",
+    "admin.backup.errInitTask"       => "Inizializzazione fallita, controlla se il database e la cache sono normali!",
     "admin.backup.action"            => "Gestione",
     "admin.backup.recovery"          => "Ripristina",
     "admin.backup.sysRecovery"       => "Ripristino",

@@ -950,6 +950,7 @@ return array(
     "admin.backup.ifAutoStorage"     => "Geçerli konum, varsayılan depolama alanıdır. Yedek depolama alanı olarak otomatik olarak bir depolama alanı oluşturulacaktır. Devam etmek istiyor musunuz?",
     "admin.backup.errAutoStore"      => "Depolama alanı oluşturulamadı, lütfen manuel olarak oluşturun",
     "admin.backup.withFileDesc"      => "Yalnızca yetkili sürüm, veritabanının ve dosyaların eşzamanlı yedeklenmesini destekler",
+    "admin.backup.errInitTask"       => "Başlatma başarısız oldu, lütfen veritabanının ve önbelleğin normal olup olmadığını kontrol edin!",
     "admin.backup.action"            => "Operasyon Yönetimi",
     "admin.backup.recovery"          => "kesinti",
     "admin.backup.sysRecovery"       => "sistem geri yükleme",

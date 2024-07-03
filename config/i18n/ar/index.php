@@ -950,6 +950,7 @@ return array(
     "admin.backup.ifAutoStorage"     => "الموقع الحالي هو المخزن الافتراضي. سيتم إنشاء مخزن تلقائيًا كمخزن احتياطي. هل تريد المتابعة؟",
     "admin.backup.errAutoStore"      => "فشل إنشاء مساحة التخزين، يرجى إنشائها يدويًا",
     "admin.backup.withFileDesc"      => "الإصدار المعتمد فقط هو الذي يدعم النسخ الاحتياطي المتزامن لقاعدة البيانات والملفات",
+    "admin.backup.errInitTask"       => "فشلت التهيئة، يرجى التحقق مما إذا كانت قاعدة البيانات وذاكرة التخزين المؤقت طبيعية!",
     "admin.backup.action"            => "إدارة العمليات",
     "admin.backup.recovery"          => "تخفيض",
     "admin.backup.sysRecovery"       => "استعادة النظام",

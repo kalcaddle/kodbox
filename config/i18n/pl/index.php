@@ -950,6 +950,7 @@ return array(
     "admin.backup.ifAutoStorage"     => "Bieżąca lokalizacja jest magazynem domyślnym. Zostanie automatycznie utworzony jako magazyn zapasowy. Czy chcesz kontynuować?",
     "admin.backup.errAutoStore"      => "Utworzenie magazynu nie powiodło się. Utwórz go ręcznie",
     "admin.backup.withFileDesc"      => "Tylko autoryzowana wersja obsługuje jednoczesne tworzenie kopii zapasowych bazy danych i plików",
+    "admin.backup.errInitTask"       => "Inicjalizacja nie powiodła się. Sprawdź, czy baza danych i pamięć podręczna działają normalnie!",
     "admin.backup.action"            => "Zarządzanie operacyjne",
     "admin.backup.recovery"          => "zmniejszenie",
     "admin.backup.sysRecovery"       => "przywracanie systemu",

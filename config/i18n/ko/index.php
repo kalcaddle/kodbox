@@ -950,6 +950,7 @@ return array(
     "admin.backup.ifAutoStorage"     => "현재 위치가 기본 저장소입니다. 계속하시겠습니까?",
     "admin.backup.errAutoStore"      => "저장소를 생성하지 못했습니다. 수동으로 생성해 주세요.",
     "admin.backup.withFileDesc"      => "인증된 버전만 데이터베이스와 파일의 동시 백업을 지원합니다.",
+    "admin.backup.errInitTask"       => "초기화에 실패했습니다. 데이터베이스와 캐시가 정상인지 확인해주세요!",
     "admin.backup.action"            => "운영 관리",
     "admin.backup.recovery"          => "절감",
     "admin.backup.sysRecovery"       => "시스템 복원",

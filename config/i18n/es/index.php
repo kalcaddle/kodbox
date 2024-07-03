@@ -950,6 +950,7 @@ return array(
     "admin.backup.ifAutoStorage"     => "La ubicación actual es el almacenamiento predeterminado. Se creará automáticamente un almacenamiento como almacenamiento de respaldo. ¿Desea continuar?",
     "admin.backup.errAutoStore"      => "Error al crear el almacenamiento. Créelo manualmente.",
     "admin.backup.withFileDesc"      => "Sólo la versión autorizada admite copias de seguridad simultáneas de bases de datos y archivos",
+    "admin.backup.errInitTask"       => "La inicialización falló, verifique si la base de datos y el caché son normales.",
     "admin.backup.action"            => "Gestión de operaciones",
     "admin.backup.recovery"          => "reducción",
     "admin.backup.sysRecovery"       => "restauración del sistema",

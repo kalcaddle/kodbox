@@ -950,6 +950,7 @@ return array(
     "admin.backup.ifAutoStorage"     => "The current location is the default storage. A storage will be automatically created as the backup storage. Do you want to continue?",
     "admin.backup.errAutoStore"      => "Storage creation failed, please create it manually",
     "admin.backup.withFileDesc"      => "Only the authorized version supports backing up database and files at the same time",
+    "admin.backup.errInitTask"       => "Initialization failed, please check whether the database and cache are normal!",
     "admin.backup.action"            => "Operation Management",
     "admin.backup.recovery"          => "Reduction",
     "admin.backup.sysRecovery"       => "System Restore",

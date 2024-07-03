@@ -950,6 +950,7 @@ return array(
     "admin.backup.ifAutoStorage"     => "Lokasi saat ini adalah penyimpanan default. Penyimpanan akan otomatis dibuat sebagai penyimpanan cadangan.",
     "admin.backup.errAutoStore"      => "Pembuatan penyimpanan gagal, harap buat secara manual",
     "admin.backup.withFileDesc"      => "Hanya versi resmi yang mendukung pencadangan database dan file secara bersamaan",
+    "admin.backup.errInitTask"       => "Inisialisasi gagal, periksa apakah database dan cache normal!",
     "admin.backup.action"            => "Manajemen operasional",
     "admin.backup.recovery"          => "pengurangan",
     "admin.backup.sysRecovery"       => "pemulihan sistem",

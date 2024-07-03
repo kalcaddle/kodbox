@@ -950,6 +950,7 @@ return array(
     "admin.backup.ifAutoStorage"     => "目前位置為預設存儲，將自動建立一個存儲作為備份存儲，是否繼續？",
     "admin.backup.errAutoStore"      => "儲存建立失敗，請自行手動建立",
     "admin.backup.withFileDesc"      => "僅授權版支援同時備份資料庫和文件",
+    "admin.backup.errInitTask"       => "初始化失敗，請檢查資料庫和快取是否正常！",
     "admin.backup.action"            => "操作管理",
     "admin.backup.recovery"          => "還原",
     "admin.backup.sysRecovery"       => "系統還原",

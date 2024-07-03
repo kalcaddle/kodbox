@@ -950,6 +950,7 @@ return array(
     "admin.backup.ifAutoStorage"     => "O local atual é o armazenamento padrão. Um armazenamento será criado automaticamente como armazenamento de backup.",
     "admin.backup.errAutoStore"      => "Falha na criação do armazenamento. Crie-o manualmente",
     "admin.backup.withFileDesc"      => "Somente a versão autorizada suporta backup simultâneo de banco de dados e arquivos",
+    "admin.backup.errInitTask"       => "Falha na inicialização, verifique se o banco de dados e o cache estão normais!",
     "admin.backup.action"            => "Gerenciamento de operação",
     "admin.backup.recovery"          => "redução",
     "admin.backup.sysRecovery"       => "Restauração do sistema",

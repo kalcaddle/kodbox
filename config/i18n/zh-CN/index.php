@@ -950,6 +950,7 @@ return array(
     "admin.backup.ifAutoStorage"     => "当前位置为默认存储，将自动创建一个存储作为备份存储，是否继续？",
     "admin.backup.errAutoStore"      => "存储创建失败，请自行手动创建",
     "admin.backup.withFileDesc"      => "仅授权版支持同时备份数据库和文件",
+    "admin.backup.errInitTask"       => "初始化失败，请检查数据库和缓存是否正常！",
     "admin.backup.action"            => "操作管理",
     "admin.backup.recovery"          => "还原",
     "admin.backup.sysRecovery"       => "系统还原",

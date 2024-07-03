@@ -950,6 +950,7 @@ return array(
     "admin.backup.ifAutoStorage"     => "Vị trí hiện tại là bộ nhớ mặc định. Bộ nhớ sẽ được tạo tự động làm bộ nhớ dự phòng. Bạn có muốn tiếp tục không?",
     "admin.backup.errAutoStore"      => "Tạo bộ nhớ không thành công, vui lòng tạo thủ công",
     "admin.backup.withFileDesc"      => "Chỉ phiên bản được ủy quyền mới hỗ trợ sao lưu đồng thời cơ sở dữ liệu và tệp",
+    "admin.backup.errInitTask"       => "Khởi tạo không thành công, vui lòng kiểm tra xem cơ sở dữ liệu và bộ đệm có bình thường không!",
     "admin.backup.action"            => "Quản lý hoạt động",
     "admin.backup.recovery"          => "sự giảm bớt",
     "admin.backup.sysRecovery"       => "khôi phục hệ thống",

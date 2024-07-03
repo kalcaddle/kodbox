@@ -950,6 +950,7 @@ return array(
     "admin.backup.ifAutoStorage"     => "L'emplacement actuel est le stockage par défaut. Un stockage sera automatiquement créé comme stockage de sauvegarde. Voulez-vous continuer ?",
     "admin.backup.errAutoStore"      => "La création du stockage a échoué, veuillez le créer manuellement",
     "admin.backup.withFileDesc"      => "Seule la version autorisée prend en charge la sauvegarde simultanée de la base de données et des fichiers",
+    "admin.backup.errInitTask"       => "L'initialisation a échoué, veuillez vérifier si la base de données et le cache sont normaux !",
     "admin.backup.action"            => "Gestion d'opération",
     "admin.backup.recovery"          => "réduction",
     "admin.backup.sysRecovery"       => "restauration du système",

@@ -950,6 +950,7 @@ return array(
     "admin.backup.ifAutoStorage"     => "वर्तमान स्थान डिफ़ॉल्ट भंडारण है। एक भंडारण स्वचालित रूप से बैकअप भंडारण के रूप में बनाया जाएगा।",
     "admin.backup.errAutoStore"      => "संग्रहण निर्माण विफल रहा, कृपया इसे मैन्युअल रूप से बनाएं",
     "admin.backup.withFileDesc"      => "केवल अधिकृत संस्करण ही डेटाबेस और फ़ाइलों के एक साथ बैकअप का समर्थन करता है",
+    "admin.backup.errInitTask"       => "आरंभीकरण विफल, कृपया जांचें कि डेटाबेस और कैश सामान्य हैं या नहीं!",
     "admin.backup.action"            => "संचालन प्रबंधन",
     "admin.backup.recovery"          => "कमी",
     "admin.backup.sysRecovery"       => "सिस्टम रेस्टोर",
