@@ -32,12 +32,7 @@ class adminBackup extends Controller{
 	 * @return void
 	 */
     public function config(){
-		// 最近一条备份记录
-		if(Input::get('last', null, 0)) {
-			$last = $this->model->lastItem();
-			// if($last && $last['name'] != date('Ymd')) $last = null;
-			show_json($last);
-		}
+		$this->bakConfig();
 		$data	= $this->model->config();		// 备份配置信息
 		$database = array_change_key_case($GLOBALS['config']['database']);
 		$data['dbType'] = Action('admin.server')->_dbType($database);	// mysql/sqlite
@@ -50,6 +45,35 @@ class adminBackup extends Controller{
 		}
 		$info	= array('last' => $last, 'info' => $process);
 		show_json($data, true, $info);
+	}
+	private function bakConfig(){
+		// 获取最近一条备份记录
+		if (Input::get('last',null,0) == '1') {
+			$last = $this->model->lastItem();
+			// if($last && $last['name'] != date('Ymd')) $last = null;
+			show_json($last);
+		}
+		if (Input::get('check',null,0) != '1') return;
+		// 检查备份是否有效
+		$io = Input::get('io', 'int');
+		if ($this->in['auto'] != '1') {
+			$this->checkStore($io);
+			show_json('ok');
+		}
+		// 默认存储，自动创建备份存储：[path]/backup/
+		$data = Model('Storage')->listData($io);
+		$data['name'] = LNG('admin.backup.storage');
+		$data['default'] = 0;
+		$config = json_decode($data['config'], true);
+		$config['basePath'] = rtrim($config['basePath'], '/') . '/backup';
+		$data['config'] = json_encode($config);
+		unset($data['id']);
+
+		$this->in = $data;
+		ActionCallResult("admin.storage.add",function(&$res){
+			if (!$res['code']) $res['data'] = LNG('admin.backup.errAutoStore');
+			return $res;
+		});
 	}
 
 	/**
@@ -92,7 +116,7 @@ class adminBackup extends Controller{
 
 		$driver = KodIO::defaultDriver();
 		$backup['io'] = $driver['id'];
-		$backup['content'] = 1;
+		$backup['content'] = 'sql';	// 备份内容：all/sql
 		// $backup['enable'] = 1;
 		Model('SystemOption')->set('backup', $backup);
 		$update = array('enable' => 1);
@@ -105,9 +129,7 @@ class adminBackup extends Controller{
 		if($config['enable'] != '1') {
 			show_json(LNG('admin.backup.notOpen'), false);
 		}
-		$data = Model('Storage')->listData($config['io']);
-		if (!$data || !$config['io']) show_json(LNG('admin.backup.storeNotExist'), false);
-		Model('Storage')->checkConfig($data);
+		$this->checkStore($config['io']);
 		mk_dir(TEMP_FILES);
 		if(!path_writeable(TEMP_FILES)) {
 			show_json(LNG('admin.backup.pathNoWrite'), false);
@@ -116,6 +138,13 @@ class adminBackup extends Controller{
 		http_close();
 		$this->model->start();
     }
+	// 检查存储是否有效
+	private function checkStore($io){
+		$model = Model('Storage');
+		$data = $model->listData($io);
+		if (!$data) show_json(LNG('admin.backup.storeNotExist'), false);
+		$model->checkConfig($data);
+	}
     
     // 还原，禁止任何操作
     public function restore(){

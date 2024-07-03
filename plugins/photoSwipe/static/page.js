@@ -146,12 +146,20 @@ define(function(require, exports) {
 			});
 		});
 		
-		// 最后一个处理; 缩放位置异常还原;
+		// 超过3张图片, 打开最后一张时缩放位置异常处理; 重置位置及大小;
 		if(imageCount >= 3 && imageCount == imageList.index + 1){
-			setTimeout(function(){gallery.next();gallery.prev();},600);
+			setTimeout(function(){
+				gallery.next();gallery.prev();return;// 会有一次闪烁;
+
+				gallery.currItem.container = $('.pswp__img--placeholder').parent().get(0);
+				setTimeout(function(){ // setcontent, 每次都会从新生成currItem.container情况;
+					gallery.currItem.container = $('.pswp__img--placeholder').parent().get(0);
+				},100);
+				gallery.updateSize(); // 关闭时,没有动画切换回到原图
+			},350);
 		}
 		
-		// 两种图片时,打开最后一个加载完成异常情况处理;
+		// 两张图片时,打开最后一个加载完成异常情况处理;
 		if(imageCount == 2 && imageList.index == 1){
 			setTimeout(function(){
 				var $img = $('.pswp__container .pswp__item:eq(2) .pswp__img:not(.pswp__img--placeholder)');
@@ -335,6 +343,12 @@ define(function(require, exports) {
 			var $img = $(currItem.container).find('.pswp__img:not(.pswp__img--placeholder)');
 			var loading = $(".pswp__item.current").loadingMask(LNG['explorer.getting'])
 			$img.attr('src',currItem.src).bind('load',function(){
+				var style = {width:$img.width(),height:$img.height()};
+				$img.css({width:'',height:''});
+				currItem.w = $img.width();currItem.h = $img.height();
+				$img.css(style); // 更新图片尺寸;
+				photoSwipeView.updateSize();
+				
 				currItem.trueImage = false;imageChange();
 				loading.close();
 				$img.hide().fadeIn();

@@ -32,7 +32,7 @@ class filterUserCheck extends Controller {
 	 * 
 	 * none:不限制,默认;
 	 * strong: 中等强度, 长度大于6; 必须同时包含英文和数字;
-	 * strongMore: 高强度, 长度大于6; 必须同时包含数字,大写英文,小写英文;
+	 * strongMore: 高强度, 长度大于8; 必须同时包含数字,大写英文,小写英文;
 	 * 
 	 * 检测点: 用户注册;用户修改密码;管理员添加用户;管理员修改用户;导入用户;
 	 * 前端点: 登录成功后:如果密码规则不匹配当前强度,则提示修改密码;[提示点:注册密码,修改密码,编辑用户设置密码,添加用户设置密码]
@@ -49,7 +49,7 @@ class filterUserCheck extends Controller {
 
 		if( $type == 'strong' && $length >= 6 && $hasNumber && $hasChar){
 			return true;
-		}else if( $type == 'strongMore' && $length >= 6 && $hasNumber && $hasCharBig && $hasCharSmall){
+		}else if( $type == 'strongMore' && $length >= 8 && $hasNumber && $hasCharBig && $hasCharSmall){
 			return true;
 		}
 		return false;

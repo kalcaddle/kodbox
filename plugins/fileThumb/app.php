@@ -136,7 +136,7 @@ class fileThumbPlugin extends PluginBase{
 		
 		// 存储目录访问,不自动生成缩略图(未生成过则显示时触发生成;已经是缩略图文件,则返回自身(1200访问250时自适应))
 		$driver	= KodIO::defaultDriver();
-		if(is_array($driver["config"]) && stristr($file['path'],$driver["config"]['basePath'])){
+		if(is_array($driver["config"]) && stripos($driver["config"]['basePath'],$file['path']) === 0){
 			$isCover  = preg_match("/^cover_(\w{0,32})(\d+)_(\d+)\.png$/",$file['name'],$match);
 			$thumbImg = $isCover ? $file['path'] : get_path_father($file['path']).'/'.$coverName;
 			if($isCover && $match[3] == 1200 && $width == 250){
@@ -245,7 +245,7 @@ class fileThumbPlugin extends PluginBase{
 			}
 			$this->thumbVideo($localFile,$thumbFile,$videoThumbTime);
 		} else {
-			if(!$localFile){$localFile = $this->pluginLocalFile($path);}
+			if(!$localFile){$localFile = $localTemp = $this->pluginLocalFile($path);}
 			if($ext == 'ttf'){
 				$this->thumbFont($localFile,$thumbFile,$size);
 			}else{
@@ -364,13 +364,14 @@ class fileThumbPlugin extends PluginBase{
 		$cm->prorate($cacheFile,$maxWidth,$maxWidth);
 	}
 	// 对象存储通过链接获取缩略图——当前仅支持OSS
+	// https://help.aliyun.com/zh/oss/user-guide/video-snapshots?
 	private function thumbVideoByLink($cacheFile) {
 		if (!isset($this->ioFileInfo['ioDriver']) || $this->ioFileInfo['ioDriver'] != 'oss') return;
 		// 获取缩略图链接
 		$options = array('x-oss-process' => 'video/snapshot,t_10000,f_jpg,w_250,m_fast');
 		$link = IO::link($this->ioFileInfo['path'], $options);
 		if (!$link) return;
-		// 写入文件——视频缩略图收费，写入文件，避免反复调用
+		// 写入文件——视频缩略图收费，写入文件，避免反复调用（截帧数*(0.1/1k)/1000）
 		$content = curl_get_contents($link);
 		if (!$content) return;
 		file_put_contents($cacheFile, $content);

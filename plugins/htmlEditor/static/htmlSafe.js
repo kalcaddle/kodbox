@@ -30,7 +30,8 @@ ClassBase.define({
 		} 
 		return true;
 	},
-	// 禁用cookie,去除 allow-same-origin;
+	// 禁用cookie,去除 allow-same-origin;  iframe内请求无法缓存;
+	// https://stackoverflow.com/questions/67680940/iframe-sandbox-is-not-caching-my-js-script
 	iframeAttr:function(){
 		var allow   = "midi; geolocation; camera *; microphone; camera; display-capture; encrypted-media; clipboard-read; clipboard-write;";
 		var sandbox = 'allow-modals allow-orientation-lock allow-forms allow-scripts allow-popups allow-pointer-lock allow-top-navigation-by-user-activation allow-downloads';
@@ -40,7 +41,9 @@ ClassBase.define({
 		return '<iframe src="" '+this.iframeAttr()+' frameborder="0" style="width:100%;height:100%;border:0;"></iframe>';
 	},
 	
-	loadContent:function($iframe,filePath,pathModel,contentSet){
+	getTruePathCache:{},
+	fileContentCache:{},
+	loadContent:function($iframe,filePath,pathModel,contentSet,args){
 		var self = this;
 		var linkPre = pathModel.urlMake('fileOutBy','viewToken='+(G.kod.viewToken || ''));
 		var apiHostTo = window.API_HOST;// chrome xhr跨域时,发送options请求进行预检处理;需要带上index.php,否则会被nginx拦截报错;
@@ -55,17 +58,34 @@ ClassBase.define({
 			if(urlInfo.params.path){filePath = urlDecode(urlInfo.params.path);} 
 		}
 		
+		var cacheKeyAll = '';// 缓存处理,文件变更时支持;
+		if(args && args._fileInfo && args._fileInfo.size){
+			cacheKeyAll = '[size-'+args._fileInfo.size+',time='+args._fileInfo.modifyTime+']';
+		}
 		var getTruePath = function(thePath,addPath,callback){
+			var cache = self.getTruePathCache,cacheKey = cacheKeyAll+thePath+'__'+(addPath || '');
+			if(cache[cacheKey]){return callback && callback(cache[cacheKey],addPath);}
+			
 			$.ajax({
 				url:pathModel.urlMake('fileOutBy'),
 				type:'POST',dateType:'json',
 				data:{path:thePath,add:addPath,type:'getTruePath'},
 				success:function(data){
 					if(!_.isObject(data) || !data.code || !data.data){return;}
+					cache[cacheKey] = data.data;
 					callback && callback(data.data,addPath);
 				}
 			});
 		};
+		var fileContent = function(thePath,addPath,callback){
+			var cache = self.fileContentCache,cacheKey = cacheKeyAll+'__'+thePath+'__'+(addPath || '');
+			if(cache[cacheKey]){return callback && callback(cache[cacheKey]);}
+			pathModel.fileContent({path:thePath},function(content){
+				var newContent = self.parseContent(content,thePath,linkPre,addPath);
+				cache[cacheKey] = newContent;
+				callback && callback(newContent);
+			});
+		}
 		
 		// 页面跳转,相对路径处理(先获取,再以新的作为当前文件名)
 		$iframe.unbind('iframeLinkHref').bind('iframeLinkHref',function(e,eventData){ 
@@ -81,48 +101,42 @@ ClassBase.define({
 		$iframe.unbind('iframeChildLoad').bind('iframeChildLoad',function(e,eventData){ 
 			var thePath = $(this).attr('data-file-path');
 			var addPath = eventData.url;
-			if(!thePath){return;}
+			var iframeWindow = $iframe.get(0).contentWindow;
+			if(!thePath || !iframeWindow){return;}
+			
 			getTruePath(thePath,addPath,function(truePath){
-				pathModel.fileContent({path:truePath},function(content){
-					var iframeWindow = $iframe.get(0).contentWindow;
-					if(!iframeWindow){return;}
+				fileContent(truePath,addPath,function(content){
 					iframeWindow.postMessage({
 						type:'parent.event',event:'iframeChildLoadSuccess',
-						url:truePath,uuid:eventData.uuid,
-						content:self.parseContent(content,truePath,linkPre,addPath)
+						url:truePath,uuid:eventData.uuid,content:content
 					},'*');
 				});
 			});
 		});
 		
-
+		var loadTimeout = false;
 		var reloadContent = function(thePath,addPath,theContent){
 			$iframe.attr('data-file-path',thePath);
-			$iframe.attr('srcdoc','').trigger('load');//$iframe.attr('src','about:blank');
-			var setContent = function(content){
-				var newContent = self.parseContent(content,thePath,linkPre,addPath);
-				$iframe.attr('srcdoc',newContent); // iOS-微信中无效;
+			var setContent = function(newContent){
+				$iframe.attr('srcdoc',newContent).trigger('load'); // iOS-微信中无效;
+				$iframe.unbind('iframeMainload').bind('iframeMainload',function(){
+					clearTimeout(loadTimeout);
+				});
+				clearTimeout(loadTimeout);
+				loadTimeout = setTimeout(function(){ // 一段时间未接收到载入消息,则重新设置值(safari下偶尔白屏[未载入引起])
+					$iframe.attr('srcdoc',newContent);
+				},500);
 			};
-			if(theContent){return setContent(contentSet);}
-			pathModel.fileContent({path:thePath},setContent);
+			setContent('');//$iframe.attr('src','about:blank');
+			if(theContent){return setContent(self.parseContent(contentSet,thePath,linkPre,addPath));}
+			fileContent(thePath,addPath,setContent);
 		};
 		reloadContent(filePath,false,contentSet);
 	},
+	
 	parseContent:function(content,filePath,linkPre,addPath){
-		var self = this;
-		var urlFilterCurrent = function(url,replaceType){ //与urlFilter逻辑一致,
-			if(!self.isPathUrl(url)){return url;}
-			
-			var paramAdd = '';// 保持之前参数;
-			if(url.indexOf('?') > 0){paramAdd = '&_s_=/&'+url.substr(url.indexOf('?')+1);}
-			if(url.indexOf('#') > 0){paramAdd = '#'+url.substr(url.indexOf('#')+1);}
-			
-			url = self.pathUrlParse(url,basePath);
-			var result = linkPre;
-			if(url.indexOf('.wasm.js') != -1){replaceType = 'script-wasm';} // wasm 引入; "*.wasm" 将被自动替换;
-			if(replaceType){result += '&replaceType='+replaceType;}
-			return result += '&path='+urlEncode(filePath)+"&add="+urlEncode(url)+paramAdd;
-		};
+		var isPathUrl = this.isPathUrl,pathUrlParse = this.pathUrlParse,pathTrue = this.pathTrue;
+		var urlFilterCurrent = eval('('+this.urlFilter.toString()+')'); // 当前环境作用域; 可以直接使用变量及方法;
 		var domSrcMap = [
 			{tag:'script',key:'src',replaceType:'script-import',typeMatch:'module'},
 			{tag:'link',key:'href',replaceType:'css-import'},
@@ -136,18 +150,28 @@ ClassBase.define({
 		var contentNew = this.htmlContentParse(content,domSrcMap,urlFilterCurrent);
 
 		// html内容展示,src相对路径处理(url处理: './test.js','test.js','../img/test.js');
+		var urlPage = window.location.href.replace(/\?.*/,'').replace(/#.*/,'') + (addPath || '');
+		var locationNow = new window.URL(urlPage); // 保留打开页面的锚点及参数; js中可能会作为逻辑处理用到
+		locationNow = _.pick(locationNow,'href,origin,protocol,host,hostname,port,pathname,search,hash'.split(','));
+		// console.log(999,{linkPre,filePath,basePath,addPath,location,contentNew},{urlPage,locationNow},JSON.stringify(locationNow));
+
+		var fileEncode = '';
+		if(window.kodFileOutDecode){ // 加解密处理;
+			//fileEncode = ';window.kodFileOutDecode = ('+kodFileOutDecode.toString()+');window.kodFileOutDecode();';
+		}
 		var script = `
 		(function(){
 			var linkPre   = "${linkPre}",filePath ="${filePath}",basePath="${basePath}";
-			window._hash  = "`+(addPath || '')+`";window._location_ = `+JSON.stringify(window.location)+`
+			window._hash  = "`+(addPath || '')+`";window._location_ = `+JSON.stringify(locationNow)+`
 			var domSrcMap =`+jsonEncode(domSrcMap)+`;
 			var urlFilter =`+this.urlFilter.toString()+`;
 			var isPathUrl =`+this.isPathUrl.toString()+`;
+			var pathTrue  =`+this.pathTrue.toString()+`;
 			var pathUrlParse =`+this.pathUrlParse.toString()+`;
 			var htmlContentParse =`+this.htmlContentParse.toString()+`;
 			(`+this.hookScript.toString()+`)();
 			(`+this.hookScriptProfill.toString()+`)();
-			(`+this.hookScriptEvent.toString()+`)();
+			(`+this.hookScriptEvent.toString()+`)();`+fileEncode+`
 		})();`;
 		return '<script>'+script+'</script>'+contentNew;
 	},
@@ -156,7 +180,7 @@ ClassBase.define({
 	// ====================以下为运行在iframe中的代码====================
 	// ================================================================
 	
-	// 是否为绝对路径url(http:,https:,data:,blob:,#,/,javascript:), 其他则为相对路径url(../xxx,./xxx,xxx/a.html);
+	// 是否为绝对路径url(http:,https:,data:,blob:,#,/,javascript:), 其他则为相对路径url(../xxx,./xxx,xxx/a.html,/aa/bb.xxx);
 	isPathUrl:function(url){
 		if(!url || typeof(url) != 'string'){return false;}
 		var ignorePre = ['http:','https:','/','data:','blob:','#','javascript:'];
@@ -166,18 +190,55 @@ ClassBase.define({
 		return true;
 	},
 	pathUrlParse:function(url,_basePath){ // 如果是路径,去除锚点及参数;
+		var _url = url;
 		if(url=='./'){url = './index.html';}
-		if(url.substr(0,1) == '?'){url = './index.html'+url;}
-			
-		if(url.indexOf('?') >0){url = url.substr(0,url.indexOf('?'));}
-		if(url.indexOf('#') >0){url = url.substr(0,url.indexOf('#'));}
+		var urlClear = function(theUrl){
+			if(theUrl.indexOf('?') >0){theUrl = theUrl.substr(0,theUrl.indexOf('?'));}
+			if(theUrl.indexOf('#') >0){theUrl = theUrl.substr(0,theUrl.indexOf('#'));}
+			return theUrl.replace('/./','/');
+		};
+		
+		if(url.substr(0,1) == '?'){
+			url = './index.html'+url;
+			if(window._hash){
+				var arr = urlClear(_hash).split('/');
+				url = './'+arr[arr.length - 1] + _url;
+			}
+		}
+		//url = urlClear(url);
 		if(url.substr(-1,1) == '/'){url += 'index.html';} // 目录结尾自动处理为文件;
 		url = url.replace(/\/+/g,'/');
 		if(_basePath){url = _basePath + url;}
 		return url;
 	},
-	urlFilter:function(url,replaceType,_isPathUrl,_pathUrlParse){
-		// console.error(101,url,document.baseURI)
+	pathTrue:function(thePath){
+		if(!thePath || typeof(thePath) != 'string') return '';
+		thePath = thePath.replace(/\/+/g,'/').replace(/(\/\.\/)+/g,'/');
+		thePath = thePath.replace(/\/+/g,'/').replace(/(\/\.\/)+/g,'/');
+		if(thePath.indexOf('../') === -1 ) return thePath;
+		
+		var arr = thePath.split('/');
+		for(var i = 0; i <= arr.length; i++){
+			if(arr[i] !== '..'){continue;}
+			for(var j = i; j>=0;j--) { 
+				if(arr[j] === '.' || arr[j] === '..' || arr[j] === -1){continue;}
+				if(arr[j] === ''){arr[i] = -1;break;} // 以/开头处理到根,则直接置空
+				arr[i] = -1;arr[j] = -1;break; // 抵消一对;
+			}
+		}
+		var newPathArr = [];
+		for(var i = 0; i < arr.length; i++){
+			if(arr[i] === -1){continue;}
+			newPathArr.push(arr[i]);	
+		}
+		var newPath = newPathArr.join('/');
+		if(newPath.indexOf('./../') === 0){
+			newPath = '../'+newPath.substr('./../'.length);
+		}
+		return newPath.replace('/./','/');
+	},
+	urlFilter:function(url,replaceType){
+		if(!url || typeof(url) != 'string'){return url;}
 		var paramAdd = '',urlOld = url;// 保持之前参数;
 		if( url && url.substr(0,4) == 'http' && 
 			url.indexOf('&_s_=/') > 0 && url.indexOf('&_s_=/&') === -1){ // 根据url拼接出的url处理;
@@ -191,8 +252,18 @@ ClassBase.define({
 		var result = linkPre;
 		if(url.indexOf('.wasm.js') != -1){replaceType = 'script-wasm';} // wasm 引入; "*.wasm" 将被自动替换;
 		if(replaceType){result += '&replaceType='+replaceType;}
-		result += '&path='+encodeURIComponent(filePath)+"&add="+encodeURIComponent(url)+paramAdd;
-		// console.error('urlFilter',[urlOld,url,result,paramAdd]);
+
+		var urlPath = filePath,urlAdd = url;
+		// 资源引用路径,相对路径转换; 多个相同资源共同缓存(暂时无效; iframe中allow-same-origin请求无法缓存, orgin为null)
+		var urlPathArr = urlPath.replace(/\/*$/,'').replace(/^\/*/,'').split('/');
+		var urlAddArr  = (urlAdd || '').split('../');
+		if( urlAddArr.length && urlPathArr.length && urlPathArr.length > urlAddArr.length ){
+			var urlAddArr = urlAdd.split('/'),lastFile = urlAddArr.pop();
+			urlPath = pathTrue(urlPath + '/../' + urlAddArr.join('/')) + '/' + lastFile;
+			urlAdd  = lastFile;
+		}
+		result += '&path='+encodeURIComponent(urlPath)+"&add="+encodeURIComponent(urlAdd)+paramAdd;
+		// console.error('urlFilter',[urlPath,urlAdd],[urlOld,url,result,paramAdd]);
 		return result;
 	},
 	htmlContentParse:function(html,domSrcMap,_urlFilter){
@@ -200,6 +271,7 @@ ClassBase.define({
 		var doc = (new DOMParser()).parseFromString(html,'text/html'); // 忽略报错
 		if(!doc || !doc.getElementsByTagName){return contentNew;}
 		
+		var urlFilter = _urlFilter;
 		var escapeRegex = function(str){return str.replace(/[/\-\\^$*+?.()|[\]{}]/g, '\\$&');}
 		domSrcMap.forEach(function(item){		
 			var nodes = doc.getElementsByTagName(item.tag);
@@ -211,7 +283,7 @@ ClassBase.define({
 				if(!url){return;}
 				var replaceType = item.replaceType || '';
 				if(item.typeMatch){replaceType = node.getAttribute('type') == 'module' ? replaceType:'';}
-				var urlNew = _urlFilter(url,replaceType);
+				var urlNew = urlFilter(url,replaceType);
 				if(url == urlNew){return;}
 				var reg = new RegExp(item.key+'\s*=\s*[\'"]'+escapeRegex(url)+'[\'"]','g');
 				contentNew = contentNew.replace(reg,item.key+'="'+urlNew+'" _src_="'+url+'"');
@@ -253,10 +325,12 @@ ClassBase.define({
 				var q = url.substr(0,1);
 				if(q != "'" && q != '"'){q = '';}
 				if(q){url = url.substr(1,url.length -2);}
-				return 'url('+q+_urlFilter(url)+q+')';
+				return 'url('+q+urlFilter(url)+q+')';
 			});
 			contentNew = contentNew.replace(style,styleNew);
 		});
+		
+		contentNew = contentNew.replace('window.location','window._location_');
 		return contentNew;
 	},
 	
@@ -274,7 +348,8 @@ ClassBase.define({
 	hookScript:function(){
 		// css中图片引用处理(运行时,js修改元素样式)
 		var urlFilterImage = function(v){
-			if(!v || !v.match(/url\s*\(\s*['"]*(.*?)['"]*\s*\)/g)){return v;}
+			if(!v || typeof(v) != 'string'){return v;}
+			if(!v.match(/url\s*\(\s*['"]*(.*?)['"]*\s*\)/g)){return v;}
 			var result = v.replace(/url\s*\(\s*['"]*(.*?)['"]*\s*\)/g,function(str,url){
 				if(!url){return str;}
 				return 'url("'+urlFilter(url)+'")';
@@ -366,8 +441,8 @@ ClassBase.define({
 					descriptor.get = function(){
 						var result = getterFunc.apply(this,arguments);
 						if(result){return result;} //只要值,则作为返回值;
-						if(this.getProperty){return this.getProperty(key,result[0]);}
-						if(this.getAttribute){return this.getAttribute(key,result[0]);}
+						if(this.getProperty){return this.getProperty(key);}
+						if(this.getAttribute){return this.getAttribute(key);}
 					};
 				}
 			}else{
@@ -387,6 +462,7 @@ ClassBase.define({
 					}
 				}
 			}
+			descriptor.configurable = true;
 			Object.defineProperty(target,key,descriptor);
 		};
 		functionHook = function(target,method,beforeFunc,afterFunc){
@@ -482,7 +558,6 @@ ClassBase.define({
 			return '';
 		};
 		
-		var _Worker = window.Worker,_SharedWorker = window.SharedWorker,_Audio = window.Audio;
 		var requestText = function(url,callback){
 			fetch(url).then(function(response){
 				return response.text();
@@ -491,18 +566,51 @@ ClassBase.define({
 			});
 		};
 		var noop = function(){};
+		
 		// worker 请求中 fetch处理;
-		var requestWorker = function(url,type,name){
-			var url  = urlFilter(url,'script-import');
-			var obj  = {onmessage:noop,postMessage:noop,onerror:noop,terminate:noop,addEventListener:noop};
-			// return type == 'Worker'? (new _Worker(url)) : new _SharedWorker(url,name);
-			
+		var proxyWorker = function(url,type,name){
+			var url = urlFilter(url,'script-import');
+			var proxyMethods = 'addEventListener,removeEventListener,postMessage,terminate'.split(','),proxyMethodsCall = {};
+			var obj = {onmessage:noop,onerror:noop};
+			var _each = function(objs,method){
+				if(!objs){return;}
+				for(var k in objs){
+					(function(key){method(objs[key],key);})(k);
+				}
+			};
+			var _includes = function(arr,v){return arr.indexOf(v) !== -1;};
+			var _toArray = function(arr){
+				var res = [];
+				for(var i = 0; i < arr.length; i++){res.push(arr[i]);}
+				return res;
+			};
+			_each(proxyMethods,function(funcName){
+				obj[funcName] = function(){
+					var args = _toArray(arguments);
+					//console.error(222,funcName,obj.self,args,proxyMethodsCall);
+					if(obj.self){return obj.self[funcName].apply(obj.self,args);}
+					if(!proxyMethodsCall[funcName]){proxyMethodsCall[funcName] = [];}
+					proxyMethodsCall[funcName].push(args);
+				}
+			});
+			var loadAfter = function(objTarget){
+				obj.self = objTarget;
+				objTarget.onmessage = obj.onmessage;
+				objTarget.onerror = obj.onerror; // 设置调用覆盖临时变量
+				_each(proxyMethodsCall,function(calls,method){
+					_each(calls,function(args){
+						obj[method].apply(obj.self,args);
+					});
+				});
+				proxyMethodsCall = [];
+			};
 			var scriptAdd = `
 			;(function(){
 				var linkPre   = "${linkPre}",filePath ="${filePath}",basePath="${basePath}";
 				var _location = `+JSON.stringify(_location_)+`
-				var urlFilter =`+urlFilter.toString()+`;
-				var isPathUrl =`+isPathUrl.toString()+`;
+				var urlFilter = `+urlFilter.toString()+`;
+				var isPathUrl = `+isPathUrl.toString()+`;
+				var pathTrue  = `+pathTrue.toString()+`;
 				var pathUrlParse =`+pathUrlParse.toString()+`;
 				var htmlContentParse =`+htmlContentParse.toString()+`;
 				var _fetch   = self.fetch,_ajaxOpen = XMLHttpRequest.prototype.open;
@@ -519,30 +627,33 @@ ClassBase.define({
 				var worker = false;
 				var blob   = new Blob([scriptAdd+text],{type:'application/javascript'});
 				var blobUrl = URL.createObjectURL(blob);
-				// console.error('requestWorker:',blobUrl,url,text,scriptAdd);
+				// console.error('proxyWorker:',blobUrl,url,text,scriptAdd+text);
 				if(type == 'Worker'){worker = new _Worker(blobUrl);}
 				if(type == 'SharedWorker'){worker = new _SharedWorker(blobUrl,name);}
-				worker.onmessage = obj.onmessage;worker.onerror = obj.onerror; // 设置调用覆盖临时变量
-				obj.postMessage  = function(){worker.postMessage.apply(worker,arguments);};
-				obj.terminate 	 = function(){worker.terminate.apply(worker,arguments);};
-				obj.addEventListener = function(){worker.addEventListener.apply(worker,arguments);};
+				loadAfter(worker);
 			});
 			return obj;//返回临时变量,worker构造后需要覆盖;
-		};		
-		window.Worker = function(url){return requestWorker(url,'Worker');};
-		window.SharedWorker = function(url){return requestWorker(url,'SharedWorker',name);};
-		window.Audio = function(url){
+		};
+		var _Worker = window.Worker;window.Worker = function(url){return proxyWorker(url,'Worker');};
+		var _SharedWorker = window.SharedWorker;window.SharedWorker = function(url,name){return proxyWorker(url,'SharedWorker',name);};
+		var _Audio = window.Audio;window.Audio = function(url){
 			var node = new _Audio(urlFilter(url));
 			node.setAttribute("crossOrigin",'anonymous');
 			return node;
 		}
 		
-		var _fetch = window.fetch,_ajaxOpen = XMLHttpRequest.prototype.open;
-		window.fetch = function(url){
-		    arguments[0] = urlFilter(arguments[0]);
+		var _fetch = window.fetch; window.fetch = function(url){
+			if(typeof(url) == 'string' || !url){arguments[0] = urlFilter(url);} // theUrl 支持字符串,URL对象,Request对象
+			if(url instanceof window.URL){arguments[0] = new URL(urlFilter(url.href));}
+			var options  = {method:url.method,mode:url.mode,cache:url.cache,headers:url.headers,body:url.body,credentials:url.credentials};
+			if(url instanceof window.Request){
+				arguments[0] = new Request(urlFilter(url.url),options);
+			}
 		    return _fetch.apply(this,arguments);
 		};
+		
 		// chrome xhr跨域options目录预检处理;需要带上index.php
+		var _ajaxOpen = XMLHttpRequest.prototype.open;
 		XMLHttpRequest.prototype.open = function(){
 			arguments[1] = urlFilter(arguments[1]);
 			if(arguments[1] === _location_.href){// 获取url位自身时,采用当前文件名(document.baseURI的情况兼容)
@@ -564,6 +675,38 @@ ClassBase.define({
 		});
 		functionHook(UIEvent.prototype,'preventDefault',function(code){
 			this._stopEvent = true;return arguments;
+		});
+		
+		// 引用路径转换处理; 相对路径转换;
+		var pathUrlTrue = function(url,add){
+			if(add && !isPathUrl(add)){return add;}
+			if(!url || !add){return url;}
+			var char = add.substr(0,1);
+			if(char == '/'){return _location_.origin + add;}
+			if(char == '#' || char == '?'){return url+add;}
+			
+			var urlTemp = url.replace('://','_:@@_');
+			if(url.substr(-1,1) == '/'){urlTemp += 'index.html/';}
+			var result = pathTrue(urlTemp+'/../'+add).replace('_:@@_','://');
+			return result;
+		};
+		
+		var urlMain = _location_.href.replace(/#.*$/, "" );
+		var urlPage = pathUrlTrue(urlMain,_hash);
+		// console.log(444,urlPage,urlPage);
+		
+		// 兼容 获取window.location.href无法覆盖的情况; 扩展到字符串替换上(jquery-ui等tab锚点处理兼容)
+		functionHook(String.prototype,'replace',false,function(result,args){
+			if(result === 'about:srcdoc'){return urlMain;}
+			return result;
+		});
+		Object.defineProperty(document,'URL',{get:function(){
+			return urlPage;
+		}});
+		functionHookSetter(HTMLAnchorElement.prototype,'href',false,function(){
+			var url = this.getAttribute('href') || '';
+			if(url.substr(0,1) == '#' || url.substr(0,1) == '?'){return urlPage+url;}
+			return pathUrlTrue(urlPage,this.getAttribute('href'));
 		});
 	},
 	
@@ -613,6 +756,7 @@ ClassBase.define({
 		
 		// url跳转拦截(a跳转,a.href修改; window.open; window.location.href==无法支持,无法setter)
 		var gotoPage = function(url){
+			var urlOld = url;
 			if(url && url.substr(0,1)== '#'){window.location.hash = url;return true;} 
 			if(!isPathUrl(url)){return false;}
 			url = pathUrlParse(url,basePath);
@@ -644,6 +788,7 @@ ClassBase.define({
 			}
 			if(gotoPage(url)){return stopPP(e);};
 		});
+		window.parent.postMessage({type:'iframe.event',event:'iframeMainload'},'*');
 		
 		// location 跳转监听,暂时无解; //onhashchange,popstate,locationchange...
 		// https://stackoverflow.com/questions/6390341/how-to-detect-if-url-has-changed-after-hash-in-javascript

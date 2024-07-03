@@ -259,11 +259,26 @@ class explorerShare extends Controller{
 		){
 			$this->showError(LNG('explorer.share.noViewTips'),false);
 		}
-		if( $share['options'] && 
-			$share['options']['canUpload'] != '1' && 
-			in_array($ACT,array('fileupload','mkdir','mkfile')) ){
-			$this->showError(LNG('explorer.share.noUploadTips'),false);
+		
+		// 分享者角色没有上传权限时, 忽略配置开启上传;
+		$shareUser = $share['userID'];
+		$actionUpload = array('fileupload','mkdir','mkfile');
+		$actionEdit   = array('fileupload','mkdir','mkfile','pathrename','pathcopy','pathcute','pathcuteto','pathcopyTo','pathpast','filesave');
+		$canUpload 	  = is_array($share['options']) && $share['options']['canUpload'] == '1';
+		$canEdit 	  = is_array($share['options']) && $share['options']['canEditSave'] == '1';
+		if($canUpload && in_array($ACT,$actionUpload)){
+			if($canUpload && !Action('user.authRole')->authCanUser('explorer.upload',$shareUser)){$canUpload = false;}
+			if(isset($this->in['path']) && !$this->checkPathAuth($this->in['path'])){$canUpload = false;}
+			if(!$canUpload){$this->showError(LNG('explorer.noPermissionWriteAll'),false);}
 		}
+		if($actionEdit && in_array($ACT,$actionEdit)){// 目的地检测;必须为当前分享文件夹下子内容;
+			if($canEdit && !Action('user.authRole')->authCanUser('explorer.edit',$shareUser)){$canEdit = false;}
+			if(isset($this->in['path']) && !$this->checkPathAuth($this->in['path'])){$canEdit = false;}
+			if(isset($this->in['dataArr']) && !$this->checkPathAuth($this->in['dataArr'],true)){$canEdit = false;}
+			if($canEdit && Model('SystemOption')->get('shareLinkAllowEdit') == '0'){$canEdit = false;}
+			if(!$canEdit){$this->showError(LNG('explorer.noPermissionWriteAll'),false);}
+		}
+		
 		if((equal_not_case(ACT,'fileOut') && $this->in['download']=='1') ||
 			equal_not_case(ACT,'zipDownload') || 
 			equal_not_case(ACT,'fileDownload') ){
@@ -273,6 +288,19 @@ class explorerShare extends Controller{
 			$this->cacheShareClear();
 		}
 	}
+	private function checkPathAuth($path,$isArray = false){
+		if(!$this->share || !$this->share['shareHash']){return false;}
+		$prePath = "{shareItemLink:".$this->share['shareHash']."}";
+		if(!$isArray){return strpos(rawurldecode($path),$prePath) === 0 ? true:false;}
+		
+		$data = json_decode($this->in['dataArr'],true);
+		if(!is_array($data)){return false;}
+		foreach ($data as $item){
+			if(strpos(rawurldecode($item['path']),$prePath) !== 0){return false;}
+		}
+		return true;
+	}
+	
 	// 清除分享方法缓存
 	private function cacheShareClear(){
 		$share = $this->share;
@@ -362,7 +390,7 @@ class explorerShare extends Controller{
 		$this->fileOut();
 	}
 	public function fileOutBy(){
-		$add   = rawurldecode($this->in['add']);
+		$add   = kodIO::pathUrlClear(rawurldecode($this->in['add']));
 		$path  = rawurldecode($this->in['path']);
 		if(request_url_safe($path)){header('Location:'.$path);exit;}
 		
@@ -375,10 +403,23 @@ class explorerShare extends Controller{
 	}
 	
 	private function call($action){
-		$this->in['path'] = $this->parsePath($this->in['path'],true);
+		if(isset($this->in['path'])){
+			$this->in['path'] = $this->parsePath($this->in['path'],true);
+		}
 		$self = $this;
 		ActionCallResult($action,function(&$res) use($self){
-			if(!$res['code'] || !$res['info'] || !is_string($res['info'])){return;}
+			if(!$res['code']){return;}
+			if(ACT == 'fileSave'){$res['info'] = $this->shareItemInfo($res['info']);return;}
+			
+			// 粘贴,拖拽情况处理;
+			if(ACT == 'pathCuteTo' || ACT == 'pathCopyTo' || ACT == 'pathPast'){
+				$resNew = $self->callParsePast($res);
+				if($resNew && $resNew['info']){$res['info'] = $resNew['info'];}
+				if($resNew && $resNew['infoMore']){$res['infoMore'] = $resNew['infoMore'];}
+				return;
+			}
+			
+			if(!$res['info'] || !is_string($res['info'])){return;}
 			$pathInfo = $self->shareItemInfo(IO::info($res['info']));
 			$res['info'] = $pathInfo['path'];
 		});		
@@ -386,6 +427,30 @@ class explorerShare extends Controller{
 	public function fileUpload(){$this->call("explorer.upload.fileUpload");}
 	public function mkfile(){$this->call("explorer.index.mkfile");}
 	public function mkdir(){$this->call("explorer.index.mkdir");}
+
+	public function pathRename(){$this->call("explorer.index.pathRename");}
+	public function pathCopy(){$this->call("explorer.index.pathCopy");}
+	public function pathCute(){$this->call("explorer.index.pathCute");}
+	public function pathCuteTo(){$this->call("explorer.index.pathCuteTo");}
+	public function pathCopyTo(){$this->call("explorer.index.pathCopyTo");}
+	public function pathPast(){$this->call("explorer.index.pathPast");}
+	public function fileSave(){$this->call("explorer.editor.fileSave");}
+	
+	public function callParsePast($res){
+		if(!is_array($res['info']) || !isset($res['info'][0])){return false;}
+		foreach($res['info'] as $i=>$path){
+			$pathInfo = $this->shareItemInfo(IO::info($res['info'][$i]));
+			$res['info'][$i] = $pathInfo['path'];
+			if(is_array($res['infoMore']['listTo'])){
+				$res['infoMore']['listTo'][$i] = $pathInfo['path'];
+			}
+		}
+		if(is_array($res['infoMore']) && isset($res['infoMore']['pathTo'])){
+			$res['infoMore']['pathTo'] = $_REQUEST['path'];
+		}
+		return $res;
+	}
+	
 	public function fileGet(){
 		$pageNum = 1024 * 1024 * 10;$self = $this;
 		$this->in['pageNum'] = isset($this->in['pageNum']) ? $this->in['pageNum'] : $pageNum;
@@ -393,7 +458,9 @@ class explorerShare extends Controller{
 		$this->in['path'] = $this->parsePath($this->in['path']);
 		ActionCallResult("explorer.editor.fileGet",function(&$res) use($self){
 			if(!$res['code']){return;}
+			$pathDisplay = $res['data']['pathDisplay'];
 			$res['data'] = $self->shareItemInfo($res['data']);
+			if($pathDisplay && substr($pathDisplay,0,1) == '['){$res['data']['pathDisplay'] = $pathDisplay;}
 			if(is_array($res['data']['fileInfo'])){unset($res['data']['fileInfo']);}
 		});
 	}
@@ -436,7 +503,23 @@ class explorerShare extends Controller{
 			if(!in_array($path,$allowPath)){$this->parsePath($path);}
 			$data = Action('explorer.list')->path($path);
 		}
+		
+		// 默认自动展开文件夹层级; deep=1/2(文档预览模式,优化请求)
+		if(isset($this->in['deep']) && is_array($data['folderList']) && 
+			$this->in['deep'] >= 1){
+			foreach ($data['folderList'] as $key=>$item){
+				$child = Action('explorer.list')->path($item['path']);
+				$item['children'] = $child;$data['folderList'][$key] = $item;
+				if($this->in['deep'] == 1 || !is_array($child['folderList'])){continue;}
 
+				foreach($child['folderList'] as $key2=>$item2) {
+					$child2 = Action('explorer.list')->path($item2['path']);
+					$item2['children'] = $child2;
+					$data['folderList'][$key]['children']['folderList'][$key2] = $item2;
+				}
+			}
+		}
+		
 		// 文件快捷方式处理;
 		if($data && $data['fileList']){
 			foreach($data['fileList'] as &$file){

@@ -2,7 +2,7 @@
 	"id":"fileThumb",
 	"name":"{{LNG['fileThumb.meta.name']}}",
 	"title":"{{LNG['fileThumb.meta.title']}}",
-	"version":"2.01",// 2024.1.5
+	"version":"2.03",// 2024.6.17
 	"category":"file,media",
 	"source":{
 		"icon":"{{pluginHost}}static/icon.png"

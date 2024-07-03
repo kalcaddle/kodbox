@@ -38,7 +38,11 @@ class clientTfaIndex extends Controller {
         $key    = md5($tfaIn['name'].$tfaIn['password'].'_'.$this->in['userID']);
         $user   = Cache::get($key);
         if (!$user) show_json(LNG('client.tfa.userLgErr'), false, 10011);
-        $this->$func($user);
+        if ($func == 'tfaCode') {
+            $this->tfaCode($user);
+        } else {
+            $this->tfaVerify($user);
+        }
     }
 
     /**
@@ -56,21 +60,20 @@ class clientTfaIndex extends Controller {
             return $data;
         }
         // 发送类型，优先使用手机
-        $info = array(
-            'phone' => _get($user, 'phone', ''),
-            'email' => _get($user, 'email', ''),
-        );
 		$type = $input = '';
 		$typeArr = explode(',',$tfaType);
+        $typeArr = array_intersect(array('phone','email'), $typeArr);
 		foreach ($typeArr as $tType) {
-			if (Input::check($info[$tType], $tType)) {
+            $value = _get($user, $tType, '');
+            if (!$value) continue;
+			if (Input::check($value, $tType)) {
 				$type   = $tType;
-				$input  = $info[$tType];
+				$input  = $value;
 				break;
 			}
 		}
         $tfaInfo = array(
-            'tfaType'   => $tfaType,
+            'tfaType'   => implode(',',$typeArr),
             'type'      => $type,
             'input'     => $this->getMscValue($input,$type)
         );
@@ -111,7 +114,7 @@ class clientTfaIndex extends Controller {
         ));
 		$type = $data['type'];
         if($data['userID'] != $user['userID']) {
-            show_json(LNG('client.tfa.userMtErr'), false);
+            show_json(LNG('client.tfa.userLgErr'), false);
         }
 		if($user[$type]){$data['input'] = $user[$type];}
         if(!Input::check($data['input'],$type)) {

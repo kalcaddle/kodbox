@@ -2,7 +2,7 @@
 	"id":"htmlEditor",
 	"name":"{{LNG['htmlEditor.meta.title']}}",
 	"title":"{{LNG['htmlEditor.meta.title']}}",
-	"version":"1.04",
+	"version":"1.06",
 	"source":{
 		"className":"x-item-icon x-html",
 		"icon":""

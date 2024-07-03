@@ -19,9 +19,13 @@ class explorerIndex extends Controller{
 		}
 		$result = array();
 		for ($i=0; $i < count($fileList); $i++){// 处理掉无权限和不存在的内容;
-			if(!Action('explorer.auth')->can($fileList[$i]['path'],'show')) continue;
+			$item = $fileList[$i];
+			if(isset($item['pathTrue']) && $item['pathTrue'] == '1'){
+				$item['path'] = kodIO::pathTrue($item['path']); // 相对路径获取处理;
+			}
+			if(!Action('explorer.auth')->can($item['path'],'show')) continue;
 			
-			$itemInfo = $this->itemInfo($fileList[$i]);
+			$itemInfo = $this->itemInfo($item);
 			if($itemInfo){$result[] = $itemInfo;}
 		}
 		if(count($fileList) == 1 && $result){
@@ -852,7 +856,7 @@ class explorerIndex extends Controller{
 		if(!$this->in['path']) return; 
 		
 		// 拼接转换相对路径;
-		$add   = rawurldecode($this->in['add']);
+		$add   = kodIO::pathUrlClear(rawurldecode($this->in['add']));
 		$parse = kodIO::parse($this->in['path']);
 		$allow = array('',false,kodIO::KOD_IO,kodIO::KOD_USER_DRIVER,kodIO::KOD_SHARE_LINK);
 		if(in_array($parse['type'],$allow)){

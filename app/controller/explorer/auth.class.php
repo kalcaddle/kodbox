@@ -33,7 +33,7 @@ class explorerAuth extends Controller {
 				'explorer.editor' 	=>'fileSave'
 			),
 			// 'remove'	=> array('explorer.index'=>'pathDelete'),	//批量中处理
-			'share'		=> array('explorer.userShare'=>'add'),
+			'share'		=> array('explorer.userShare'=>'add'),// get,edit,del 在userShare中自行判断(允许协作者(拥有者时)修改协作成员及权限)
 			'comment'	=> array('comment.index'=>''),
 			'event'		=> array('explorer.index'=>'pathLog'),
 			'root'		=> array('explorer.index'=>'setAuth'),
@@ -182,16 +182,22 @@ class explorerAuth extends Controller {
 	
 	// 外部获取文件读写权限; Action("explorer.auth")->fileCanRead($path);
 	public function fileCanRead($file){
+		if($this->fileIsShareLink($file)){return $this->fileCan($file,'view');}
 		if(!ActionCall('user.authRole.authCanRead')) return false;
 		return $this->fileCan($file,'view');
 	}
 	public function fileCanDownload($file){
+		if($this->fileIsShareLink($file)){return $this->fileCan($file,'download');}
 		if(!ActionCall('user.authRole.authCanRead')) return false;
 		return $this->fileCan($file,'download');
 	}
 	public function fileCanWrite($file){
+		if($this->fileIsShareLink($file)){return $this->fileCan($file,'edit');}
 		if(!ActionCall('user.authRole.authCanEdit')) return false;
 		return $this->fileCan($file,'edit');
+	}
+	private function fileIsShareLink($file){
+		return strpos($file,'{shareItemLink:') === 0 ? true:false;
 	}
 	
 	public function fileCan($file,$action){
@@ -221,7 +227,18 @@ class explorerAuth extends Controller {
 		$parse  = KodIO::parse($path);
 		$ioType = $parse['type'];
 		
-		if( $ioType == KodIO::KOD_SHARE_LINK && $action == 'view' ) return true;		
+		if($ioType == KodIO::KOD_SHARE_LINK){
+			$shareInfo  = Action('explorer.share')->sharePathInfo($path);
+			if($shareInfo && in_array($action,array('view','show'))) return true;
+			if($shareInfo && $action == 'download' && _get($shareInfo,'option.notDownload') !='1' ) return true;
+			if($shareInfo && $action == 'edit' && _get($shareInfo,'option.canEditSave') == '1' ){
+				if(Model('SystemOption')->get('shareLinkAllowEdit') == '1'){
+					return $this->errorMsg(LNG('explorer.pathNotSupport'),1108);
+				}
+				return true;
+			}
+			return $this->errorMsg(LNG('explorer.pathNotSupport'),1108);
+		}
 		if(!$isRoot && !Action('user.authRole')->canCheckRole($action)){
 			return $this->errorMsg(LNG('explorer.noPermissionAction'),1021);
 		}
@@ -238,12 +255,6 @@ class explorerAuth extends Controller {
 		
 		//个人挂载目录；跨空间移动复制根据身份处理；
 		if( $ioType == KodIO::KOD_USER_DRIVER ) return true;
-		if( $ioType == KodIO::KOD_SHARE_LINK){
-			$shareInfo  = Action('explorer.share')->sharePathInfo($path);
-			if($shareInfo && in_array($action,array('view','show'))) return true;
-			if($shareInfo && $action == 'download' && _get($shareInfo,'option.notDownload') !='1' ) return true;
-			return $this->errorMsg(LNG('explorer.pathNotSupport'),1108);
-		}
 		
 		//不支持删除自己的桌面
 		if($action == 'remove'){

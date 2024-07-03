@@ -57,6 +57,7 @@ ClassBase.define({
             content: html,
             ok: function(e){
                 var data = self.getInputData(tfaInfo, typeArr);
+                if (!data) return false;
                 var $code = self.dialog.$main.find('input[name="code"]');
                 var code = $.trim($code.val());
                 if (!code) {$code.focus();return false;}
@@ -82,6 +83,7 @@ ClassBase.define({
         $dialog.delegate('.check-code button', 'click', function(){
             var $btn = $(this);
             var data = self.getInputData(tfaInfo, typeArr);
+            if (!data) return false;
             data.userID = userID;
             data.action = 'tfaCode';
 

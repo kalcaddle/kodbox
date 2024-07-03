@@ -82,6 +82,10 @@ class videoResize {
 		$fileSizeMin = floatval($config['videoConvertLimit']); //GB; 为0则不限制
 		if(IO::fileNameExist($cachePath, $tempFileName)){return self::STATUS_SUCCESS;}
 		
+		// 部分文件无法获取视频信息，导致无法执行转码
+		if ($isVideo && !isset($fileInfo['fileInfoMore'])) {
+			$fileInfo['fileInfoMore'] = array('playtime'=>0);
+		}
 		$pathDisplay = isset($fileInfo['pathDisplay']) ? $fileInfo['pathDisplay'] : $fileInfo['path'];
 		if( !$isVideo || 
 		    !is_array($fileInfo['fileInfoMore']) ||
@@ -90,7 +94,7 @@ class videoResize {
 			strstr($pathDisplay,'/tmp/fileThumb') ||
 			strstr($pathDisplay,TEMP_FILES) ||
 			($fileSizeMax > 0.01 && $fileInfo['size'] > 1024 * 1024 * 1024 * $fileSizeMax) ||
-			($fileSizeMin > 0.01 &  $fileInfo['size'] < 1024 * 1024 * $fileSizeMin) ){
+			($fileSizeMin > 0.01 && $fileInfo['size'] < 1024 * 1024 * $fileSizeMin) ){
 			return self::STATUS_IGNORE;
 		}
 		if($this->convertError($taskID)){return self::STATUS_ERROR;} // 上次转换失败缓存记录;

@@ -3,33 +3,6 @@ kodReady.push(function(){
 	var supportView = "{{config.fileView}}" != '0';
 	var supportEdit = "{{config.fileEdit}}" != '0';
 	Events.bind('explorer.kodApp.before',function(appList){
-		requireAsync("{{pluginHost}}static/htmlSafe.js?v={{package.version}}",function(View){
-			htmlSafe = new View();
-			if(!supportView || !htmlSafe.support()){return;}
-			kodApp.htmlSafe = htmlSafe;
-			kodApp.add({ // kodApp 加载后,加载htmlSafe资源; 
-				name:'htmlView',
-				title:"{{LNG['htmlEditor.app.show']}}",
-				ext:"{{config.fileExt}}",
-				sort:parseInt("{{config.fileViewSort}}") || 10,
-				icon:'x-item-icon x-html',
-				callback:function(filePath,ext,name,args){
-					var pathModel  = kodApp.pathModel,uuid = md5(filePath);
-					var findDialog = $.dialog.list[uuid];
-					if(findDialog){findDialog.display(true).zIndex().$main.flash();return;}
-					
-					var dialog  = core.openDialog('',core.icon('html'),name,uuid,{iframeAttr:htmlSafe.iframeAttr()});
-					if(!dialog || !dialog.$main){return;}
-					
-					var $iframe = dialog.$main.find('.aui-content iframe');
-					dialog.$main.find('.iframe-mask').remove();
-					dialog.refreshSupport = true;
-					dialog.refresh = function(){htmlSafe.loadContent($iframe,filePath,pathModel);return dialog;};
-					htmlSafe.loadContent($iframe,filePath,pathModel);
-				}
-			});
-		});
-		
 		//外链分享不支持html编辑;
 		if(supportEdit && _.get(window,'kodApp.pathModel.fileSave')){
 			appList.push({
@@ -41,7 +14,46 @@ kodReady.push(function(){
 				callback:showEdit
 			});
 		}
+		
+		if(!supportView || !htmlViewsupport()){return;}
+		kodApp.add({ // kodApp 加载后,加载htmlSafe资源; 
+			name:'htmlView',
+			title:"{{LNG['htmlEditor.app.show']}}",
+			ext:"{{config.fileExt}}",
+			sort:parseInt("{{config.fileViewSort}}") || 10,
+			icon:'x-item-icon x-html',
+			callback:function(filePath,ext,name,args){
+				requireAsync("{{pluginHost}}static/htmlSafe.js?v={{package.version}}",function(View){
+					htmlSafe = new View();kodApp.htmlSafe = htmlSafe;
+					var pathModel  = kodApp.pathModel,uuid = md5(filePath);
+					var findDialog = $.dialog.list[uuid];
+					if(findDialog){findDialog.display(true).zIndex().$main.flash();return;}
+					
+					var dialog  = core.openDialog('',core.icon('html'),name,uuid,{iframeAttr:htmlSafe.iframeAttr()});
+					if(!dialog || !dialog.$main){return;}
+					
+					var $iframe = dialog.$main.find('.aui-content iframe');
+					dialog.$main.find('.iframe-mask').remove();
+					dialog.refreshSupport = true;
+					dialog.refresh = function(){htmlSafe.loadContent($iframe,filePath,pathModel,false,args);return dialog;};
+					htmlSafe.loadContent($iframe,filePath,pathModel,false,args);
+				});
+			}
+		});
 	});
+	
+	var htmlViewsupport = function(){
+		if(!window.fetch || !window.MutationObserver){return false;}
+		var frame = document.createElement("iframe");
+		if(!("sandbox" in frame) || !("srcdoc" in frame)){return false;}
+		
+		if($.browserIS.ios){// ios webview中不支持;Safari支持;
+			var ua = navigator.userAgent.toLowerCase();
+			if(ua.indexOf('quark')){return false;}
+			if(ua.indexOf('weixin')){return false;}
+		} 
+		return true;
+	};
 	
 	var showEdit = function(filePath,ext,name){
 		if( !kodApp.pathModel || !kodApp.pathModel.fileContent || !kodApi.formMaker){

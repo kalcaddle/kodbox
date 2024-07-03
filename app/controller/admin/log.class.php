@@ -293,8 +293,7 @@ class adminLog extends Controller{
                         $info = Model($table)->listData($this->in['id']);
                     break;
                 }
-                $name = !empty($info['nickName']) ? $info['nickName'] : $info['name'];
-                $this->in['name'] = $name;
+                if (!empty($info['name'])) $this->in['name'] = $info['name'];
             }
         }
         // 退出时在请求出记录，其他在出执行结果后记录

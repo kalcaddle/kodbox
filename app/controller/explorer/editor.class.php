@@ -134,9 +134,14 @@ class explorerEditor extends Controller{
 		if(isset($this->in['charset']) && $this->in['charset']){
 			$charset = strtolower($this->in['charset']);
 		}else{
-			$charset = get_charset($content);
+			$charset = strtolower(get_charset($content));
 		}
-		if ($charset !='' && $charset !='utf-8' && function_exists("mb_convert_encoding")){
+		
+		//ISO-8859-1 // 0x00 ~ 0xff;不做转换 1字节全; byte类型;  避免编码转换导致内容变化的情况: \xC3\x86 => \xC6;
+		$isBindary = strstr($content,"\x00") ? true:false;//pr($isBindary,$content);exit;
+		if($isBindary){$this->in['base64'] = 1;}
+		if($isBindary && !isset($this->in['charset'])){$charset = 'iso-8859-1';}
+		if(!$isBindary && $charset !='' && $charset !='utf-8' && function_exists("mb_convert_encoding")){
 			$content = @mb_convert_encoding($content,'utf-8',$charset);
 		}
 		
@@ -148,7 +153,7 @@ class explorerEditor extends Controller{
 		));
 		
 		// 避免截取后乱码情况; 去掉不完整的字符(一个汉字3字节,最后剩余1,2字节都会导致乱码)
-		if(is_text_file($pathInfo['ext']) && $data['pageInfo']['pageTotal'] > 1){
+		if(!$isBindary && is_text_file($pathInfo['ext']) && $data['pageInfo']['pageTotal'] > 1){
 			$data['content'] = utf8Repair($data['content'],chr(1));
 		}
 		if($data['base64']=='1'){

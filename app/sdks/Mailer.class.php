@@ -1,17 +1,18 @@
 <?php 
 use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\SMTP;
 use PHPMailer\PHPMailer\Exception;
 
 class Mailer {
 	function __construct() {
-		$rootPath = dirname(__FILE__);
-		require_once $rootPath . '/Mailer/src/Exception.class.php';
-		require_once $rootPath . '/Mailer/src/PHPMailer.class.php';
-		require_once $rootPath . '/Mailer/src/POP3.class.php';
-		require_once $rootPath . '/Mailer/src/SMTP.class.php';
+		require_once __DIR__ . '/Mailer/src/Exception.class.php';
+		require_once __DIR__ . '/Mailer/src/PHPMailer.class.php';
+		require_once __DIR__ . '/Mailer/src/POP3.class.php';
+		require_once __DIR__ . '/Mailer/src/SMTP.class.php';
 	}
 
-	/**
+    /** 
+     * 发送邮件
 	 *  'address' => '',	// 收件人
 		'replay' => '',		// 回复人
 		'cc' => '',			// 抄送
@@ -21,8 +22,8 @@ class Mailer {
 		'html' => ''		// 是否为html
 	 * @param array $data
 	 */
-	public function send($data){
-		$config = $this->getConfig($data);
+    public function send ($data) {
+        $config = $this->getConfig($data);
 		if(isset($config['code']) && !$config['code']) return $config;
 
 		$mail = new PHPMailer(true);
@@ -37,16 +38,22 @@ class Mailer {
 		    $mail->SMTPAuth		= true;								// Enable SMTP authentication
 		    $mail->Username		= $config['email'];					// SMTP username
 		    $mail->Password		= $config['password'];				// SMTP password
-		    // $mail->SMTPSecure	= PHPMailer::ENCRYPTION_STARTTLS;	// Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` also accepted
-		    // $mail->SMTPSecure	= false;         					// Enable TLS encryption; `PHPMailer::ENCRYPTION_SMTPS` also accepted
-		    // $mail->SMTPSecure	= PHPMailer::ENCRYPTION_SMTPS;
 			$mail->SMTPSecure	= $config['secure'];
-			if (!$mail->SMTPSecure) $mail->SMTPAutoTLS = false;		// 默认自动启用tls加密
-		    // $mail->Port       	= 587;								// TCP port to connect to
+			// if (!$mail->SMTPSecure) $mail->SMTPAutoTLS = false;		// 默认自动启用tls加密
 		    $mail->Port       	= $config['port'];	// 不同服务提供的端口不同，总体包含：25、465、587、2525
-			$mail->setFrom($config['email'], $config['signature']);
 		    $mail->CharSet		= 'UTF-8';
+            // 忽略证书验证
+            if (!$config['secure']) {
+    		    $mail->SMTPOptions = array(
+    		        'ssl' => array(
+    		            'verify_peer'       => false, 
+    		            'verify_peer_name'  => false,
+    		            'allow_self_signed' => true
+    		        )
+    		    );
+		    }
 
+			$mail->setFrom($config['email'], $config['signature']);
 		    //Recipients
 		    foreach ($config['addList'] as $address) {
 		    	$mail->addAddress($address);		// 收件人
@@ -69,15 +76,14 @@ class Mailer {
 		    }else{
 		    	$mail->AltBody = $data['content'];
 		    }
-			// $mail->Body = "test";pr($mail);exit;			
 			if($mail->send()) return array('code' => true);
 			return array('code' => false, 'data' => LNG('User.Regist.sendFail'));
         } catch (Exception $e) {
 			return array('code' => false, 'data' => $mail->ErrorInfo);
         }
-	}
+    }
 
-	public function getConfig($data){
+    public function getConfig($data){
 		$result = array(
 			'addList'	=> explode(';', $data['address']),	// 收件人列表
 			'ccList'	=> isset($data['cc']) ? explode(';', $data['cc']) : array(),	// 抄送
@@ -94,9 +100,9 @@ class Mailer {
 		$data['host'] = isset($parts['host']) ? $parts['host'] : $parts['path'];
 		$data['port'] = isset($parts['port']) ? $parts['port'] : 465;
 		if(empty($data['secure']) || $data['secure'] == 'ssl') {
-			$data['secure'] = PHPMailer::ENCRYPTION_SMTPS;
-		}else if($data['secure'] == 'tls') {
-			$data['secure'] = PHPMailer::ENCRYPTION_STARTTLS;
+            $data['secure'] = PHPMailer::ENCRYPTION_SMTPS;
+        }else if($data['secure'] == 'tls') {
+            $data['secure'] = PHPMailer::ENCRYPTION_STARTTLS;
 		}else{
 			$data['secure'] = false;
 		}

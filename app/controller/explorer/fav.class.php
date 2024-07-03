@@ -106,7 +106,7 @@ class explorerFav extends Controller{
 		
 		$pathInfo = KodIO::parse($data['path']);
 		if($pathInfo['type'] == KodIO::KOD_USER_FAV){
-			show_json(LNG("explorer.pathNotSupport"),false);
+			//show_json(LNG("explorer.pathNotSupport"),false);
 		}
 		if($pathInfo['type'] == KodIO::KOD_SOURCE){
 			$data['type'] = 'source';

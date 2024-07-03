@@ -42,7 +42,8 @@ class filterFileOut extends Controller{
 				if($sessionSign){Session::sign($sessionSign);}
 				
 				$parse = kodIO::parse($this->in['path']);// 不允许以相对路径获取php扩展名文件;避免管理员被钓鱼攻击;
-				$distPath = kodIO::pathTrue($parse['path'].'/../'.rawurldecode($this->in['add']));
+				$pathAdd  = kodIO::pathUrlClear(rawurldecode($this->in['add']));
+				$distPath = kodIO::pathTrue($parse['path'].'/../'.$pathAdd);
 				if(get_path_ext($distPath) == 'php'){show_json('not allow',false);}
 				// header("Status: 404 Not Found [viewToken]");exit;
 			}
@@ -51,7 +52,11 @@ class filterFileOut extends Controller{
 	}
 	
 	public function fileOut($file,$fileSize,$filename,$ext){
-		if(!isset($this->in['replaceType']) || !$this->in['replaceType']){return;}
+		if(!isset($this->in['replaceType']) || !$this->in['replaceType']){
+			if($ext != 'js'){return;}
+			$this->outputJs(IO::getContent($file));
+			return;
+		}
 		if(!$filename || $fileSize >= 10*1024*1024 || !in_array($ext,array('css','js')) ){return;}
 
 		$content = IO::getContent($file);
@@ -72,9 +77,9 @@ class filterFileOut extends Controller{
 	}
 	private function scriptParse($content){
 		$self = $this;$contentOld = $content;
-		$content = preg_replace_callback("/self\.importScripts\s*\(\s*([`'\"].*?[`'\"])\s*\)/",function($matchs) use($self){
+		$content = preg_replace_callback("/importScripts\s*\(\s*([`'\"].*?[`'\"])\s*\)/",function($matchs) use($self){
 			$char = substr($matchs[1],0,1);$url = substr($matchs[1],1,strlen($matchs[1])-2);
-			return 'self.importScripts('.$char.$self->urlFilter($url).$char.')';
+			return 'importScripts('.$char.$self->urlFilter($url).$char.')';
 		},$content);
 		$content = preg_replace_callback("/\s+from\s+([`'\"].*?['\"`])/",function($matchs) use($self){
 			$char = substr($matchs[1],0,1);$url = substr($matchs[1],1,strlen($matchs[1])-2);
@@ -91,6 +96,12 @@ class filterFileOut extends Controller{
 			return 'import('.$char.$self->urlFilter($url).$char.')';
 		},$content);
 		// var_dump($contentOld,$content);exit;
+		$this->outputJs($content);
+	}
+	private function outputJs($content){
+		// $content = str_replace('window.location','window._location_',$content);
+		// $content = str_replace('location.replace(','_location_.replace(',$content);
+		// $content = str_replace('location.href','_location_.href',$content);
 		$this->output($content);
 	}
 	private function scriptParseWasm($content){
@@ -102,13 +113,12 @@ class filterFileOut extends Controller{
 	}
 	
 	private function urlFilter($url){
-		if(strpos($url,'?') > 0){$url = substr($url,0,strpos($url,'?'));}
-		if(strpos($url,'#') > 0){$url = substr($url,0,strpos($url,'#'));}
-
+		if(substr($url,0,5) == 'http:' || substr($url,0,6) == 'https:'){return $url;} // 外部链接;
+		$url = kodIO::pathUrlClear($url);
 		$path = rawurldecode($_GET['path']);// $this->in['path'], 外链分享时可能被替换;
 		// 采用相对路径重新计算; 确保多个位置import 最后引用路径一致; 
 		// 路径有变化时js多个地方import同一个文件,但url路径不一致,时会导致重复执行;
-		$addNew  = kodIO::pathTrue($this->in['add'].'/../'.$url);
+		$addNew  = kodIO::pathTrue(kodIO::pathUrlClear($this->in['add']).'/../'.$url);
 		
 		// 路径中不替换部分; 兼容js中url字符串带`${v}`变量情况;
 		$addNew  = str_replace(array('%24','%20','%7B','%7D'),array('$',' ','{','}'),rawurlencode($addNew)); 

@@ -32,7 +32,21 @@ class userMsg extends Controller {
         if (!Input::check($input, $check[$type])) {
             return array('code' => false, 'data' => LNG('common.invalidFormat'));
         }
-        return $this->$type($data);
+        if ($type == 'sms') {
+            return $this->sendSms($data);
+        }
+        return $this->sendEmail($data);
+    }
+
+    // 兼容旧版
+    public function sms($data) {
+        return $this->sendSms($data);
+    }
+    public function email($data) {
+        return $this->sendEmail($data);
+    }
+    public function emailByCustom ($data) {
+        return $this->sendEmailByOwn($data);
     }
 
     /**
@@ -40,7 +54,7 @@ class userMsg extends Controller {
      * @param [type] $data
      * @return void
      */
-    public function sms($data){
+    public function sendSms($data){
         $data = array(
 			'type'		 => $data['action'],
 			'input'		 => $data['input'], // 邮箱or手机
@@ -57,7 +71,7 @@ class userMsg extends Controller {
      * @param [type] $data
      * @return void
      */
-    public function email($data){
+    public function sendEmail($data){
         if (isset($data['emailType'])) {
 			$type = $data['emailType'];
 		} else {
@@ -65,7 +79,7 @@ class userMsg extends Controller {
         }
         // 自定义发送
 		if ((int) $type) {
-			return $this->emailByCustom($data);
+			return $this->sendEmailByOwn($data);
 		}
 		// 系统默认发送
         $data = array(
@@ -83,7 +97,7 @@ class userMsg extends Controller {
      * @param [type] $data
      * @return void
      */
-    public function emailByCustom($data){
+    public function sendEmailByOwn($data){
         $init = array(
             'address'   => '',  // 收件人
             // 'cc'        => '',  // 抄送 a;b;c
@@ -106,7 +120,7 @@ class userMsg extends Controller {
         $init['signature'] = $signature;
         // 邮件内容，自定义内容为字符串；根据模板获取为数组：array('type'=>'code','data'=>array('code' => 123))
         if(is_array($init['content'])) {
-            $init['content'] = $this->emailContent($data);
+            $init['content'] = $this->getEmailContent($data);
         }
 
         // 邮件发送
@@ -125,7 +139,7 @@ class userMsg extends Controller {
      * @param [type] $data
      * @return void
      */
-    public function emailContent($data){
+    public function getEmailContent($data){
         $system = _get($data, 'config.system', array());
         $icon = 'https://api.kodcloud.com/static/images/icon/fav.png';
         if(Model('SystemOption')->get('versionType') == 'A'){

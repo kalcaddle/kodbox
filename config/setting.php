@@ -49,6 +49,7 @@ $config['settings'] = array(
 	'groupCompany'			=> 0,			// 二级部门为子公司,独立部门;
 	'shareLinkExpireTime'	=> 0,			// 外链分享过期时间，单位天（n天后过期）
 	'userLoginLimit'		=> 5,			// 同一账号限制同时登录设备数;0=不限制;guest/admin不限制
+	'pathShowUrlParam'		=> 0,			// 地址栏显示文件夹层级参数(默认不显示,仅移动端显示)
 	
 	'staticPath'		=> APP_HOST."static/",	//静态文件目录,可以配置到cdn;
 	'kodApiServer'		=> "https://api.kodcloud.com/?", //QQ微信登录/邮件发送/插件-列表等 
@@ -278,6 +279,7 @@ $config['settingSystemDefault'] = array(
 	'shareLinkPasswordAllowEmpty'	=> '1',		// 外链分享允许密码为空,关闭后将强制设置密码;
 	'shareLinkAllowGuest'			=> '1',		// 外链分享允许未登录游客访问
 	'shareLinkUserDisableSkip'		=> '1',		// 账号被禁用时,屏蔽该用户的外链分享
+	'shareLinkAllowEdit'			=> '1',		// 外链允许允许启用编辑
 	'desktopAppDisable'				=> '',		// 桌面默认快捷方式入口隐藏项;
 	
 	
@@ -342,7 +344,7 @@ $config['settingDefault'] = array(
 	"fileIconSizePhoto" => '120',		// 相册模式图片大小
 	'photoConfig'		=> '',			// 相册配置
 	'resizeConfig'		=> 
-		'{"filename":250,"filetype":80,"filesize":80,"filetime":215,"editorTreeWidth":200,"explorerTreeWidth":200}',
+		'{"filename":250,"filetype":80,"filesize":80,"filetime":215,"editorTreeWidth":220,"explorerTreeWidth":220}',
 	'imageThumb'		=> '1',
 	'fileSelect'		=> '1',
 	'displayHideFile'	=> '0',

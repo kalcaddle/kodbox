@@ -16,15 +16,38 @@ class explorerUserShare extends Controller{
 	// 通过文档获取分享；没有则返回false;
 	public function get(){
 		$path = Input::get('path','require');
-		$pathParse = KodIO::parse($path);
+		$pathParse = KodIO::parse($path);$shareInfo = false;
+		if($pathParse['type'] == KodIO::KOD_SHARE_ITEM){
+			show_json($this->getShareInfo($pathParse['id']));
+		}
+		
 		// 物理路径,io路径;
 		if( $pathParse['type'] == KodIO::KOD_IO || !$pathParse['type'] ){
-			$share = $this->model->getInfoBySourcePath($path);
-			show_json($share);
+			$shareInfo = $this->model->getInfoBySourcePath(rtrim($path,'/'));
+		}else{
+			$sourceID = KodIO::sourceID($path);
+			$shareInfo = $this->model->getInfoByPath($sourceID);
 		}
-		$sourceID = KodIO::sourceID($path);
-		$share = $this->model->getInfoByPath($sourceID);
-		show_json($share);
+		if($shareInfo && $shareInfo['userID'] != KodUser::id()){
+			show_json(LNG('explorer.noPermissionAction'),false);
+		}
+		show_json($shareInfo);
+	}
+	
+	// 内部协作分享,分享对象角色权限为拥有者时,可以编辑该协作分享(成员及权限/过期时间)
+	private function getShareInfo($shareID){
+		$shareInfo  = $this->model->getInfo($shareID);
+		if(!$shareInfo){show_json(LNG('explorer.noPermissionAction'),false);}
+		if($shareInfo['userID'] == KodUser::id()){return $shareInfo;}
+		
+		$sourceInfo = $this->sharePathInfo($shareID);
+		if( !$sourceInfo || !$sourceInfo['auth'] || 
+			!Model('Auth')->authCheckRoot($sourceInfo['auth']['authValue']) ){
+			return show_json(LNG('explorer.noPermissionAction'),false);
+		}
+		$shareInfo['selfIsShareToUser'] = true;
+		$shareInfo['sourceInfo'] = $sourceInfo;
+		return $shareInfo;
 	}
 	
 	// 分享信息处理;
@@ -466,13 +489,12 @@ class explorerUserShare extends Controller{
 	public function edit(){
 		$data = $this->_getParam('shareID');
 		$this->checkRoleAuth($data['isLink'] == '1' ? 'shareLink':'shareTo');
-		$shareInfo = $this->model->getInfo($data['shareID']);
+		$shareInfo = $this->getShareInfo($data['shareID']);
 		$this->checkSetAuthAllow($data['authTo'],$shareInfo['sourceInfo']);
 		$result = $this->model->shareEdit($data['shareID'],$data);
-		if(!$result) show_json(LNG('explorer.error'),false);
 		
-		$shareInfo = $this->model->getInfo($data['shareID']);
-		show_json($shareInfo,true);
+		if(!$result) show_json(LNG('explorer.error'),false);
+		show_json($this->getShareInfo($data['shareID']));
 	}
 	
 	// 协作分享: 可以设置的权限,必须小于等于自己在当前文档的权限;
@@ -547,6 +569,12 @@ class explorerUserShare extends Controller{
 			if($options['shareLinkAllowGuest'] == '0'){
 				$data["options"]['onlyLogin'] = '1';
 			}
+			// 外链分享,分享者角色没有上传权限时, 不允许开启允许上传;
+			if(!Action('user.authRole')->authCan('explorer.upload')){
+				$data["options"]['canUpload'] = '0';
+				$data["options"]['canEditSave'] = '0';
+				if($options['shareLinkAllowEdit'] == '0'){$data["options"]['canEditSave'] = '0';}
+			}
 		}
 		return $data;
 	}
@@ -557,21 +585,22 @@ class explorerUserShare extends Controller{
 	 */
 	public function del() {
 		$list  = Input::get('dataArr','json');
-		if( !isset($this->in['type']) ){
-			$res = $this->model->remove($list);
-		}else{
-			// 批量删除指定内部协作分享, or外链分享;
-			foreach ($list as $shareID) {
-				$shareInfo = $this->model->getInfo($shareID);
-				$res = $this->removeShare($shareInfo,$this->in['type']);
+		$shareType = _get($this->in,'type','');
+		// 批量删除指定内部协作分享, or外链分享;
+		foreach ($list as $shareID) {
+			$shareInfo = $this->model->getInfo($shareID);
+			if(!$shareInfo || $shareInfo['userID'] != KodUser::id()){continue;}
+			if(!$shareType){
+				$res = $this->model->remove(array($shareID));
+				continue;
 			}
+			$res = $this->removeShare($shareInfo,$shareType);
 		}
 		$msg  = !!$res ? LNG('explorer.success'): LNG('explorer.error');
 		show_json($msg,!!$res);
 	}
 	
 	public function removeShare($shareInfo,$shareType){
-		$shareID = $shareInfo['shareID'];
 		$this->checkRoleAuth($shareType == 'shareTo' ? 'shareTo':'shareLink');
 		if($shareType == 'shareTo'){
 			$data = array('isShareTo'=>0,'authTo'=>array(),'options'=>$shareInfo['options']);
@@ -582,8 +611,8 @@ class explorerUserShare extends Controller{
 		// 都为空时则删除数据, 再次分享shareID更新;
 		if( $data['isLink'] == 0 && $shareInfo['isShareTo'] == 0 ||
 			$data['isShareTo'] == 0 && $shareInfo['isLink'] == 0 ){
-			return $this->model->remove(array($shareID));
+			return $this->model->remove(array($shareInfo['shareID']));
 		}
-		return $this->model->shareEdit($shareID,$data);
+		return $this->model->shareEdit($shareInfo['shareID'],$data);
 	}
 }

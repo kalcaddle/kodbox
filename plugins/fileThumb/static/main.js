@@ -10,7 +10,7 @@ kodReady.push(function(){
 			sort:"{{config.fileSort}}",
 			icon:'x-item-icon x-psd',
 			callback:function(path,ext,name){
-				var url = API_URL('plugin/fileThumb/cover','size=1200&path='+urlEncode(path)+'&name=/'+name);
+				var url = API_URL('plugin/fileThumb/cover','width=1200&path='+urlEncode(path)+'&name=/'+name);
 				kodApp.open(url,'png',name);
 			}
 		});

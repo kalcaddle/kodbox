@@ -493,7 +493,7 @@ Picasa.prototype = {
 			$img.addClass("loading");
 			var tempImage = new Image();
 			tempImage.onload = function(){
-				$img.css('background-image','url("'+src+'")');
+				$img.css('background-image','url("'+$(tempImage).attr('src')+'")');
 				$img.css({opacity:0}).animate({opacity:1.0},500);
 				$img.removeClass("loading").addClass('loaded');
 			};

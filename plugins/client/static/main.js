@@ -55,7 +55,7 @@ kodReady.push(function(){
 		}
 		return true;
 	}
-	var qrcodeDialog = function(urlPre,title,desc){
+	var qrcodeDialog = function(urlPre,title,desc,urlAdd){
 		if($('.qr-login-user-dialog').length) return;
 		if(!checkUrlAllow(G.kod.APP_HOST)) return;
 		
@@ -74,10 +74,12 @@ kodReady.push(function(){
 				dataType:'json',
 				success:function(data){
 					if(!data || !data.code) return Tips.tips(data);
-					var url = urlPre + data.data;
+					var url = urlPre + data.data+ (urlAdd || '');
 					var qrCodeImage = G.kod.APP_HOST+'?user/view/qrcode&url='+urlEncode(url);
 					$view.html('<img src="'+qrCodeImage+'"/>');
 					$view.animate({opacity:1},300);
+					// console.log(url);$.copyText(url);
+					// $.copyText(urlDecode($.parseUrl($('.qr-login-user-dialog img').attr('src')).params.url));
 				}
 			});
 		}
@@ -95,39 +97,38 @@ kodReady.push(function(){
 		
 	// 当前已登录; 扫码url访问切换账号;(token未登录则不处理,token对于账号和当前一致不处理;)
 	var checkWebLoginAfter = function(){
-		var token = _.get(Router,'query.loginAppID','');
-		if(!token) return;
-
-		var apiUrl = G.kod.APP_HOST+'?plugin/client/loginApp';
-		Router.setParam({loginAppID:''});Router.query.loginAppID = '';
+		if(!_.get(Router,'query.loginAppID')) return;
 		$.ajax({
-			url:apiUrl,dataType:'json',
-			type:'POST',data:{token:token},
+			url:G.kod.APP_HOST+'?plugin/client/loginApp',
+			dataType:'json',type:'POST',data:{token:Router.query.loginAppID},
 			success:function(data){
 				if(!data || !data.code) return Tips.tips(data,'warning',3000);
-				if(data.info == G.user.userID) return;// 同一用户则不处理;
-				Tips.tips(LNG['common.loginSuccess'],true);
-				setTimeout(function(){window.location.reload();},1000);
+				var needReload = data.info == G.user.userID ? false:true;// 同一用户则刷新页面;
+				loginLinkTo(Router.query._page,needReload);
 			}
 		});
 	}
+	
+	var loginLinkTo = function(page,needReload){
+		Tips.tips(LNG['common.loginSuccess'],true,3000);
+		setTimeout(function(){
+			if(page){Router.go(page);}
+			if(needReload){window.location.reload();}
+		},800);
+	};
 	var checkWebLoginBefore = function(viewLogin){
-		var theLink  = _.get(Router,'query.link','');
-		var matchKey = '#?loginAppID=';
-		if(!theLink || theLink.indexOf(matchKey) < 1 ) return;
+		var hash = $.parseUrlHash(_.get(Router,'query.link',''));
+		if(!hash || !hash.query || !hash.query.loginAppID ) return;
 		
-		var token  = theLink.substr(theLink.indexOf(matchKey) + matchKey.length);
-		var apiUrl = G.kod.APP_HOST+'?plugin/client/loginApp';
 		Router.setParam({link:''});Router.query.link = '';
 		$.ajax({
-			url:apiUrl,dataType:'json',
-			type:'POST',data:{token:token},
+			url:G.kod.APP_HOST+'?plugin/client/loginApp',dataType:'json',
+			type:'POST',data:{token:hash.query.loginAppID},
 			success:function(data){
 				if(!data || !data.code) return Tips.tips(data,'warning',5000);
-				// Tips.tips(LNG['common.loginSuccess'],true,3000);
-				var dialog = $.dialog.alert(LNG['common.loginSuccess'],false,'succeed');
-				setTimeout(function(){viewLogin.loginSuccess();},1500);
-				setTimeout(function(){dialog.close();Router.setParam({loginAppID:''});},2000);
+				viewLogin.userApi.reloadMainView().then(function(){
+					loginLinkTo(hash.query._page);
+				});
 			}
 		});
 	};
@@ -155,7 +156,8 @@ kodReady.push(function(){
 		var urlPre  = G.kod.APP_HOST + '#?loginAppID=';
 		var dialog  = false;
 		var success = function(){
-			qrcodeDialog(urlPre,LNG['client.app.loginApp'],desc);
+			var urlAdd = '&_page='+urlEncode($.parseUrl().hash);
+			qrcodeDialog(urlPre,LNG['client.app.loginApp'],desc,urlAdd);
 			dialog && dialog.close();
 		};
 		var checkPass = function(){
@@ -226,7 +228,7 @@ kodReady.push(function(){
 	var showLoginWebDialog = function(viewLogin){
 		var desc = LNG['client.app.loginAppDesc']+'<br/>'+LNG['client.app.scanVersion'];
 		var urlPre = G.kod.APP_HOST + '#?loginWebID=';
-		var dialog = qrcodeDialog(urlPre,LNG['client.app.loginWeb'],desc);
+		var dialog = qrcodeDialog(urlPre,LNG['client.app.loginWeb'],desc,'');
 		if(!dialog) return;
 
 		// 自动检查是否已经登录;

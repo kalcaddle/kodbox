@@ -486,9 +486,9 @@ class S3 {
 		$rest->setParameter('location', '');
 		$rest = $rest->getResponse();
 
-		if (!$body = $this->__execReponse($rest, __FUNCTION__, 0, array($bucket)))
-			return false;
-			
+		$body = $this->__execReponse($rest, __FUNCTION__, 0, array($bucket));
+		// if ($body === false) return false;
+
 		return isset($body[0]) ? $body[0] : 'us-east-1';	// LocationConstraint
 	}
 

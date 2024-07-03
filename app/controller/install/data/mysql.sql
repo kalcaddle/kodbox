@@ -119,7 +119,8 @@ CREATE TABLE `io_file_contents` (
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   PRIMARY KEY (`fileID`),
   KEY `createTime` (`createTime`),
-  KEY `content` (`content`(250))
+  KEY `content` (`content`(250)),
+  FULLTEXT KEY `content_full` (`content`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='文件id';
 
 DROP TABLE IF EXISTS `io_file_meta`;

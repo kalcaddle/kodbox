@@ -48,7 +48,7 @@ class clientPlugin extends PluginBase{
 		$token 		= substr($token,8);
 		$systemPassword = Model('SystemOption')->get('systemPassword');
 		$sessionSign = Mcrypt::decode($token,$systemPassword.$currentKey);
-		if(!$sessionSign){return array('code'=>0,'data'=>LNG('client.app.scanError').'(sign)');}
+		if(!$sessionSign){$this->qrError('sign');}
 		
 		$result = array('code'=>true,'data'=>$sessionSign);
 		$sessionData = $this->sessionValue($sessionSign);
@@ -72,7 +72,8 @@ class clientPlugin extends PluginBase{
 		
 		$password = Mcrypt::decode($this->in['pass'],$this->in['sign']);
 		if(!$password){show_json(LNG("ERROR_USER_PASSWORD_ERROR"),false);}
-		$user = Model("User")->userLoginCheck($userInfo['name'],$password);
+		$user = Hook::trigger("user.index.userInfo",$userInfo['name'], $password);
+		if (!is_array($user)) $user = Model("User")->userLoginCheck($userInfo['name'],$password);
 		if(!is_array($user) || !isset($user['userID'])){show_json(LNG("ERROR_USER_PASSWORD_ERROR"),false);}
 		show_json(LNG("explorer.success"),true);
 	}
@@ -124,10 +125,15 @@ class clientPlugin extends PluginBase{
 	
 	
 	// ===============================================================
-	// App扫码登录App; 扫码后构造请求; 支持浏览器扫描登录;
+	// App扫码登录App; 扫码后构造请求; 支持浏览器扫描登录(手机浏览器/微信等扫描web端登录);
 	public function loginApp(){
 		$this->needPost();
-		$targetData  = $this->qrcodeParse($this->in['token']);
+		
+		// 追加了跳转页面的情况,App请求兼容(url中 ?#loginAppID= 后面部分)
+		$token = $this->in['token'];$find = strpos($token,'&_page=');
+		if($find){$token = substr($token,0,$find);}
+
+		$targetData  = $this->qrcodeParse($token);
 		$sessionSign = $targetData['data'];
 		if(!$targetData['code']){
 			show_json($targetData['data'],false);

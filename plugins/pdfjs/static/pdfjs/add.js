@@ -41,6 +41,7 @@
 var pdfLoaded = function(){
 	// console.log(33313,fileName,PDFViewerApplication,PDFViewerApplication.eventBus);
 	var isLoad = false;
+	PDFViewerApplication.preferences.set('disableAutoFetch',true);// 关闭全部下载,按需加载文件;
 	PDFViewerApplication.eventBus.on('pagerender',function(){
 		if(isLoad) return;
 		isLoad = true;

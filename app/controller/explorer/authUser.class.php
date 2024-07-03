@@ -20,15 +20,9 @@ class explorerAuthUser extends Controller {
 	 * action: view,download,upload,edit,remove,share,comment,event,root
 	 */
 	public function can($path,$action,$userID){
-		$user = Model('User')->getInfo($userID);
-		if(!$user || !$user['roleID']) return false;//用户不存在或角色为空;
-		
-		// 用户被禁用时, 开启了禁用用户时屏蔽该用户分享时则不再可用;
-		if($user['status'] == '0' && Model('SystemOption')->get('shareLinkUserDisableSkip') == '1'){return false;}
-
-		$roleInfo = Action('user.authRole')->userRoleAuth($user['roleID']);
-		$isRoot = $roleInfo && ($roleInfo['info']['administrator'] == 1);
+		$roleInfo = Action('user.authRole')->userRoleGet($userID);
 		if(!$roleInfo) return false;
+		$isRoot = $roleInfo['info']['administrator'] == 1;
 		if(!$isRoot && !Action('user.authRole')->canCheckRole($action)){return false;}
 		
 		$parse  = KodIO::parse($path);$ioType = $parse['type'];

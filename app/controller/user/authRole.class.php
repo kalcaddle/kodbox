@@ -23,6 +23,23 @@ class userAuthRole extends Controller {
 		$userRole = $this->userRoleAuth();
 		return $userRole['roleList'][$action] == 1 ? true : false;
 	}
+	
+	// 获取指定用户角色信息;用户被禁用时, 开启了禁用用户时屏蔽该用户分享时则不再可用;
+	public function userRoleGet($userID){
+		$user = Model('User')->getInfo($userID);
+		if(!$user || !$user['roleID']) return false;//用户不存在或角色为空;
+		if($user['status'] == '0' && Model('SystemOption')->get('shareLinkUserDisableSkip') == '1'){return false;}
+		$roleInfo = $this->userRoleAuth($user['roleID']);
+		return $roleInfo ? $roleInfo:false;
+	}
+	
+	// 根据用户角色判断用户,是否启用某个动作(后台配置角色的权限点)
+	public function authCanUser($action,$userID){
+		$userRole = $this->userRoleGet($userID);
+		if(!$userRole) return false;
+		if($userRole['info']['administrator'] == 1){return true;}
+		return $userRole['roleList'][$action] == 1 ? true : false;
+	}
 
 	// 未登录：允许的 控制器方法;
 	// 已登录：不允许的 控制器&方法；
@@ -187,7 +204,7 @@ class userAuthRole extends Controller {
 			'explorer.add'			=> 'explorer.view',
 			'explorer.download'		=> 'explorer.view',
 			'explorer.share'		=> 'explorer.view,explorer.upload,explorer.add,explorer.download',
-			'explorer.shareLink'	=> 'explorer.view,explorer.upload,explorer.add,explorer.download',
+			'explorer.shareLink'	=> 'explorer.view,explorer.download',//explorer.upload,explorer.add,
 			// 'explorer.upload'		=> 'explorer.add',
 			'explorer.edit'			=> 'explorer.add,explorer.view,explorer.upload',
 			'explorer.remove'		=> 'explorer.edit',

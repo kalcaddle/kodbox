@@ -6,24 +6,38 @@ class adminStorage extends Controller {
         $this->model = Model('Storage');
 	}
 
+	/**
+	 * 获取存储列表
+	 * @return void
+	 */
     public function get() {
 		$result = $this->model->listData();
+		$this->parseData($result);
+		show_json($result,true);
+	}
+	private function parseData(&$result){
 		$ids = array_to_keyvalue($result, '', 'id');
 
-		// 获取各存储中占用空间、文件数(io_file)
+		// 获取各存储中占用空间、文件数(io_file)、存储状态
 		$key = md5('io.list.get.'.implode(',',$ids));
 		$res = Cache::get($key);
 		if ($ids && !$res) {
 			$where = array('ioType'=>array('in',implode(',',$ids)));
 			$res = Model('File')->field(array('ioType'=>'id','count(ioType)'=>'cnt','sum(size)'=>'size'))->where($where)->group('ioType')->select();
 			$res = array_to_keyvalue($res, 'id');
-			Cache::set($key, $res, 120);	// 2分钟
+			Cache::set($key, $res, 300);	// 5分钟
 		}
 		foreach ($result as &$item) {
 			$item['sizeUse'] = intval(_get($res, $item['id'].'.size', 0));
 			$item['fileNum'] = intval(_get($res, $item['id'].'.cnt', 0));
+			$item['status']	 = 1;
+			if (strtolower($item['driver']) != 'local') continue;
+			$config = $this->model->getConfig($item['id']);
+			$path = $config['basePath'];
+			if (!mk_dir($path) || !is_writable($path)) {
+				$item['status'] = 0;
+			}
 		}
-		show_json($result,true);
 	}
 
 	/**
@@ -57,7 +71,7 @@ class adminStorage extends Controller {
 		));
 		$res = $this->model->add($data);
 		$msg = $res ? LNG('explorer.success') : LNG('explorer.repeatError');
-		show_json($msg,!!$res);
+		show_json($msg,!!$res, $res);
 	}
 
 	/**

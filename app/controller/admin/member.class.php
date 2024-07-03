@@ -250,12 +250,18 @@ class adminMember extends Controller{
 		if($data['userID'] == USER_ID && isset($data['roleID'])){
 			$user = Session::get('kodUser');
 			if($user['roleID'] != $data['roleID']){
-				return show_json("not support change self role!",false);
+				return show_json(LNG('admin.member.errEditSelfRole'),false);
 			}
 		}
-		
-		$dataSave = array();$groupSave = false; // 仅处理变化的内容;
+		// 禁止修改超管角色
 		$userInfo = $this->model->getInfo($data['userID']);
+		if ($data['userID'] == '1' && $data['userID'] != USER_ID) {
+			if(isset($data['roleID']) && $data['roleID'] != $userInfo['roleID']){
+				return show_json(LNG('admin.member.errEditSelfRole'),false);
+			}
+		}
+
+		$dataSave = array();$groupSave = false; // 仅处理变化的内容;
 		foreach($data as $key => $value) {
 			if($key == 'userID') continue;
 			if($value == $userInfo[$key]) continue;
