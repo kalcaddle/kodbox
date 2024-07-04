@@ -35,7 +35,7 @@ class explorerUserShare extends Controller{
 	}
 	
 	// 内部协作分享,分享对象角色权限为拥有者时,可以编辑该协作分享(成员及权限/过期时间)
-	private function getShareInfo($shareID){
+	private function getShareInfo($shareID,$checkAuth = true){
 		$shareInfo  = $this->model->getInfo($shareID);
 		if(!$shareInfo){show_json(LNG('explorer.noPermissionAction'),false);}
 		if($shareInfo['userID'] == KodUser::id()){return $shareInfo;}
@@ -43,7 +43,9 @@ class explorerUserShare extends Controller{
 		$sourceInfo = $this->sharePathInfo($shareID);
 		if( !$sourceInfo || !$sourceInfo['auth'] || 
 			!Model('Auth')->authCheckRoot($sourceInfo['auth']['authValue']) ){
-			return show_json(LNG('explorer.noPermissionAction'),false);
+			if($checkAuth){ // 编辑后不检测权限(与我协作-管理者,移除或降低自己的权限)
+				return show_json(LNG('explorer.noPermissionAction'),false);
+			}
 		}
 		$shareInfo['selfIsShareToUser'] = true;
 		$shareInfo['sourceInfo'] = $sourceInfo;
@@ -493,8 +495,9 @@ class explorerUserShare extends Controller{
 		$this->checkSetAuthAllow($data['authTo'],$shareInfo['sourceInfo']);
 		$result = $this->model->shareEdit($data['shareID'],$data);
 		
+		// 编辑后不检测权限(与我协作-管理者,移除或降低自己的权限)
 		if(!$result) show_json(LNG('explorer.error'),false);
-		show_json($this->getShareInfo($data['shareID']));
+		show_json($this->getShareInfo($data['shareID'],false));
 	}
 	
 	// 协作分享: 可以设置的权限,必须小于等于自己在当前文档的权限;

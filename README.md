@@ -24,12 +24,12 @@
 
 
 ## ✨ Features：
-* 🌈 Private cloud disk/enterprise network disk like Windows experience
-* 🌈 Full support for private deployment, secure and controllable storage
-* 🌈 Online preview, editing and playback of hundreds of file formats, both office and entertainment
-* 🌈 Multi-storage fusion: support local disk, ftp, webdav, Alibaba Cloud OSS, Tencent Cloud COS, Qiniu, minio, S3 compatible protocol, etc.
-* 🌈 Easy sharing, efficient collaboration, fine-grained permission control
-* 🌈 Full platform client coverage, access anytime, anywhere, easy synchronization mounting; web, H5, iOS, Android, PC, webdav mounting
+* 🚀 Private cloud disk/enterprise network disk like Windows experience
+* 🌟 Full support for private deployment, secure and controllable storage
+* 👁️‍🗨️ Online preview, editing and playback of hundreds of file formats, both office and entertainment
+* 🚀 Multi-storage fusion: support local disk, ftp, webdav, Alibaba Cloud OSS, Tencent Cloud COS, Qiniu, minio, S3 compatible protocol, etc.
+* 🔗 Easy sharing, efficient collaboration, fine-grained permission control
+* 💻 Full platform client coverage, access anytime, anywhere, easy synchronization mounting; web, H5, iOS, Android, PC, webdav mounting
 
 
 ## ⚡ Detailed functions：
