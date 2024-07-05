@@ -173,6 +173,7 @@ class explorerListDriver extends Controller{
 
 	private function driverMake(&$list,$path){
 		if(!file_exists($path)) return;
+		if(!function_exists('disk_total_space')){return;}
 		$total  = @disk_total_space($path);
 		$list[] = array(
 			"name"			=> LNG('admin.storage.driver')."($path)",

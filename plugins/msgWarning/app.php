@@ -118,6 +118,7 @@ class msgWarningPlugin extends PluginBase{
      */
     private function driverInfo($path) {
 		if(!file_exists($path)) return false;
+		if(!function_exists('disk_total_space')){return false;}
 		$sizeMax = @disk_total_space($path);
 		return array(
 			'sizeMax'	=> $sizeMax,

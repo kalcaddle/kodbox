@@ -78,6 +78,7 @@ class adminServer extends Controller {
 	// 系统盘大小
 	private function srvSize ($path){
 		$data = array('sizeTotal' => 0, 'sizeUse' => 0);
+		if(!function_exists('disk_total_space')){return $data;}
 		if($path) {
 			$data['sizeTotal'] = @disk_total_space($path);
 			$data['sizeUse'] = $data['sizeTotal'] - @disk_free_space($path);

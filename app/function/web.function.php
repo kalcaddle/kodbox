@@ -146,9 +146,17 @@ function http_build_url($urlArr) {
 }
 
 function http_type(){
-	if( (isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') ||
-		(isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') ||
-		$_SERVER['SERVER_PORT'] === 443 
+	if( 
+		(!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') ||
+		(!empty($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ||
+		(!empty($_SERVER['HTTP_SSL']) && $_SERVER['HTTP_SSL'] == 1) ||
+		
+		(!empty($_SERVER['HTTP_X_HTTPS']) && strtolower($_SERVER['HTTP_X_HTTPS']) !== 'off') ||
+		(!empty($_SERVER['HTTP_X_SCHEME']) && $_SERVER['HTTP_X_SCHEME'] == 'https') ||
+		(!empty($_SERVER['HTTP_X_SSL']) && ($_SERVER['HTTP_X_SSL'] == 1 || strtolower($_SERVER['HTTP_X_SSL']) == 'yes')) ||
+		(!empty($_SERVER['HTTP_CF_VISITOR']) && strpos($_SERVER['HTTP_CF_VISITOR'], 'https') !== false) ||
+		(!empty($_SERVER['HTTP_X_FORWARDED_PROTOCOL']) && $_SERVER['HTTP_X_FORWARDED_PROTOCOL'] == 'https') || 
+		(!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')
 	){
 		return 'https';
 	}
@@ -157,8 +165,11 @@ function http_type(){
 
 function get_host() {
 	$httpType = http_type();
-	$host = $_SERVER['SERVER_NAME'].($_SERVER['SERVER_PORT']=='80' ? '' : ':'.$_SERVER['SERVER_PORT']);
-	$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $host;
+	$port = (!empty($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] !='80') ? ':'.$_SERVER['SERVER_PORT']:'';
+	$host = $_SERVER['SERVER_NAME'].$port;
+	if(isset($_SERVER['HTTP_HOST'])){
+		$host = ($port && !strstr($_SERVER['HTTP_HOST'],':')) ? $_SERVER['HTTP_HOST'].$port:$_SERVER['HTTP_HOST'];
+	}
 	if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])){//proxy
 		$hosts = explode(',', $_SERVER['HTTP_X_FORWARDED_HOST']);
 		$host  = trim($hosts[0]);

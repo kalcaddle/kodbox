@@ -24354,7 +24354,8 @@ function validateRangeRequestCapabilities(_ref) {
 
   var contentEncoding = getResponseHeader("Content-Encoding") || "identity";
 
-  if (contentEncoding !== "identity") {
+  //changed by warlee;
+  if (contentEncoding !== "identity" && contentEncoding != 'none') {
     return returnValues;
   }
 

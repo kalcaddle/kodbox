@@ -322,19 +322,39 @@ define(function(require, exports) {
 	// 显示原图; 如果设置有原图的情况;
 	var bindShowImateTrue = function(){
 		var $button = $('.pswp__button--show-true');
+		var $download = $('.pswp__button--download'),canDownloadCheck = false;
 		if(!$button.length){
 			var html = '<button class="pswp__button pswp__button--show-true">'+(LNG['photoSwipe.showTrue'] || '')+'</button>';
 			$button = $(html).insertAfter('.pswp__button--zoom');
 		}
+		if(!$download.length){
+			var html = '<button class="pswp__button pswp__button--download"><i>'+(LNG['common.download'] || '')+'</i></button>';
+			$download = $(html).insertAfter('.pswp__button--zoom');
+		}
+		
 		var imageChange = function(){
 			var currItem = gallery.currItem;
 			if(!currItem || !currItem.src){return;}
+			if(!canDownloadCheck){
+				canDownloadCheck = true;
+				if($('.share-page-main.share-not-download').length){
+					$download.addClass('hidden');
+				}
+			}
 			var method = currItem.trueImage ? 'removeClass':'addClass';
 			$button[method]('hidden');
 		};imageChange();
 		gallery.listen('afterChange',imageChange);
 		gallery.listen('afterErrorReload',imageChange);
-		
+
+		// 图片下载;
+		$download.unbind('click').bind('click', function(e){
+			var currItem  = gallery.currItem;
+			if(!currItem){return;}
+			var url = currItem.srcFile || currItem.src;
+			if(url.indexOf('?')){url += '&download=1';}
+			window.open(url);
+		});
 		$button.unbind('click').bind('click', function(e){
 			var currItem  = gallery.currItem;
 			if(!currItem || !currItem.trueImage){return;}

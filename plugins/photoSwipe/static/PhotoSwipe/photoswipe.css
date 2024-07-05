@@ -221,3 +221,8 @@
 
 .pswp_content .file-panel .btn[data-action="copyWget"]{display: none;}
 .pswp_content .file-panel .btn[data-action="copyCurl"]{display: none;}
+
+
+.pswp__button.pswp__button--download i{display: none;}
+.pswp__button.pswp__button--download{background-image: none !important;}
+.pswp__button.pswp__button--download:before{content:"\ec53";}

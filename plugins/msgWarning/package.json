@@ -2,7 +2,7 @@
 	"id":"msgWarning",
 	"name":"{{LNG['msgWarning.meta.name']}}",
 	"title":"{{LNG['msgWarning.meta.title']}}",
-	"version":"1.13",
+	"version":"1.14",
 	"category":"tools",
 	"source":{
 		"className":"font-icon ri-volume-vibrate-fill bg-red-6"
