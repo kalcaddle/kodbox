@@ -35,15 +35,6 @@ class fileThumbPlugin extends PluginBase{
 		$supportView  	= explode(',',$config['fileExt'].','.implode(',',$supportWeb));
 		$cachePath 		= false;$timeStart = timeFloat();
 		
-		// 默认存储路径文件不生成缩略图;
-		$driverDefault = KodIO::defaultDriver();
-		if(strtolower($driverDefault['type']) == 'local' && is_array($driverDefault['config'])){
-			$basePath = $defaultDriver['config']['basePath'];
-			if(substr($basePath,0,2) == './'){$basePath = str_replace('./',BASIC_PATH,$basePath);}
-			$basePath = str_replace('//','/',$basePath);
-			if(substr($current['path'],0,strlen($basePath)) == $basePath){return $data;}
-		}
-
 		// 遍历文件列表,筛选出需要加入缩略图及显示图的内容(支持预览的,加入fileShowView)
 		$coverList = array();
 		foreach($data['fileList'] as &$file){
@@ -65,7 +56,6 @@ class fileThumbPlugin extends PluginBase{
 		// 处理需要加入缩略图的文件; 查询数据库已存在的缓存图片;查询redis缓存(已处理,队列中,出错了:不处理)-->未在队列--加入队列;
 		$needMake  = 0;$makeIndex = 0; // 待生成缩略图数量,不包含大图;
 		$coverList = $this->checkCoverExists($cachePath,$coverList,$needMake);
-		$driver	   = KodIO::defaultDriver();
 		$makeCoverNow = $needMake <= 3 ? true:false; // 待生成列表小于5,则缩略图调用立即生成;
 		$obj = Action('user.index');
 		foreach($data['fileList'] as &$file){
@@ -80,12 +70,6 @@ class fileThumbPlugin extends PluginBase{
 				if(isset($item['sourceID']) && $item['sourceID']){$file[$thumbKey] = $imageSrc;continue;}
 				if($thumbKey == 'fileShowView'){$file[$thumbKey] = $imageSrc;}// 预览大图,不检测是否有缓存
 				if($thumbKey == 'fileThumb' && $makeCoverNow){$file[$thumbKey] = $imageSrc;continue;}
-				
-				// 访问默认存储路径,不添加到队列;
-				if(is_array($driver["config"]) && stristr($path,$driver["config"]['basePath'])){
-					$file[$thumbKey] = $imageSrc;
-					continue;
-				}
 				
 				// 多张图片待生成缩略图时,第一张处理为触发调用后台任务队列;
 				if($thumbKey == 'fileThumb'){$makeIndex++;}
@@ -142,24 +126,6 @@ class fileThumbPlugin extends PluginBase{
 		$file = IO::info($path);
 		$fileHash  = KodIO::hashPath($file);
 		$coverName = "cover_".$fileHash."_{$width}.png";
-		
-		// 存储目录访问,不自动生成缩略图(未生成过则显示时触发生成;已经是缩略图文件,则返回自身(1200访问250时自适应))
-		$driver	= KodIO::defaultDriver();
-		if(is_array($driver["config"]) && stripos($driver["config"]['basePath'],$file['path']) === 0){
-			$isCover  = preg_match("/^cover_(\w{0,32})(\d+)_(\d+)\.png$/",$file['name'],$match);
-			$thumbImg = $isCover ? $file['path'] : get_path_father($file['path']).'/'.$coverName;
-			if($isCover && $match[3] == 1200 && $width == 250){
-				$thumbImg = str_replace('_1200.png','_250.png',$thumbImg);
-			}
-			// 未生成时处理(或者生成的缩略图在其他文件夹),或小文件时直接输出;
-			if(!$isCover && !IO::exist($thumbImg)){
-				$thumbImg = $file['size'] <= 1024*500 ? $file['path']:false;
-			}
-			// pr($coverName,$match,$thumbImg,$file);exit;
-			if($thumbImg){IO::fileOut($thumbImg);}
-			exit;
-		}
-		
 		$result = $this->coverMake($this->cachePath,$file['path'],"cover_".$fileHash."_{$width}.png",$width);
 		if($width == 1200){$this->coverMake($this->cachePath,$file['path'],"cover_".$fileHash."_250.png",250);}
 		$sourceID = IO::fileNameExist($this->cachePath,$coverName);
