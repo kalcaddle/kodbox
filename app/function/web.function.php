@@ -167,8 +167,10 @@ function get_host() {
 	$httpType = http_type();
 	$port = (!empty($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] !='80') ? ':'.$_SERVER['SERVER_PORT']:'';
 	$host = $_SERVER['SERVER_NAME'].$port;
+	if($httpType == 'https' && $port == ':443'){$port = '';} // 忽略https 443端口;
 	if(isset($_SERVER['HTTP_HOST'])){
 		$host = ($port && !strstr($_SERVER['HTTP_HOST'],':')) ? $_SERVER['HTTP_HOST'].$port:$_SERVER['HTTP_HOST'];
+		$host = str_replace(array('<','>'),'_',$host);// 安全检测兼容(xxs)
 	}
 	if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])){//proxy
 		$hosts = explode(',', $_SERVER['HTTP_X_FORWARDED_HOST']);

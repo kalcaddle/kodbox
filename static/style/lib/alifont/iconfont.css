@@ -1,8 +1,8 @@
 @font-face {
   font-family: "kod-svg-font"; /* Project id 1107537 */
-  src: url('iconfont.woff2?t=1710242637142') format('woff2'),
-       url('iconfont.woff?t=1710242637142') format('woff'),
-       url('iconfont.ttf?t=1710242637142') format('truetype');
+  src: url('iconfont.woff2?t=1720427993966') format('woff2'),
+       url('iconfont.woff?t=1720427993966') format('woff'),
+       url('iconfont.ttf?t=1720427993966') format('truetype');
 }
 
 .kod-svg-font {
@@ -11,6 +11,82 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.kod-check:before {
+  content: "\e7b3";
+}
+
+.kod-chain:before {
+  content: "\e7b4";
+}
+
+.kod-close:before {
+  content: "\e7b5";
+}
+
+.kod-collapse:before {
+  content: "\e7b6";
+}
+
+.kod-expand:before {
+  content: "\e7b9";
+}
+
+.kod-download:before {
+  content: "\e7b7";
+}
+
+.kod-filter2:before {
+  content: "\e7ba";
+}
+
+.kod-full-screen:before {
+  content: "\e7bb";
+}
+
+.kod-full-screen-cancel:before {
+  content: "\e7bc";
+}
+
+.kod-minimize1:before {
+  content: "\e7bf";
+}
+
+.kod-maximize1:before {
+  content: "\e7c0";
+}
+
+.kod-moon:before {
+  content: "\e7c1";
+}
+
+.kod-normal-size:before {
+  content: "\e7c2";
+}
+
+.kod-link:before {
+  content: "\e7c3";
+}
+
+.kod-note:before {
+  content: "\e7c4";
+}
+
+.kod-pin:before {
+  content: "\e7c5";
+}
+
+.kod-pencil-mark:before {
+  content: "\e7c6";
+}
+
+.kod-sun:before {
+  content: "\e7c7";
+}
+
+.kod-user-circle:before {
+  content: "\e7c8";
 }
 
 .kod-filter1:before {

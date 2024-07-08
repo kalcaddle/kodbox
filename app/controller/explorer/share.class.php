@@ -271,7 +271,7 @@ class explorerShare extends Controller{
 			if(isset($this->in['path']) && !$this->checkPathAuth($this->in['path'])){$canUpload = false;}
 			if(!$canUpload){$this->showError(LNG('explorer.noPermissionWriteAll'),false);}
 		}
-		if($actionEdit && in_array($ACT,$actionEdit)){// 目的地检测;必须为当前分享文件夹下子内容;
+		if($canEdit && in_array($ACT,$actionEdit)){// 目的地检测;必须为当前分享文件夹下子内容;
 			if($canEdit && !Action('user.authRole')->authCanUser('explorer.edit',$shareUser)){$canEdit = false;}
 			if(isset($this->in['path']) && !$this->checkPathAuth($this->in['path'])){$canEdit = false;}
 			if(isset($this->in['dataArr']) && !$this->checkPathAuth($this->in['dataArr'],true)){$canEdit = false;}

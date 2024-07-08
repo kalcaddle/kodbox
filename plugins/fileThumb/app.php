@@ -35,6 +35,15 @@ class fileThumbPlugin extends PluginBase{
 		$supportView  	= explode(',',$config['fileExt'].','.implode(',',$supportWeb));
 		$cachePath 		= false;$timeStart = timeFloat();
 		
+		// 默认存储路径文件不生成缩略图;
+		$driverDefault = KodIO::defaultDriver();
+		if(strtolower($driverDefault['type']) == 'local' && is_array($driverDefault['config'])){
+			$basePath = $defaultDriver['config']['basePath'];
+			if(substr($basePath,0,2) == './'){$basePath = str_replace('./',BASIC_PATH,$basePath);}
+			$basePath = str_replace('//','/',$basePath);
+			if(substr($current['path'],0,strlen($basePath)) == $basePath){return $data;}
+		}
+
 		// 遍历文件列表,筛选出需要加入缩略图及显示图的内容(支持预览的,加入fileShowView)
 		$coverList = array();
 		foreach($data['fileList'] as &$file){
