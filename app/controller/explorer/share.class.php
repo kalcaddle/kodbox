@@ -263,18 +263,19 @@ class explorerShare extends Controller{
 		// 分享者角色没有上传权限时, 忽略配置开启上传;
 		$shareUser = $share['userID'];
 		$actionUpload = array('fileupload','mkdir','mkfile');
-		$actionEdit   = array('fileupload','mkdir','mkfile','pathrename','pathcopy','pathcute','pathcuteto','pathcopyTo','pathpast','filesave');
+		$actionEdit   = array('fileupload','mkdir','mkfile','pathrename','pathcopy','pathcute','pathcuteto','pathcopyto','pathpast','filesave');
 		$canUpload 	  = is_array($share['options']) && $share['options']['canUpload'] == '1';
 		$canEdit 	  = is_array($share['options']) && $share['options']['canEditSave'] == '1';
-		if($canUpload && in_array($ACT,$actionUpload)){
+		// 有编辑权限,一定包含上传权限;
+		if(in_array($ACT,$actionUpload)){
 			if($canUpload && !Action('user.authRole')->authCanUser('explorer.upload',$shareUser)){$canUpload = false;}
-			if(isset($this->in['path']) && !$this->checkPathAuth($this->in['path'])){$canUpload = false;}
+			if($canUpload && isset($this->in['path']) && !$this->checkPathAuth($this->in['path'])){$canUpload = false;}
 			if(!$canUpload){$this->showError(LNG('explorer.noPermissionWriteAll'),false);}
 		}
-		if($canEdit && in_array($ACT,$actionEdit)){// 目的地检测;必须为当前分享文件夹下子内容;
+		if(in_array($ACT,$actionEdit) && !in_array($ACT,$actionUpload)){// 目的地检测;必须为当前分享文件夹下子内容;
 			if($canEdit && !Action('user.authRole')->authCanUser('explorer.edit',$shareUser)){$canEdit = false;}
-			if(isset($this->in['path']) && !$this->checkPathAuth($this->in['path'])){$canEdit = false;}
-			if(isset($this->in['dataArr']) && !$this->checkPathAuth($this->in['dataArr'],true)){$canEdit = false;}
+			if($canEdit && isset($this->in['path']) && !$this->checkPathAuth($this->in['path'])){$canEdit = false;}
+			if($canEdit && isset($this->in['dataArr']) && !$this->checkPathAuth($this->in['dataArr'],true)){$canEdit = false;}
 			if($canEdit && Model('SystemOption')->get('shareLinkAllowEdit') == '0'){$canEdit = false;}
 			if(!$canEdit){$this->showError(LNG('explorer.noPermissionWriteAll'),false);}
 		}
