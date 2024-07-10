@@ -165,7 +165,7 @@ class FileParsePdf{
 			$xref['trailer']['info'] = intval($matches[1]).'_'.intval($matches[2]);
 		}
 		if (preg_match('/ID[\s]*[\[][\s]*[<]([^>]*)[>][\s]*[<]([^>]*)[>]/i', $trailerData, $matches) > 0) {
-			$xref['trailer']['id'] = [];
+			$xref['trailer']['id'] = array();
 			$xref['trailer']['id'][0] = $matches[1];
 			$xref['trailer']['id'][1] = $matches[2];
 		}

@@ -319,7 +319,7 @@ class PHPMailer
     /**
      * Whether to use SMTP authentication.
      * Uses the Username and Password properties.
-     *
+     * 
      * @see PHPMailer::$Username
      * @see PHPMailer::$Password
      *
