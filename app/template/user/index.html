@@ -37,7 +37,6 @@
 <body>
 	<?php Hook::trigger('templateCommonContent');?>
 	<div id="app"></div>
-	
 	<style>
 		.bg-black{background:#333;}
 		.loading-body div{
@@ -50,8 +49,21 @@
 			background-image:url("<?php linkHref('images/common/loading-pin3-dark.gif');?>");
 		}
 	</style>
+	
 	<div class="loading-body"><div></div></div>
 	<script type="text/javascript">
+		(function(){// 自适应url,反向代理未设置header情况兼容;
+			var a 		= document.createElement("a");a.href = window.location.href;
+			var urlPath = a.pathname.replace(/^([^\/])/, "/$1").replace('/index.php','/');
+			var host 	= a.protocol.replace(":", "") + "://" + a.hostname + (a.port ? ':' + a.port : '');
+			if(host + urlPath == '<?php echo APP_HOST;?>'){return;}
+			
+			var cookieKey = 'KOD_HOST_'+'<?php echo KOD_SITE_ID;?>'
+			var date = new Date((new Date()).getTime() + 90*3600*24*1000);
+			document.cookie = cookieKey+'='+host+'/; expires='+date.toGMTString()+';';
+			console.warn("Site host not match HOST",[cookieKey,host + urlPath,'<?php echo APP_HOST;?>']);
+		})();
+		
 		window.API_HOST = "<?php echo appHostGet();?>";
 		window.STATIC_PATH = "<?php echo STATIC_PATH;?>";
 		try{navigator.serviceWorker && navigator.serviceWorker.register('<?php echo APP_HOST;?>?user/view/manifestJS');}catch(err){}

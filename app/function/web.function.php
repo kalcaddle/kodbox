@@ -166,26 +166,24 @@ function http_type(){
 function get_host() {
 	$httpType = http_type();
 	$port = (!empty($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] !='80') ? ':'.$_SERVER['SERVER_PORT']:'';
-	$host = $_SERVER['SERVER_NAME'].$port;
 	if($httpType == 'https' && $port == ':443'){$port = '';} // 忽略https 443端口;
-	if(isset($_SERVER['HTTP_HOST'])){
-		$host = ($port && !strstr($_SERVER['HTTP_HOST'],':')) ? $_SERVER['HTTP_HOST'].$port:$_SERVER['HTTP_HOST'];
-		$host = str_replace(array('<','>'),'_',$host);// 安全检测兼容(xxs)
-	}
+	$host = $_SERVER['SERVER_NAME'].$port;
+	if(isset($_SERVER['HTTP_HOST'])){$host = $_SERVER['HTTP_HOST'];}
 	if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])){//proxy
 		$hosts = explode(',', $_SERVER['HTTP_X_FORWARDED_HOST']);
 		$host  = trim($hosts[0]);
 	}else if(isset($_SERVER['HTTP_X_FORWARDED_SERVER'])){
 		$host  = $_SERVER['HTTP_X_FORWARDED_SERVER'];
 	}
-	
-	// 如果域名相同 则根据referer自适应https;
-	if(isset($_SERVER['HTTP_REFERER'])){
-		$urlInfo = parse_url($_SERVER['HTTP_REFERER']);
-		if($urlInfo['host'] == trim($host,'/')){
-			if($httpType == 'http' && $urlInfo['scheme'] == 'https'){$httpType = 'https';}
-		}
+
+	// 前端cookie保留host; //define() >  cookie > x-forwarded-host > host
+	$cookieKey = 'KOD_HOST_'.KOD_SITE_ID;
+	if($_COOKIE && !empty($_COOKIE[$cookieKey])){
+		$kodHost = rtrim(rawurldecode($_COOKIE[$cookieKey]),'/').'/';
+		return str_replace(array('<','>'),'_',$kodHost);
 	}
+	
+	$host = str_replace(array('<','>'),'_',$host);// 安全检测兼容(xxs)
 	return $httpType.'://'.trim($host,'/').'/';
 }
 // current request url

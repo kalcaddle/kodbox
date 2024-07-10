@@ -176,21 +176,35 @@ class KodSSO{
 	}
 	public static function host(){
 		$httpType = 'http';
-		if( (isset($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') ||
-			(isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') ||
-			$_SERVER['SERVER_PORT'] === 443 
+		if( 
+			(!empty($_SERVER['HTTPS']) && strtolower($_SERVER['HTTPS']) !== 'off') ||
+			(!empty($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443) ||
+			(!empty($_SERVER['HTTP_SSL']) && $_SERVER['HTTP_SSL'] == 1) ||
+			
+			(!empty($_SERVER['HTTP_X_HTTPS']) && strtolower($_SERVER['HTTP_X_HTTPS']) !== 'off') ||
+			(!empty($_SERVER['HTTP_X_SCHEME']) && $_SERVER['HTTP_X_SCHEME'] == 'https') ||
+			(!empty($_SERVER['HTTP_X_SSL']) && ($_SERVER['HTTP_X_SSL'] == 1 || strtolower($_SERVER['HTTP_X_SSL']) == 'yes')) ||
+			(!empty($_SERVER['HTTP_CF_VISITOR']) && strpos($_SERVER['HTTP_CF_VISITOR'], 'https') !== false) ||
+			(!empty($_SERVER['HTTP_X_FORWARDED_PROTOCOL']) && $_SERVER['HTTP_X_FORWARDED_PROTOCOL'] == 'https') || 
+			(!empty($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')
 		){
 			$httpType = 'https';
 		}
 
-		$host = $_SERVER['SERVER_NAME'].($_SERVER['SERVER_PORT']=='80' ? '' : ':'.$_SERVER['SERVER_PORT']);
-		$host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $host;
+		$port = (!empty($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] !='80') ? ':'.$_SERVER['SERVER_PORT']:'';
+		if($httpType == 'https' && $port == ':443'){$port = '';} // 忽略https 443端口;
+		$host = $_SERVER['SERVER_NAME'].$port;
+		if(isset($_SERVER['HTTP_HOST'])){$host = $_SERVER['HTTP_HOST'];}
+		if(isset($_SERVER['HTTP_HOST']) && $port && !strstr($_SERVER['HTTP_HOST'],':')){
+			//$host = $_SERVER['HTTP_HOST'].$port;// 反向代理后默认使用host
+		}
 		if(isset($_SERVER['HTTP_X_FORWARDED_HOST'])){//proxy
 			$hosts = explode(',', $_SERVER['HTTP_X_FORWARDED_HOST']);
 			$host  = trim($hosts[0]);
 		}else if(isset($_SERVER['HTTP_X_FORWARDED_SERVER'])){
 			$host  = $_SERVER['HTTP_X_FORWARDED_SERVER'];
 		}
+		$host = str_replace(array('<','>'),'_',$host);// 安全检测兼容(xxs)
 		return $httpType.'://'.trim($host,'/').'/';
 	}
 	public static function pathClear($path){

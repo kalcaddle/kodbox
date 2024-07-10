@@ -35,7 +35,7 @@
 			"type":"number",
 			"display":"{{LNG['admin.plugin.fileSort']}}",
 			"desc":"{{LNG['admin.plugin.fileSortDesc']}}",
-			"value":500,
+			"value":1000,
 		}
 	}
 }
