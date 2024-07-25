@@ -19,7 +19,9 @@ class userBind extends Controller {
 			'type'	 => array('check' => 'in', 'param' => array('email', 'phone')),
 			'input'	 => array('check' => 'require'),
 		));
-		$type = $data['type'];
+		$type	= $data['type'];
+		$input	= $data['input'];
+		$source = $data['source'] = 'bind';
 
 		// 检查图片验证码
 		$checkCode = Input::get('checkCode', 'require', '');
@@ -27,32 +29,32 @@ class userBind extends Controller {
 
 		// 1.1 判断邮箱是否已绑定-自己
 		$userInfo = Session::get("kodUser");
-		if ($userInfo[$data['type']] == $data['input']) {
+		if ($userInfo[$data['type']] == $input) {
 			show_json(LNG('common.' . $type) . LNG('user.binded'), false);
 		}
 		// 1.2 判断邮箱是否已绑定-他人
-		if ($res = Model('User')->userSearch(array($type => $data['input']), 'name,nickName')) {
+		if ($res = Model('User')->userSearch(array($type => $input), 'name,nickName')) {
 			$typeTit = $type . ($type == 'phone' ? 'Number' : '');
 			$message = $type == 'phone' ? LNG('ERROR_USER_EXIST_PHONE') : LNG('ERROR_USER_EXIST_EMAIL');
 			show_json($message.'.', false);
 		}
-		$data['source'] = 'bind';
-		Action('user.setting')->checkMsgFreq($data);	// 消息发送频率检查
 
 		// 2 发送邮件/短信
+		Action('user.setting')->checkMsgFreq($data);	// 消息发送频率检查
 		if($type == 'email'){
-			$res = $this->sendEmail($data['input'], $type.'_'.$data['source']);
+			$res = $this->sendEmail($input, $type.'_'.$source);
 		}else{
-			$res = $this->sendSms($data['input'], $type.'_'.$data['source']);
+			$res = $this->sendSms($input, $type.'_'.$source);
 		}
 		if (!$res['code']) {
 			show_json(LNG('user.sendFail') . ': ' . $res['data'], false);
 		}
+		Action('user.setting')->checkMsgFreq($data, true);
 
 		// 3. 存储验证码
 		$param = array(
 			'type'	=> 'setting',
-			'input' => $data['input']
+			'input' => $input
 		);
 		Action("user.setting")->checkMsgCode($type, $res['data'], $param, true);
 		show_json(LNG('user.sendSuccess'), true);

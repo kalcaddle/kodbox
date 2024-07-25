@@ -9,30 +9,52 @@ class installIndex extends Controller {
     public $admin = array();
     public $userSetting; 
     public $installLock; 
-    public $installFastLock; 
     public $dbType;
     public $engine;
 	public function __construct() {
         parent::__construct();
         $this->userSetting      = BASIC_PATH  . 'config/setting_user.php';
         $this->installLock      = USER_SYSTEM . 'install.lock';
-        $this->installFastLock  = USER_SYSTEM . 'fastinstall.lock';
 		$this->authCheck();
     }
-
+    // 请求权限检测
     public function authCheck(){
         if(MOD.'.'.ST == 'install.index'){
             if(!ACT || !in_array(ACT, array('env', 'save', 'auto'))){
                 show_json(LNG('common.illegalRequest'), false);
             }
-            if($this->installCheck()) show_json(LNG('admin.install.errorRequest'), false);
-            if(ACT == 'auto') $this->auto();    // 全自动安装
+            $check = $this->initCheck();
+            if(ACT == 'auto') $this->instAuto($check);    // cli自动安装
+            if($check === 2) show_json(LNG('admin.install.errorRequest'), false);
         }
     }
+    // 安装配置初始化检测
+    private function initCheck(){
+        if(!defined('STATIC_PATH')){
+            define('STATIC_PATH',$GLOBALS['config']['settings']['staticPath']);
+        }
+        if(!defined('INSTALL_PATH')){
+            define('INSTALL_PATH', CONTROLLER_DIR.'install/');
+        }
+        // 1.setting_user.php、install.lock、数据库配置都存在，已安装；
+        // 2.setting_user.php、数据库配置存在，install.lock不存在，重置管理员密码
+        if(@file_exists($this->userSetting)) {
+            if($this->defDbConfig(true)) {
+                // if(@file_exists($this->installLock)) return true;
+                return @file_exists($this->installLock) ? 2 : 1;
+            } else {
+                del_file($this->userSetting);
+            }
+        }
+        if(!@file_exists($this->userSetting)) del_file($this->installLock);
+        // return false;
+        return 0;
+    }
 
+    // 安装检测
     public function check(){
         // 判断是否需要安装
-        if($this->installCheck()) return;
+        if($this->initCheck() === 2) return;
 		if(ACTION == 'user.view.call'){exit;}
         if(ACTION == 'user.view.options'){
             $options = array(
@@ -71,98 +93,249 @@ class installIndex extends Controller {
 		// 安装路径合法性检测; 不允许[, ;%][*][&=+%#?{}]; 允许(_!@$[]()-./); 需要转义([]@$)   
         $uri = str_replace(HOST,'',APP_HOST);$matchArr = array();
         if($uri && !preg_match("/^[a-zA-Z0-9_!@$\[\]\(\)\-\.\/]*$/",$uri,$matchArr)){
-        	show_tips("App path cann't has special chars<br/>(程序路径不支持包含特殊符号,请尽量使用英文字母及数字)<pre>".$uri.'</pre>');
+        	show_tips("App path cann't has special chars<br/>(".LNG('admin.install.pathErrDesc').")<pre>".$uri.'</pre>');
         }
 		
         $this->tpl = CONTROLLER_DIR . 'install/static/';
-        $value = array('installPath' => INSTALL_PATH);
-        $this->values = array_merge($value, $this->installFast());
+        $value = array(
+            'installPath'   => APP_HOST.'app/controller/install/static/', 
+            'envList'       => $this->envList(),
+            'installFast'   => @file_exists($this->userSetting) ? 1 : 0,    // 是否已安装（setting_user.php存在）
+            'installAuto'   => ''   // 管理员账号名
+        );
+        // 获取管理员账号
+        if ($value['installFast']) {
+            try{
+                $info = Model('User')->find('1');
+                if (!empty($info['name'])) $value['installAuto'] = $info['name'];
+			}catch(Exception $e){} 
+        }
+        $this->values = $value;
         $this->display('index.html');
         exit;
     }
-    private function installCheck(){
-        if(!defined('STATIC_PATH')){
-            define('STATIC_PATH',$GLOBALS['config']['settings']['staticPath']);
-        }
-        if(!defined('INSTALL_PATH')){
-            define('INSTALL_PATH', './app/controller/install/');
-        }
-        // 1.setting_user.php、install.lock、数据库配置都存在，已安装；
-        // 2.setting_user.php、数据库配置存在，install.lock不存在，重置管理员密码
-        if(@file_exists($this->userSetting)) {
-            if($this->defDbConfig(true)) {
-                if(@file_exists($this->installLock)) return true;
-                @touch($this->installFastLock);
-            }
-        }
-        if(!@file_exists($this->userSetting)) del_file($this->installLock);
-        return false;
-    }
-    // 一键安装
-    private function installFast(){
-        $data = array(
-            'installFast' => 0,     // 1:已配置数据库;2:已填写管理员账号
-            'installAuto' => ''     // 管理员账号：admin|admin
+    private function envList(){
+        $opts = array(
+            'path_writable'     => array('title' => LNG('admin.install.dirRight'), 'text' => LNG('admin.install.pathNeedWirte')),
+            'php_version'       => array('title' => 'PHP '.LNG('common.version'), 'text' => LNG('admin.install.phpVersionTips')),
+            'allow_url_fopen'   => array('text'  => LNG('admin.install.mustOpen')),
+            'php_bit'           => array('title' => 'PHP '.LNG('common.sysVersion'), 'text' => LNG('admin.install.phpBitTips').'<br/><span class="bit-desc">('.LNG('admin.install.phpBitDesc').')</span>'),
+            'iconv'             => array(),
+            'mb_string'         => array(),
+            'json'              => array(),
+            'curl'              => array(),
+            'xml'               => array(),
+            'shell_exec'        => array('title' => 'shell_exec、exec '.LNG('common.method')),
+            'gd'                => array(),
+            'path_list'         => array('title' => LNG('admin.install.serverDir'), 'text' => LNG('admin.install.suggestClose'))
         );
-        if(!@file_exists($this->installFastLock) || !@file_exists($this->userSetting)) {
-            return $data;
+        foreach ($opts as $key => &$opt) {
+            $opt['title'] = _get($opt, 'title', strtoupper($key).' '.LNG('common.extend'));
+            $opt['text'] = _get($opt, 'text', LNG('admin.install.suggestOpen'));
         }
-        $data['installFast'] = 1;
-        if($auto = $this->getFastAcc()){
-            $data['installFast'] = 2;
-            $data['installAuto'] = $auto;
-        }
-        return $data;
+        return $opts;
     }
-    // 获取自动安装账号密码
-    private function getFastAcc(){
-        $file = $this->installFastLock;
-        $content = trim(file_get_contents($file));
-        if(empty($content)) return false;
 
-        $content = array_filter(explode(PHP_EOL, $content));
-        $data = array();
-        foreach($content as $line) {
-            $tmp = explode("=", trim($line));
-            if(empty($tmp[1])) continue;
-            $data[strtolower($tmp[0])] = $tmp[1];
+    /**
+     * cli一键安装
+     * php /usr/local/var/www/kod/kodbox/index.php "install/index/auto" 
+     * --database mysql --database-name "kodbox" --database-user "root" --database-pass "root" --database-host "127.0.0.1:3306" 
+     * --database sqlite    // or
+     * --cache redis --redis-host "127.0.0.1" --redis-port "6379" --redis-auth "1234"   // 不传递是默认缓存为file
+     * --user-name "admin" --user-pass "admin"
+     * --user-auto 1        // 随机密码：admin/xxx
+     * --user-reset 1       // 重置管理员密码
+     * @return void
+     */
+    public function instAuto($check=0) {
+        if (!is_cli() || !isset($_SERVER['argv'])) return;
+        // 接管show_tips
+        Hook::bind('show_tips', array($this, 'cliShowTips'));
+        // 切换英文
+        if (I18n::getType() != 'en') {
+            $array = include(LANGUAGE_PATH.'en/index.php');
+            if (!empty($array)) I18n::set($array);
         }
-        if(isset($data['adm_name']) && isset($data['adm_pwd'])) {
-            return $data['adm_name'] . '|' . $data['adm_pwd'];
-        }
-        return false;
-    }
-    // 全自动安装
-    public function auto(){
-        if (isset($this->in['action']) && $this->in['action'] == 'db') return;  // 避免自动安装死循环
-        $data = $this->installFast();
-        if (!$data['installFast']) return;
+        // 已安装
+        if ($check === 2) $this->cliEcho(LNG('admin.install.errorRequest'));
 
-        // 1.根据setting_user.php初始化数据库——saveDb
-        $config = $this->defDbConfig();
-        if (empty($config)) return;
-        $this->in = array_merge($config, array('action'=>'db'));
-        $GLOBALS['NOT_SAVE_DB_SET'] = true;
-        $res = ActionCallHook('install.index.save');
-        unset($GLOBALS['NOT_SAVE_DB_SET']);
-        if (!$res['code']) {
-            // 数据库已存在，且有表，当做自行导入的kod库（暂不做对比检测）
-            if (!isset($res['info']) || $res['info'] != 10001) {
-                show_json($res['data'], false);
+        // 获取一键安装参数
+        $action = _get($this->in, 'action', '');
+        if ($action && in_array($action, array('db', 'user'))) return;  // 避免自动安装死循环——ACT=auto
+        $data = $this->instAutoData();
+
+        //0.非重置账号，检测db参数及配置
+        if (!$this->cliMore('reset')) {
+            if (empty($data['db'])) {
+                $this->cliEcho(LNG('common.invalidParam'));
             }
+            // db配置已存在，禁止再次执行
+            if ($check === 1) {
+                $msg = PHP_EOL.LNG('admin.install.dbWasSet').PHP_EOL;
+                $txt = empty($data['user']['pass']) ? '--user-name "'.LNG('user.account').'" --user-pass "'.LNG('common.password').'" ' : '';
+                $msg .= LNG('admin.install.ifResetAuto').$txt.'--user-reset 1';
+                $this->cliEcho($msg);
+            }
+        } else {
+            if (!$check) $this->cliEcho(LNG('admin.install.resetSysErr'));
+            $this->saveUserAuto($data); exit;
         }
 
-        // 2.没有管理员账号，返回
-        if ($data['installFast'] == 1) return;
+        // 1.提交数据库配置
+        $self = $this;
+        $init = array(
+            'action'    => 'db', 
+            'del'       => $this->cliMore('del') ? 1 : 0
+        );
+        $this->in = array_merge($init, $data['db']);
+        ActionCallResult("install.index.save",function(&$res) use($self,$data){
+            $msg = str_replace('<br/>',PHP_EOL,$res['data']);
+            if (isset($res['info']) || $res['info'] == 10001) {
+                $msg = LNG('admin.install.ifDelDbAuto');
+                $msg = str_replace('[1]', '['._get($data,'db.dbName','').']', $msg);
+            }
+            if (!$res['code']) $self->cliEcho($msg);
+            echo '1.'.LNG('admin.install.dbSetOk').PHP_EOL;
 
-        // 3.有管理员账号，提交最后一步
-        $data = explode('|', $data['installAuto']);
+            // 2.执行成功，写入管理员账号
+            $self->saveUserAuto($data);
+		});
+    }
+    public function saveUserAuto($data) {
+        $name = _get($data, 'user.name', '');
+        $pass = _get($data, 'user.pass', '');
+        // 非重置账号，没有传递账号密码时，提醒在web访问设置
+        if (!$this->cliMore('reset') && (empty($name) || empty($pass))) {
+            $this->cliEcho(LNG('admin.install.userOnWeb'), true);
+        }
         $this->in = array(
-            'name'      => $data[0],
-            'password'  => $data[1],
-            'action'    => 'user',
+            'name'      => $name,
+            'password'  => $pass,
+            'action'    => 'user'
         );
-        $this->save();
+        $self = $this;
+        ActionCallResult("install.index.save",function(&$res) use($self,$name,$pass){
+            if (!$res['code']) {
+                $msg = str_replace('<br/>',PHP_EOL,$res['data']);
+                $self->cliEcho(LNG('admin.install.userSaveErr').$msg);
+            }
+            if (!$self->cliMore('reset')) echo '2.'.LNG('admin.install.userSetOk').PHP_EOL;
+
+            $msg = LNG('admin.install.autoPwdTips').$name.' '.$pass;
+            if (!$self->cliMore('auto')) $msg = ''; // 仅自动生成密码时，在回复中显示
+            $self->cliEcho($msg, true);
+		});
+    }
+    // 获取自动安装配置参数
+    private function instAutoData(){
+        if (empty($_SERVER['argv']) || !is_array($_SERVER['argv'])) return;
+		$argv = $_SERVER['argv'];
+		array_shift($argv);
+    	array_shift($argv);	// 移除前2个参数：./index.php、install/index/auto
+    	$name = null;
+		$args = array();
+		foreach ($argv as $arg) {
+			if (substr($arg, 0, 1) == '-') {
+				$name = ltrim($arg, '-');
+			} else {
+				if ($name) {
+					$args[$name] = $arg;
+					$name = null;
+				}
+			}
+		}
+		if (empty($args)) return;
+        $this->cliMore($args);
+
+        // 1.检查参数：非重置密码时，检查db、缓存；重置时，忽略数据库、缓存（要求系统已完成初始化）
+        $dbType = _get($args, 'database', '');
+        $ccType = _get($args, 'cache', 'file');
+        if (!$this->cliMore('reset')) {
+            if (!$dbType || !in_array($dbType, array('mysql', 'sqlite'))) {
+                $this->cliEcho(LNG('common.invalidParam').' database');
+            }
+            if (!in_array($ccType, array('file', 'redis', 'memcached'))) {
+                $this->cliEcho(LNG('common.invalidParam').' cache');
+            }
+        } 
+
+        // 2.构建前端提交的参数样式
+        $db = $user = array();
+        $db['dbType'] = $dbType;
+        $db['cacheType'] = $ccType;
+        foreach ($args as $key => $value) {
+            $arr = explode('-', $key);
+            if (empty($arr[1])) continue;
+            $tmp = $arr[0];
+            // 管理员
+            if ($tmp == 'user') {
+                $user[$arr[1]] = $value;
+                continue;
+            }
+            // 数据库、缓存
+            if ($tmp == 'database') {
+                $tmp = 'db';
+                if ($arr[1] == 'pass') $arr[1] = 'pwd';
+            }
+            $db[$tmp.ucfirst($arr[1])] = $value;
+        }
+        // redis、memcached端口赋默认值
+        if ($ccType != 'file' && empty($db[$ccType.'Port'])) {
+            $db[$ccType.'Port'] = $ccType == 'redis' ? '6379' : '11211';
+        }
+        if ($dbType == 'mysql') $db['dbEngine'] = 'innodb';
+
+        // 3.账号密码
+        if (empty($user['name'])) $user['name'] = 'admin';  // 不传递默认为admin，重置时应该从数据库读取，暂不处理
+        if ($this->cliMore('auto')) {
+            $user['pass'] = 'K0d#'.rand_string(6);
+        } else {
+            // 重置且非自动时，要求必须填写密码
+            if ($this->cliMore('reset') && empty($user['pass'])) {
+                $this->cliEcho(LNG('admin.install.resetPwdTips'));
+            }
+        }
+        // 4.重置用户，数据库、缓存置为空
+        if ($this->cliMore('reset')) $db = array();
+        
+        return array('db' => $db, 'user' => $user);
+    }
+    // 获取cli调用附加参数
+    private function cliMore($key=false) {
+        if (!$key) unset($GLOBALS['AUTO_INSTALL_IN_MORE']);
+        if (is_string($key)) {
+            $val = _get($GLOBALS, 'AUTO_INSTALL_IN_MORE.'.$key, 0);
+            return $val == '1' ? true : false;
+        }
+        $args = $key;
+        $GLOBALS['AUTO_INSTALL_IN_MORE'] = array(
+            'del'   => _get($args,'db-del',0),      // 强制删除数据表
+            'auto'  => _get($args,'user-auto',0),   // 管理员随机密码
+            'reset' => _get($args,'user-reset',0),  // 管理员密码重置
+        );
+    }
+    // 命令行中输出结果——换行
+    private function cliEcho($msg, $code=false) {
+        $pre = !$this->cliMore('reset') ? 'admin.install.' : 'explorer.';
+        echo LNG($pre.($code ? 'success' : 'error')).' '.$msg.PHP_EOL; exit;
+    }
+    // 捕获show_tips错误，直接输出信息
+    public function cliShowTips($message,$url, $time,$title) {
+        $msg = '';  // think_exception输出html
+        // if (stripos($message,'<div class="desc"') >= 0) {
+        if (stripos($message,'<div') >= 0) {
+            $dom = new DOMDocument();  
+            @$dom->loadHTML(mb_convert_encoding($message, 'HTML-ENTITIES', 'UTF-8'));
+            // $xpath = new DOMXPath($dom);
+            // $elements = $xpath->query('//div[@class="desc"]');
+            // if (!is_null($elements)) $msg = $elements[0]->nodeValue;
+            foreach ($dom->getElementsByTagName('body')->item(0)->childNodes as $node) {
+                $msg .= $node->nodeValue.PHP_EOL;
+            }
+            $msg = rtrim($msg, PHP_EOL);
+        }
+        if (!$msg) $msg = $message;
+        $this->cliEcho($msg);
     }
 
     /**
@@ -221,7 +394,7 @@ class installIndex extends Controller {
         $env = array(
             'path_writable'     => array(),
             'php_version'       => phpversion(),
-            'allow_url_fopen'   => ini_get('allow_url_fopen'),
+            'allow_url_fopen'   => ini_get('allow_url_fopen') == '1',
             'php_bit'           => phpBuild64() ? 64 : 32,
             'iconv'             => function_exists('iconv'),
             'mb_string'         => function_exists('mb_convert_encoding'),
@@ -255,8 +428,11 @@ class installIndex extends Controller {
      */
     public function save(){
         $action = Input::get('action', 'in', null, array('db', 'user'));
-        $func = 'save' . ucfirst($action);
-        $this->$func();
+        if ($action == 'db') {
+            $this->saveDb();
+        } else {
+            $this->saveUser();
+        }
     }
 
     /**
@@ -325,7 +501,7 @@ class installIndex extends Controller {
             $db->execute("use `{$dbName}`");
             $tables = $db->getTables($dbName);
             if (!empty($tables)) {
-                if(empty($this->in['del_table'])){
+                if(!isset($this->in['del']) || $this->in['del'] != '1'){
                     return show_json(LNG('admin.install.ifDelDb'), false, 10001);
                 }
                 // 删除数据表
@@ -340,47 +516,45 @@ class installIndex extends Controller {
             $db = Model()->db();
         }
 
-        // 1.5 写入配置文件：数据库、缓存——自动安装时配置已存在，无需保存
-        if (!$GLOBALS['NOT_SAVE_DB_SET']) {
-            $data['DB_NAME'] = $dbName;
-            if($data['DB_TYPE'] == 'pdo'){
-                $dbDsn = explode(':', $data['DB_DSN']);
-                if($dbDsn[0] == 'mysql'){
-                    $data['DB_DSN'] .= ';dbname=' . $data['DB_NAME'];
-                }
+        // 1.5 写入配置文件：数据库、缓存
+        $data['DB_NAME'] = $dbName;
+        if($data['DB_TYPE'] == 'pdo'){
+            $dbDsn = explode(':', $data['DB_DSN']);
+            if($dbDsn[0] == 'mysql'){
+                $data['DB_DSN'] .= ';dbname=' . $data['DB_NAME'];
             }
-            $database = var_export($data, true);
-            $text = array(
-                "<?php ",
-                "\$config['database'] = {$database};",
-                "\$config['cache']['sessionType'] = '{$cacheType}';",
-                "\$config['cache']['cacheType'] = '{$cacheType}';"
-            );
-            if(isset($host) && isset($port)){
-                $text[] = "\$config['cache']['{$cacheType}']['host'] = '{$host}';";
-                $text[] = "\$config['cache']['{$cacheType}']['port'] = '{$port}';";
-                if ($cacheType == 'redis' && $auth) {
-                    $text[] = "\$config['cache']['{$cacheType}']['auth'] = '{$auth}';";
-                }
+        }
+        $database = var_export($data, true);
+        $text = array(
+            "<?php ",
+            "\$config['database'] = {$database};",
+            "\$config['cache']['sessionType'] = '{$cacheType}';",
+            "\$config['cache']['cacheType'] = '{$cacheType}';"
+        );
+        if(isset($host) && isset($port)){
+            $text[] = "\$config['cache']['{$cacheType}']['host'] = '{$host}';";
+            $text[] = "\$config['cache']['{$cacheType}']['port'] = '{$port}';";
+            if ($cacheType == 'redis' && $auth) {
+                $text[] = "\$config['cache']['{$cacheType}']['auth'] = '{$auth}';";
             }
-            $file = $this->userSetting;
-            if(!@file_exists($file)) @touch($file);
-            $content = file_get_contents($file);
-            $pre = '';
-            if(stripos(trim($content),"<?php") !== false) {
-                $pre = PHP_EOL;
-                unset($text[0]);
-            }
-            $content = implode(PHP_EOL, $text);
-            if($this->dbType == 'sqlite') {
-                $content = $this->sqliteFilter($content);
-            }
-            if(!file_put_contents($file,$pre.$content, FILE_APPEND)) {
-                $msg = LNG('admin.install.dbSetError');
-                $tmp = explode('<br/>', LNG('common.env.pathPermissionError'));
-                $msg .= "<br/>" . $tmp[0];
-                return show_json($msg, false, 10000);
-            }
+        }
+        $file = $this->userSetting;
+        if(!@file_exists($file)) @touch($file);
+        $content = file_get_contents($file);
+        $pre = '';
+        if(stripos(trim($content),"<?php") !== false) {
+            $pre = PHP_EOL;
+            unset($text[0]);
+        }
+        $content = implode(PHP_EOL, $text);
+        if($this->dbType == 'sqlite') {
+            $content = $this->sqliteFilter($content);
+        }
+        if(!file_put_contents($file,$pre.$content, FILE_APPEND)) {
+            $msg = LNG('admin.install.dbSetError');
+            $tmp = explode('<br/>', LNG('common.env.pathPermissionError'));
+            $msg .= "<br/>" . $tmp[0];
+            return show_json($msg, false, 10000);
         }
 
         // 1.6 创建数据表
@@ -523,14 +697,13 @@ class installIndex extends Controller {
      */
     private function saveUser(){
         $data = Input::getArray(array(
-            'name' => array('check' => 'require'),
-            'password' => array('check' => 'require')
+            'name'      => array('check' => 'require'),
+            'password'  => array('check' => 'require')
         ));
         $this->checkDbInit();
 
         $userID = 1;
         if(Model('User')->find($userID)) {
-            del_file($this->installFastLock);
             if(!Model('User')->userEdit($userID, $data)) {
                 show_json(LNG('user.bindUpdateError'), false);
             }
@@ -601,7 +774,6 @@ class installIndex extends Controller {
 		KodIO::initSystemPath();
 
         @touch($this->installLock);
-        del_file($this->installFastLock);
         show_json(LNG('admin.install.createSuccess'), true);
     }
 

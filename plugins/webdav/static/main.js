@@ -7,13 +7,17 @@ kodReady.push(function () {
 	
 	Events.bind("admin.leftMenu.before",function(menuList){
 		menuList.push({
-			title:LNG['webdav.meta.name'],
+			title:LNG['webdav.meta.name'],	// 文件服务
 			icon:"ri-hard-drive-fill-2",
 			link:"admin/storage/webdav",
 			after:'admin/storage/share',//after/before; 插入菜单所在位置;
 			sort:100,
 			pluginName:"{{pluginName}}",
 		});
+	});
+	Events.bind("admin.leftMenu.after",function(self){
+		var $menu = self.$('.admin-menu-left .menu-content>.menu-items');
+		$menu.find('.menu-item[link-href="admin/storage/share"]').after($menu.find('.menu-item[link-href="admin/storage/webdav"]'));
 	});
 	Events.bind("user.leftMenu.before",function(menuList){
 		if(!G.webdavOption.allow) return;

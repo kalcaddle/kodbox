@@ -33,7 +33,7 @@ class KodSSO{
 		$userInfo 	= self::checkToken($appName,$host,$token);
 		if( $token && $userInfo){
 			if(isset($_GET[$key])){ // 首次登录成功跳转回来;
-				setcookie($keyCookie,$token, time()+3600*5,self::thisPathUrl(),false,false,true);
+				setcookie($keyCookie,$token, time()+3600*24,self::thisPathUrl(),false,false,true);
 				// 跳转到之前url; 去除url带入的token;
 				$linkBefore = self::urlRemoveKey(self::thisUrl(),$key);
 				header('Location: '.$linkBefore);exit;
@@ -49,9 +49,10 @@ class KodSSO{
 		if(!$token) return false;
 		$timeStart = microtime(true);
 		$uri = 'user/sso/apiCheckToken&accessToken='.$token.'&appName='.$appName;
-		$cacheData = self::cacheGet(md5($uri));
+		$cacheKey  = md5($uri);
+		$cacheData = self::cacheGet($cacheKey);
 		if(is_array($cacheData)){
-			self::cacheSet(md5($uri),$cacheData,3600);
+			self::cacheSet($cacheKey,$cacheData,3600);
 			return $cacheData;
 		}
 		
@@ -73,7 +74,7 @@ class KodSSO{
 		$userInfo = @json_decode($res,true);
 		if( $userInfo && is_array($userInfo) ){
 			if(isset($userInfo['code']) && $userInfo['code'] == '10001') return false;
-			self::cacheSet(md5($uri),$userInfo,3600);
+			self::cacheSet($cacheKey,$userInfo,3600);
 			return $userInfo;
 		}
 		if(!strstr($res,'[error]:')){echo $res;exit;}
@@ -216,15 +217,27 @@ class KodSSO{
 		return $path;
 	}
 	
+	// 记录缓存写入的key; 退出登陆时清除;
+	private static function cacheSetKey($key){
+		if(!isset($_COOKIE['KOD_SESSION_ID']) || !$key){return;}
+		$ssoKey 	= 'KOD_SSO_CACHE_KEY';
+		$cookie 	= isset($_COOKIE[$ssoKey]) ? $_COOKIE[$ssoKey] : '';
+		$urlInfo 	= parse_url(self::appHost());
+		$keyArr 	= explode(',',$cookie);
+		if(in_array($key,$keyArr)){return;}
 
+		$keyArr[] = $key;		
+		setcookie($ssoKey,implode(',',$keyArr), time()+3600*24,$urlInfo['path'],false,false,true);
+	}
 	
 	// 缓存读写处理;
-	public static function cacheSet($key, $value, $cacheTime = 600){
+	public static function cacheSet($key, $value, $cacheTime = 3600){
         $file  = self::cacheFile($key);
 		$content = "<?php exit;?>".serialize($value);
         if(file_put_contents($file,$content,LOCK_EX)){
 			@touch($file,intval(time() + $cacheTime));
 			clearstatcache();
+			self::cacheSetKey($key);
             return true;
         }
         @unlink($file);

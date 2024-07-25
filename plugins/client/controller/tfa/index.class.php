@@ -112,39 +112,46 @@ class clientTfaIndex extends Controller {
 			'input'	    => array('check' => 'require'),
 			'default'   => array('default' => 0),
         ));
-		$type = $data['type'];
+		$type   = $data['type'];
+        $input	= $data['input'];
         if($data['userID'] != $user['userID']) {
             show_json(LNG('client.tfa.userLgErr'), false);
         }
-		if($user[$type]){$data['input'] = $user[$type];}
-        if(!Input::check($data['input'],$type)) {
+		if($user[$type]){$input = $user[$type];}
+        if(!Input::check($input,$type)) {
             show_json(LNG('client.tfa.sendInvalid'), false);
         }
 		
 		// 检测是否已被绑定;
-		if(!$user[$type] && $data['input']){
-			$find = Model('User')->userSearch(array($type => $data['input']));
+		if(!$user[$type] && $input){
+			$find = Model('User')->userSearch(array($type => $input));
 			$err  = ($type == 'phone') ? LNG('ERROR_USER_EXIST_PHONE') : LNG('ERROR_USER_EXIST_EMAIL');
 			if($find){show_json($err, false);}
 		}
         return array(
             'type'      => $type,
-            'input'     => $data['input'],
+            'input'     => $input,
             'source'    => $this->pluginName.'_tfa_login',
         );
     }
 
     // 发送验证码
     private function sendCode($data) {
-        // 1.检查发送频率
-        Action('user.setting')->checkMsgFreq($data);
+        $type	= $data['type'];
+		$input	= $data['input'];
+		$source	= $data['source'];
 
-        // 2.发送验证码
-        $func = $data['type'] == 'email' ? 'sendEmail' : 'sendSms';
-		$res = Action('user.bind')->$func($data['input'], "{$data['type']}_{$data['source']}");
+        // 1.发送验证码
+        Action('user.setting')->checkMsgFreq($data);    // 检查发送频率
+        if ($type == 'email') {
+			$res = Action('user.bind')->sendEmail($input, $type.'_'.$source);
+		} else {
+			$res = Action('user.bind')->sendSms($input, $type.'_'.$source);
+		}
 		if (!$res['code']) {
 			show_json(LNG('user.sendFail') . ': ' . $res['data'], false);
 		}
+        Action('user.setting')->checkMsgFreq($data, true);
 
 		// 3.存储验证码
 		$this->checkMsgCode($res['data'], $data, true);

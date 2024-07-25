@@ -11,7 +11,8 @@
 .install-box .form-box .form-row .setting-content{text-align: left;}
 .install-box .content-main-message .check-result .env-table{text-align: left;}
 
-.install-box .form-box .form-target-save .setting-content{text-align: center;}
+.install-box .form-box .form-target-save {padding: 0px;}
+.install-box .form-box .form-target-save .setting-content{text-align: center; padding: 0px; position: relative;}
 .install-box .form-box .form-target-save .setting-title{display: none;}
 .install-box .form-box .form-target-save .form-row .setting-content{text-align: left;padding-left: 150px;}
 .install-box .form-box .form-row .setting-title .require{font-size: 16px;}
@@ -59,7 +60,8 @@
     height: 40px;
     line-height: 40px;
     margin-top: 20px;
-    font-size: 22px;
+    /* font-size: 22px; */
+    font-size: 20px;
     color: #888;
 }
 
@@ -76,7 +78,8 @@
     margin: 0px auto;
     /* padding: 20px 0px; */
     padding: 10px 0px;
-    display: table;
+    /* display: table; */
+    display: flex;
 }
 .progress-box.update>div{
     position: relative;
@@ -93,9 +96,10 @@
 }
 /* .progress-box div { */
 .progress-box>div {
-    display: table-cell;
-    text-align: center;
+    /* display: table-cell;
+    text-align: center; */
     color: #949494;
+    flex: 1;
 }
 .progress-box div .btm-line {
     width: 99%;
@@ -120,28 +124,56 @@
 }
 
 .step-box.env .env-table{
-    height: 300px;
+    /* height: 300px; */
+}
+.step-box.env .env-table>div:first-child {
+    min-height: 466px;
 }
 .step-box.env .env-table p {
     /* height: 20px; */
     display: flow-root;
+    padding: 5px;
+    margin: 0px;
+
+    display: flex;
+    align-items: center;
 }
 .step-box.env .env-table p>span {
-    display: inline-block;
+    /* display: inline-block; */
+    /* display: flex; */
     float: left;
 	line-height: 20px;
-    padding: 4px 0 0px 0;
+    /* padding: 4px 0 0px 0; */
+    padding: 4px 0px;
+}
+.step-box.env .env-table p>span.row-state {
+    display: flex;
 }
 .step-box.env .env-table p:nth-child(even) {background: #fafafa;}
 .step-box.env .env-table .row-title{color:#336;}
-.step-box.env .env-table .row-value{word-break:break-all; }
+.step-box.env .env-table .row-value{
+    /* word-break:break-all;  */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 .step-box.env .env-table .row-desc{color:#aaa;}
+.step-box.env .env-table p.php_bit .row-title, 
+.step-box.env .env-table p.php_bit .row-value, 
+.step-box.env .env-table p.php_bit .row-state {
+    /* margin-top: 10px; */
+}
 
 .step-box .icon-checkmark{
     color: #52c41a;
 }
 .step-box .icon-close1{
     color: #f5222d;
+}
+.step-box .icon-warn {
+    background: rgba(0, 0, 0, 0.02);
+    text-align: center;
+    color: #666;
 }
 
 .w10 {width: 10%;}
@@ -151,14 +183,18 @@
 .w60 {width: 60%;}
 
 .install-box .step-box.env .message-content {
-    padding-bottom: 125px;
+    /* padding-bottom: 125px; */
+    padding: 30px 0px 80px;
 }
 .install-box .step-box.env .help {
     margin-left: 10px;
+    position: absolute;
+    top: 14px;
 }
 .install-box .step-box.db .message-content,
 .install-box .step-box.user .message-content {
-    padding-bottom: 40px;
+    /* padding-bottom: 40px; */
+    padding-bottom: 30px;
 }
 .install-box .step-box.db .message-content .info-alert{
     margin-top: -25px;
@@ -190,7 +226,14 @@
 .install-box  .form-row.item-dbDescSqlite>div{
     padding-top: 0px;
 }
-
+.install-box  .form-row.item-redisMore {
+    position: absolute;
+    margin-top: -35px;
+    margin-left: 425px;
+}
+.install-box  .form-row.item-redisMore>div.setting-title {
+    display: none;
+}
 
 .icon{
     display: inline-block;
@@ -202,6 +245,8 @@
     line-height: 20px;
     font-size: 12px;
     line-height: inherit!important;
+
+    margin: 0px auto;
 }
 .common-footer{
 	position: fixed;

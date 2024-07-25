@@ -23,6 +23,9 @@ class userIndex extends Controller {
 		if( !file_exists(USER_SYSTEM . 'install.lock') ){
 			return ActionCall('install.index.check');
 		}
+		if( !file_exists(BASIC_PATH . 'config/setting_user.php') || empty($GLOBALS['config']['database'])){
+			show_tips(LNG('explorer.sysSetUserError'));
+		}
 		$this->initDB();   		//
 		Action('filter.index')->bindBefore();
 		$this->initSession();   //
@@ -67,7 +70,7 @@ class userIndex extends Controller {
 			if($action == 'user.index.index'){Cookie::disable(false);} // 带token的url跳转入口页面允许cookie输出;
 			Session::sign($sessionSign);
 		}
-		if(!Session::get('kod')){
+		if(!$GLOBALS['disableSession'] && !Session::get('kod')){
 			Session::set('kod',1);
 			if(!Session::get('kod')){show_tips(LNG('explorer.sessionSaveError'));}
 		}
@@ -251,7 +254,7 @@ class userIndex extends Controller {
 		Session::destory();
 		Cookie::remove(SESSION_ID,true);
 		Cookie::remove('kodToken');
-		del_dir($BASIC_PATH.'data/temp/_cache');
+		Action('user.sso')->logout(); // 单点登录同步跟随退出;清理缓存;
 		show_json('ok');
 	}
 

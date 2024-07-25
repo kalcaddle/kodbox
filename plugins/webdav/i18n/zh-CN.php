@@ -1,6 +1,6 @@
 <?php
 return array(
-	'webdav.meta.name'			=> "WebDAV 挂载",
+	'webdav.meta.name'			=> "WebDAV 服务",
 	'webdav.meta.title'			=> "WebDAV 挂载到网络驱动器",
 	'webdav.meta.desc'			=> "网盘文档可以通过挂在到当前电脑或APP,文件管理可以和本地硬盘一样方便快捷;同时可以实时编辑保存文件",
 	'webdav.config.isOpen'		=> "开启WebDAV服务",

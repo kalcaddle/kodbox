@@ -908,6 +908,13 @@ function fatalErrorHandler(){
 }
 
 function show_tips($message,$url= '', $time = 3,$title = ''){
+	$res = Hook::trigger("show_tips",$message,$url,$time,$title);
+	if (!empty($res) && is_array($res)) {
+		$vars = array('message', 'url', 'time', 'title');
+		foreach ($vars as $key) {
+			if (isset($res[$key])) $$key = $res[$key];
+		}
+    }
 	ob_get_clean();
 	header('Content-Type: text/html; charset=utf-8');
 	$goto = "content='$time;url=$url'";

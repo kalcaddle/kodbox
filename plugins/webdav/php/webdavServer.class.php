@@ -192,7 +192,7 @@ class webdavServer {
 		$listFile = $this->pathList($this->path);
 		$list = $this->pathListMerge($listFile);
 		$pathInfo = $listFile['current'];
-		if(!is_array($list) || $pathInfo['exists'] === false ){//不存在;
+		if(!is_array($list) || (isset($pathInfo['exists']) && $pathInfo['exists'] === false) ){//不存在;
 			return array("code" => 404,"body" => $this->errorBody('ObjectNotFound','not exist'));
 		}
 		if(isset($listFile['folderList'])){

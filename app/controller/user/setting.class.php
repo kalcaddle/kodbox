@@ -143,23 +143,24 @@ class userSetting extends Controller {
 	 * @param [type] $data
 	 * @return void
 	 */
-	public function checkMsgFreq($data){
-		$name = md5("{$data['type']}_{$data['input']}_{$data['source']}_msgtime");
-		$hours = 12;	// 缓存12小时
-		if(!$cache = Cache::get($name)) {
-			$cache = array('time' => time(), 'cnt' => 1);
-			return Cache::set($name, $cache, 3600*$hours);
+	public function checkMsgFreq($data, $set=false){
+		$cckey = md5("{$data['type']}_{$data['input']}_{$data['source']}_msgtime");
+		$cache = Cache::get($cckey);
+		// 保存
+		if ($set) {
+			$cnt   = intval(_get($cache,'cnt',0));
+			$cache = array('time' => time(), 'cnt' => $cnt++);
+			return Cache::set($cckey, $cache);
 		}
-		$tt = $data['type'] == 'email' ? 60 : 90;
-		if(($cache['time'] + $tt) > time()) {
+		// 获取
+		if (!$cache) return;
+		$time = $data['type'] == 'email' ? 60 : 90;
+		if(($cache['time'] + $time) > time()) {
 			show_json(LNG('user.codeErrorFreq'), false);
 		}
-		if($cache['cnt'] >= 10) {
-			show_json(sprintf(LNG('user.codeErrorCnt'), $hours), false);
-		}
-		$cache['cnt']++;
-		$cache['time'] = time();
-		Cache::set($name, $cache, 3600*$hours);
+		// if($cache['cnt'] >= 10) {
+		// 	show_json(sprintf(LNG('user.codeErrorCnt'), $hours), false);
+		// }
 	}
 
 	/**
@@ -338,6 +339,9 @@ class userSetting extends Controller {
 		$res = Model('User')->userSearch(array($cache['type'] => $cache['input']), 'userID');
 		if(empty($res) || $res['userID'] != $cache['userID']){
 			show_json(LNG('common.illegalRequest'), false);
+		}
+		if (!Action('user.authRole')->authCanUser('user.edit',$res['userID'])) {
+			show_json(LNG('explorer.noPermissionAction'),false,1004);
 		}
 		if (isset($data['salt'])) {
 			$data['password'] = $this->decodePwd($data['password']);

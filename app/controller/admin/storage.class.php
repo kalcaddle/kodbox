@@ -34,7 +34,7 @@ class adminStorage extends Controller {
 			if (strtolower($item['driver']) != 'local') continue;
 			$config = $this->model->getConfig($item['id']);
 			$path = $config['basePath'];
-			if (!mk_dir($path) || !is_writable($path)) {
+			if (!mk_dir($path) || !path_writeable($path)) {
 				$item['status'] = 0;
 			}
 		}

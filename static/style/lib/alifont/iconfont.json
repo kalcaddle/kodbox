@@ -6,6 +6,20 @@
   "description": "多彩图片icon",
   "glyphs": [
     {
+      "icon_id": "14465158",
+      "name": "menu-dots",
+      "font_class": "menu-dots",
+      "unicode": "e6b2",
+      "unicode_decimal": 59058
+    },
+    {
+      "icon_id": "17412495",
+      "name": "Office Apps",
+      "font_class": "OfficeApps",
+      "unicode": "e6b3",
+      "unicode_decimal": 59059
+    },
+    {
       "icon_id": "14341921",
       "name": "check",
       "font_class": "check",

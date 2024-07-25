@@ -32,41 +32,49 @@ class userRegist extends Controller {
 			'source'	=> array('check' => 'require'),
 			'checkCode'	=> array('check' => 'require'),
 		));
-		$typeList = array('setting', 'regist', 'findpwd');	// 个人设置、注册、找回密码
-		if(!in_array($data['source'], $typeList)){
+		$type	= $data['type'];
+		$input	= $data['input'];
+		$source	= $data['source'];
+
+		// 个人设置、注册、找回密码
+		if(!in_array($source, array('setting', 'regist', 'findpwd'))){
 			show_json(LNG('common.invalidRequest'), false);
 		}
-		if (!Input::check($data['input'], $data['type'])) {
-			$text = $data['type'] . ($data['type'] == 'phone' ? 'Number' : '');
+		if (!Input::check($input, $type)) {
+			$text = $type . ($type == 'phone' ? 'Number' : '');
 			show_json(LNG('common.invalid') . LNG('common.' . $text), false);
 		}
 		// 图形验证码
 		Action('user.setting')->checkImgCode($data['checkCode']);
 
 		// 1.1前端注册检测
-		if ($data['source'] == 'regist') {
+		if ($source == 'regist') {
 			$this->checkAllow();
 			$this->userRegistCheck($data);
 		}
 		// 1.2找回密码(前端找回、后端重置)检测
-		if ($data['source'] == 'findpwd') {
+		if ($source == 'findpwd') {
 			$this->userFindPwdCheck($data);
 		}
-		Action('user.setting')->checkMsgFreq($data);	// 消息发送频率检查
 
 		// 2.发送邮件/短信
-		$func = $data['type'] == 'email' ? 'sendEmail' : 'sendSms';
-		$res = Action('user.bind')->$func($data['input'], "{$data['type']}_{$data['source']}");
+		Action('user.setting')->checkMsgFreq($data);	// 消息发送频率检查
+		if ($type == 'email') {
+			$res = Action('user.bind')->sendEmail($input, $type.'_'.$source);
+		} else {
+			$res = Action('user.bind')->sendSms($input, $type.'_'.$source);
+		}
 		if (!$res['code']) {
 			show_json(LNG('user.sendFail') . ': ' . $res['data'], false);
 		}
+		Action('user.setting')->checkMsgFreq($data, true);
 
 		// 3.存储验证码
 		$param = array(
-			'type' => $data['source'],
-			'input' => $data['input']
+			'type'	=> $source,
+			'input' => $input
 		);
-		Action('user.setting')->checkMsgCode($data['type'], $res['data'], $param, true);
+		Action('user.setting')->checkMsgCode($type, $res['data'], $param, true);
 		show_json(LNG('user.sendSuccess'), true);
 	}
 

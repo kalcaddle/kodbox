@@ -93,6 +93,24 @@ class userSso extends Controller{
 		header('Location:'.$link);exit;
 	}
 	
+	// 清除sso 登录cache缓存;
+	public function logout(){
+		$ssoKey 	= 'KOD_SSO_CACHE_KEY';
+		$cachePath 	= BASIC_PATH.'data/temp/_cache/';
+		$keys 		= isset($_COOKIE[$ssoKey]) ? $_COOKIE[$ssoKey] : '';
+		if(!$keys){return;}
+		
+		$keyArr = explode(',',rawurldecode($keys));
+		foreach ($keyArr as $key){
+			$key = str_replace(array("/",'\\','?'),"_",$key);
+        	$cacheFile = $cachePath."cache_api_".$key.'.php';
+			if($key && @file_exists($cacheFile)){
+				@unlink($cacheFile);
+			}
+		}
+		Cookie::remove($ssoKey,true);
+	}
+	
 	private function urlRemoveKey($url,$key){
 		$parse = parse_url($url);
 		parse_str($parse['query'],$get);

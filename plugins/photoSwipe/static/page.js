@@ -337,7 +337,9 @@ define(function(require, exports) {
 			if(!currItem || !currItem.src){return;}
 			if(!canDownloadCheck){
 				canDownloadCheck = true;
-				if($('.share-page-main.share-not-download').length){
+				if( $('.share-page-main.share-not-download').length || 
+					(_.get(currItem,'data.pathInfo') && !_.get(currItem,'data.pathInfo.canDownload'))
+				){
 					$download.addClass('hidden');
 				}
 			}

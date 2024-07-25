@@ -86,7 +86,7 @@ class webdavPlugin extends PluginBase{
 		define('KOD_FROM_WEBDAV',1);
 		$this->allowCROS();
 		$this->dav = new webdavServerKod($uriDav);
-		$this->debug($dav);
+		$this->debug();
 		$this->dav->run();
 	}
 	
