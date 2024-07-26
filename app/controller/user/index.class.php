@@ -250,7 +250,7 @@ class userIndex extends Controller {
 		Hook::trigger('user.index.logoutBefore',$user);
 		
 		$lastLogin = time() - $GLOBALS['config']['cache']['sessionTime'] - 10;
-		Model('User')->userEdit($user['userID'],array("lastLogin"=>$lastLogin));
+		Model('User')->userEdit($user['userID'],array("lastLogin"=>$lastLogin)); 
 		Session::destory();
 		Cookie::remove(SESSION_ID,true);
 		Cookie::remove('kodToken');
