@@ -20,8 +20,13 @@ class webdavPlugin extends PluginBase{
 	public function echoJs(){
 		$config = $this->getConfig();
 		$allow  = $this->isOpen() && $this->authCheck();
+		
+		// windows PC客户端自动挂载webdav;关闭后不自动挂载;
+		$systemAutoMount = $config['systemAutoMount'] === '0' ? false:true;
+		if(!$allow){$systemAutoMount = false;}
 		$assign = array(
 			"{{isAllow}}" 	 => intval($allow),
+			'{{systemAutoMount}}'=> intval($systemAutoMount),
 			"{{pathAllow}}"	 => $config['pathAllow'],
 			"{{webdavName}}" => $this->webdavName(),
 		);

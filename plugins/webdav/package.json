@@ -2,7 +2,7 @@
 	"id":"webdav",
 	"name":"{{LNG['webdav.meta.name']}}",
 	"title":"{{LNG['webdav.meta.title']}}",
-	"version":"1.67",
+	"version":"1.68",
 	"source":{
 		"className":" font-icon ri-hard-drive-fill-2 bg-yellow-6",
 		"icon":""
@@ -17,7 +17,7 @@
 	"configItem":{
 		"formStyle":{
 			"tabs":{
-				"{{LNG['webdav.config.tab1']}}":"pluginAuthOpen,webdavName,isOpen,pluginAuth,pathAllow,sep001,echoLog,detail,detailConnect",
+				"{{LNG['webdav.config.tab1']}}":"pluginAuthOpen,webdavName,isOpen,pluginAuth,pathAllow,sep001,echoLog,systemAutoMount,detail,detailConnect",
 				"{{LNG['webdav.config.tab2']}}":"mountWebdav,mountDetail,kodboxUpload,kodboxDownload",
 			}
 		},
@@ -36,7 +36,7 @@
 			"value":0,
 			"display":"{{LNG['webdav.config.isOpen']}}",
 			"desc":"{{LNG['webdav.config.isOpenDesc']}}",
-			"switchItem":{"1":"pluginAuth,detailAddress,pathAllow,detailConnect"}
+			"switchItem":{"1":"pluginAuth,detailAddress,pathAllow,detailConnect,systemAutoMount,echoLog"}
 		},
 		"pluginAuth":{
 			"type":"userSelect",
@@ -54,6 +54,12 @@
 				"self":"<i class='ri-account-circle-fill font-icon'></i>{{LNG['webdav.config.pathAllowSelf']}}"
 			},
 			"desc":"{{LNG['webdav.config.pathAllowDesc']}}",
+		},
+		"systemAutoMount":{
+			"type":"switch",
+			"value":"1",
+			"display":"{{LNG['webdav.config.systemAutoMount']}}",
+			"desc":"{{LNG['webdav.config.systemAutoMountDesc']}}"
 		},
 		"sep001":"<hr/>",
 		"echoLog":{

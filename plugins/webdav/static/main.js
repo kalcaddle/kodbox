@@ -2,6 +2,7 @@ kodReady.push(function () {
 	G.webdavOption = {
 		host:  G.kod.APP_HOST+'index.php/dav/',
 		allow: parseInt("{{isAllow}}"),
+		systemAutoMount: parseInt("{{systemAutoMount}}"),
 		pathAllow: '{{pathAllow}}'
 	};
 	
