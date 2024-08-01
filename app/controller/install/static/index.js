@@ -34,7 +34,7 @@
                 switch (key) {
                     case 'path_writable':
                         if (val !== true) {
-                            txt = '<span title-timeout="100" title="sudo chmod -Rf 755 '+val+'">'+val+'</span>';
+                            txt = '<span title-timeout="100" title="sudo chmod -Rf 777 '+val+'">'+val+'</span>';
                             val = false;
                         }
                         break;

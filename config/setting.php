@@ -532,7 +532,8 @@ $config['authNotNeedLogin'] = array(
 	'sitemap.*',
 	'install.*',			// 安装/更新
 	'plugin.*',				// 插件排除，权限单独检测;
-	'comment.index.test'	// 临时测试;
+	'comment.index.listData',// 评论列表,权限在对应业务中自行判断;
+	'comment.index.listChildren','comment.index.test'
 );
 
 /**
