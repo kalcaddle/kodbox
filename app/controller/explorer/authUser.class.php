@@ -54,6 +54,8 @@ class explorerAuthUser extends Controller {
 		if(!$shareInfo['sourcePath'] && $shareInfo['sourceID'] != '0'){
 			$shareInfo['sourcePath'] = KodIO::make($shareInfo['sourceID']);
 		}
+		if($shareInfo['isLink'] == '0' && $shareInfo['isShareTo'] == '0'){return false;}
+		if($shareInfo['userID'] == '0'){return true;} // 系统分享,允许访问;
 		
 		// 系统分享;则不检测;
 		$isSystemSource 	= '/systemPath/systemSource/';

@@ -412,6 +412,11 @@ class explorerAuth extends Controller {
 		if($timeout > 0 && $timeout < time()){
 			return $this->errorMsg(LNG('explorer.share.expiredTips'));
 		}
+		
+		// 关闭协作分享的;
+		if($shareInfo['isShareTo'] == '0'){
+			return $this->errorMsg(LNG('explorer.share.notExist').'[status=0]');
+		}
 
 		// 内部协作分享有效性处理: 当分享者被禁用,没有分享权限,所在文件不再拥有分享权限时自动禁用外链分享;
 		if(!Action('explorer.authUser')->canShare($shareInfo)){
