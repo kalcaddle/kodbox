@@ -193,17 +193,13 @@ class userSetting extends Controller {
 	 */
 	private function userPwdCheck($data) {
 		$newpwd = Input::get('newpwd','require');
-		$salt = Input::get('salt',null, 0);
+		$newpwd = KodUser::parsePass($newpwd);
 		// 密码为空则不检查原密码
 		$info = Model('User')->getInfoSimple($this->user['userID']);
-		if(empty($info['password'])) {
-			return !$salt ? $newpwd : $this->decodePwd($newpwd);
-		} 
+		if(empty($info['password'])) return $newpwd;
+
 		$oldpwd = Input::get('oldpwd','require');
-		if ($salt == 1) {
-			$oldpwd = $this->decodePwd($oldpwd);
-			$newpwd = $this->decodePwd($newpwd);
-		}
+		$oldpwd = KodUser::parsePass($oldpwd);
 		if (!$this->model->userPasswordCheck($this->user['userID'], $oldpwd)) {
 			show_json(LNG('user.oldPwdError'), false);
 		}
@@ -211,15 +207,6 @@ class userSetting extends Controller {
 			return ActionCall('filter.userCheck.passwordTips');
 		}
 		return $newpwd;
-	}
-
-	/**
-	 * 解析密码
-	 */
-	public function decodePwd($password) {
-		$pwd = rawurldecode($password);
-		$key = substr($pwd, 0, 5) . "2&$%@(*@(djfhj1923";
-		return Mcrypt::decode(substr($pwd, 5), $key);
 	}
 
 	/**
@@ -322,13 +309,11 @@ class userSetting extends Controller {
 	 * @return type
 	 */
 	private function findPwdReset() {
-		$data = Input::getArray(array(
-			'token'	 	=> array('check' => 'require'),
-			'password'	=> array('check' => 'require'),
-			'salt'		=> array('default' => null)
-		));
+		$token = Input::get('token', 'require');
+		$password = Input::get('password', 'require');
+		$password = KodUser::parsePass($password);
 		// 检测token是否有效
-		$cache = Cache::get($data['token']);
+		$cache = Cache::get($token);
 		if(!$cache) show_json(LNG('common.errorExpiredRequest'), false);
 		if(!isset($cache['type']) || !isset($cache['input']) || !isset($cache['userID']) || !isset($cache['time'])){
 			show_json(LNG('common.illegalRequest'), false);
@@ -343,14 +328,11 @@ class userSetting extends Controller {
 		if (!Action('user.authRole')->authCanUser('user.edit',$res['userID'])) {
 			show_json(LNG('explorer.noPermissionAction'),false,1004);
 		}
-		if (isset($data['salt'])) {
-			$data['password'] = $this->decodePwd($data['password']);
-		}
-		if( !ActionCall('filter.userCheck.password',$data['password']) ){
+		if( !ActionCall('filter.userCheck.password',$password) ){
 			return ActionCall('filter.userCheck.passwordTips');
 		}
-		Cache::remove($data['token']);		
-		if (!$this->model->userEdit($res['userID'], array('password' => $data['password']))) {
+		Cache::remove($token);
+		if (!$this->model->userEdit($res['userID'], array('password' => $password))) {
 			show_json(LNG('explorer.error'), false);
 		}
 		return LNG('explorer.success');

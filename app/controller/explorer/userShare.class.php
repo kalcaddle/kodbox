@@ -389,6 +389,8 @@ class explorerUserShare extends Controller{
 		// 分享者名字;
 		$userName = $user['nickName'] ? $user['nickName']:$user['name'];
 		$displayUser = '['.$userName.']'.LNG('common.share').'-'.$sourceRoot['name'];
+		if(!$user || $user['userID'] == '0'){$displayUser = $sourceRoot['name'];}
+
 		if($share['userID'] == USER_ID){
 			$displayUser = $sourceRoot['name'];
 			$picker = 'shareID,shareHash,createTime,shareSource,isLink,isShareTo,timeTo,options,numDownload,numView';
@@ -402,7 +404,12 @@ class explorerUserShare extends Controller{
 			$source['sharePathFrom'] = LNG('explorer.toolbar.rootPath').'('.$userName.')';
 		}
 		$source['parentLevel'] = ',0,'.substr($source['parentLevel'],strlen($sourceRoot['parentLevel']));
-		$source['pathDisplay'] = $displayUser.'/'.substr($source['pathDisplay'],strlen($sourceRoot['pathDisplay']));
+		$sourceNameArr = explode('/',trim($source['pathDisplay'],'/'));
+		$sourceRootNameArr = explode('/',trim($sourceRoot['pathDisplay'],'/')); 
+
+		// 通过目录层级截取;避免类似于根目录name不一致的情况;
+		$source['pathDisplay'] = $displayUser.'/'.implode('/',array_slice($sourceNameArr,count($sourceRootNameArr)));
+		//$source['pathDisplay'] = $displayUser.'/'.substr($source['pathDisplay'],strlen($sourceRoot['pathDisplay']));
 		if($share['sourceID'] == '0'){
 			$source['parentLevel'] = '';
 			$source['pathDisplay'] = $displayUser.'/'.$pathAdd;

@@ -43,6 +43,7 @@ class userIndex extends Controller {
 		}
 	}
 	public function shutdownEvent(){
+		$GLOBALS['requestShutdownGlobal'] = true;// 请求结束后状态标记;
 		TaskQueue::addSubmit();		// 结束后有任务时批量加入
 		TaskRun::autoRun();			// 定期执行及延期任务处理;
 		CacheLock::unlockRuntime(); // 清空异常时退出,未解锁的加锁;
@@ -269,16 +270,13 @@ class userIndex extends Controller {
 		$data = Input::getArray(array(
 			"name"		=> array("check"=>"require",'lengthMax'=>100),
 			"password"	=> array('check'=>"require",'lengthMax'=>100),
-			"salt"		=> array("default"=>false),
 		));
 		$checkCode = Input::get('checkCode', 'require', '');
 		if( need_check_code() && $data['name'] != 'guest'){
 			Action('user.setting')->checkImgCode($checkCode);
 		}
-		if ($data['salt']) {
-			$key = substr($data['password'], 0, 5) . "2&$%@(*@(djfhj1923";
-			$data['password'] = Mcrypt::decode(substr($data['password'], 5), $key);
-		}
+		$data['password'] = KodUser::parsePass($data['password']);
+
 		$user = $this->userInfo($data['name'],$data['password']);
 		if (!is_array($user)){
 			show_json($this->loginErrMsg($user),false);
@@ -354,7 +352,7 @@ class userIndex extends Controller {
 	}
 	
 	/**
-	 * app端请求
+	 * app端请求——弃用？
 	 */
 	private function findPwdWidthApp(){
 		// api，直接填写手机/邮箱验证码、密码进行修改
@@ -427,7 +425,7 @@ class userIndex extends Controller {
 		}
 		
 		$userID  = Session::get('kodUser.userID');
-		$timeout = $timeout ? $timeout : 3600*24*3;
+		$timeout = $timeout ? $timeout : 3600*24*30; // 咱不使用, 默认一直有效;
 		$param   = '';
 		$keyList = array(strtolower($action));
 		$signArr = array(strtolower($action),$appSecret);

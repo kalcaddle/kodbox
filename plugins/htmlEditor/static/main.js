@@ -113,6 +113,9 @@ kodReady.push(function(){
 		
 		form.editor = form.$('.tox-tinymce').data('editor');
 		if(form.editor){form.editor.focus();}
+		$(form.editor.editorContainer).bind('click',function(e){
+			$('.tox.tox-tinymce-aux').zIndexMax();
+		});
 		
 		form.$el.attr('title-root-set','1').attr('title-timeout','100');//title延迟时间统一缩短;
 		var title   = 'title="'+LNG['common.save'] + '(ctrl+s)"';

@@ -123,16 +123,25 @@ class explorerUpload extends Controller{
 			$path = (!$pathBase ? $inPath : $pathBase) . '/' . $inPath;
 		}
 		$paramMore = $this->getParamMore();
-		$result = IO::multiUploadAuthData($path, $paramMore);
+		$result = IO::uploadMultiAuth($path, $paramMore);
 		show_json($result, true);
 	}
 
 	// 获取paramMore，兼容json和数组
 	private function getParamMore(){
 		if(!isset($this->in['paramMore'])) return array();
-		if(is_array($this->in['paramMore'])) return $this->in['paramMore'];
-		if($paramMore = json_decode($this->in['paramMore'], true)) return $paramMore;
-		return array();
+		$paramMore = $this->in['paramMore'];
+		if (!is_array($paramMore)) {
+			$paramMore = json_decode($paramMore, true);
+			if (!$paramMore) return array();
+		}
+		// 兼容旧版 ext:?partNumber=1&uploadId=xxx
+		if (!empty($paramMore['ext'])) {
+			$query = parse_url_query($paramMore['ext']);
+			if (is_array($query)) $paramMore = array_merge($paramMore, $query);	// partNumber, uploadId
+			// unset($paramMore['ext']);
+		}
+		return $paramMore;
 	}
 
 	//秒传及断点续传处理

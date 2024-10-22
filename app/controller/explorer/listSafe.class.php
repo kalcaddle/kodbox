@@ -66,6 +66,22 @@ class explorerListSafe extends Controller{
 	// 私密空间子列表处理(未登录提示登录; 已登录子内容追加标记)
 	private function appendSafeChildren(&$data){
 		$pathInfo = $data['current'];
+		
+		// 私密保险箱根目录, 追加应用根目录入口;
+		if($pathInfo['parentID'] == 0 && _get($pathInfo,'metaInfo.pathSafeFolderUser')){
+			$userInfo = Model('User')->getInfoFull($pathInfo['targetID']);
+			$userAppRoot = _get($userInfo,'metaInfo.pathAppRoot','');
+			if($userAppRoot){
+				$data['folderList'][] = array(
+					'name'		=> LNG('explorer.appFolder'),
+					'path'		=> '{source:'.$userAppRoot.'}/',
+					'icon'		=> 'kod-box',//kod-box kod-folder2
+					'type'		=> 'folder','pathReadOnly'=>true,
+					'pathDesc'	=> LNG('explorer.appFolder'),
+					'metaInfo' 	=> array('systemSort'=>3000000000,'systemSortHidden'=>true),
+				);
+			}
+		}
 		if(!isset($pathInfo['sourceAt']) || $pathInfo['sourceAt'] != 'pathSafeSpace'){return;}
 
 		$spaceInfo = $this->spaceInfo();
@@ -139,7 +155,7 @@ class explorerListSafe extends Controller{
 			'path'	=> '{block:safe}/',
 			'type'	=> 'folder',
 			'pathDesc'	=> LNG('explorer.safe.desc'),
-			'pathSafe'	=> $type,
+			'pathSafe'	=> $type,'pathReadOnly'=>true,
 			'metaInfo' 	=> array('systemSort'=>3000000000,'systemSortHidden'=>true),
 		);
 		if($type != 'isLogin'){

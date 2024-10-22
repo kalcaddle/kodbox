@@ -44,10 +44,10 @@ class ServerInfo {
         $info1  = explode(" ", preg_replace("!cpu +!", "", $stat1));
         $info2  = explode(" ", preg_replace("!cpu +!", "", $stat2));
         $dif    = array();
-        $dif['user']    = $info2[0] - $info1[0];
-        $dif['nice']    = $info2[1] - $info1[1];
-        $dif['sys']     = $info2[2] - $info1[2];
-        $dif['idle']    = $info2[3] - $info1[3];
+        $dif['user']    = floatval($info2[0]) - floatval($info1[0]);
+        $dif['nice']    = floatval($info2[1]) - floatval($info1[1]);
+        $dif['sys']     = floatval($info2[2]) - floatval($info1[2]);
+        $dif['idle']    = floatval($info2[3]) - floatval($info1[3]);
         $total  = array_sum($dif);
         return round(($total - $dif['idle']) / $total, 3);
     }
@@ -86,7 +86,7 @@ class ServerInfo {
         $data = array();
         foreach($list as $value) {
             $tmp = explode(':', $value);
-            $data[] = (float) trim($tmp[1]);
+            $data[] = floatval(trim($tmp[1]));
         }
         $data = array(
             'total' => $data[0] * 1024,

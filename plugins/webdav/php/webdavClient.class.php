@@ -29,6 +29,8 @@ class webdavClient {
 		
 		// 不同CURLOPT_HTTPAUTH 账号密码加解密处理; CURLAUTH_DIGEST
 		$authHeader = _get($data,'header.WWW-Authenticate');$authCheck  = 'Digest';
+		// TODO header.WWW-Authenticate可能是个数组，有多种认证方式（Basic、Digest、Negotiate、NTLM等）
+		if (is_array($authHeader)) $authHeader = $authHeader[0];
 		if(!$data['status'] && substr($authHeader,0,strlen($authCheck)) == $authCheck){
 			$this->lastRequest = false;
 			$this->options['authType'] = 'Digest';
@@ -180,6 +182,17 @@ class webdavClient {
 		curl_setopt($ch, CURLOPT_USERAGENT,'webdav/kodbox 1.0');
 		curl_setopt($ch, CURLOPT_REFERER,get_url_link($requestUrl));
 		curl_setopt($ch, CURLOPT_TIMEOUT,$timeout);
+		
+		// location跳转时;referer 处理(默认会带入最开始的url; alist挂载阿里云盘兼容处理)
+		if(defined('CURLOPT_HEADERFUNCTION')){
+			curl_setopt($ch, CURLOPT_HEADERFUNCTION,function($ch,$header){
+				if(stristr($header,'location:') && stristr($header,'.aliyundrive.')){
+					curl_setopt($ch, CURLOPT_REFERER,'');
+				}
+				return strlen($header);
+			});
+		}
+		
 		if($getFileInfo){$this->getFile($ch,$getFileInfo);}
 		if($putFileInfo){$this->putFile($ch,$putFileInfo);}
 		curl_setopt($ch, CURLOPT_HTTPHEADER, $this->header);

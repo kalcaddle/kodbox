@@ -209,7 +209,7 @@ class S3 {
 	 * Set Signature Version.
 	 * @param string $version of signature ('v4' or 'v2')
 	 */
-	public function setSignatureVersion($version = 'v2') {
+	public function setSignVersion($version = 'v2') {
 		$this->signVer = $version;
 	}
 
@@ -316,7 +316,7 @@ class S3 {
 	 * @return array | false
 	 */
 	public function listBuckets($detailed = false) {
-		$rest = $this->s3Request('GET', '', '', $this->endpoint);
+		$rest = $this->s3Request('GET');
 		$rest = $rest->getResponse();
 		if (!$body = $this->__execReponse($rest, __FUNCTION__))
 			return false;
@@ -373,7 +373,7 @@ class S3 {
 		$nextMarker = null;
 		do{
 			check_abort();
-			$rest = $this->s3Request('GET', $bucket, '', $this->endpoint);
+			$rest = $this->s3Request('GET', $bucket);
 			if ($maxKeys == 0) {
 				$maxKeys = null;
 			}
@@ -442,7 +442,7 @@ class S3 {
 	 * @return bool
 	 */
 	public function putBucket($bucket, $acl = self::ACL_PRIVATE, $location = false) {
-		$rest = $this->s3Request('PUT', $bucket, '', $this->endpoint);
+		$rest = $this->s3Request('PUT', $bucket);
 		$rest->setAmzHeader('x-amz-acl', $acl);
 
 		if ($location === false) {
@@ -470,7 +470,7 @@ class S3 {
 	 * @return bool
 	 */
 	public function deleteBucket($bucket) {
-		$rest = $this->s3Request('DELETE', $bucket, '', $this->endpoint);
+		$rest = $this->s3Request('DELETE', $bucket);
 		$rest = $rest->getResponse();
 		$code = $rest->code == '200' ? 200 : 204;
 		return $this->__execReponse($rest, __FUNCTION__, 1, array($bucket), $code);
@@ -482,7 +482,7 @@ class S3 {
 	 * @return void
 	 */
 	public function getBucketRegion($bucket) {
-		$rest = $this->s3Request('GET', $bucket, '', $this->endpoint);
+		$rest = $this->s3Request('GET', $bucket);
 		$rest->setParameter('location', '');
 		$rest = $rest->getResponse();
 
@@ -498,7 +498,7 @@ class S3 {
 	 * @return void
 	 */
 	public function getBucketCors($bucket) {
-		$rest = $this->s3Request('GET', $bucket, '', $this->endpoint);
+		$rest = $this->s3Request('GET', $bucket);
 		$rest->setParameter('cors', '');
 		$rest = $rest->getResponse();
 
@@ -514,7 +514,7 @@ class S3 {
 	 * @return void
 	 */
 	public function setBucketCors($bucket) {
-		$xmlStr = "<?xml version='1.0' encoding='UTF-8'?><CORSConfiguration>"
+		$xmlStr = "<?xml version='1.0' encoding='UTF-8'?><CORSConfiguration xmlns='http://s3.amazonaws.com/doc/2006-03-01/'>"
 					. "<CORSRule>"
 					. "<AllowedOrigin>*</AllowedOrigin>"
 					. "<AllowedMethod>GET</AllowedMethod>"
@@ -530,7 +530,7 @@ class S3 {
 		$xml = new SimpleXMLElement($xmlStr);
 		$body = $xml->asXML();
 
-		$rest = $this->s3Request('PUT', $bucket, '', $this->endpoint);
+		$rest = $this->s3Request('PUT', $bucket);
 		$rest->setHeader('Content-Type', 'application/xml');
 		$rest->setHeader('Content-MD5', $this->__base64(md5($body)));
 		$rest->setHeader('Content-Length', strlen($body));
@@ -609,7 +609,7 @@ class S3 {
 		if ($input === false) {
 			return false;
 		}
-		$rest = $this->s3Request('PUT', $bucket, $uri, $this->endpoint);
+		$rest = $this->s3Request('PUT', $bucket, $uri);
 
 		if (!is_array($input)) {
 			$input = array(
@@ -730,7 +730,7 @@ class S3 {
 	 * @return bool
 	 */
 	public function getUploadId($bucket, $uri, $metaHeaders = array(), $requestHeaders = array()) {
-		$rest = $this->s3Request('POST', $bucket, $uri, $this->endpoint);
+		$rest = $this->s3Request('POST', $bucket, $uri);
 		$rest->setParameter('uploads', '');
 		foreach ($requestHeaders as $h => $v) {
 			strpos($h, 'x-amz-') === 0 ? $rest->setAmzHeader($h, $v) : $rest->setHeader($h, $v);
@@ -770,6 +770,8 @@ class S3 {
 			$requestHeaders = array(
 				'x-amz-copy-source'			 => sprintf('/%s/%s', $srcBucket, rawurlencode($file)),
 				'x-amz-copy-source-range'	 => "bytes={$fromPos}-{$toPos}",
+				'Content-Length' 			 => 0,	// TODO
+				// 'Content-Length' 			 => (int) $piece[self::AMZ_LENGTH],	// TODO
 			);
 			$tryCnt = 0;
 			do {
@@ -860,7 +862,7 @@ class S3 {
 		$xml = new SimpleXMLElement($xmlStr);
 		$body = $xml->asXML();
 
-		$rest = $this->s3Request('POST', $bucket, $uri, $this->endpoint);
+		$rest = $this->s3Request('POST', $bucket, $uri);
 		$rest->setHeader('Content-Type', 'application/octet-stream');
 		$rest->setHeader('Content-MD5', $this->__base64(md5($body)));
 		$rest->setHeader('Content-Length', strlen($body));
@@ -888,7 +890,7 @@ class S3 {
 	 * @return bool|\S3Request
 	 */
 	public function uploadPart($bucket, $uri, $partNumber, $uploadId, $requestHeaders = array(), $data = array()) {
-		$rest = $this->s3Request('PUT', $bucket, $uri, $this->endpoint);
+		$rest = $this->s3Request('PUT', $bucket, $uri);
 
 		if (isset($data['offset'])) {
 			if($this->signVer == 'v4'){
@@ -931,7 +933,7 @@ class S3 {
 	 * @return boolean
 	 */
 	public function listParts($bucket, $uri, $uploadId) {
-		$rest = $this->s3Request('GET', $bucket, $uri, $this->endpoint);
+		$rest = $this->s3Request('GET', $bucket, $uri);
 		$rest->setParameter('uploadId', $uploadId);
 
 		$response = $rest->getResponse();
@@ -1037,7 +1039,7 @@ class S3 {
 	 * @return mixed
 	 */
 	public function getObject($bucket, $uri, $requestHeaders = array(), $saveTo = false) {
-		$rest = $this->s3Request('GET', $bucket, $uri, $this->endpoint);
+		$rest = $this->s3Request('GET', $bucket, $uri);
 		foreach ($requestHeaders as $h => $v) {
 			strpos($h, 'x-amz-') === 0 ? $rest->setAmzHeader($h, $v) : $rest->setHeader($h, $v);
 		}
@@ -1073,7 +1075,7 @@ class S3 {
 	 * @return mixed | false
 	 */
 	public function getObjectInfo($bucket, $uri, $returnInfo = true) {
-		$rest = $this->s3Request('HEAD', $bucket, $uri, $this->endpoint);
+		$rest = $this->s3Request('HEAD', $bucket, $uri);
 		$rest = $rest->getResponse();
 
 		if ($rest->error === false && ($rest->code !== 200 && $rest->code !== 404)) {
@@ -1103,7 +1105,7 @@ class S3 {
 	 * @return mixed | false
 	 */
 	public function copyObject($srcBucket, $srcUri, $bucket, $uri, $acl = self::ACL_PRIVATE, $metaHeaders = array(), $requestHeaders = array(), $storageClass = self::STORAGE_CLASS_STANDARD, $returnBody = false) {
-		$rest = $this->s3Request('PUT', $bucket, $uri, $this->endpoint);
+		$rest = $this->s3Request('PUT', $bucket, $uri);
 		$rest->setHeader('Content-Length', 0);
 		foreach ($requestHeaders as $h => $v) {
 			strpos($h, 'x-amz-') === 0 ? $rest->setAmzHeader($h, $v) : $rest->setHeader($h, $v);
@@ -1136,7 +1138,7 @@ class S3 {
 	 * @return mixed | false
 	 */
 	public function getAccessControlPolicy($bucket, $uri = '') {
-		$rest = $this->s3Request('GET', $bucket, $uri, $this->endpoint);
+		$rest = $this->s3Request('GET', $bucket, $uri);
 		$rest->setParameter('acl', null);
 		$rest = $rest->getResponse();
 		
@@ -1155,7 +1157,7 @@ class S3 {
 	 * @return bool
 	 */
 	public function deleteObject($bucket, $uri) {
-		$rest = $this->s3Request('DELETE', $bucket, $uri, $this->endpoint);
+		$rest = $this->s3Request('DELETE', $bucket, $uri);
 		$rest = $rest->getResponse();
 		$code = $rest->code == '200' ? 200 : 204;
 		return $this->__execReponse($rest, __FUNCTION__, 1, array(), $code);
@@ -1170,17 +1172,16 @@ class S3 {
 	 * @return bool
 	 */
 	public function deleteObjects($bucket, $data) {
-		$xml = new SimpleXMLElement('<?xml version="1.0" encoding="utf-8"?><Delete/>');
+		$xml = new SimpleXMLElement('<?xml version="1.0" encoding="UTF-8"?><Delete></Delete>');
 		// add the objects
 		foreach ($data as $object) {
 			$xmlObject = $xml->addChild('Object');
 			$node = $xmlObject->addChild('Key');
 			$node[0] = $object;
 		}
-		$xml->addChild('Quiet', true);
+		// $xml->addChild('Quiet', true);	// cloudflare r2 添加此项报错：MalformedXML
 		$body = $xml->asXML();
-
-		$rest = $this->s3Request('POST', $bucket, '', $this->endpoint);
+		$rest = $this->s3Request('POST', $bucket);
 		$rest->setHeader('Content-Type', 'application/octet-stream');
 		$rest->setHeader('Content-MD5', $this->__base64(md5($body)));
 		$rest->setHeader('Content-Length', strlen($body));
@@ -1192,7 +1193,7 @@ class S3 {
 	}
 
 	/**
-	 * Get a query string authenticated URL.
+	 * Get a query string authenticated URL ——v2
 	 * https://oos-cn.ctyunapi.cn/docs/oos/S3%E5%BC%80%E5%8F%91%E8%80%85%E6%96%87%E6%A1%A3-v6.pdf
 	 * @param string $bucket     Bucket name
 	 * @param string $uri        Object URI
@@ -1200,45 +1201,45 @@ class S3 {
 	 *
 	 * @return string
 	 */
-	public function getAuthenticatedURL($bucket, $uri, $lifetime, $subResource = array()){
-		// $expires = $this->__getTime() + $lifetime;
-		$expires = strtotime(date('Ymd 23:59:59')); // kodbox：签名链接有效期，改为当天有效
+	public function getPreSignedV2URL($bucket, $uri, $lifetime, $verb = 'GET', $options = array()){
+		$expires = $this->__getTime() + $lifetime;
+		if (strtolower($verb) == 'get') {
+			$expires = strtotime(date('Ymd 23:59:59')); // kodbox：签名链接有效期，改为当天有效
+		}
 		// $uri = str_replace(array('%2F', '%2B'), array('/', '+'), rawurlencode($uri));	// 文件名含+时会导致签名错误
 		$uri = str_replace('%2F', '/', rawurlencode($uri));
-		ksort($subResource);
-		$ext = http_build_query($subResource);
+		ksort($options);
+		$ext = http_build_query($options);
+		// $ext = http_build_query($options, null, '&', PHP_QUERY_RFC3986);
+		$contentType = $verb == 'PUT' ? 'application/octet-stream' : '';
 		$url = sprintf(
 			'%s/%sAWSAccessKeyId=%s&Expires=%u&Signature=%s', 
 			$this->endpoint, 
 			$uri . '?' . $ext . ($ext ? '&' : ''),
 			$this->__accessKey, 
 			$expires, 
-			urlencode($this->__getHash("GET\n\n\n{$expires}\n/{$bucket}/{$uri}".($ext ? '?' . urldecode($ext) : '')))
+			urlencode($this->__getHash("{$verb}\n\n{$contentType}\n{$expires}\n/{$bucket}/{$uri}".($ext ? '?' . urldecode($ext) : '')))
 		);
 		return $url;
 	}
 
 	/**
-	 * Get object authenticated url v4
-	 * @param type $access_key
-	 * @param type $secret_key
+	 * Get object authenticated url ——v4
 	 * @param type $bucket
-	 * @param type $canonical_uri
+	 * @param type $uri
 	 * @param type $expires
-	 * @param type $region
 	 * @param type $extra_headers
-	 * @param type $preview
 	 * @return string
 	 */
-	public function getObjectUrl($access_key, $secret_key, $bucket, $canonical_uri, $expires = 0, $region = 'us-east-1', $extra_headers = array(), $preview = true, $paramsAdd=array()) {
-		$encoded_uri = '/' . str_replace('%2F', '/', rawurlencode($canonical_uri));
+	public function getPreSignedV4URL($bucket, $uri, $expires = 0, $extra_headers = array(), $verb = 'GET', $options = array()) {
+		$encoded_uri = '/' . str_replace('%2F', '/', rawurlencode($uri));
 		$signed_headers = array();
 		foreach ($extra_headers as $key => $value) {
 			$signed_headers[strtolower($key)] = $value;
 		}
 		if (!array_key_exists('host', $signed_headers)) {
-			$res = parse_url($this->endpoint);
-			$signed_headers['host'] = $res['host'];
+			$parse = parse_url($this->endpoint);
+			$signed_headers['host'] = $parse['host'];
 		}
 		ksort($signed_headers);
 		$header_string = '';
@@ -1246,34 +1247,36 @@ class S3 {
 			$header_string .= $key . ':' . trim($value) . "\n";
 		}
 		$signed_headers_string = implode(';', array_keys($signed_headers));
+		$signed_headers_string = strtolower($signed_headers_string);
+
 		$date_text = gmdate('Ymd');
-		// $time_text = gmdate('Ymd\THis\Z');
+		$time_text = gmdate('Ymd\THis\Z');
+		if (strtolower($verb) == 'get') {
+			$time_text = gmdate('Ymd\T000000\Z');
+			$expires = 3600*24;	// kodbox：签名链接有效期，改为当天有效
+		}
 
-		$time_text = gmdate('Ymd\T000000\Z');
-		$expires = 3600*24;	// kodbox：签名链接有效期，改为当天有效
-
+		$region = $this->getRegion();
 		$algorithm = 'AWS4-HMAC-SHA256';
 		$scope = "$date_text/$region/s3/aws4_request";
 		$x_amz_params = array(
-			'response-content-disposition'	 => $preview ? 'inline' : 'attachment',
+			// 'response-content-disposition'	 => $preview ? 'inline' : 'attachment',
 			'X-Amz-Algorithm'				 => $algorithm,
-			'X-Amz-Credential'				 => $access_key . '/' . $scope,
+			'X-Amz-Credential'				 => $this->__accessKey . '/' . $scope,
 			'X-Amz-Date'					 => $time_text,
 			'X-Amz-SignedHeaders'			 => $signed_headers_string,
 		);
-		$x_amz_params = array_merge($x_amz_params,$paramsAdd);
-		if ($expires > 0) {
-			$x_amz_params['X-Amz-Expires'] = $expires;
-		}
+		$x_amz_params = array_merge($x_amz_params,$options);
+		if ($expires > 0) $x_amz_params['X-Amz-Expires'] = $expires;
 		ksort($x_amz_params);
 		$query_string_items = array();
 		foreach ($x_amz_params as $key => $value) {
 			$query_string_items[] = rawurlencode($key) . '=' . rawurlencode($value);
 		}
 		$query_string = implode('&', $query_string_items);
-		$canonical_request = "GET\n$encoded_uri\n$query_string\n$header_string\n$signed_headers_string\nUNSIGNED-PAYLOAD";
+		$canonical_request = "$verb\n$encoded_uri\n$query_string\n$header_string\n$signed_headers_string\nUNSIGNED-PAYLOAD";
 		$string_to_sign = "$algorithm\n$time_text\n$scope\n" . hash('sha256', $canonical_request, false);
-		$signing_key = hash_hmac('sha256', 'aws4_request', hash_hmac('sha256', 's3', hash_hmac('sha256', $region, hash_hmac('sha256', $date_text, 'AWS4' . $secret_key, true), true), true), true);
+		$signing_key = hash_hmac('sha256', 'aws4_request', hash_hmac('sha256', 's3', hash_hmac('sha256', $region, hash_hmac('sha256', $date_text, 'AWS4' . $this->__secretKey, true), true), true), true);
 		$signature = hash_hmac('sha256', $string_to_sign, $signing_key);
 
 		$host = $this->endpoint;
@@ -1289,7 +1292,7 @@ class S3 {
 	 * @param string   $uriPrefix       Object URI prefix
 	 * @param constant $acl             ACL constant
 	 * @param int      $lifetime        Lifetime in seconds
-	 * @param int      $maxFileSize     Maximum filesize in bytes (default 5MB)
+	 * @param int      $maxFileSize     Maximum filesize in bytes (default 5MB => 10MB)
 	 * @param string   $successRedirect Redirect URL or 200 / 201 status code
 	 * @param array    $amzHeaders      Array of x-amz-meta-* headers
 	 * @param array    $headers         Array of request headers or content type as a string
@@ -1478,80 +1481,55 @@ class S3 {
 	 * @param array  $headers
 	 * @param string $method
 	 * @param string $uri
-	 * @param string $data
+	 * @param string $parameters
 	 *
 	 * @return array $headers
 	 */
-	public function __getSignatureV4($aHeaders, $headers, $method = 'GET', $uri = '', $data = '') {
+	// https://docs.aws.amazon.com/zh_cn/AmazonS3/latest/API/sig-v4-authenticating-requests.html
+	// https://docs.aws.amazon.com/zh_cn/IAM/latest/UserGuide/create-signed-request.html
+	public function __getSignatureV4($amzHeaders, $headers, $method = 'GET', $uri = '', $parameters = array()) {
 		$service = 's3';
 		$region = $this->getRegion();
 
 		$algorithm = 'AWS4-HMAC-SHA256';
-		$amzHeaders = array();
-		$amzRequests = array();
+		$combinedHeaders = array();
 
-		$amzDate = gmdate('Ymd\THis\Z');
-		$amzDateStamp = gmdate('Ymd');
+		$amzDateStamp = substr($amzHeaders['x-amz-date'], 0, 8);
 
-		// amz-date ISO8601 format ? for aws request
-		$amzHeaders['x-amz-date'] = $amzDate;
+		$this->makeHeaders($headers,$combinedHeaders);
+		$this->makeHeaders($amzHeaders,$combinedHeaders,true);
 
-		// CanonicalHeaders
-		foreach ($headers as $k => $v) {
-			$amzHeaders[strtolower($k)] = trim($v);
-		}
-		foreach ($aHeaders as $k => $v) {
-			$amzHeaders[strtolower($k)] = trim($v);
-		}
-		$x_amz_content_sha256 = isset($amzHeaders['x-amz-content-sha256']) ? $amzHeaders['x-amz-content-sha256'] : hash('sha256', $data);
-		unset($amzHeaders['x-amz-content-sha256']);
-		uksort($amzHeaders, 'strcmp');
+		// Convert null query string parameters to strings and sort
+		$parameters = array_map('strval', $parameters); 
+		uksort($parameters, array(&$this, '__sortMetaHeadersCmp'));
+		$queryString = http_build_query($parameters, null, '&', PHP_QUERY_RFC3986);
 
-		// payload
-		// $payloadHash = isset($amzHeaders['x-amz-content-sha256']) ? $amzHeaders['x-amz-content-sha256'] : hash('sha256', $data);
-		$payloadHash = $x_amz_content_sha256;
+		// Payload
+		$amzPayload = array($method);
 
-		// parameters
-		$parameters = array();
-		if (strpos($uri, '?')) {
-			list($uri, $query_str) = @explode('?', $uri);
-			parse_str($query_str, $parameters);
-		}
+		$qsPos = strpos($uri, '?');
+		$amzPayload[] = ($qsPos === false ? $uri : substr($uri, 0, $qsPos));
 
-		// CanonicalRequests
-		$amzRequests[] = $method;
-		$uriQmPos = strpos($uri, '?');
-		$amzRequests[] = ($uriQmPos === false ? $uri : substr($uri, 0, $uriQmPos));
-		ksort($parameters);
-		$amzRequests[] = str_replace('+','%20',http_build_query($parameters));	// 空格会被转义为+，导致签名错误
+		$amzPayload[] = $queryString;
 		// add header as string to requests
-		foreach ($amzHeaders as $k => $v) {
-			$amzRequests[] = $k . ':' . $v;
+		foreach ($combinedHeaders as $k => $v ) {
+			$amzPayload[] = $k . ':' . $v;
 		}
 		// add a blank entry so we end up with an extra line break
-		$amzRequests[] = '';
+		$amzPayload[] = '';
 		// SignedHeaders
-		$amzRequests[] = implode(';', array_keys($amzHeaders));
+		$amzPayload[] = implode(';', array_keys($combinedHeaders));
 		// payload hash
-		$amzRequests[] = $payloadHash;
+		$amzPayload[] = $amzHeaders['x-amz-content-sha256'];
 		// request as string
-		$amzRequestStr = implode("\n", $amzRequests);
+		$amzPayloadStr = implode("\n", $amzPayload);
 
 		// CredentialScope
-		$credentialScope = array();
-		$credentialScope[] = $amzDateStamp;
-		$credentialScope[] = $region;
-		$credentialScope[] = $service;
-		$credentialScope[] = 'aws4_request';
+		$credentialScope = array($amzDateStamp, $region, $service, 'aws4_request');
 
 		// stringToSign
-		$stringToSign = array();
-		$stringToSign[] = $algorithm;
-		$stringToSign[] = $amzDate;
-		$stringToSign[] = implode('/', $credentialScope);
-		$stringToSign[] = hash('sha256', $amzRequestStr);
-		// as string
-		$stringToSignStr = implode("\n", $stringToSign);
+		$stringToSignStr = implode("\n", array($algorithm, $amzHeaders['x-amz-date'], 
+		implode('/', $credentialScope), hash('sha256', $amzPayloadStr)));
 
 		// Make Signature
 		$kSecret = 'AWS4' . $this->__secretKey;
@@ -1561,24 +1539,26 @@ class S3 {
 		$kSigning = hash_hmac('sha256', 'aws4_request', $kService, true);
 
 		$signature = hash_hmac('sha256', $stringToSignStr, $kSigning);
-
-		$authorization = array(
+		return $algorithm . ' ' . implode(',', array(
 			'Credential=' . $this->__accessKey . '/' . implode('/', $credentialScope),
-			'SignedHeaders=' . implode(';', array_keys($amzHeaders)),
+			'SignedHeaders=' . implode(';', array_keys($combinedHeaders)),
 			'Signature=' . $signature,
-		);
-
-		$authorizationStr = $algorithm . ' ' . implode(',', $authorization);
-
-		$resultHeaders = array(
-			'X-AMZ-DATE'	 => $amzDate,
-			'Authorization'	 => $authorizationStr,
-		);
-		if (!isset($aHeaders['x-amz-content-sha256'])) {
-			$resultHeaders['x-amz-content-sha256'] = $payloadHash;
+		));
+	}
+	private function makeHeaders($amzHeaders,&$headers,$sort=false,$make=false) {
+		foreach ($amzHeaders as $k => $v) {
+			if (strlen(trim($v)) <= 0) continue;
+			$headers[strtolower($k)] = trim($v);
 		}
-
-		return $resultHeaders;
+		if ($sort) uksort($headers, array(&$this, '__sortMetaHeadersCmp'));
+		if ($make) {
+			$data = array();
+			foreach ($headers as $k => $v ) {
+				$data[] = $k . ':' . $v;
+			}
+			$headers = $data;
+		}
+		return $headers;
 	}
 
 
@@ -1587,7 +1567,6 @@ class S3 {
 	 * @return void
 	 */
 	public function resetVariable(){
-		$this->endpoint = null;
 		$this->verb = null;				// Verb.
 		$this->bucket = null;			// S3 bucket name.
 		$this->uri = null;				// Object URI.
@@ -1612,18 +1591,17 @@ class S3 {
 	 * @param string $verb     Verb
 	 * @param string $bucket   Bucket name
 	 * @param string $uri      Object URI
-	 * @param string $endpoint AWS endpoint URI
 	 *
 	 * @return mixed
 	 */
-	public function s3Request($verb, $bucket = '', $uri = '', $endpoint = 's3.amazonaws.com') {
+	public function s3Request($verb, $bucket = '', $uri = '') {
 		$this->resetVariable();
-		$this->endpoint = $endpoint;
 		$this->verb = $verb;
 		$this->bucket = $bucket;
 		$this->uri = $uri !== '' ? '/' . str_replace('%2F', '/', rawurlencode($uri)) : '/';
 
-		$this->headers['Host'] = get_url_domain($endpoint);
+		$this->headers['Host'] = get_url_domain($this->endpoint);
+		// $this->headers['Host'] = get_url_domain($this->endpoint) . ':8888';
 		if ($this->bucket !== '') {
 			// 包含'_'时会导致bucket重复，前端已做检查，此处忽略
 			if ($this->__dnsBucketName($this->bucket)) {
@@ -1747,60 +1725,48 @@ class S3 {
 		}
 
 		// Headers
-		$headers = array();
-		$amz = array();
-		foreach ($this->amzHeaders as $header => $value) {
-			if (strlen($value) > 0) {
-				$headers[] = $header . ': ' . $value;
-			}
-		}
-		foreach ($this->headers as $header => $value) {
-			if (strlen($value) > 0) {
-				$headers[] = $header . ': ' . $value;
-			}
-		}
-
-		// Collect AMZ headers for signature
-		foreach ($this->amzHeaders as $header => $value) {
-			if (strlen($value) > 0) {
-				$amz[] = strtolower($header) . ':' . $value;
-			}
-		}
-
-		// AMZ headers must be sorted
-		if (sizeof($amz) > 0) {
-			//sort($amz);
-			usort($amz, array(&$this, '__sortMetaHeadersCmp'));
-			$amz = "\n" . implode("\n", $amz);
-		} else {
-			$amz = '';
-		}
-
+		$httpHeaders = array();
 		if ($this->hasAuth()) {
+			if ($this->signVer == 'v4') {
+				$this->amzHeaders['x-amz-date'] = gmdate('Ymd\THis\Z');
+				if (!isset($this->amzHeaders['x-amz-content-sha256'])) {
+					$this->amzHeaders['x-amz-content-sha256'] = hash('sha256', $this->data);
+				}
+			}
+			foreach ($this->amzHeaders as $header => $value) {
+				if (strlen($value) > 0) $httpHeaders[] = $header.': '.$value;
+			}
+			foreach ($this->headers as $header => $value) {
+				if (strlen($value) > 0) $httpHeaders[] = $header.': '.$value;
+			}
 			// Authorization string (CloudFront stringToSign should only contain a date)
 			if ($this->headers['Host'] == 'cloudfront.amazonaws.com') {
-				$headers[] = 'Authorization: ' . $this->__getSignature($this->headers['Date']);
+				$httpHeaders[] = 'Authorization: ' . $this->__getSignature($this->headers['Date']);
 			} else {
 				if ($this->signVer == 'v2') {
-					$headers[] = 'Authorization: ' . $this->__getSignature(
+					$amzHeaders = array();
+					$this->makeHeaders($this->amzHeaders,$amzHeaders,true,true);
+					$httpHeaders[] = 'Authorization: ' . $this->__getSignature(
 							$this->getVerb() . "\n" .
 							$this->headers['Content-MD5'] . "\n" .
 							$this->headers['Content-Type'] . "\n" .
-							$this->headers['Date'] . $amz . "\n" .
+							$this->headers['Date'] . "\n" .
+							($amzHeaders ? implode("\n", $amzHeaders)."\n" : "") .
 							$this->resource
 					);
 				} else {
-					$amzHeaders = $this->__getSignatureV4(
-							$this->amzHeaders, $this->headers, $this->getVerb(), $this->uri, $this->data
+					$httpHeaders[] = 'Authorization: ' . $this->__getSignatureV4(
+						$this->amzHeaders,
+						$this->headers, 
+						$this->getVerb(), 
+						$this->uri,
+						$this->parameters
 					);
-					foreach ($amzHeaders as $k => $v) {
-						$headers[] = $k . ': ' . $v;
-					}
 				}
 			}
 		}
 
-		curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
+		curl_setopt($curl, CURLOPT_HTTPHEADER, $httpHeaders);
 		curl_setopt($curl, CURLOPT_HEADER, false);
 		curl_setopt($curl, CURLOPT_RETURNTRANSFER, false);
 		curl_setopt($curl, CURLOPT_WRITEFUNCTION, array(&$this, '__responseWriteCallback'));
@@ -1869,7 +1835,7 @@ class S3 {
 		// Parse body into XML
 		if ($this->response->error === false && isset($this->response->headers['type']) &&
 			$this->response->headers['type'] == 'application/xml' && isset($this->response->body)) {
-			if (strtolower(substr($this->response->body, 0, 4)) == 'http') {
+			if (strtolower(substr($this->response->body, 0, 4)) == 'http' && stripos($this->response->body, '<?xml') === false) {
 				$temp = explode(PHP_EOL, $this->response->body);
 				$body = array();
 				foreach($temp as $value) {
@@ -1878,8 +1844,8 @@ class S3 {
 					$body[$item[0]] = $item[1];
 				}
 				$this->response->body = $body;
-			}else{
-				if(stripos($this->response->body, '<?xml')) $this->response->body = stristr($this->response->body,'<?xml');
+			} else {
+			    if (stripos($this->response->body, '<?xml') !== false) $this->response->body = stristr($this->response->body,'<?xml');
 				$this->response->body = simplexml_load_string($this->response->body);
 			}
 
@@ -1915,17 +1881,12 @@ class S3 {
 	 * @return int
 	 */
 	private function __sortMetaHeadersCmp($a, $b) {
-		$lenA = strpos($a, ':');
-		$lenB = strpos($b, ':');
+		$lenA = strlen($a);
+		$lenB = strlen($b);
 		$minLen = min($lenA, $lenB);
 		$ncmp = strncmp($a, $b, $minLen);
-		if ($lenA == $lenB) {
-			return $ncmp;
-		}
-		if (0 == $ncmp) {
-			return $lenA < $lenB ? -1 : 1;
-		}
-
+		if ($lenA == $lenB) return $ncmp;
+		if (0 == $ncmp) return $lenA < $lenB ? -1 : 1;
 		return $ncmp;
 	}
 

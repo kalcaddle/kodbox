@@ -142,10 +142,12 @@ class adminLog extends Controller{
     /**
      * 记录日志
      * @param boolean $data
+     * @param boolean $info
      * @return void
      */
-    public function add($data=false){
+    public function add($data=false, $info=null){
         if (isset($this->in['disableLog']) && $this->in['disableLog'] == '1') return;
+        $this->fileUploadLog($data, $info);
         $typeList = $this->typeListAll();
         if(!isset($typeList[ACTION])) return;
 		if($GLOBALS['loginLogSaved'] ==1) return;
@@ -341,7 +343,7 @@ class adminLog extends Controller{
             $data = array('data' => $data);
         }
         // $info = isset($data['info']) ? $data['info'] : null;
-        $this->add($data['data']);
+        $this->add($data['data'], _get($data, 'info'));
     }
     // 文件预览日志
     public function fileViewLog($path){
@@ -379,7 +381,21 @@ class adminLog extends Controller{
 			"type" 			=> 'view',
 			"desc"		    => $this->filterIn(),
 		);
-		Model('SystemLog')->addLog('file.view', $data);	
+		$this->model->addLog('file.view', $data);	
+    }
+
+    // 文件上传日志——非系统目录
+    public function fileUploadLog($data, $info=null) {
+        if (ACTION != 'explorer.upload.fileUpload') return;
+        if (!is_array($info) || !array_key_exists('uploadLinkInfo', $info) || empty($this->in['path'])) return;
+        $parse = KodIO::parse($this->in['path']);
+		if ($parse['type'] == KodIO::KOD_SOURCE) return;
+
+        $data = $this->filterIn();
+        $data['path'] = rtrim($parse['path'], '/') . '/' . $data['name'];
+        unset($data['name']);
+        $id = $this->model->addLog('file.upload', $data);
+        if ($id) $this->model->where(array('id' => $id))->save(['type' => 'explorer.upload.fileUpload']);
     }
 
 }

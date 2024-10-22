@@ -475,15 +475,15 @@ $config['settingAll'] = array(
 		"hi"	=>	array("हिन्दी","印地语","Hindi"),
 		"id"	=>	array("Bahasa Indonesia","印尼语","Indonesian"),
 		"it"	=>	array("Italiano","意大利语","Italian"),
-		"ja"	=>	array("日本語","日语","Japanese"),
-		"ko"	=>	array("한국어","韩语","Korean"),
+		"ja"	=>	array("日本語","日语","Japanese"),	// jp
+		"ko"	=>	array("한국어","韩语","Korean"),	 // kr
 		"pl"	=>	array("Polski","波兰语","Polish"),
 		"pt"	=>	array("Português","葡萄牙语","Portuguese"),
 		"ru"	=>	array("Русский язык","俄语","Russian"),
 		"ta"	=>	array("த‌மிழ்","泰米尔语","Tamil"),
 		"th"	=>	array("ภาษาไทย","泰语","Thai"),
 		"tr"	=>	array("Türkçe","土耳其语","Turkish"),
-		"uk"	=>	array("Українська","乌克兰语","Ukrainian",'uk'),
+		"uk"	=>	array("Українська","乌克兰语","Ukrainian",'uk'),//ua,
 		"vi"	=>	array("Tiếng Việt","越南语","Vietnamese",'vn'),// 3=国旗icon
 	),//de el fi fr nl pt	d/m/Y H:i
 	

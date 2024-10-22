@@ -81,13 +81,13 @@ class Uploader{
 		}
 		$offset = $chunk * $chunkSize;
 		if(!$outFp = @fopen($this->tempFile, "r+")){
-			$this->showJson('fopen file error:'.$this->tempFile,false);
+			$this->showJson(LNG('explorer.upload.fopenError').':'.$this->tempFile,false);
 		}
 		fseek_64($outFp,$offset);
 		$success = $this->writeTo($chunkFile,$outFp,$this->tempFile);
 		if(!$fileHashSimple){
 			$outFp = fopen($this->tempFile,'r');
-			if(!$outFp){$this->showJson('fopen file error',false);}
+			if(!$outFp){$this->showJson(LNG('explorer.upload.fopenError').':'.$this->tempFile,false);}
 			fseek_64($outFp,$offset);
 			$fileHashSimple = PathDriverStream::hash($outFp,$fileChunkSize);
 			fclose($outFp);
@@ -239,7 +239,7 @@ class Uploader{
 	private function initFileTemp(){
 		if( file_exists($this->tempFile) ) return;
 		if(!$fp = fopen($this->tempFile,'wb+')){
-			$this->showJson('fopen file error:'.$this->tempFile,false);
+			$this->showJson(LNG('explorer.upload.fopenError').':'.$this->tempFile,false);
 		}
 		fseek_64($fp,$this->in['size']-1,SEEK_SET);
 		fwrite($fp,'0');

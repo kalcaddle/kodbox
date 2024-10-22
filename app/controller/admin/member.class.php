@@ -139,6 +139,7 @@ class adminMember extends Controller{
 			"sex" 		=> array("check"=>"require","default"=>1),//0女1男
 			"status" 	=> array("default"=>1),
 		));
+		$data['password'] = KodUser::parsePass($data['password']);
 		if( !ActionCall('filter.userCheck.password',$data['password']) ){
 			return ActionCall('filter.userCheck.passwordTips');
 		}
@@ -242,9 +243,11 @@ class adminMember extends Controller{
 				$data[$key] = '';
 			}
 		}
-		if( $data['password'] && 
-			!ActionCall('filter.userCheck.password',$data['password']) ){
-			return ActionCall('filter.userCheck.passwordTips');
+		if( $data['password'] ) {
+			$data['password'] = KodUser::parsePass($data['password']);
+			if (!ActionCall('filter.userCheck.password',$data['password']) ){
+				return ActionCall('filter.userCheck.passwordTips');
+			}
 		}
 		// 不支持修改自己的权限角色;避免误操作;
 		if($data['userID'] == USER_ID && isset($data['roleID'])){

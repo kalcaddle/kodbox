@@ -117,15 +117,17 @@ function get_url_root($url){
 function get_url_domain($url){
 	if(!$url) return "";
 	$res = parse_url($url);
-	return $res["host"];
+	return $res["host"] ? $res["host"]:'';
 }
 function get_url_scheme($url){
 	if(!$url) return "";
 	$res = parse_url($url);
-	return $res['scheme'];
+	return $res['scheme'] ? $res["scheme"]:'';
 }
 function is_domain($host){
 	if(!$host) return false;
+	$tmp = parse_url($host);
+	if (isset($tmp['host'])) $host = $tmp['host'];
 	if($host == 'localhost') return false;
 	return !filter_var($host, FILTER_VALIDATE_IP);
 }
@@ -438,6 +440,7 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 	// curl_setopt($ch, CURLOPT_SSLVERSION,1);//1|5|6; http://t.cn/RZy5nXF
+	// curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
 	curl_setopt($ch, CURLOPT_TIMEOUT,$timeout);
 	curl_setopt($ch, CURLOPT_REFERER,get_url_link($url));
 	curl_setopt($ch, CURLOPT_NOPROGRESS, false);

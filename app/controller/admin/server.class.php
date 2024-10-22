@@ -32,18 +32,24 @@ class adminServer extends Controller {
 	public function getSrvState(){
 		if(!Input::get('state', null, 0)) return;
 
-		$driver = KodIO::defaultDriver();
-		// 默认为本地存储，且大小不限制，则获取所在磁盘大小
-		if(strtolower($driver['driver']) == 'local' && $driver['sizeMax'] == '0') {
-			$path = realpath($driver['config']['basePath']);
-			$sizeDef = $this->srvSize($path);
-		}else{
-			$sizeUse = Model('File')->where(array('ioType' => $driver['id']))->sum('size');
-			$sizeDef = array(
-				'sizeTotal' => ((float) $driver['sizeMax']) * 1024 * 1024 * 1024,
-				'sizeUse' => (float) $sizeUse
-			);
+		// 系统默认存储使用量
+		$sizeDef = Cache::get('kod_def_store_size');
+		if (!$sizeDef) {
+			$driver = KodIO::defaultDriver();
+			// 默认为本地存储，且大小不限制，则获取所在磁盘大小
+			if(strtolower($driver['driver']) == 'local' && $driver['sizeMax'] == '0') {
+				$path	 = realpath($driver['config']['basePath']);
+				$sizeDef = $this->srvSize($path);
+			}else{
+				$sizeUse = Model('File')->where(array('ioType' => $driver['id']))->sum('size');
+				$sizeDef = array(
+					'sizeTotal'	=> ((float) $driver['sizeMax']) * 1024 * 1024 * 1024,
+					'sizeUse'	=> (float) $sizeUse
+				);
+			}
+			Cache::set('kod_def_store_size', $sizeDef, 600);
 		}
+		// 系统内存、CPU使用情况
 		$server = new ServerInfo();
 		$memUsage = $server->memUsage();
 		$sizeMem = array(
@@ -322,7 +328,7 @@ class adminServer extends Controller {
 		$database = array_change_key_case($database);
 		$type = $this->_dbType($database);
 
-		// 数据库类型
+		// 目标数据库类型
 		$data = Input::getArray(array(
 			'db_type' => array('check' => 'in', 'param' => array('sqlite', 'mysql', 'pdo')),
 			'db_dsn'  => array('default' => ''),	// mysql/sqlite
@@ -502,7 +508,7 @@ class adminServer extends Controller {
 		$key = 'db_change.new_config.' . date('Y-m-d');
 		Cache::set($key, array('type' => $dbType, 'db' => $option), 3600*24);
 
-        // 2. 复制数据库
+        // 2. 复制数据库——读取当前库表结构、表数据，写入到新增库
         $this->dbChangeAct($database, $option, $dbType);
 
         // 3.保存配置

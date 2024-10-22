@@ -373,8 +373,8 @@ class installIndex extends Controller {
     // 捕获show_tips错误，直接输出信息——开启debug时无效（pr输出）
     public function cliShowTips($message,$url, $time,$title) {
         $msg = '';  // think_exception输出html
-        // if (stripos($message,'<div class="desc"') >= 0) {
-        if (stripos($message,'<div') >= 0) {
+        // if (stripos($message,'<div class="desc"') !== false) {
+        if (stripos($message,'<div') !== false) {
             $dom = new DOMDocument();  
             @$dom->loadHTML(mb_convert_encoding($message, 'HTML-ENTITIES', 'UTF-8'));
             // $xpath = new DOMXPath($dom);

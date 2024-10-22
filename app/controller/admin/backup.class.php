@@ -126,6 +126,7 @@ class adminBackup extends Controller{
 
     // 备份——终止http请求，后台运行
     public function start(){
+		set_timeout();
 		$config = $this->model->config();
 		if($config['enable'] != '1') {
 			show_json(LNG('admin.backup.notOpen'), false);

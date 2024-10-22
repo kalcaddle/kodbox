@@ -247,6 +247,8 @@ class webdavServer {
                 'code' => 200,
                 'headers' => array(
                     'Content-Type: text/html; charset=utf8',
+					'Last-Modified: '.gmdate("D, d M Y H:i:s ",time())."GMT",
+					'ETag: "'.md5(time()).'"', 
                 )
             );
         }
@@ -260,7 +262,7 @@ class webdavServer {
                 'Content-type: '.get_file_mime($info['ext']),
                 'Last-Modified: '.gmdate("D, d M Y H:i:s ", $info['mtime'])."GMT",
                 'Cache-Control: max-age=86400,must-revalidate',
-                // 'ETag: "'.md5($info['mtime'].$info['path']).'"',
+                'ETag: "'.md5($info['mtime'].$info['size']).'"', 
             )
 		);
 	}

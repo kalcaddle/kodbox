@@ -155,9 +155,7 @@ class userRegist extends Controller {
 		Action('user.setting')->checkMsgCode($data['type'], $msgCode, $param);
 
 		// 密码校验
-		$salt = Input::get('salt',null, 0);
-		$password = $salt == 1 ? Action('user.setting')->decodePwd($data['password']) : $data['password'];
-		$data['password'] = rawurldecode($password);
+		$data['password'] = KodUser::parsePass($data['password']);
 		if( !ActionCall('filter.userCheck.password',$data['password']) ){
 			return ActionCall('filter.userCheck.passwordTips');
 		}

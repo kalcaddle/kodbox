@@ -2937,14 +2937,24 @@ class OssClient
                 $string_to_sign .= strtolower($header_key) . ':' . $header_value . "\n";
             }
         }
-        // Generates the signable_resource
-        $signable_resource = $this->generateSignableResource($options);
-        $signable_resource = rawurldecode($signable_resource) . urldecode($signable_query_string);
-        $string_to_sign_ordered = $string_to_sign;
-        $string_to_sign .= $signable_resource;
+        // // Generates the signable_resource
+        // $signable_resource = $this->generateSignableResource($options);
+        // $signable_resource = rawurldecode($signable_resource) . urldecode($signable_query_string);
+        // $string_to_sign_ordered = $string_to_sign;
+        // $string_to_sign .= $signable_resource;
 
-        // Sort the strings to be signed.
-        $string_to_sign_ordered .= $this->stringToSignSorted($signable_resource);
+        // // Sort the strings to be signed.
+        // $string_to_sign_ordered .= $this->stringToSignSorted($signable_resource);
+
+
+        // 生成用于签名的资源字符串——源码中，文件名含&时sort会拆分导致签名异常；add by nemo 2024-09-27
+        $signable_resource = $this->generateSignableResource($options);
+        $signable_resource = rawurldecode($signable_resource);
+        $signable_querystr = urldecode($signable_query_string);
+
+        $string_to_sign_ordered = $string_to_sign;
+        $string_to_sign .= $signable_resource . $signable_querystr;
+        $string_to_sign_ordered .= $signable_resource . $this->stringToSignSorted($signable_querystr);
 
 
         $signature = base64_encode(hash_hmac('sha1', $string_to_sign_ordered, $this->accessKeySecret, true));

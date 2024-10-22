@@ -647,8 +647,11 @@ function mk_dir($dir, $mode = 0755){
 	if (is_dir($dir) || @mkdir($dir, $mode)){
 		return true;
 	}
-	if (!mk_dir(dirname($dir), $mode)){
-		return false;
+	$pdir = dirname($dir);	// 避免根目录死循环
+	if ($pdir != $dir) {
+		if (!mk_dir($pdir, $mode)){
+			return false;
+		}
 	}
 	return @mkdir($dir, $mode);
 }

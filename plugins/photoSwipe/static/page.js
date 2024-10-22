@@ -275,7 +275,7 @@ define(function(require, exports) {
 		$('.pswp__item').removeClass('current').removeClass('loading');
 		$dom.parents('.pswp__item').addClass('current').addClass('loading');
 		if(!$loading.length){
-			$loading = $("<img class='pswp__img pswp__img--placeholder add' src='"+current.msrc+"'>").prependTo($dom);
+			$loading = $("<img class='pswp__img pswp__img--placeholder add' src='"+htmlEncode(current.msrc)+"'>").prependTo($dom);
 		}
 		if(current.loaded){
 			$dom.parents('.pswp__item').removeClass('loading');

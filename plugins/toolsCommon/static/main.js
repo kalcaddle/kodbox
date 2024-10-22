@@ -13,7 +13,7 @@ kodReady.push(function(){
         $.dialog.confirm(payLink.text,function(){
             $.ajax({
                 url: payLink.link,
-                data: $.extend({}, data, {query: 1}),
+                data: $.extend({}, data, {query: 1, language: G.lang}),
                 dataType:'jsonp',
                 success:function(result){
                     Events.trigger('pay.finished',result);  // 监听执行后自行处理跳转

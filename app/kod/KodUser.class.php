@@ -25,4 +25,19 @@ class KodUser{
 		$code = (isset($GLOBALS['isRoot']) && $GLOBALS['isRoot'] == 1) ? 1:0;
 		if(!$code){show_json(LNG('explorer.noPermissionAction'),false);}
 	}
+
+	/**
+	 * 解析加盐密码
+	 * @param [type] $pass
+	 * @param integer $salt
+	 * @return void
+	 */
+	public static function parsePass($pass, $salt=0){
+		if (!$pass) return $pass;
+		$pass = rawurldecode($pass);
+		if (_get($GLOBALS, 'in.salt', 0) != '1' && $salt != '1') return $pass;
+		$key = substr($pass,0,5)."2&$%@(*@(djfhj1923";
+		return Mcrypt::decode(substr($pass,5),$key);
+	}
+
 }

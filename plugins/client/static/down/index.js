@@ -91,8 +91,6 @@ ClassBase.define({
                 var dg = core.qrcode(link);
                 if (dg && dg.$main) {
                     dg.$main.addClass('client-down-qrcode-dg');
-                    var top = $('.dialog-client-download.artDialog').offset().top;
-                    dg.$main.css({left: '50%',transform:'translate(-50%)',top:(top + 88)+'px'});
                     dg.$main.find('.aui-content>div').prepend('<p class="mb-5">'+LNG['client.down.webScan']+'</p>');
                 }
             });
