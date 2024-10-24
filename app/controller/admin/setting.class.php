@@ -123,7 +123,7 @@ class adminSetting extends Controller {
 		@del_dir(TEMP_PATH);
 		@del_dir('/tmp/fileThumb');
 		mk_dir(TEMP_PATH . 'log');
-		Model("File")->clearEmpty();
+		Model("File")->clearEmpty(0);
 		$this->removeFolder('zipView');
 		$this->removeEmptyFolder();
 		Action('explorer.attachment')->clearCache();

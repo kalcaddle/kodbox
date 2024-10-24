@@ -11,14 +11,40 @@ class Html{
 		
 		$config->set('Cache.SerializerPath', TEMP_PATH);// 缓存目录;
 		$config->set('Cache.DefinitionImpl', null);
+		$config->set('HTML.TargetBlank', FALSE);
+		$config->set('HTML.TargetNoreferrer', FALSE);
+		$config->set('HTML.TargetNoopener', FALSE);
 		// $config->set('HTML.SafeIframe',true);// iframe包含页面白名单;
 		// $config->set('URI.SafeIframeRegexp', '%^https://(*)%');
 		
 		// 设置保留的标签
-		$config->set('HTML.Allowed','*[id|style|class|title|type|border|width|height|alt|data|data-exp|contenteditable|aria-hidden],div,b,strong,i,em,a[href],ul,ol,ol[start],li,p,br,span,img[src],pre,hr,code,h1,h2,h3,h4,h5,h6,blockquote,del,table,thead,tbody,tr,th,td,s,sub,sup,wbr,nav,article,aside,header,footer,ins,del,address,hgrop,figure,figcaption,video[src|controls|posterh],source[src],iframe[frameborder|src|allowfullscreen|scrolling]');
+		$config->set('HTML.Allowed','*[id|style|class|title|border|width|height|title|alt|type],div,b,strong,i,em,a[href|target],ul,ol,ol[start],li,p,br,span,img[src],pre,hr,code,h1,h2,h3,h4,h5,h6,blockquote,del,table,thead,tbody,tr,th,td,s,sub,sup,ins,del,address,iframe[frameborder|src|allowfullscreen|scrolling],var,mark,wbr,section,nav,article,aside,header,footer,hgroup,figure,figcaption,video[src|controls|poster],source[src]');
+		// data|data-exp|contenteditable|aria-hidden 
+
 		// 不限制css的key;
-		// $config->set('CSS.AllowedProperties','font,font-size,font-weight,font-style,font-family,margin,width,height,text-decoration,padding-left,padding-top,padding-right,padding-top,padding-bottom,line-height,color,background-color,text-align,border-collapse,list-style-type,list-style');
-		$config->set('HTML.TargetBlank', TRUE);
+		// $config->set('CSS.AllowedProperties','font,font-size,font-weight,font-style,font-family,margin,width,height,text-decoration,padding-left,padding-top,padding-right,padding-top,padding-bottom,line-height,color,background-color,text-align,border-collapse,list-style-type,list-style');	
+		
+		$def = $config->getHTMLDefinition(true);
+		$def->addElement('section', 'Block', 'Flow', 'Common');
+		$def->addElement('nav',     'Block', 'Flow', 'Common');
+		$def->addElement('article', 'Block', 'Flow', 'Common');
+		$def->addElement('aside',   'Block', 'Flow', 'Common');
+		$def->addElement('header',  'Block', 'Flow', 'Common');
+		$def->addElement('footer',  'Block', 'Flow', 'Common');
+		$def->addElement('hgroup',  'Block', 'Required: h1 | h2 | h3 | h4 | h5 | h6','Common');
+		$def->addElement('figure',  'Block', 'Optional: (figcaption, Flow) | (Flow, figcaption) | Flow','Common');
+		$def->addElement('figcaption', 'Inline', 'Flow', 'Common');
+		$def->addElement('var',  'Inline', 'Flow', 'Common');
+		$def->addElement('mark', 'Inline', 'Flow', 'Common');
+		$def->addElement('wbr',  'Inline', 'Flow', 'Core');
+		$def->addElement('source','Block', 'Flow', 'Common',array('src'=>'URI','type'=>'Text'));
+		$def->addElement('video', 'Block', 'Flow', 'Common',array(
+			'src' => 'URI','type' => 'Text','width' => 'Length','height' => 'Length',
+			'poster' => 'URI','preload' => 'Enum#auto,metadata,none','controls' => 'Bool',
+		));
+		$def->addAttribute('a','target','Text');
+		$def->addAttribute('iframe','allowfullscreen','Text');
+		
 		$cleanObj = new HTMLPurifier($config);
 		return $cleanObj->purify($data);
 	}
