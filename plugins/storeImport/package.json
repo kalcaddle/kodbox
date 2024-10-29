@@ -1,0 +1,25 @@
+{
+	"id":"storeImport",
+	"name":"数据导入",
+	"title":"文档快速导入",
+	"version":"1.05",
+	"category":"tools",
+	"hidden":1,
+	"source":{
+		"className":"font-icon ri-folder-transfer-line bg-blue-6"
+	},
+	"description":"本插件提供了数据导入功能，通过对指定的磁盘或对象存储添加的存储进行扫描，构建数据库索引，将原始数据映射到网盘目录，快速完成文档数据导入。",
+	"auther":{
+		"copyright":"kodcloud.",
+		"homePage":"http://www.kodcloud.com",
+	},
+	"configItem":{
+		"pluginAuth":{
+			"type":"userSelect",
+			"value":{"user":1},
+			"display":"{{LNG['admin.plugin.auth']}}",
+			"desc":"{{LNG['admin.plugin.authDesc']}}",
+			"require":1
+		}
+	}
+}

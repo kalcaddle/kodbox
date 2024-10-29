@@ -2,6 +2,7 @@
 
 class Html{
 	public static function clean($data){
+		$data = $data ? str_replace("\\","\\\\",$data):'';
 		require_once SDK_DIR.'HtmlPurifier/HTMLPurifier.auto.php';
 		$config = HTMLPurifier_Config::createDefault();
 		$config->set('Core.Encoding', 'UTF-8');
@@ -18,11 +19,11 @@ class Html{
 		// $config->set('URI.SafeIframeRegexp', '%^https://(*)%');
 		
 		// 设置保留的标签
-		$config->set('HTML.Allowed','*[id|style|class|title|border|width|height|title|alt|type],div,b,strong,i,em,a[href|target],ul,ol,ol[start],li,p,br,span,img[src],pre,hr,code,h1,h2,h3,h4,h5,h6,blockquote,del,table,thead,tbody,tr,th,td,s,sub,sup,ins,del,address,iframe[frameborder|src|allowfullscreen|scrolling],var,mark,wbr,section,nav,article,aside,header,footer,hgroup,figure,figcaption,video[src|controls|poster],source[src]');
+		$config->set('HTML.Allowed','*[id|style|class|title|border|width|height|title|alt|type|data-exp|rowspan|colspan],div,b,strong,i,em,a[href|target],ul,ol,ol[start],li,p,br,span,img[src],pre,hr,code,h1,h2,h3,h4,h5,h6,blockquote,del,table,thead,tbody,tr,th,td,s,sub,sup,ins,del,address,iframe[frameborder|src|allowfullscreen|scrolling],var,mark,wbr,section,nav,article,aside,header,footer,hgroup,figure,figcaption,video[src|controls|poster],source[src]');
 		// data|data-exp|contenteditable|aria-hidden 
 
 		// 不限制css的key;
-		// $config->set('CSS.AllowedProperties','font,font-size,font-weight,font-style,font-family,margin,width,height,text-decoration,padding-left,padding-top,padding-right,padding-top,padding-bottom,line-height,color,background-color,text-align,border-collapse,list-style-type,list-style');	
+		// $config->set('CSS.AllowedProperties','font,font-size,font-weight,font-style,font-family,margin,width,height,text-decoration,padding-left,padding-top,padding-right,padding-top,padding-bottom,line-height,color,background,background-color,text-align,border-collapse,list-style-type,list-style,top,left,right,bottom,position');
 		
 		$def = $config->getHTMLDefinition(true);
 		$def->addElement('section', 'Block', 'Flow', 'Common');
@@ -44,8 +45,16 @@ class Html{
 		));
 		$def->addAttribute('a','target','Text');
 		$def->addAttribute('iframe','allowfullscreen','Text');
+		$def->addAttribute('div', 'data-exp','Text');
+		$def->addAttribute('span','data-exp','Text');
+		$def->addAttribute('div', 'style','Text');
+		$def->addAttribute('span','style','Text');// 重定义style属性; 不过滤style内容;
 		
-		$cleanObj = new HTMLPurifier($config);
+		$def->addAttribute('td','style','Text');
+		$def->addAttribute('td','rowspan','Text');
+		$def->addAttribute('td','colspan','Text');
+
+		$cleanObj = new HTMLPurifier($config);		
 		return $cleanObj->purify($data);
 	}
 	
@@ -70,6 +79,7 @@ class Html{
 		// remove all non-printable characters. CR(0a) and LF(0b) and TAB(9) are allowed  
 		// this prevents some character re-spacing such as <java\0script>  
 		// note that you have to handle splits with \n, \r, and \t later since they *are* allowed in some inputs  
+		$val = $val ? str_replace("\\","\\\\",$val):'';
 		$val = preg_replace('/([\x00-\x08\x0b-\x0c\x0e-\x19])/', '', $val);// 去除逗号;
 
 		// straight replacements, the user should never need these since they're normal characters  

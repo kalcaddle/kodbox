@@ -27,6 +27,36 @@
     ace.mobileCopyText = editor.getSelectedText(); //if (action == "cut" || action == "copy") 前
     ```
 
+- 特殊字符,光标异常情况处理
+```
+    //ace.js 方法: Text.prototype.$renderToken
+    // 中文匹配正则追加 |[\u2100-\u28ff\ue700-\ue7ff\u0930]
+    if (cjk) {
+        screenColumn += 1;
+        var span = this.dom.createElement("span");
+        
+        // add by warlee  字符宽度处理(中文2字符宽度,不足1字符宽的字符强制1字符宽); 
+        // [\u2100-\u28ff\ue700-\ue7ff\u0930];
+        // 2字符宽度: [\u2474-\u24e9\u278a-\u2797\u2160-\u2180\ue7c7\ue7c8\u22a5\u222f\u2230\u0930]
+        var charWidth = self.session.isFullWidth(cjk.charCodeAt(0)) ? 2:1;
+        span.style.width = (self.config.characterWidth * charWidth) + "px";
+        //span.style.width = (self.config.characterWidth * 2) + "px";
+        ...
+        
+    //ace.js 方法: function isFullWidth(c)   // 前面添加判断;
+    function isFullWidth(c) {
+        if(
+            // add by warlee;
+            c >= 0x2474 && c <= 0x24e9 ||
+            c >= 0x278a && c <= 0x2797 ||
+            c >= 0x2160 && c <= 0x2180 ||
+            c == 0xe7c7 || c == 0xe7c8 || c == 0x22a5 || c == 0x222f|| c == 0x2230
+        ){
+            return true;
+        }
+        ...
+```
+
 - 中文自动换行过早问题(当成了单词)
     ```
     ace.define("ace/layer/text"... 

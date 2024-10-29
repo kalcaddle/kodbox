@@ -194,7 +194,7 @@ class filterUserCheck extends Controller {
 		
 		$system = $device['system'] ? '-'.$device['system'] : '';
 		$currentType = $device['type'].$system;
-		if(strstr($check,$currentType) || strstr($currentType,$check)) return true;	// $device['system']=>'android 12'
+		if (strstr($check, $currentType)) return true;
 		return false;
 	}
 	private function _checkConfig(){
@@ -250,6 +250,9 @@ class filterUserCheck extends Controller {
 			$device['systemVersion'] = strtolower($platform['systemVersion']);
 			$device['appVersion'] 	 = strtolower($platform['appVersion']);
 			$device['moreInfo'] 	 = $platform;
+			if (stripos($device['system'], 'android') !== false) {	// android 12
+				$device['system'] = 'android';
+			}
 		}
 		$device = Hook::filter('filter.getDevice',$device);
 		$_device = $device;
