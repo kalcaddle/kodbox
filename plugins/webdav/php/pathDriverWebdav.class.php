@@ -54,7 +54,7 @@ class PathDriverWebdav extends PathDriverBase {
 	private function _copyMove($action,$from,$to,$repeat=REPEAT_REPLACE,$newName=''){
 		if(!$this->exist($from)) return false;
 		$this->mkdir($this->pathFather($to));
-		if(!$newName){
+		if(!$newName && $newName != '0'){
 			$newName = get_path_this($from);
 			$newName = $this->fileNameAuto($to,$newName,$repeat,false);
 		}
@@ -76,7 +76,8 @@ class PathDriverWebdav extends PathDriverBase {
 	public function moveFile($from,$to){return $this->move($from,$to);}
 	public function remove($path,$toRecycle=true){return $this->dav->delete($path);}
 	public function rename($from,$newName){
-		$to = get_path_father($from);
+		if(!$newName && $newName != '0'){return $this->getPathOuter($from);}
+		$to = get_path_father($from);		
 		return $this->_copyMove('move',$from,$to,REPEAT_SKIP,$newName);
 	}
 	public function has($path,$count=false,$isFolder=false){
@@ -341,7 +342,7 @@ class PathDriverWebdav extends PathDriverBase {
 			$info['size'] = $prop['getcontentlength'];
 		}
 		$info['type'] = $prop['resourcetype'] == '' ? 'file':'folder';
-		$info['name'] = $info['name'] ? $info['name']:'/';
+		$info['name'] = ($info['name'] || $info['name'] == '0') ? $info['name']:'/';
 		$info['path'] = $this->getPathOuter($info['path']);
 		$mimeType = $prop['getcontenttype'];
 		if($mimeType){$info['type'] = ($mimeType == 'httpd/unix-directory') ? 'folder':'file';}
