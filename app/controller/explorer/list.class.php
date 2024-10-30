@@ -626,7 +626,9 @@ class explorerList extends Controller{
 			isset($pathInfo['oexeContent']['value']) ){
 			$linkPath = $pathInfo['oexeContent']['value'];
 			$parse = KodIO::parse($pathInfo['path']);
+			$parsePath = KodIO::parse($linkPath);
 			if($parse['type'] == KodIO::KOD_SHARE_LINK) return $pathInfo;
+			if(!$parsePath['isTruePath']){return $pathInfo;}
 			
 			if(Action('explorer.auth')->fileCan($linkPath,'show')){
 				if(substr($linkPath,0,4) == '{io:'){ //io路径不处理;
