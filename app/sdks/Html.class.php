@@ -54,7 +54,7 @@ class Html{
 		$def->addAttribute('td','rowspan','Text');
 		$def->addAttribute('td','colspan','Text');
 
-		$cleanObj = new HTMLPurifier($config);		
+		$cleanObj = new HTMLPurifier($config);
 		return $cleanObj->purify($data);
 	}
 	

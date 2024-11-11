@@ -161,7 +161,14 @@ class adminServer extends Controller {
 		$data['php_info']['version'] = $phpVersion;
 		$info = array('memory_limit', 'post_max_size', 'upload_max_filesize', 'max_execution_time', 'max_input_time');
 		foreach($info as $key) {
-			$data['php_info'][$key] = ini_get($key);	// get_cfg_var获取的是配置文件的值，ini_get获取的是当前值
+			$val1 = ini_get($key);	// 系统设置
+			$val2 = get_cfg_var($key);	// 配置文件
+			$value = min(intval($val1), intval($val2));
+			if (!in_array($key, array('max_execution_time', 'max_input_time'))) {
+				// 配置文件中没加单位则为B
+				$value = stripos($val2, 'M') === false ? $val2.'B' : $value.'M';
+			}
+			$data['php_info'][$key] = $value;
 		}
 		$data['php_info']['disable_functions'] = ini_get('disable_functions');
 		$exts = get_loaded_extensions();

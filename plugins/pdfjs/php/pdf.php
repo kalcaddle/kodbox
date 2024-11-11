@@ -14,7 +14,7 @@
 		<title><?php echo clear_html($fileName);?></title>
 		<link rel="resource" type="application/l10n" href="<?php echo clear_html($langPath);?>viewer.properties">
 		<script type="text/javascript">
-			var fileName 	= "<?php echo clear_quote($fileName);?>";
+			var fileName 	= "<?php echo str_replace("\n",' ',clear_quote($fileName));?>";
 			var staticPath  = "<?php echo $this->pluginHost;?>static/";
 			var pdfOptions 	= {
 				canDownload:"<?php echo intval($canDownload);?>",

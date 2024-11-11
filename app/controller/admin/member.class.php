@@ -39,7 +39,12 @@ class adminMember extends Controller{
 		$data = Input::getArray(array(
 			"groupID"	=> array("check"=>"require",'default'=>0),
 			"fields"	=> array("check"=>"require",'default'=>''),
-			"status"	=> array("default"=>null)
+			"status"	=> array("default"=>null),
+
+			// 时间范围查询，兼容接口需求
+			"timeType"	=> array("check"=>"in",'default'=>'createTime','param'=>array('createTime','modifyTime','lastLogin')),
+			"timeFrom"	=> array("default"=>null),
+			"timeTo"	=> array("default"=>null),
 		));
 		if(!$data['groupID']){show_json(array(),true);}
 		if($data['groupID'] == 1) $data['groupID'] = 0;	// 根部门（id=1）获取全部用户

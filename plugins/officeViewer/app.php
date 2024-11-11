@@ -51,6 +51,8 @@ class officeViewerPlugin extends PluginBase{
 	// 入口
 	public function index(){
 		$path   = $this->filePath($this->in['path'],true,true);
+		if (!$this->fileInfo['size']) show_tips('文件已损坏（size=0），无法预览！');
+
 		$config = $this->getConfig();
 		$openType = isset($config['openType']) ? $config['openType'] : '';
 		if ($openType == 'js') $openType = 'wb';	// 兼容旧版
