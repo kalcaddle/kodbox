@@ -591,7 +591,7 @@ class explorerShare extends Controller{
 
 		$field = array(
 			'name','path','type','size','ext','searchTextFile',
-			'createUser','modifyUser','createTime','modifyTime','sourceID',
+			'createUser','modifyUser','createTime','modifyTime','sourceID','parentLevel',
 			'hasFolder','hasFile','children','targetType','targetID','pageInfo','searchContentMatch',
 			'base64','content','charset','oexeContent','oexeSourceInfo','fileInfoMore','fileInfo','fileThumb',
 			// 'isReadable','isWriteable',//(不处理, 部门文件夹分享显示会有区分)
@@ -604,7 +604,7 @@ class explorerShare extends Controller{
 		$theItem['pathDisplay'] = $name.'/'.$theItem['pathDisplay'];
 
 		if(is_array($item['metaInfo'])){
-			$picker = 'user_sourceCover';
+			$picker = 'user_sourceCover,folderPassword';
 			$theItem['metaInfo'] = array_field_key($item['metaInfo'],explode(',',$picker));
 		}
 		if($theItem['type'] == 'folder'){$theItem['ext'] = 'folder';}

@@ -186,6 +186,7 @@ CREATE INDEX 'idx_io_source_targetType_targetID_parentID' ON 'io_source' ("targe
 CREATE INDEX 'idx_io_source_parentID_isDelete' ON 'io_source' ("parentID","isDelete");
 CREATE INDEX 'idx_io_source_name' ON 'io_source' ("name");
 CREATE INDEX 'idx_io_source_fileType' ON 'io_source' ("fileType");
+CREATE INDEX 'idx_io_source_parentID_name' ON 'io_source' ("parentID","name");
 
 DROP TABLE IF EXISTS "io_source_auth";
 CREATE TABLE "io_source_auth" (

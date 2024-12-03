@@ -2,7 +2,7 @@
 	"id":"photoSwipe",
 	"name":"{{LNG['photoSwipe.meta.name']}}",
 	"title":"{{LNG['photoSwipe.meta.title']}}",
-	"version":"1.64",
+	"version":"1.65",
 	"source":{
 		"className":"x-item-icon x-gif",
 		"screenshoot":[
@@ -37,6 +37,16 @@
 			"display":"{{LNG['admin.plugin.fileSort']}}",
 			"desc":"{{LNG['admin.plugin.fileSortDesc']}}",
 			"value":20
+		},
+		
+		"showType":{
+			"type":"segment",
+			"display":"{{LNG['photoSwipe.showType.title']}}",
+			"value":"big",
+			"info":{
+				"big":"{{LNG['photoSwipe.showType.big']}}",
+				"full":"{{LNG['photoSwipe.showType.full']}}"
+			}
 		}
 	}
 }

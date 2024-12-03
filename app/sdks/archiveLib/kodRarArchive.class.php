@@ -36,6 +36,11 @@ class kodRarArchive {
 			$file .= '.exe';	// win
 		}else if(strstr($os,'linux') ){
 			$name = get_path_this($file);	// 优先调用系统服务（部分服务器无法运行kod中的执行文件）
+			$srvList = array(
+				'7z'	=> '7zr',	// p7zip
+				'rar'	=> 'unrar',
+			);
+			if (isset($srvList[$name])) $name = $srvList[$name];
 		    if(is_executable('/usr/bin/'.$name)) {
 		        $file = '/usr/bin/'.$name;
 		    }else if(is_executable('/usr/local/bin/'.$name)) {
@@ -59,9 +64,10 @@ class kodRarArchive {
 	}
 	static function run($cmd){
 		if (strtoupper(substr(PHP_OS, 0,3)) != 'WIN') {//linux
-			$cmd = "export LANG='en_US.UTF-8' && ".$cmd;
-			@setlocale(LC_ALL,'en_US.UTF-8');
-			@putenv('LC_ALL=en_US.UTF-8');
+			// $cmd = "export LANG='en_US.UTF-8' && ".$cmd;
+			// @setlocale(LC_ALL,'en_US.UTF-8');
+			// @putenv('LC_ALL=en_US.UTF-8');
+			$cmd = "export LANG='zh_CN.UTF-8' && ".$cmd;
 		}
 		$result = shell_exec($cmd);
 		//pr($cmd,$result);exit;

@@ -491,13 +491,14 @@ Picasa.prototype = {
 			if(!$img.inScreen()) return;
 			
 			$img.addClass("loading");
-			var tempImage = new Image();
-			tempImage.onload = function(){
-				$img.css('background-image','url("'+$(tempImage).attr('src')+'")');
+			// var tempImage = new Image();
+			// tempImage.onload = function(){
+				// $img.css('background-image','url("'+$(tempImage).attr('src')+'")');
+				$img.css('background-image','url("'+src+'")');
 				$img.css({opacity:0}).animate({opacity:1.0},500);
 				$img.removeClass("loading").addClass('loaded');
-			};
-			tempImage.src = src;
+			// };
+			// tempImage.src = src;
 		});
 	},
 	
@@ -509,11 +510,11 @@ Picasa.prototype = {
 		$('#PV_Items [number='+this.currentNo+']').addClass('current');
 		this.loadImageBefore();
 		
-		this.imageLazyLoadThumb();		
-		clearTimeout(this.imageLazyLoadTimer);
-		this.imageLazyLoadTimer = setTimeout(function(){
-			self.imageLazyLoadThumb();
-		},200);//延迟处理;
+		// this.imageLazyLoadThumb();		
+		// clearTimeout(this.imageLazyLoadTimer);
+		// this.imageLazyLoadTimer = setTimeout(function(){
+		// 	self.imageLazyLoadThumb();
+		// },200);//延迟处理;
 
 		clearTimeout(this.doLoad);
 		var self = this;
@@ -531,6 +532,13 @@ Picasa.prototype = {
 		this.activeImage.src = this.arrItems[this.currentNo][0][1];
 		this.Picture.src = this.activeImage.src;
 		$('#PV_Picture').css('display','none').fadeIn(200);
+		// 大图加载完成后再加载底部缩略图
+		this.Picture.onload = function() {
+		    self.imageLazyLoadThumb();
+		}
+		this.Picture.onerror = function() {
+		    self.imageLazyLoadThumb();
+		}
 	},
 	loadedAction : function() {
 		this.isLoaded = true;		

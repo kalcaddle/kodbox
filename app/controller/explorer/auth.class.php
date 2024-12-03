@@ -281,9 +281,16 @@ class explorerAuth extends Controller {
 		Hook::trigger("explorer.auth.can",$pathInfo,$action);
 		// 个人私密空间是否登录检测;
 		if($pathInfo && isset($pathInfo['sourceID']) && $pathInfo['targetType'] == 'user'){
-			$userSafeCheck = Action('explorer.listSafe')->authCheck($pathInfo,$action);
-			if($userSafeCheck){return $this->errorMsg($userSafeCheck,1101);}
+			$errorMsg = Action('explorer.listSafe')->authCheck($pathInfo,$action);
+			if($errorMsg){return $this->errorMsg($errorMsg,1101);}
 		}
+		
+		//上层文件夹是否需要密码;
+		if($pathInfo && isset($pathInfo['sourceID'])){
+			$errorMsg = Action('explorer.listPassword')->authCheck($pathInfo,$action);
+			if($errorMsg){return $this->errorMsg($errorMsg,1102);}
+		}
+		
 		// source 类型; 新建文件夹 {source:10}/新建文件夹; 去除
 		//文档类型检测：屏蔽用户和部门之外的类型；
 		if($this->allowRootSourceInfo($pathInfo)) return true;

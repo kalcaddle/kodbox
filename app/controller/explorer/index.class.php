@@ -137,13 +137,20 @@ class explorerIndex extends Controller{
 		$info = IO::info($data['path']);
 		$this->sourceSecretApply($meta,$info);
 		if($info && $info['sourceID']){
+			$metaArr = array();
 			foreach ($meta as $key => $value) {
 				if( !$this->metaKeyCheck($key,$value,$info) ){
 					show_json("key error!",false);
 				}
-				$value = $value === '' ? null:$value; //为空则删除;
+				$metaArr[$key] = $value === '' ? null:$value; //为空则删除;
 				$this->model->metaSet($info['sourceID'],$key,$value);
 			}
+			
+			// 设置文件夹密码,自动设置密码用户为当前用户;
+			if(isset($metaArr['folderPassword'])){
+				$metaArr['folderPasswordUser'] = $metaArr['folderPassword'] ? USER_ID:null;
+			}
+			$this->model->metaSet($info['sourceID'],$metaArr);
 			show_json(IO::info($data['path']),true);
 		}
 		show_json(LNG('explorer.error'),false);
@@ -156,6 +163,10 @@ class explorerIndex extends Controller{
 				'systemSort',		// 置顶
 				'systemLock',		// 编辑锁定
 				'systemLockTime',	// 编辑锁定时间
+				
+				'folderPassword',		// 文件夹密码
+				'folderPasswordDesc',	// 文件夹密码描述
+				'folderPasswordTimeTo',	// 文件夹密码过期时间,为空则代表不限制时间;
 			));
 		}
 		$isLock = _get($info,'metaInfo.systemLock') ? true:false;

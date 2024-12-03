@@ -2,7 +2,7 @@
 	"id":"picasa",
 	"name":"{{LNG['picasa.meta.name']}}",
 	"title":"{{LNG['picasa.meta.title']}}",
-	"version":"1.31",
+	"version":"1.32",
 	"source":{
 		"className":"x-item-icon x-png",
 		"screenshoot":[

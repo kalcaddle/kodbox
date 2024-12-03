@@ -172,7 +172,8 @@ CREATE TABLE `io_source` (
   KEY `targetType_targetID_parentID` (`targetType`,`targetID`,`parentID`),
   KEY `parentID_isDelete` (`parentID`,`isDelete`),
   KEY `name` (`name`(200)),
-  KEY `fileType` (`fileType`)
+  KEY `fileType` (`fileType`),
+  KEY `parentID_name` (`parentID`,`name`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8 COMMENT='文档数据表';
 
 DROP TABLE IF EXISTS `io_source_auth`;

@@ -68,6 +68,7 @@ class explorerList extends Controller{
 		Action('explorer.recycleDriver')->appendList($data,$pathParse);
 		Action('explorer.listGroup')->appendChildren($data);
 		Action('explorer.listSafe')->appendSafe($data);
+		Action('explorer.listPassword')->appendSafe($data);
 		
 		$this->pathListParse($data);// 1000 => 50ms; all-image=200ms;
 		$this->pageReset($data);

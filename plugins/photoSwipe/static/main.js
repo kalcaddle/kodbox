@@ -11,8 +11,9 @@ kodReady.push(function(){
 			callback:function(path,ext,name){
 				var appStatic = "{{pluginHost}}static/";
 				var appStaticDefault = "{{pluginHostDefault}}static/";
+				var showType = '{{config.showType}}';
 				requireAsync(appStatic+'page.js',function(app){
-					app(path,ext,name,appStatic,appStaticDefault);
+					app(path,ext,name,appStatic,appStaticDefault,showType);
 				});
 			}
 		});

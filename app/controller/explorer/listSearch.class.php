@@ -175,8 +175,9 @@ class explorerListSearch extends Controller{
 				$param[$key] = array_filter(explode(',',$paramIn[$key]));
 			}
 			if($key == 'wordsMutil'){
-				$param[$key] = array_filter(explode("\n",$paramIn[$key]));
-				$param[$key] = array_values($param[$key]);
+				$param[$key] = str_replace(array("\r","\r\n"), "\n",$paramIn[$key]);
+				$param[$key] = array_filter(explode("\n",$param[$key]));
+				$param[$key] = array_unique(array_values($param[$key]));
 			}
 		}
 		
