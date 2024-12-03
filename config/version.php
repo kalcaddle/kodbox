@@ -1,3 +1,3 @@
 <?php
-define('KOD_VERSION','1.54');
-define('KOD_VERSION_BUILD','02');
+define('KOD_VERSION','1.55');
+define('KOD_VERSION_BUILD','01');
