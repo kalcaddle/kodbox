@@ -1689,6 +1689,7 @@ return array(
     "explorer.folderPass.btnReset"   => "비밀번호 재설정",
     "explorer.folderPass.btnClear"   => "비밀번호 삭제",
     "explorer.folderPass.tips"       => "폴더에 액세스하려면 비밀번호가 필요합니다. 계속하려면 비밀번호를 입력하세요.",
+    "explorer.folderPass.tipsHas"    => "하위 콘텐츠에는 비밀번호 접근이 필요한 폴더가 포함되어 있습니다. 계속하려면 비밀번호를 입력하세요.",
     "explorer.downloaded"            => "다운로드 완료",
     "explorer.openAutoTips"          => "자동으로 열립니다",
     "explorer.historyAutoTips"       => "히스토리 버전 자동 생성",

@@ -1689,6 +1689,7 @@ return array(
     "explorer.folderPass.btnReset"   => "restablecer contraseña",
     "explorer.folderPass.btnClear"   => "Quitar contraseña",
     "explorer.folderPass.tips"       => "La carpeta requiere una contraseña para acceder, ingrese la contraseña para continuar.",
+    "explorer.folderPass.tipsHas"    => "El subcontenido contiene carpetas que requieren acceso con contraseña. Ingrese e ingrese la contraseña para continuar.",
     "explorer.downloaded"            => "Descarga completada",
     "explorer.openAutoTips"          => "Se abrirá automáticamente",
     "explorer.historyAutoTips"       => "Generar automáticamente versiones históricas",

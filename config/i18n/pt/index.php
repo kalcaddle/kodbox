@@ -1689,6 +1689,7 @@ return array(
     "explorer.folderPass.btnReset"   => "redefinir senha",
     "explorer.folderPass.btnClear"   => "Remover senha",
     "explorer.folderPass.tips"       => "A pasta requer uma senha para acessar, digite a senha para continuar.",
+    "explorer.folderPass.tipsHas"    => "O subconteúdo contém pastas que requerem acesso por senha. Digite e digite a senha para continuar.",
     "explorer.downloaded"            => "Download concluído",
     "explorer.openAutoTips"          => "Será aberto automaticamente",
     "explorer.historyAutoTips"       => "Gerar automaticamente versões históricas",

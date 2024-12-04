@@ -1689,6 +1689,7 @@ return array(
     "explorer.folderPass.btnReset"   => "сбросить пароль",
     "explorer.folderPass.btnClear"   => "Удалить пароль",
     "explorer.folderPass.tips"       => "Для доступа к папке требуется пароль. Введите пароль, чтобы продолжить.",
+    "explorer.folderPass.tipsHas"    => "Подсодержимое содержит папки, к которым требуется доступ с помощью пароля. Введите и введите пароль, чтобы продолжить.",
     "explorer.downloaded"            => "Загрузка завершена",
     "explorer.openAutoTips"          => "Откроется автоматически",
     "explorer.historyAutoTips"       => "Автоматически генерировать исторические версии",

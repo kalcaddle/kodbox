@@ -1689,6 +1689,7 @@ return array(
     "explorer.folderPass.btnReset"   => "zresetować hasło",
     "explorer.folderPass.btnClear"   => "Usuń hasło",
     "explorer.folderPass.tips"       => "Aby uzyskać dostęp do folderu, wymagane jest hasło. Wprowadź hasło, aby kontynuować.",
+    "explorer.folderPass.tipsHas"    => "Podtreść zawiera foldery wymagające dostępu za pomocą hasła. Wprowadź i wprowadź hasło, aby kontynuować.",
     "explorer.downloaded"            => "Pobieranie zakończone",
     "explorer.openAutoTips"          => "Otworzy się automatycznie",
     "explorer.historyAutoTips"       => "Automatycznie generuj wersje historyczne",

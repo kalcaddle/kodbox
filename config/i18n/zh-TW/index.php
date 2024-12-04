@@ -1689,6 +1689,7 @@ return array(
     "explorer.folderPass.btnReset"   => "重設密碼",
     "explorer.folderPass.btnClear"   => "移除密碼",
     "explorer.folderPass.tips"       => "資料夾需要密碼存取,請輸入密碼後繼續.",
+    "explorer.folderPass.tipsHas"    => "子內容包含需要密碼存取的資料夾,請進入並輸入密碼後繼續.",
     "explorer.downloaded"            => "下載完成",
     "explorer.openAutoTips"          => "即將自動打開",
     "explorer.historyAutoTips"       => "自動生成歷史版本",

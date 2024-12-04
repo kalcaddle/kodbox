@@ -1689,6 +1689,7 @@ return array(
     "explorer.folderPass.btnReset"   => "Passwort zurücksetzen",
     "explorer.folderPass.btnClear"   => "Passwort entfernen",
     "explorer.folderPass.tips"       => "Für den Zugriff auf den Ordner ist ein Passwort erforderlich. Bitte geben Sie das Passwort ein, um fortzufahren.",
+    "explorer.folderPass.tipsHas"    => "Der Unterinhalt enthält Ordner, für die ein Passwortzugriff erforderlich ist. Bitte geben Sie das Passwort ein, um fortzufahren.",
     "explorer.downloaded"            => "Download abgeschlossen",
     "explorer.openAutoTips"          => "Wird automatisch geöffnet",
     "explorer.historyAutoTips"       => "Historische Versionen automatisch generieren",

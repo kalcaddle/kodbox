@@ -547,4 +547,90 @@ class adminRepair extends Controller {
 		}
 		$task->end();
 	}
+
+	/**
+	 * 清除用户回收站文件
+	 * /?admin/repair/clearUserRecycle&limit=100&days=3&userID=1
+	 * @return void
+	 */
+	public function clearUserRecycle() {
+		$limit  = intval(_get($this->in, 'limit', 100));
+        $days   = intval(_get($this->in, 'days', 3));
+        $userID = intval(_get($this->in, 'userID', 0));
+
+        $cckey  = 'clearRecycleFiles-'.implode('-', array($limit, $days, $userID));
+        $data	= Cache::get($cckey);
+
+        // 获取待清理列表
+        if (!isset($this->in['done']) || !$data) {
+            $data = $this->getRecycleList($limit, $days, $userID);
+        }
+
+        // 标题
+        $title = '清理用户回收站，筛选条件：';
+        if ($limit) $title .= '回收站文件超过'.$limit.'个的';
+        if ($userID) {
+            $title .= '指定用户(userID='.$userID.')';
+        } else {
+            $title .= '所有用户';
+        }
+        $title .= '的，回收站中';
+        if ($days) {
+            $title .= $days.'天前删除的文件';
+        } else {
+            $title .= '所有的文件';
+        }
+        echoLog($title.'。');
+
+        // 清理确认
+        if (!$data) {
+            echoLog('符合条件的数据为空，无需处理。');exit;
+        }
+        echoLog('符合条件的共'.count($data['list']).'个用户，待清理'.$data['count'].'个文件。');
+        echoLog('');
+        if (!isset($this->in['done'])) {
+            Cache::set($cckey, $data, 600);
+            echoLog('如确认需要清理，请在地址中追加参数后再次访问：&done=1');exit;
+        }
+        Cache::remove($cckey);
+
+        // 按用户循环清理
+        echoLog('开始清理...');
+        foreach ($data['list'] as $userID => $pathArr) {
+            echoLog('开始清理用户（'.$userID.'）的回收站中，共'.count($pathArr).'个文件；');
+            Model('SourceRecycle')->remove($pathArr, $userID);
+		    Action('explorer.recycleDriver')->remove($pathArr);
+            Model('Source')->targetSpaceUpdate(SourceModel::TYPE_USER,$userID);
+        }
+        echoLog('清理完成！');exit;
+	}
+	// 获取回收站文件列表
+    private function getRecycleList($limit, $days, $userID=0) {
+        $model = Model('SourceRecycle');
+
+        $where = array();
+        // n天前
+        if ($days) {
+            $time = date("Y-m-d 23:59:59",strtotime("-$days day"));
+            $where['createTime'] = array('<=', strtotime($time));
+        }
+        // >n个文件
+        if ($limit) {
+            $sql = "SELECT count(sourceID) as cnt, userID FROM `io_source_recycle` GROUP BY userID HAVING cnt > $limit";
+            $list = $model->query($sql);
+            if (!$list) return array();
+            $list = array_to_keyvalue($list, '', 'userID');
+            $where['userID'] = array('in', $list);
+        }
+        if ($userID) $where['userID'] = $userID;
+
+        // 按条件查询用户回收站中的文件sourceID
+        if ($where) $model->where($where);
+        $list = $model->field('sourceID, userID')->select();
+        if (!$list) return array();
+        $count = count($list);
+
+        $list = array_to_keyvalue_group($list, 'userID', 'sourceID');
+        return array('list' => $list, 'count' => $count);
+    }
 }

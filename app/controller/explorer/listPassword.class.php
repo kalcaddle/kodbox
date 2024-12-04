@@ -17,9 +17,35 @@ class explorerListPassword extends Controller{
 	}
 	// 权限检测
 	public function authCheck($pathInfo,$action){
-		$passInfo = $this->checkAllowPassword($data['current']);
-		if(!$passInfo){return;}
-		return LNG('explorer.folderPass.tips');
+		if(!$this->checkAuthNeed($pathInfo)){return;} // 拥有编辑以上权限则忽略;
+		$passInfo = $this->checkAllowPassword($pathInfo);
+		if($passInfo){// 当前文件,或上层需要密码;
+			if($action == 'show'){return;}
+			return LNG('explorer.folderPass.tips');
+		}
+		
+		// 查询子目录是否包含需要设置密码的文件夹;
+		if($pathInfo['type'] == 'folder' && $action == 'download'){
+			$where = array(
+				"source.parentLevel"=> array("like",$pathInfo['parentLevel'].$pathInfo['sourceID'].',%'),
+				"source.isDelete"	=> 0,
+				"meta.key"			=> 'folderPassword',
+			);
+			$field = "source.sourceID,meta.value";
+			$join  = "LEFT JOIN io_source_meta meta on source.sourceID = meta.sourceID";
+			$list  = $this->model->alias("source")->field($field)->where($where)->join($join)->select();
+			$sourceMeta = $this->folderPasswordMeta(array_to_keyvalue($list,'','sourceID'));
+			$needPassword = array();
+			foreach($sourceMeta as $sourceID => $passInfo){
+				$sessionKey = "folderPassword_".$passInfo['sourceID'];
+				if( $passInfo && Session::get($sessionKey) != $passInfo['folderPassword']){
+					$needPassword[] = $passInfo;
+				}
+			}
+			// trace_log([$passInfo,$pathInfo,$action,$list,$needPassword]);
+			$msgCount = ' ['.count($needPassword).' '.LNG('common.items').']';
+			if($needPassword){return LNG('explorer.folderPass.tipsHas').$msgCount;}
+		}
 	}
 	
 	// 追加到根目录;
@@ -35,12 +61,15 @@ class explorerListPassword extends Controller{
 		$data['folderPasswordNeed'] = $passInfo;
 	}
 	
-	private function checkAllowPassword($pathInfo){
+	private function checkAuthNeed($pathInfo){
 		if(!$pathInfo || empty($pathInfo['sourceID']) || empty($pathInfo['parentLevel'])){return false;}
 		$canEdit  = is_array($pathInfo['auth']) ? Model("Auth")->authCheckEdit($pathInfo['auth']['authValue']):false;
 		$userSelf = $pathInfo['targetType'] == 'user' && $pathInfo['targetID'] == KodUser::id();
-		if($userSelf || $canEdit || KodUser::isRoot()){return;}
-		
+		if($userSelf || $canEdit || KodUser::isRoot()){return false;}
+		return true;
+	}
+	private function checkAllowPassword($pathInfo){
+		if(!$this->checkAuthNeed($pathInfo)){return false;}
 		$passInfo = $this->folderPasswordFind($pathInfo);
 		if(!$passInfo){return false;}
 		
@@ -72,11 +101,26 @@ class explorerListPassword extends Controller{
 		}
 		if($findHas || isset($_cache[$pathInfo['sourceID']])){return $findHas;}
 		
-		$where   = array('sourceID'=>array('in',$parentLevel),'key'=>array('in',$keys));
+		$sourceMeta = $this->folderPasswordMeta($parentLevel);
+		foreach ($sourceMeta as $sourceID => $meta) {
+			$_cache[$sourceID] = $meta;
+		}
+		foreach($parentLevel as $sourceID){
+			if(empty($_cache[$sourceID])){continue;}
+			$findHas = $_cache[$sourceID];break;
+		}
+		return $findHas;
+	}
+	
+	private function folderPasswordMeta($sourceArr){
+		$sourceMeta = array();
+		if(!$sourceArr){return $sourceMeta;}
+		$keys 	 = array('folderPassword','folderPasswordDesc','folderPasswordTimeTo','folderPasswordUser');
+		$where   = array('sourceID'=>array('in',$sourceArr),'key'=>array('in',$keys));
 		$metaArr = Model('io_source_meta')->where($where)->select();
 		$metaArr = array_to_keyvalue_group($metaArr,'sourceID');
-		foreach($metaArr as $sourceID=>$sourceMeta){
-			$meta = array_to_keyvalue($sourceMeta,'key','value');
+		foreach($metaArr as $sourceID=>$theMeta){
+			$meta = array_to_keyvalue($theMeta,'key','value');
 			if(empty($meta['folderPassword'])){$meta = array();}
 			if(!empty($meta['folderPasswordTimeTo']) && $meta['folderPasswordTimeTo'] < time() ){ //已过期处理;
 				$meta = array();
@@ -85,14 +129,9 @@ class explorerListPassword extends Controller{
 				$item['value'] = Model("User")->getInfoSimpleOuter($meta['folderPasswordUser']);
 			}
 			if(!empty($meta)){$meta['sourceID'] = $sourceID;}
-			$_cache[$sourceID] = $meta;
+			$sourceMeta[$sourceID] = $meta;
 		}
-		
-		foreach($parentLevel as $sourceID){
-			if(empty($_cache[$sourceID])){continue;}
-			$findHas = $_cache[$sourceID];break;
-		}
-		return $findHas;
+		return $sourceMeta;
 	}
 	
 }

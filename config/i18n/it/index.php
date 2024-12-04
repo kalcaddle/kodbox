@@ -1689,6 +1689,7 @@ return array(
     "explorer.folderPass.btnReset"   => "reimpostare la password",
     "explorer.folderPass.btnClear"   => "Rimuovi la password",
     "explorer.folderPass.tips"       => "La cartella richiede una password per accedere, inserisci la password per continuare.",
+    "explorer.folderPass.tipsHas"    => "Il contenuto secondario contiene cartelle che richiedono l'accesso tramite password. Inserisci e inserisci la password per continuare.",
     "explorer.downloaded"            => "Download completato",
     "explorer.openAutoTips"          => "Si aprirà automaticamente",
     "explorer.historyAutoTips"       => "Genera automaticamente versioni storiche",

@@ -1689,6 +1689,7 @@ return array(
     "explorer.folderPass.btnReset"   => "إعادة تعيين كلمة المرور",
     "explorer.folderPass.btnClear"   => "إزالة كلمة المرور",
     "explorer.folderPass.tips"       => "يتطلب المجلد كلمة مرور للوصول إليه، يرجى إدخال كلمة المرور للمتابعة.",
+    "explorer.folderPass.tipsHas"    => "يحتوي المحتوى الفرعي على مجلدات تتطلب الوصول إلى كلمة المرور. يرجى إدخال كلمة المرور وإدخالها للمتابعة.",
     "explorer.downloaded"            => "اكتمل التنزيل",
     "explorer.openAutoTips"          => "سوف تفتح تلقائيا",
     "explorer.historyAutoTips"       => "توليد الإصدارات التاريخية تلقائيا",

@@ -1689,6 +1689,7 @@ return array(
     "explorer.folderPass.btnReset"   => "şifreyi sıfırla",
     "explorer.folderPass.btnClear"   => "Şifreyi kaldır",
     "explorer.folderPass.tips"       => "Klasöre erişim için şifre gerekiyor, devam etmek için lütfen şifreyi girin.",
+    "explorer.folderPass.tipsHas"    => "Alt içerik şifreli erişim gerektiren klasörler içeriyor. Devam etmek için lütfen şifreyi girin ve girin.",
     "explorer.downloaded"            => "İndirme tamamlandı",
     "explorer.openAutoTips"          => "Otomatik olarak açılacak",
     "explorer.historyAutoTips"       => "Otomatik olarak eski sürümleri oluştur",

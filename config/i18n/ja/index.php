@@ -1689,6 +1689,7 @@ return array(
     "explorer.folderPass.btnReset"   => "パスワードをリセットする",
     "explorer.folderPass.btnClear"   => "パスワードを削除する",
     "explorer.folderPass.tips"       => "フォルダーにアクセスするにはパスワードが必要です。続行するにはパスワードを入力してください。",
+    "explorer.folderPass.tipsHas"    => "サブコンテンツにはパスワードによるアクセスが必要なフォルダーが含まれていますので、パスワードを入力して続行してください。",
     "explorer.downloaded"            => "ダウンロード完了",
     "explorer.openAutoTips"          => "自動的に開きます",
     "explorer.historyAutoTips"       => "履歴バージョンを自動生成",

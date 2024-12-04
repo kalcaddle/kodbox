@@ -335,6 +335,7 @@ class explorerShare extends Controller{
 		$result = array();
 		for ($i=0; $i < count($fileList); $i++) {
 			$path = $this->parsePath($fileList[$i]['path']);
+			$this->fileCheckDownload($path);
 			if($this->in['getChildren'] == '1'){
 				$pathInfo = IO::infoWithChildren($path);
 			}else{
@@ -371,6 +372,7 @@ class explorerShare extends Controller{
 		if(request_url_safe($path)){header('Location:'.$path);exit;}
 		
 		$path = $this->parsePath($path);
+		$this->fileCheckDownload($path);
 		$isDownload = isset($this->in['download']) && $this->in['download'] == 1;
 		Hook::trigger('explorer.fileOut', $path);
 		if(isset($this->in['type']) && $this->in['type'] == 'image'){
@@ -457,6 +459,7 @@ class explorerShare extends Controller{
 		$this->in['pageNum'] = isset($this->in['pageNum']) ? $this->in['pageNum'] : $pageNum;
 		$this->in['pageNum'] = $this->in['pageNum'] >= $pageNum ? $pageNum : $this->in['pageNum'];
 		$this->in['path'] = $this->parsePath($this->in['path']);
+		$this->fileCheckDownload($this->in['path']);
 		ActionCallResult("explorer.editor.fileGet",function(&$res) use($self){
 			if(!$res['code']){return;}
 			$pathDisplay = $res['data']['pathDisplay'];
@@ -464,6 +467,15 @@ class explorerShare extends Controller{
 			if($pathDisplay && substr($pathDisplay,0,1) == '['){$res['data']['pathDisplay'] = $pathDisplay;}
 			if(is_array($res['data']['fileInfo'])){unset($res['data']['fileInfo']);}
 		});
+	}
+	
+	// 文件下载权限校验
+	public function fileCheckDownload($path){
+		$parse  = KodIO::parse($path);
+		if($parse['type'] == KodIO::KOD_SOURCE){ // 上层包含密码时处理;
+			$errorMsg = Action('explorer.listPassword')->authCheck(IO::info($path),'download');
+			if($errorMsg){show_json($errorMsg,false,1102);}
+		}
 	}
 	
 	// 压缩包内文本文件请求(不再做权限校验; 通过文件外链hash校验处理)
@@ -569,8 +581,7 @@ class explorerShare extends Controller{
 	}
 
 	private function zipSupportCheck(){
-		$config = Model('SystemOption')->get();
-		if($config['shareLinkZip'] == '1') return true;
+		if(Model('SystemOption')->get('shareLinkZip') == '1') return true;
 		show_json(LNG('admin.setting.shareLinkZipTips'),false);
 	}
 	

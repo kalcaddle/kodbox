@@ -1689,6 +1689,7 @@ return array(
     "explorer.folderPass.btnReset"   => "mengatur ulang kata sandi",
     "explorer.folderPass.btnClear"   => "Hapus kata sandi",
     "explorer.folderPass.tips"       => "Folder tersebut memerlukan kata sandi untuk mengaksesnya, silakan masukkan kata sandi untuk melanjutkan.",
+    "explorer.folderPass.tipsHas"    => "Sub-isi berisi folder yang memerlukan akses kata sandi. Silakan masukkan dan masukkan kata sandi untuk melanjutkan.",
     "explorer.downloaded"            => "Pengunduhan selesai",
     "explorer.openAutoTips"          => "Akan terbuka secara otomatis",
     "explorer.historyAutoTips"       => "Secara otomatis menghasilkan versi historis",

@@ -1689,6 +1689,7 @@ return array(
     "explorer.folderPass.btnReset"   => "Reset Password",
     "explorer.folderPass.btnClear"   => "Remove Password",
     "explorer.folderPass.tips"       => "The folder requires a password to access, please enter the password to continue.",
+    "explorer.folderPass.tipsHas"    => "The sub-content contains folders that require a password to access. Please enter and enter the password to continue.",
     "explorer.downloaded"            => "Download completed",
     "explorer.openAutoTips"          => "Will open automatically",
     "explorer.historyAutoTips"       => "Automatically generate historical versions",

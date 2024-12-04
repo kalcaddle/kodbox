@@ -2,7 +2,7 @@
 	"id":"pdfjs",
 	"name":"PDF阅读器",
 	"title":"PDF阅读器",
-	"version":"1.47",
+	"version":"1.48",
 	"source":{
 		"icon":"{{pluginHost}}static/app/images/icon.png",
 		"screenshoot":[

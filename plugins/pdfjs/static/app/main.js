@@ -12,6 +12,9 @@ kodReady.push(function(){
 			}
 		});
 		$.addStyle(".x-item-icon.x-ofd{background-image:url('{{pluginHost}}static/ofd/img/icon.png');}");
-		_.delay(function(){kodApp.remove('pdfView');},100);
+		_.delay(function(){
+			if(!window.kodApp || !kodApp.remove){return;}
+			kodApp.remove('pdfView');
+		},100);
 	});
 });

@@ -1689,6 +1689,7 @@ return array(
     "explorer.folderPass.btnReset"   => "கடவுச்சொல்லை மீட்டமை",
     "explorer.folderPass.btnClear"   => "கடவுச்சொல்லை அகற்று",
     "explorer.folderPass.tips"       => "கோப்புறையை அணுக கடவுச்சொல் தேவை, தொடர கடவுச்சொல்லை உள்ளிடவும்.",
+    "explorer.folderPass.tipsHas"    => "துணை உள்ளடக்கத்தில் கடவுச்சொல் அணுகல் தேவைப்படும் கோப்புறைகள் உள்ளன, தொடர கடவுச்சொல்லை உள்ளிடவும்.",
     "explorer.downloaded"            => "பதிவிறக்கம் முடிந்தது",
     "explorer.openAutoTips"          => "தானாக திறக்கும்",
     "explorer.historyAutoTips"       => "வரலாற்று பதிப்புகளை தானாக உருவாக்குகிறது",

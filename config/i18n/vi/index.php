@@ -1689,6 +1689,7 @@ return array(
     "explorer.folderPass.btnReset"   => "đặt lại mật khẩu",
     "explorer.folderPass.btnClear"   => "Xóa mật khẩu",
     "explorer.folderPass.tips"       => "Thư mục yêu cầu mật khẩu để truy cập, vui lòng nhập mật khẩu để tiếp tục.",
+    "explorer.folderPass.tipsHas"    => "Nội dung phụ chứa các thư mục yêu cầu truy cập mật khẩu. Vui lòng nhập và nhập mật khẩu để tiếp tục.",
     "explorer.downloaded"            => "Tải xuống hoàn tất",
     "explorer.openAutoTips"          => "Sẽ tự động mở",
     "explorer.historyAutoTips"       => "Tự động tạo các phiên bản lịch sử",

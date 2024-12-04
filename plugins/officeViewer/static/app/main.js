@@ -12,6 +12,7 @@ kodReady.push(function(){
 		});
 		// 屏蔽已包含的打开方式
 		_.delay(function(){
+			if(!window.kodApp || !kodApp.remove){return;}
 			kodApp.remove('officeLive');
 			kodApp.remove('yzOffice');
 		},100);

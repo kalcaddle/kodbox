@@ -1689,6 +1689,7 @@ return array(
     "explorer.folderPass.btnReset"   => "réinitialiser le mot de passe",
     "explorer.folderPass.btnClear"   => "Supprimer le mot de passe",
     "explorer.folderPass.tips"       => "Le dossier nécessite un mot de passe pour y accéder, veuillez saisir le mot de passe pour continuer.",
+    "explorer.folderPass.tipsHas"    => "Le sous-contenu contient des dossiers qui nécessitent un accès par mot de passe. Veuillez saisir et saisir le mot de passe pour continuer.",
     "explorer.downloaded"            => "Téléchargement terminé",
     "explorer.openAutoTips"          => "S'ouvrira automatiquement",
     "explorer.historyAutoTips"       => "Générer automatiquement des versions historiques",

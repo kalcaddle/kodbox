@@ -1689,6 +1689,7 @@ return array(
     "explorer.folderPass.btnReset"   => "পাসওয়ার্ড রিসেট করুন",
     "explorer.folderPass.btnClear"   => "পাসওয়ার্ড সরান",
     "explorer.folderPass.tips"       => "ফোল্ডার অ্যাক্সেস করার জন্য একটি পাসওয়ার্ড প্রয়োজন, চালিয়ে যেতে পাসওয়ার্ড লিখুন.",
+    "explorer.folderPass.tipsHas"    => "সাব-কন্টেন্টে এমন ফোল্ডার রয়েছে যেগুলির জন্য পাসওয়ার্ড অ্যাক্সেসের প্রয়োজন হয় এবং চালিয়ে যেতে পাসওয়ার্ড লিখুন৷",
     "explorer.downloaded"            => "ডাউনলোড সমাপ্ত",
     "explorer.openAutoTips"          => "স্বয়ংক্রিয়ভাবে খুলবে",
     "explorer.historyAutoTips"       => "স্বয়ংক্রিয়ভাবে historicalতিহাসিক সংস্করণ তৈরি করুন",

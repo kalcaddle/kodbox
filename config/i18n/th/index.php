@@ -1689,6 +1689,7 @@ return array(
     "explorer.folderPass.btnReset"   => "รีเซ็ตรหัสผ่าน",
     "explorer.folderPass.btnClear"   => "ลบรหัสผ่าน",
     "explorer.folderPass.tips"       => "โฟลเดอร์นี้ต้องใช้รหัสผ่านเพื่อเข้าถึง โปรดป้อนรหัสผ่านเพื่อดำเนินการต่อ",
+    "explorer.folderPass.tipsHas"    => "เนื้อหาย่อยประกอบด้วยโฟลเดอร์ที่ต้องใช้รหัสผ่าน โปรดป้อนและป้อนรหัสผ่านเพื่อดำเนินการต่อ",
     "explorer.downloaded"            => "การดาวน์โหลดเสร็จสิ้น",
     "explorer.openAutoTips"          => "จะเปิดอัตโนมัติ",
     "explorer.historyAutoTips"       => "สร้างเวอร์ชันประวัติศาสตร์โดยอัตโนมัติ",
