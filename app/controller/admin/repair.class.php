@@ -609,23 +609,26 @@ class adminRepair extends Controller {
         $model = Model('SourceRecycle');
 
         $where = array();
-        // n天前
+        // >n个文件
+		if ($userID) {
+			$where['userID'] = $userID;
+		} else {
+			if ($limit) {
+				$sql = "SELECT count(sourceID) as cnt, userID FROM `io_source_recycle` GROUP BY userID HAVING cnt > $limit";
+				$list = $model->query($sql);
+				if (!$list) return array();
+				$list = array_to_keyvalue($list, '', 'userID');
+				$where['userID'] = array('in', $list);
+			}
+		}
+		// n天前
         if ($days) {
             $time = date("Y-m-d 23:59:59",strtotime("-$days day"));
             $where['createTime'] = array('<=', strtotime($time));
         }
-        // >n个文件
-        if ($limit) {
-            $sql = "SELECT count(sourceID) as cnt, userID FROM `io_source_recycle` GROUP BY userID HAVING cnt > $limit";
-            $list = $model->query($sql);
-            if (!$list) return array();
-            $list = array_to_keyvalue($list, '', 'userID');
-            $where['userID'] = array('in', $list);
-        }
-        if ($userID) $where['userID'] = $userID;
+        if ($where) $model->where($where);
 
         // 按条件查询用户回收站中的文件sourceID
-        if ($where) $model->where($where);
         $list = $model->field('sourceID, userID')->select();
         if (!$list) return array();
         $count = count($list);
