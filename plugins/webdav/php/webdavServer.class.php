@@ -365,28 +365,47 @@ class webdavServer {
 	}
 	public function httpLOCK() {
 		$this->fileLock($this->path);
-		$token = md5($this->path);
-		$lockInfo = '<D:prop xmlns:d="DAV:">
-			<D:lockdiscovery>
-				<D:activelock>
-					<D:locktype><d:write/></D:locktype>
-					<D:lockscope><d:exclusive/></D:lockscope>
-					<D:depth>infinity</D:depth>
-					<D:owner>'.$this->xmlGet('lockinfo/owner/href').'</D:owner>
-					<D:timeout>Infinite</D:timeout>
-					<D:locktoken><D:href>opaquelocktoken:'.$token.'</D:href></D:locktoken>
-				</D:activelock>
-			</D:lockdiscovery>
-		</D:prop>';
+		$token      = $this->makeLockToken();
+		$depth      = _get($_SERVER,'HTTP_DEPTH','infinity');
+		$timeout    = _get($_SERVER,'HTTP_TIMEOUT','Infinite');
+		$lockInfo   = '<d:prop xmlns:d="DAV:">
+			<d:lockdiscovery>
+				<d:activelock>
+				    <d:locktype><d:write/></d:locktype>
+				    <d:lockscope><d:exclusive/></d:lockscope>
+					<d:depth>'.$depth.'</d:depth>
+					<d:lockroot><d:href>'.$_SERVER['REQUEST_URI'].'</d:href></d:lockroot>
+					<d:owner>'.trim($this->xmlGet('lockinfo/owner/href')).'</d:owner>
+					<d:timeout>'.$timeout.'</d:timeout>
+					<d:locktoken><d:href>opaquelocktoken:'.$token.'</d:href></d:locktoken>
+				</d:activelock>
+			</d:lockdiscovery>
+		</d:prop>';
+		
 		return array(
-            'code' => 200,
+            'code' => 201,
             'headers' => array(
-				'Lock-Token: '.$token,
+				'Lock-Token: <opaquelocktoken:'.$token.'>',
 				'Connection: keep-alive',
 			),
 			'body' => $lockInfo,
         );
 	}
+	
+	private function makeLockToken(){
+	    return sprintf(
+            '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0x0fff) | 0x4000,
+            mt_rand(0, 0x3fff) | 0x8000,
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff),
+            mt_rand(0, 0xffff)
+        );
+	}
+	
 	public function httpUNLOCK() {
 		$this->fileUnLock($this->path);
 		return array('code' => 204);
@@ -438,10 +457,13 @@ class webdavServer {
 		if($data['code'] >= 400 && !$data['body']){
 			$data['body'] = $this->errorBody();
 		}
-        if (is_string($data['body'])) {
-        	header('Content-Type: text/xml; charset=UTF-8');
+        if(is_string($data['body'])) {
+        	header('Content-Type: application/xml; charset=utf-8');
         	echo '<?xml version="1.0" encoding="utf-8"?>'."\n".$data['body'];
         }
-		// write_log(array($_SERVER['REQUEST_URI'],$headers,$GLOBALS['_SERVER'],$data),'webdav');
+        
+        if($this->method != 'httpPROPFIND'){
+            // write_log(array($_SERVER['REQUEST_URI'],$headers,$data),'webdav');
+        }
 	}
 }

@@ -30,12 +30,13 @@ ClassBase.define({
 				value:
 				"<div class='info-alert info-alert-blue p-10 align-left can-select can-right-menu'>\
 					<h5>通过对磁盘或对象存储进行扫描，自动构建索引，实现文件快速导入到网盘。</h5>\
-					<div class='mt-10'>\
-                        <li>1. 网盘文件需通过存储路径访问，<u>在导入之前，需将待导入的原始数据目录（或父级目录）添加为存储</u>；</li>\
+					<div class='mt-10 mb-20'>\
+                        <li>1. 网盘文件需通过存储路径访问，<u>因此在导入之前，需将待导入的原始数据目录（或父级目录）添加为存储</u>；</li>\
                         <li>2. 此操作不会对原始数据做改动，只构建文件索引映射到网盘，<u>在导入之后，不能对原始数据做任何改动，避免索引失效</u>；</li>\
-                        <li>3. 导入数据与网盘默认存储数据的路径结构不同，建议将导入数据存储作为附加存储（而非系统默认存储）使用，以维护数据结构统一；</li>\
+                        <li>3. 导入数据与网盘默认存储数据的路径结构不同，建议将导入数据的存储作为附加存储（而非系统默认存储）使用，以维护数据结构统一；</li>\
                         <li>4. 导入之前建议对数据库进行备份，以免出现意外。</li>\
 					</div>\
+                    <div>注意：<u>文件路径长度超过256个字符会被限制导入</u>，相关日志放在网盘存放目录下的“导入失败日志-长度超256字符”文件夹中，可在导入完成后自行查看并处理。</div>\
 				</div>"
 			},
 			pathFrom: {
@@ -206,14 +207,14 @@ ClassBase.define({
         tips.content(_.get(result, 'data.currentTitle') || '').process({text: text, process: percent});
         // 2.5 完成
         if (_.get(result,'info') == '1') { // percent=1
-            var msg = _.get(result, 'data.desc') || '';
-            if (msg) msg = '<span class="fl-right">'+msg+'</span>';
-            var icon   = 'success';
-            var title  = '导入完成！';
-            var status = _.get(result, 'data.status') || '';
+            var msg     = _.get(result, 'data.desc') || '';
+            if(msg) msg = '<span class="fl-right">'+msg+'</span>';
+            var icon    = 'success';
+            var title   = '导入完成！';
+            var status  = _.get(result, 'data.status') || '';
             if (status == 'kill' || status == 'error') {
-                icon = 'error';
-                title = '任务结束！';
+                icon    = 'error';
+                title   = '任务结束！';
                 percent = 1;
                 tips.$main.find('.process-add').css('background-color', '#ff4d4f');
             }

@@ -131,7 +131,7 @@ class storeImportPlugin extends PluginBase{
 
 		// 1.1 初始化：io_file缓存、日志文件
 		$this->ioFileCache($pathFrom, 'init');	// 原目录io_file记录——缓存初始化
-		$this->wrt255Log($pathFrom, $pathTo, 0);	// 路径长度超出，记录日志
+		$this->wrt256Log($pathFrom, $pathTo, 0);	// 路径长度超出，记录日志
 
 		// 1.2 获取原目录文件列表
 		$GLOBALS['STORE_IMPORT_FILE_CNT'] = 0;	// 指定目录下文件总数——动态变化；使用缓存的问题：数据落地不及时、保持key一致比较麻烦
@@ -181,9 +181,9 @@ class storeImportPlugin extends PluginBase{
 
             // 2. 文件创建——添加io_source/io_file记录
 			// 2.0 path过长，拦截
-			if (mb_strlen($fPath) > 255) {
-				$this->wrt255Log($pathFrom, $pathTo, $fPath);
-				$this->writeLog(false, 'path length > 255.', $rest);
+			if (mb_strlen($fPath) > 256) {
+				$this->wrt256Log($pathFrom, $pathTo, $fPath);
+				$this->writeLog(false, 'path length > 256.', $rest);
 				// Cache::set($ccKey, 1);
 				continue;
 			}
@@ -276,7 +276,7 @@ class storeImportPlugin extends PluginBase{
 		$task->end();
 
 		// 5.1 日志文件保存、io缓存清除
-		$this->wrt255Log($pathFrom, $pathTo, 1);
+		$this->wrt256Log($pathFrom, $pathTo, 1);
 		$this->ioFileCache($pathFrom, 'clear');
 		
 		// 5.2 提示输出：页面、cli
@@ -354,8 +354,8 @@ class storeImportPlugin extends PluginBase{
 		if ($kcache) Cache::set($baseKey, $kcache);
 	}
 
-	// 路径长度超出255，写入日志
-	private function wrt255Log($pathFrom, $pathTo, $path='') {
+	// 路径长度超出256，写入日志
+	private function wrt256Log($pathFrom, $pathTo, $path='') {
 		// 1.初始化任务key
 		if ($path === 0) {
 			$this->logName = $this->_taskId().'-'.date('His');	// xxx-172027
@@ -369,7 +369,7 @@ class storeImportPlugin extends PluginBase{
 		}
 		// 3.日志文件移动到目标目录
 		$log = false;
-		$logPath = IO::mkdir($pathTo.'/导入失败日志-长度超255字符');
+		$logPath = IO::mkdir($pathTo.'/导入失败日志-长度超256字符');
 
 		$path = LOG_PATH.strtolower($this->pluginName);
 		$list = IO::listPath($path,true);

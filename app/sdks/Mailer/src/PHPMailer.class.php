@@ -1107,7 +1107,7 @@ class PHPMailer
         } else {
             $name = '';
         }
-        $params = [$kind, $address, $name];
+        $params = array($kind, $address, $name);
         //Enqueue addresses with IDN until we know the PHPMailer::$CharSet.
         //Domain is assumed to be whatever is after the last @ symbol in the address
         if (static::idnSupported() && $this->has8bitChars(substr($address, ++$pos))) {
@@ -1191,13 +1191,13 @@ class PHPMailer
         }
         if ('Reply-To' !== $kind) {
             if (!array_key_exists(strtolower($address), $this->all_recipients)) {
-                $this->{$kind}[] = [$address, $name];
+                $this->{$kind}[] = array($address, $name);
                 $this->all_recipients[strtolower($address)] = true;
 
                 return true;
             }
         } elseif (!array_key_exists(strtolower($address), $this->ReplyTo)) {
-            $this->ReplyTo[strtolower($address)] = [$address, $name];
+            $this->ReplyTo[strtolower($address)] = array($address, $name);
 
             return true;
         }
@@ -4161,7 +4161,7 @@ class PHPMailer
 
                     return false;
                 }
-                $this->CustomHeader[$k] = [$name, $value];
+                $this->CustomHeader[$k] = array($name, $value);
                 $replaced = true;
             }
         }
@@ -4352,7 +4352,7 @@ class PHPMailer
 
             return false;
         }
-        $this->CustomHeader[] = [$name, $value];
+        $this->CustomHeader[] = array($name, $value);
 
         return true;
     }

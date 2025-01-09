@@ -21,13 +21,13 @@ class adminStorage extends Controller {
 		// 获取各存储中占用空间、文件数(io_file)、存储状态
 		$key = md5('io.list.get.'.implode(',',$ids));
 		$res = Cache::get($key);
-		if ($ids && !$res && $this->in['usage'] == '1') {
+		if ($ids && $res === false && $this->in['usage'] == '1') {
 			$where = array('ioType'=>array('in',implode(',',$ids)));
 			$res = Model('File')->field(array('ioType'=>'id','count(ioType)'=>'cnt','sum(size)'=>'size'))->where($where)->group('ioType')->select();
-			$res = array_to_keyvalue($res, 'id');
+			$res = array_to_keyvalue($res, 'id');	// 可能没有文件，返回空数组
 			Cache::set($key, $res, 600);	// 10分钟
 		}
-		$fileUse = $res ? true : false;
+		$fileUse = $res !== false ? true : false;
 		foreach ($result as &$item) {
 			$item['sizeUse'] = intval(_get($res, $item['id'].'.size', 0));
 			$item['fileNum'] = intval(_get($res, $item['id'].'.cnt', 0));

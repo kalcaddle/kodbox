@@ -789,6 +789,7 @@ class explorerIndex extends Controller{
 		$defaultID = 'unzip-'.USER_ID.'-'.rand_string(8);
 		$taskID = $this->in['longTaskID'] ? $this->in['longTaskID']:$defaultID;
 		$task = new TaskUnzip($taskID,'zip');
+		$task->update(0,true);//立即保存，部分解压方式不触发任务更新，导致进度获取失败
 		$task->addFile($path);
 	}
 	

@@ -42,6 +42,9 @@ class adminLog extends Controller{
             array('id' => 'explorer.index.fileDownload', 'text' => LNG('admin.log.downFile')),
             array('id' => 'explorer.fav.add', 'text' => LNG('explorer.addFav')),
             array('id' => 'explorer.fav.del', 'text' => LNG('explorer.delFav')),
+            array('id' => 'explorer.history.remove', 'text' => '删除历史版本'),
+            array('id' => 'explorer.history.rollback', 'text' => '回滚历史版本'),
+            array('id' => 'explorer.history.clear', 'text' => '清空历史版本'),  // 合并为历史版本操作，无需单独显示
         );
 		if(!is_array($list['file']['children'])){$list['file']['children'] = array();}
 		$list['file']['children'] = array_merge($list['file']['children'], $fileList);
@@ -60,6 +63,7 @@ class adminLog extends Controller{
 				'explorer.index.fileOut,explorer.index.fileDownload' => LNG('admin.log.downFile'),
 				'file.shareLinkAdd,file.shareLinkRemove' => LNG('log.file.shareLink'),
 				'file.shareToAdd,file.shareToRemove' => LNG('log.file.shareTo'),
+				'explorer.history.remove,explorer.history.rollback,explorer.history.clear' => LNG('explorer.history.action'),
 			),
 			'user' => array(
 				'user.setting.setHeadImage,user.setting.setUserInfo' => LNG('log.user.edit'),
@@ -159,8 +163,12 @@ class adminLog extends Controller{
         if(!in_array(ACTION, $actionList)){
             // 文件类的操作，此处只收集这3个
             if(MOD == 'explorer') {
-                $act = ST . '.' . ACT;
-                $func = array('fav.add', 'fav.del', 'index.fileOut', 'index.fileDownload', 'index.zipDownload');
+                $act  = ST . '.' . ACT;
+                $func = array(
+                    'fav.add', 'fav.del', 
+                    'index.fileOut', 'index.fileDownload', 'index.zipDownload',
+                    'history.remove', 'history.rollback', 'history.clear',
+                );
                 if(!in_array($act, $func)) return;
                 if (in_array(ACT, array('fileOut', 'fileDownload'))) { // 多线程下载，或某些浏览器会请求多次
                     if (!$this->checkHttpRange()) return;
@@ -319,6 +327,14 @@ class adminLog extends Controller{
                 $info = Model('Storage')->listData($this->in['id']);
                 $this->in['name'] = $info['name'];
                 $this->in['driver'] = $info['driver'];  // 谨慎追加参数，避免影响主方法调用
+            }
+        }
+        // 历史版本，追加当前操作的版本号；只记录source文件
+        if (ST == 'history' && ACT != 'clear') {
+            $parse = KodIO::parse($this->in['path']);
+            if ($parse['type'] == KodIO::KOD_SOURCE && $parse['id']) {
+                $info = Model('SourceHistory')->fileInfo($this->in['id'],true);
+                if ($info) $this->in['fileInfo'] = $info;
             }
         }
         Hook::bind('show_json', array($this, 'autoLog'));

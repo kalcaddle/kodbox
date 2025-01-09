@@ -6,9 +6,11 @@ define(function(require, exports) {
 		kodApp.imageList = false;
 		var items  = [];
 		if(!imageList) {
+			imageList = {};
 			items.push({
 				src:core.pathImage(filePath,1200),srcFile:core.pathImage(filePath,false),
 				msrc:core.pathImage(filePath,250),
+				$dom:false,w:0,h:0,
 				trueImage:core.pathImage(filePath,false),
 				title:htmlEncode(name || ''),
 			});
@@ -34,7 +36,7 @@ define(function(require, exports) {
 			item._src = item.src;
 			item.src = item.trueImage;
 			item.trueImage = ''
-		});			
+		});
 		return {items:items,index:imageList.index};
 	};
 	

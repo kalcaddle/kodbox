@@ -15,7 +15,7 @@ class userViewImage extends Controller{
 		$apiArr = $this->loadApi();
 		$type   = $this->in['type'] == 'search' ? 'search':'show';
 		if(!is_array($apiArr) || !is_array($apiArr[$type]) ){
-			show_json('Api config error!',false);
+			show_json(LNG('common.version.networkError'),false);
 		}
 		$api = $apiArr[$type];
 		$search = _get($this->in,'search','');

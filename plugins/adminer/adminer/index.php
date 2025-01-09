@@ -38,4 +38,8 @@ function adminer_object() {
 	}
 	return new AdminerSoftware();
 }
+
+$debug = KodSSO::cacheGet('adminer_debug');
+if (!$debug) ini_set('display_errors', 'off');	// 屏蔽错误信息
 include('./adminer.php.txt');
+if (!$debug) ini_set('display_errors', 'on');

@@ -1,14 +1,14 @@
 {
 	"id":"storeImport",
 	"name":"数据导入",
-	"title":"文档快速导入",
-	"version":"1.05",
+	"title":"存储数据快速导入",
+	"version":"1.06",
 	"category":"tools",
 	"hidden":1,
 	"source":{
 		"className":"font-icon ri-folder-transfer-line bg-blue-6"
 	},
-	"description":"本插件提供了数据导入功能，通过对指定的磁盘或对象存储添加的存储进行扫描，构建数据库索引，将原始数据映射到网盘目录，快速完成文档数据导入。",
+	"description":"本插件提供了存储数据导入功能，通过对指定磁盘或对象存储添加的存储进行扫描，实现存储数据快速导入到网盘。",
 	"auther":{
 		"copyright":"kodcloud.",
 		"homePage":"http://www.kodcloud.com",
@@ -17,9 +17,18 @@
 		"pluginAuth":{
 			"type":"userSelect",
 			"value":{"user":1},
+			"className":"hidden",
 			"display":"{{LNG['admin.plugin.auth']}}",
 			"desc":"{{LNG['admin.plugin.authDesc']}}",
 			"require":1
+		},
+		"sep001":{
+			// "display":"使用说明",
+			"value":
+			"<div class='info-alert info-alert-blue p-10 align-left can-select can-right-menu'>
+			<li class='mb-5'>通过对指定磁盘或对象存储添加的存储进行扫描，自动构建索引，将原始数据映射到网盘目录，实现存储数据快速导入。</li>
+			<li>使用说明见 <a href='./#admin/storage/index' target='_blank'>存储管理</a> -【数据导入】。</li>
+			</div>"
 		}
 	}
 }

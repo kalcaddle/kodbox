@@ -234,7 +234,7 @@ class userIndex extends Controller {
 	 * @param [type] $password
 	 */
 	public function userInfo($name, $password){
-		$user = Model("User")->userLoginCheck($name,$password);
+		$user = Model("User")->userLoginCheck($name,$password,true);
 		if(!is_array($user)) {
 			$userHook = Hook::trigger("user.index.userInfo",$name, $password);
 			if(is_array($userHook)) return $userHook;// 第三方登陆不做检测处理;
@@ -268,8 +268,8 @@ class userIndex extends Controller {
 		$res = $this->loginWithThird();	// app第三方账号登录
 		if($res || $res !== false) return $res;
 		$data = Input::getArray(array(
-			"name"		=> array("check"=>"require",'lengthMax'=>100),
-			"password"	=> array('check'=>"require",'lengthMax'=>100),
+			"name"		=> array("check"=>"require",'lengthMax'=>500),
+			"password"	=> array('check'=>"require",'lengthMax'=>500),
 		));
 		$checkCode = Input::get('checkCode', 'require', '');
 		if( need_check_code() && $data['name'] != 'guest'){

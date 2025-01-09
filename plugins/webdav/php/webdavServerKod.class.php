@@ -482,17 +482,22 @@ class webdavServerKod extends webdavServer {
 	
 	// 文件编辑锁添加或移除;(office/wps: 打开编辑时会添加; 保存时会添加/解除; 关闭文件时会解锁)
 	public function fileLock($path){
-		$info = $this->fileLockCheck($path);if(!$info) return;
+		if(!IO::infoFull($path)){
+		    $path = IO::mkfile($path);// 不存在时,自动创建文件;
+		}
+		
+		$info = $this->fileLockCheck($path);		
 		$lock = $this->fileLockAllow($path, $info);
-		if (!$lock) return;
+		if(!$lock) return;
+		
 		$this->fileLockCache($path, $lock, $info);
 		Model("Source")->metaSet($info['sourceID'],'systemLock',USER_ID);
 		Model("Source")->metaSet($info['sourceID'],'systemLockTime',time());		
 	}
 	public function fileUnLock($path){
 		$info = $this->fileLockCheck($path);if(!$info) return;
-		if ($this->fileLockCache($path)) return;
-		if (!$this->fileLockAllow($path, $info)) return;
+		if($this->fileLockCache($path)) return;
+		if(!$this->fileLockAllow($path, $info)) return;
 		Model("Source")->metaSet($info['sourceID'],'systemLock',null);
 		Model("Source")->metaSet($info['sourceID'],'systemLockTime',null);
 	}
@@ -505,20 +510,15 @@ class webdavServerKod extends webdavServer {
 	// 判断文件是否已加锁：未加锁=>true；已加锁：自己=>userID；他人=>false
 	private function fileLockAllow($path, $info) {
 		$isLock = _get($info, 'metaInfo.systemLock');
-		if (!$isLock) return true;	// 未被锁定
+		if(!$isLock) return true;	// 未被锁定
 		return $isLock == USER_ID ? $isLock : false;	// 被自己、别人锁定
 	}
 	private function fileLockCache($path, $lock=false, $info=false) {
 		$key = md5('before_webdav_locked_'.USER_ID.'_'.$path);
 		// 获取缓存：是否为自己手动锁定
-		if (!$lock) return Cache::get($key);
+		if(!$lock){return Cache::get($key);}
 		// 未锁定(true)：删除可能的缓存
-		if ($lock === true) return Cache::remove($key);
-		// 锁定(userid)：存缓存，超时时间为 锁定超时-当前 ——没有必要，每次保存时都会先执行加锁，超时会被删除（缓存）
-		// $time = (int) _get($info, 'metaInfo.systemLockTime', 0);
-		// $time = $time - time();
-		// if ($time <= 0) return;
-		// Cache::set($key, 1, $time);
+		if($lock === true){return Cache::remove($key);}
 		Cache::set($key, 1);
 	}
 }
