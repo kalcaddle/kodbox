@@ -42,9 +42,9 @@ class adminLog extends Controller{
             array('id' => 'explorer.index.fileDownload', 'text' => LNG('admin.log.downFile')),
             array('id' => 'explorer.fav.add', 'text' => LNG('explorer.addFav')),
             array('id' => 'explorer.fav.del', 'text' => LNG('explorer.delFav')),
-            array('id' => 'explorer.history.remove', 'text' => '删除历史版本'),
-            array('id' => 'explorer.history.rollback', 'text' => '回滚历史版本'),
-            array('id' => 'explorer.history.clear', 'text' => '清空历史版本'),  // 合并为历史版本操作，无需单独显示
+            array('id' => 'explorer.history.remove', 'text' => ''), // 删除历史版本
+            array('id' => 'explorer.history.rollback', 'text' => ''),   // 回滚历史版本
+            array('id' => 'explorer.history.clear', 'text' => ''),  // 清空历史版本——合并为历史版本操作，无需单独显示
         );
 		if(!is_array($list['file']['children'])){$list['file']['children'] = array();}
 		$list['file']['children'] = array_merge($list['file']['children'], $fileList);
@@ -173,9 +173,11 @@ class adminLog extends Controller{
                 if (in_array(ACT, array('fileOut', 'fileDownload'))) { // 多线程下载，或某些浏览器会请求多次
                     if (!$this->checkHttpRange()) return;
                 } else if (ACT == 'zipDownload') {
-                    if (isset($this->in['zipClient']) && $this->in['zipClient'] == '1') {
-                        $data = false;  // 前端压缩下载会返回列表，故下方以$this->in赋值
-                    }
+                    // 前端压缩下载返回文件列表，列表文件分别请求下载（并记录日志），故此处不记录
+                    if (_get($this->in, 'zipClient') == '1' && _get($this->in, 'zipDownloadDisable') == '1') return;
+                    // if (isset($this->in['zipClient']) && $this->in['zipClient'] == '1') {
+                    //     $data = false;  // 前端压缩下载会返回列表，故下方以$this->in赋值
+                    // }
                 }
             }
             if(!is_array($data)) $data = $this->filterIn();

@@ -259,14 +259,15 @@ class adminServer extends Controller {
 	 * 缓存配置切换检测、保存
 	 */
 	public function cacheSave(){
-		if($this->in['check'] == '1'){
+		$check = Input::get('check', null, 0);
+		if($check){
 			$type = Input::get('type','in',null,array('file','redis','memcached'));
 		}else{
 			$type = Input::get('cacheType','in',null,array('file','redis','memcached'));
 		}
 		if(in_array($type, array('redis','memcached'))) {
 			$data = $this->_cacheCheck($type);
-			if(Input::get('check', null, 0)) {
+			if($check) {
 				show_json(LNG('admin.setting.checkPassed'));
 			}
 		}
@@ -490,7 +491,7 @@ class adminServer extends Controller {
     }
 
     // 生成全新的数据库
-	public function dbChangeSave($dbType, $pdo, $database){
+	private function dbChangeSave($dbType, $pdo, $database){
         // 1. 获取数据库配置信息
 		$dbList = $this->validDbList();
 		if($dbType == 'sqlite') {
@@ -551,7 +552,7 @@ class adminServer extends Controller {
 	 * @param [type] $type	新增db类型
 	 * @return void
 	 */
-    public function dbChangeAct($database, $option, $type){
+    private function dbChangeAct($database, $option, $type){
 		// 1.初始化db
 		$manageOld = new DbManage($database);
 		$manageNew = new DbManage($option);
