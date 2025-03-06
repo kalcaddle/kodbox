@@ -139,6 +139,7 @@ class adminMember extends Controller{
 			
 			"email" 	=> array("check"=>"email",	"default"=>""),
 			"phone" 	=> array("check"=>"phone",	"default"=>""),
+			"ioDriver"	=> array("check"=>"int",	"default"=>null),
 			"nickName" 	=> array("check"=>"require","default"=>""),
 			"avatar" 	=> array("check"=>"require","default"=>""),
 			"sex" 		=> array("check"=>"require","default"=>1),//0女1男
@@ -236,6 +237,7 @@ class adminMember extends Controller{
 			
 			"email" 	=> array("check"=>"email",	"default"=>null),
 			"phone" 	=> array("check"=>"phone",	"default"=>null),
+			"ioDriver"	=> array("check"=>"int",	"default"=>''),
 			"nickName" 	=> array("check"=>"require","default"=>null),
 			"avatar" 	=> array("check"=>"require","default"=>null),
 			"sex" 		=> array("check"=>"require","default"=>null),//0女1男
@@ -271,6 +273,7 @@ class adminMember extends Controller{
 
 		$dataSave = array();$groupSave = false; // 仅处理变化的内容;
 		foreach($data as $key => $value) {
+			if($key == 'ioDriver'){$dataSave[$key] = $value;}
 			if($key == 'userID') continue;
 			if($value == $userInfo[$key]) continue;
 			$dataSave[$key] = $value;

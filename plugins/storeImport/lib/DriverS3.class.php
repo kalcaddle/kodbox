@@ -27,10 +27,9 @@ class impDrvS3 {
     /**
 	 * 获取指定目录下所有列表，返回生成器
 	 * @param [type] $path
-	 * @param string $delimiter
 	 * @return void
 	 */
-    public function listAll($path, $delimiter = ''){
+    public function listAll($path){
         $client = $this->getProtMember('client');
         $bucket = $this->getProtMember('bucket');
 
@@ -38,6 +37,7 @@ class impDrvS3 {
         $prefix = (empty($path) && $path !== '0') ? '' : $path . '/';	// 要列举文件的公共前缀
 		$nextMarker = null;	// 上次列举返回的位置标记（文件key），作为本次列举的起点信息。
         $maxKey = 1000;
+        $delimiter = '';
 
 		$hasFile = $hasFolder = array();
 		while (true) {

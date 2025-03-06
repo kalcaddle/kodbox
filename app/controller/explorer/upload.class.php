@@ -117,7 +117,8 @@ class explorerUpload extends Controller{
 		if( !isset($this->in['authorize']) ) return;
 		$inPath = $this->in['path'];
 		if(substr(IO::getType($inPath), 0, 2) == 'db'){
-			$path = KodIO::defaultIO().$inPath;
+			$ioFileDriver = KodIO::ioFileDriverGet($inPath);
+			$path = '{io:'.$ioFileDriver['id'].'}/'.$inPath;
 		}else{
 			$pathBase = substr($inPath, 0, stripos($inPath, '/'));
 			$path = (!$pathBase ? $inPath : $pathBase) . '/' . $inPath;
@@ -161,7 +162,7 @@ class explorerUpload extends Controller{
 		$checkChunkArray = array();
 		if($hashSimple){$checkChunkArray = $uploader->checkChunk();} // 断点续传保持处理;
 		
-		$default  = KodIO::defaultDriver();
+		$ioFileDriver = KodIO::ioFileDriverGet($savePath);
 		$infoData = array(
 			"checkChunkArray"	=> $checkChunkArray,
 			"checkFileHash"		=> array(
@@ -171,9 +172,10 @@ class explorerUpload extends Controller{
 			"uploadLinkInfo"	=> IO::uploadLink($savePath, $size),//前端上传信息获取;
 			"uploadToKod"		=> $isSource,
 			"uploadChunkSize"	=> $this->config['settings']['upload']['chunkSize'],
-			"kodDriverType"		=> $default['driver'],
+			"kodDriverType"		=> $ioFileDriver['driver'],
 		);
 		$linkInfo = &$infoData['uploadLinkInfo'];
+		// trace_log(['fileUploadCheckExist',$savePath,$linkInfo,$ioFileDriver['name'].':'.$ioFileDriver['name']]);
 		if(isset($linkInfo['host'])){ // 前端上传时,自适应处理(避免http,https混合时浏览器拦截问题; )
 		    $linkInfo['host'] = str_replace("http://",'//',$linkInfo['host']);
 			// $linkInfo['host'] = str_replace("https://",'//',$linkInfo['host']);	// 存储只限https访问时去掉会有异常
@@ -212,7 +214,7 @@ class explorerUpload extends Controller{
 	 */
 	private function fileUploadByClient($savePath,$repeat){
 		$paramMore  = $this->getParamMore();
-		$remotePath = $this->parsePath(KodIO::defaultDriver(),$this->in['key']);
+		$remotePath = $this->parsePath(KodIO::ioFileDriverGet($savePath),$this->in['key']);
 
 		// 耗时操作;
 		if(!IO::exist($remotePath)){

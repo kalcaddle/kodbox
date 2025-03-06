@@ -156,7 +156,7 @@ CREATE TABLE "io_source" (
   "createUser" integer NOT NULL,
   "modifyUser" integer NOT NULL,
   "isFolder" smallint NOT NULL,
-  "name" varchar(256) NOT NULL,
+  "name" varchar(250) NOT NULL,
   "fileType" varchar(10) NOT NULL,
   "parentID" integer NOT NULL,
   "parentLevel" varchar(2000) NOT NULL,
@@ -503,4 +503,6 @@ CREATE UNIQUE INDEX 'idx_user_option_userID_key_type' ON 'user_option' ("userID"
 CREATE INDEX 'idx_user_option_userID' ON 'user_option' ("userID");
 CREATE INDEX 'idx_user_option_type' ON 'user_option' ("type");
 CREATE INDEX 'idx_user_option_key' ON 'user_option' ("key");
+
+
 

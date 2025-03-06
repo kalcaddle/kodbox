@@ -82,6 +82,7 @@ class adminSetting extends Controller {
 					'desc'	=> $systemDesc
 				),
 				'server'		=> Input::getArray(array(
+					'smtp'		=> array('default' => 1),
 					'host'		=> array('check' => 'require'),
 					'email'		=> array('check' => 'require'),
 					'password'	=> array('check' => 'require'),
@@ -248,7 +249,7 @@ class adminSetting extends Controller {
 			$sql = "ALTER TABLE `".$table."` convert to character set ".$charsetSimple." collate ".$charset;
 			try {
 				$db->execute($sql);
-			}catch(Exception $e){echoLog("==error==:".$e->getMessage());}
+			}catch(Exception $e){echoLog("==error== ".$table.':'.$e->getMessage()."; ".$sql);}
 		}
 		
 		// 自动更新数据库配置charset;

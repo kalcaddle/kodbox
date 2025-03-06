@@ -8,14 +8,14 @@ class impDrvQiniu extends PathDriverQiniu {
 	/**
 	 * 获取指定目录下所有列表，返回生成器
 	 * @param [type] $path
-	 * @param string $delimiter
 	 * @return void
 	 */
-    public function listAll($path, $delimiter = ''){
+    public function listAll($path){
 		$path	= trim($path, '/');
 		$prefix = (empty($path) && $path !== '0') ? '' : $path . '/'; // 要列举文件的公共前缀（父目录）；首位没有'/',否则获取为空
 		$marker = '';	// 上次列举返回的位置标记，作为本次列举的起点信息。
 		$limit	= 1000; // 本次列举的条目数
+		$delimiter = '';
 
 		while (true) {
 			// check_abort();

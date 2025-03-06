@@ -131,6 +131,7 @@ class adminGroup extends Controller{
 			"sort"		=> array("default"=>null),
 			"authShowType" 	=> array("default"=>null),
 			"authShowGroup" => array("default"=>null),
+			"ioDriver"		=> array("check"=>"int","default"=>null),
 		));
 		$data['name'] = str_replace('/','',$data['name']);
 		$groupID = $this->model->groupAdd($data);
@@ -169,11 +170,11 @@ class adminGroup extends Controller{
 			"sort"		=> array("default"=>null),
 			"authShowType" 	=> array("default"=>null),
 			"authShowGroup" => array("default"=>null),
+			"ioDriver"		=> array("check"=>"int","default"=>null),
 		));
-		if (!empty($data['name'])) $data['name'] = str_replace('/','',$data['name']);
-		// if($data['groupID'] != '1' && !$data['parentID']){
-		// 	show_json(LNG('admin.group.parentNullError'), false);
-		// }
+		if(!empty($data['name'])){
+			$data['name'] = str_replace('/','',$data['name']);
+		}
 		$res = $this->model->groupEdit($data['groupID'],$data);
 		$msg = $res ? LNG('explorer.success') : LNG('explorer.error');
 		return show_json($msg,!!$res,$data['groupID']);

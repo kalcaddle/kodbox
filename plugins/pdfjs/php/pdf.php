@@ -21,6 +21,7 @@
 				defaultUrl:"<?php echo clear_quote($fileUrl);?>",
 				workerSrc:'<?php $this->url('static/pdfjs/build/pdf.worker.js');?>',
 				cMapPacked : true,
+				isEvalSupported:false,
 				imageResourcesPath : staticPath+'pdfjs/web/images/',
 				cMapUrl:staticPath+'pdfjs/web/cmaps/',
 			};

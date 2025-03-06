@@ -496,6 +496,8 @@ class userIndex extends Controller {
 	public function maintenance($update=false,$value=0){
 		// Model('SystemOption')->set('maintenance',0);exit;
 		if($update) return Model('SystemOption')->set('maintenance', $value);
+		// 有配置参数则不处理
+		if ($GLOBALS['config']['settings']['systemMaintenance'] === 0) return;
 		// 管理员or未启动维护，返回
 		if(KodUser::isRoot() || !Model('SystemOption')->get('maintenance')) return;
 		show_tips(LNG('common.maintenanceTips'), '','',LNG('common.tips'));

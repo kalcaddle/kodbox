@@ -12,7 +12,7 @@
     background: #002b36; padding: 1em; color: #839496; border-left: 6px solid #8e8e8e; border-radius: 3px;}
 
 /* 文档页 */
-body.weboffice-page {background: #f6f6f6; margin: 8px 0px;}
+body.weboffice-page {background: #f6f6f6; margin: 8px 0px;overflow:hidden;}
 body.weboffice-page.yz {background: #ebebeb; overflow: hidden;}
 body.weboffice-page .page-box{background: #fff;}
 body.weboffice-page .page-box.kod-pptxjs-box .slide:after{z-index: 1000000 !important;}

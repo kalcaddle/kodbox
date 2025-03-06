@@ -145,7 +145,7 @@ CREATE TABLE `io_source` (
   `createUser` bigint(20) unsigned NOT NULL COMMENT '创建者id',
   `modifyUser` bigint(20) unsigned NOT NULL COMMENT '最后修改者',
   `isFolder` tinyint(4) unsigned NOT NULL COMMENT '是否为文件夹(0否,1是)',
-  `name` varchar(256) NOT NULL COMMENT '文件名',
+  `name` varchar(250) NOT NULL COMMENT '文件名',
   `fileType` varchar(10) NOT NULL COMMENT '文件扩展名，文件夹则为空',
   `parentID` bigint(20) unsigned NOT NULL COMMENT '父级资源id，为0则为部门或用户根文件夹，添加用户部门时自动新建',
   `parentLevel` varchar(2000) NOT NULL COMMENT '父路径id; 例如:  ,2,5,10,',

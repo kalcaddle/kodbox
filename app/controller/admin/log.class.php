@@ -198,6 +198,13 @@ class adminLog extends Controller{
         $in = $this->in;
         unset($in['URLrouter'],$in['URLremote'],$in['HTTP_DEBUG_URL'],$in['CSRF_TOKEN'],
 			$in['viewToken'],$in['accessToken'],$in[str_replace(".", "/", ACTION)]);
+        // 替换密码参数——也可以直接删除
+        if (isset($in['password']) && !isset($in['salt'])) {
+            $in['password'] = str_repeat('*', strlen($in['password']));
+        }
+        if (isset($in['_change']['password'])) {
+            $in['_change']['password'] = str_repeat('*', strlen($in['_change']['password']));
+        }
         return $in;
     }
 

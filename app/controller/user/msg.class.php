@@ -88,6 +88,7 @@ class userMsg extends Controller {
             'language'  => i18n::getType(),
             'config'    => isset($data['config']) ? $data['config'] : ''
         );
+        $this->setEmailInfo($data);
         if(!$data['config']) unset($data['config']);
 		return Action('user.bind')->apiRequest('email', $data);
     }
@@ -140,20 +141,7 @@ class userMsg extends Controller {
      * @return void
      */
     public function getEmailContent($data){
-        $system = _get($data, 'config.system', array());
-        $icon = 'https://api.kodcloud.com/static/images/icon/fav.png';
-        if(Model('SystemOption')->get('versionType') == 'A'){
-            $system['icon'] = $icon;
-            $system['name'] = LNG('common.copyright.name');
-            $system['desc'] = LNG('common.copyright.nameDesc');
-        } else {
-            $icon = _get($GLOBALS, 'config.settingSystemDefault.systemIcon', '');
-            if ($icon) $system['icon'] = $icon;
-        }
-        if (!$system['icon']) $system['icon'] = $icon;
-        if (!$system['name']) $system['name'] = Model('SystemOption')->get('systemName');
-        if (!$system['desc']) $system['desc'] = Model('SystemOption')->get('systemDesc');
-
+        $system = $this->setEmailInfo($data);
         $addr = _get($data, 'config.address');
         $type = _get($data, 'config.content.type');
         $data = _get($data, 'config.content.data');
@@ -191,5 +179,22 @@ class userMsg extends Controller {
 		$html = ob_get_contents();
 		ob_end_clean();
 		return $html;
+    }
+    private function setEmailInfo(&$data){
+        $system = _get($data, 'config.system', array());
+        $icon = 'https://api.kodcloud.com/static/images/icon/fav.png';
+        if(Model('SystemOption')->get('versionType') == 'A'){
+            $system['icon'] = $icon;
+            $system['name'] = LNG('common.copyright.name');
+            $system['desc'] = LNG('common.copyright.nameDesc');
+        } else {
+            $icon = _get($GLOBALS, 'config.settingSystemDefault.systemIcon', '');
+            if ($icon) $system['icon'] = $icon;
+        }
+        if (!$system['icon']) $system['icon'] = $icon;
+        if (!$system['name']) $system['name'] = Model('SystemOption')->get('systemName');
+        if (!$system['desc']) $system['desc'] = Model('SystemOption')->get('systemDesc');
+        $data['config']['system'] = $system;
+        return $system;
     }
 }

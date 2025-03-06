@@ -8,10 +8,9 @@ class impDrvOSS extends PathDriverOSS {
 	/**
 	 * 获取指定目录下所有列表，返回生成器
 	 * @param [type] $path
-	 * @param string $delimiter
 	 * @return void
 	 */
-    public function listAll($path, $delimiter = ''){
+    public function listAll($path){
 		$path = trim($path, '/');
 		$prefix = (empty($path) && $path !== '0') ? '' : $path . '/'; // 需要加上/,才能找到该目录,根目录为空
 		$nextMarker = '';
@@ -21,7 +20,7 @@ class impDrvOSS extends PathDriverOSS {
 		while (true) {
 			// check_abort();
 			$options = array(
-				'delimiter'	 => $delimiter,
+				'delimiter'	 => '',
 				'prefix'	 => $prefix,
 				'max-keys'	 => $maxkeys,
 				'marker'	 => $nextMarker,

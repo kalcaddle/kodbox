@@ -7,7 +7,7 @@ class Mailer {
 	function __construct() {
 		require_once __DIR__ . '/Mailer/src/Exception.class.php';
 		require_once __DIR__ . '/Mailer/src/PHPMailer.class.php';
-		require_once __DIR__ . '/Mailer/src/POP3.class.php';
+		// require_once __DIR__ . '/Mailer/src/POP3.class.php';
 		require_once __DIR__ . '/Mailer/src/SMTP.class.php';
 	}
 
@@ -33,7 +33,7 @@ class Mailer {
 			}
 		    //Server settings
 		    // $mail->SMTPDebug = SMTP::DEBUG_SERVER;				// Enable verbose debug output
-		    $mail->isSMTP();										// Send using SMTP
+		    if ($config['smtp']) $mail->isSMTP();										// Send using SMTP
 		    $mail->Host			= $config['host'];					// Set the SMTP server to send through
 		    $mail->SMTPAuth		= true;								// Enable SMTP authentication
 		    $mail->Username		= $config['email'];					// SMTP username
@@ -97,9 +97,10 @@ class Mailer {
 		}
 		// 允许自定义端口
 		$parts = parse_url($data['host']);
+		$data['smtp'] = _get($data, 'smtp', 1) == '2' ? false : true;
 		$data['host'] = isset($parts['host']) ? $parts['host'] : $parts['path'];
 		$data['port'] = isset($parts['port']) ? $parts['port'] : 465;
-		if(empty($data['secure']) || $data['secure'] == 'ssl') {
+		if(empty($data['secure']) || $data['secure'] == 'ssl') {	// 为空是兼容旧版
             $data['secure'] = PHPMailer::ENCRYPTION_SMTPS;
         }else if($data['secure'] == 'tls') {
             $data['secure'] = PHPMailer::ENCRYPTION_STARTTLS;

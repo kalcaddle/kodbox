@@ -25,10 +25,11 @@ class userAuthPlugin extends Controller{
 		$theMod = strtolower(MOD);
 		if ($theMod != 'plugin') return;
 		if ($this->checkAuth(ST)) return;
+		$msg = $this->lastError ? $this->lastError : LNG('explorer.noPermissionAction');
 		if($_SERVER['REQUEST_METHOD'] == 'GET'){ // 插件处理;
-			show_tips(LNG('explorer.noPermissionAction').'; '.ST);
+			show_tips($msg.'; '.ST);
 		}
-		show_json(LNG('explorer.noPermissionAction'), false, 2001);
+		show_json($msg, false, 2001);
 	}
 
 	/**
@@ -40,7 +41,10 @@ class userAuthPlugin extends Controller{
 	public function checkAuth($appName){
 		$plugin = Model("Plugin")->loadList($appName);
 		if (!$plugin)  return true;//不存在插件,转发接口
-		if ($plugin['status'] == 0)  return false;
+		if ($plugin['status'] == 0)  {
+			$this->lastError = LNG('admin.plugin.closedError');
+			return false;
+		}
 		
 		$config = $plugin['config'];
 		if (isset($config['pluginAuthOpen']) && $config['pluginAuthOpen']) return true;

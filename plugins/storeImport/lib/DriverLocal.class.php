@@ -10,10 +10,9 @@ class impDrvLocal extends PathDriverLocal {
 	/**
 	 * 获取指定目录下所有列表，返回生成器
 	 * @param [type] $path
-	 * @param string $delimiter
 	 * @return void
 	 */
-	public function listAll($path, $delimiter = '') {
+	public function listAll($path, &$result = array()) {
 		$path = $this->iconvSystem($path);
 		$path = rtrim($path,'/').'/';
 		// readdir依次读取，无法阶段性获取（当前目录下的）文件总数，故改用scandir
@@ -39,7 +38,7 @@ class impDrvLocal extends PathDriverLocal {
 			);
 			if($isFolder){
                 // 递归返回的是一个子生成器对象，需要显式地迭代其结果并yeild给父生成器
-                foreach ($this->listAll($fullpath, $delimiter) as $subItem) {
+                foreach ($this->listAll($fullpath, $result) as $subItem) {
                     yield $subItem;
                 }
 			}

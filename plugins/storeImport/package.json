@@ -2,7 +2,7 @@
 	"id":"storeImport",
 	"name":"数据导入",
 	"title":"存储数据快速导入",
-	"version":"1.06",
+	"version":"1.07",
 	"category":"tools",
 	"hidden":1,
 	"source":{

@@ -8,10 +8,9 @@ class impDrvUSS extends PathDriverUSS {
 	/**
 	 * 获取指定目录下所有列表，返回生成器
 	 * @param [type] $path
-	 * @param string $delimiter
 	 * @return void
 	 */
-    public function listAll($path, $delimiter = ''){
+    public function listAll($path){
 		$path = rtrim($path,'/').'/';
         $start = '';
 		$limit = 1000;
@@ -43,7 +42,7 @@ class impDrvUSS extends PathDriverUSS {
                     'size'		=> $size,
                 );
 				if ($isFolder) {
-					foreach ($this->listAll($fullpath, $delimiter) as $subItem) {
+					foreach ($this->listAll($fullpath) as $subItem) {
                         yield $subItem;
                     }
 				}

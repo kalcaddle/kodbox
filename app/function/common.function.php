@@ -224,17 +224,19 @@ function check_abort_echo(){
 	static $lastTime = 0;
 	if(isset($GLOBALS['ignore_abort']) && $GLOBALS['ignore_abort'] == 1) return;
 	
-	// 每秒输出2次; 
-	if(timeFloat() - $lastTime >= 0.5){
+	// 每秒输出5次; 
+	if(timeFloat() - $lastTime >= 0.2){
 		ob_end_flush();echo str_pad('',1024*5);flush();
 		$lastTime = timeFloat();
+		// write_log(['check_abort_echo:'.ACTION,get_caller_msg()],'abort');
 	}
-	// write_log(connection_aborted().';'.connection_status(),'check_abort');
-	if(connection_aborted()){write_log(get_caller_msg(),'abort');exit;}
+	check_abort_now();
 }
-
 function check_abort(){
 	if(isset($GLOBALS['ignore_abort']) && $GLOBALS['ignore_abort'] == 1) return;
+	check_abort_now();
+}
+function check_abort_now(){
 	if(connection_aborted()){write_log(get_caller_msg(),'abort');exit;}
 }
 function check_aborted(){

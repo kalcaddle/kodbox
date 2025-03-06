@@ -266,8 +266,8 @@ class explorerShare extends Controller{
 		$actionEdit   = array('fileupload','mkdir','mkfile','pathrename','pathcopy','pathcute','pathcuteto','pathcopyto','pathpast','filesave');
 		$canUpload 	  = is_array($share['options']) && $share['options']['canUpload'] == '1';
 		$canEdit 	  = is_array($share['options']) && $share['options']['canEditSave'] == '1';
-		// 有编辑权限,一定包含上传权限;
-		if(in_array($ACT,$actionUpload)){
+		// TODO 有编辑权限,一定包含上传权限;
+		if(in_array($ACT,$actionUpload) && !$canEdit){
 			if($canUpload && !Action('user.authRole')->authCanUser('explorer.upload',$shareUser)){$canUpload = false;}
 			if($canUpload && isset($this->in['path']) && !$this->checkPathAuth($this->in['path'])){$canUpload = false;}
 			if(!$canUpload){$this->showError(LNG('explorer.noPermissionWriteAll'),false);}

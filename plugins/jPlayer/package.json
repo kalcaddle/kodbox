@@ -2,7 +2,7 @@
 	"id":"jPlayer",
 	"name":"{{LNG['jPlayer.meta.name']}}",
 	"title":"{{LNG['jPlayer.meta.title']}}",
-	"version":"1.58",
+	"version":"1.59",
 	"source":{
 		"icon":"{{pluginHost}}static/images/icon.png",
 		"screenshoot":[

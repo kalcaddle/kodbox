@@ -119,11 +119,13 @@ kodReady.push(function(){
 	});
 
 	var selectMusicFiles = function(app){
-		var list = [];
-		var listSelect = app.pathAction.makeParamSelect();
+		var list = [],pathAction = _.get(window,'kodApp.pathAction');
+		if(!pathAction){return;}
+		
+		var listSelect = pathAction.makeParamSelect();
 		_.each(listSelect,function(item){
 			if(!item.ext || !_.includes(musicExtArray,item.ext)) return; // 过滤非音乐文件;
-			if(!app.pathAction.auth.canRead(item)) return; //必须有读取权限;
+			if(!pathAction.auth.canRead(item)) return; //必须有读取权限;
 			list.push({
 				url:core.path2url(item.path),
 				name:item.name,path:item.path,

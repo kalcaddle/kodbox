@@ -636,4 +636,281 @@ class adminRepair extends Controller {
         $list = array_to_keyvalue_group($list, 'userID', 'sourceID');
         return array('list' => $list, 'count' => $count);
     }
+
+
+	/**
+	 * 重置文件层级
+	 * 1.parentID和parentLevel[-2]不等，更新parentLevel；剩余部分为不等且parentID无对应记录，更新parentID——还有剩余，则为相等且无对应记录，不处理
+	 * 2.查询所有parentID+parentLevel+fileID+isFolder+name重复的记录，文件夹则重命名，文件则删除
+	 * @return void
+	 */
+	public function resetParentLevel(){
+		KodUser::checkRoot();
+		ignore_timeout();
+		$model = Model('Source');
+
+		if (!$this->in['done']) {
+			$this->cliEchoLog('本接口用于修复文件层级异常，调用前请务必备份数据库。如已备份且确定执行，请在地址中追加参数后再次访问：&done=1');
+			exit;
+		}
+		// 0.重复数据临时表文件
+		mk_dir(TEMP_FILES);
+		$file = TEMP_FILES.'tmp_level_source_'.date('Ymd').'.txt';
+		if (file_exists($file) && !filesize($file)) del_file($file);
+
+		// io_source总记录数超过500w时，建议命令行调用
+		$total = $model->count();
+		if (!is_cli() && $total > 10000*500) {
+			$cmd = 'php '.BASIC_PATH.'index.php "admin/repair/resetParentLevel&accessToken='.Action("user.index")->accessToken().'&done=1"';
+			$this->cliEchoLog('数据量过大，为避免执行超时，请在命令行执行：'.$cmd);
+			exit;
+		}
+		$model->execute('SET SESSION group_concat_max_len = 1000000');
+		$this->systemMtce(1);
+
+		// 1.父目录层级与PID不匹配
+		$timeStart = microtime(true);
+		if (!file_exists($file)) {
+			$this->cliEchoLog('1.正在处理层级异常数据，共'.$total.'条记录，可能耗时较长，请耐心等待...');
+			// 批量查询后批量更新特别慢，改为直接数据库更新
+			// // 1.0 删除找不到parentID的记录——暂不处理，可以考虑统一移到某个指定目录
+			// $sql = "UPDATE io_source AS t1 LEFT JOIN io_source AS t2 ON t1.parentID = t2.sourceID
+			// 		SET t1.isDelete = 1
+			// 		WHERE t1.isDelete = 0 AND t1.parentID > 0 AND t2.sourceID IS NULL";
+
+			// 1.1 更新为：parentLevel=>parentID.parentLevel+sourceID——2千万条记录，380万条更新，需要约30分钟
+			$sql = "UPDATE io_source AS t1 JOIN io_source AS t2 ON t1.parentID = t2.sourceID
+					SET t1.parentLevel = CONCAT(t2.parentLevel, t2.sourceID, ',')
+					WHERE t1.isDelete = 0 AND t1.parentID > 0 
+					AND t1.parentLevel != '' AND t1.parentID != SUBSTRING_INDEX(SUBSTRING_INDEX(t1.parentLevel, ',', -2), ',', 1)";
+			$cnt = $model->execute($sql);
+			$timeNow = microtime(true);
+			$this->cliEchoLog('>1.1 层级异常数据[1]处理完成，异常文件：'.intval($cnt).'，耗时：'.round(($timeNow - $timeStart),1).'秒。');
+
+			// 1.2 不等且parentID对应记录为空（剩余部分为相等且为空，不处理）：parentID=>parentLevel[-2]——2千万条记录需要约3分钟，查询需1分钟
+			$sql = "UPDATE io_source SET parentID = SUBSTRING_INDEX(SUBSTRING_INDEX(parentLevel, ',', -2), ',', 1)
+					WHERE isDelete = 0 AND parentID > 0 
+					AND parentLevel != '' AND parentID != SUBSTRING_INDEX(SUBSTRING_INDEX(parentLevel, ',', -2), ',', 1)";
+			$cnt = $model->execute($sql);
+			$timeStart = microtime(true);
+			$this->cliEchoLog('>1.2 层级异常数据[2]处理完成，异常文件：'.intval($cnt).'，耗时：'.round(($timeStart - $timeNow),1).'秒。');
+		}
+
+		// 2.文件/夹重复：parentLevel/fileID/parentID相同
+		// 2.1 创建临时表，获取（parentLevel，fileID）重复的记录
+		// $timeStart = microtime(true);
+		$this->cliEchoLog('2.准备处理重复文件：');
+		if (!file_exists($file)) {
+			$this->cliEchoLog('2.1 正在统计重复文件，共'.$total.'条记录...');
+			// 1.获取fileID重复的记录
+			// 直接查询会因为group_concat导致内存溢出，改为按fileID分批查询
+			// $sql = 'SELECT GROUP_CONCAT(sourceID) AS ids, isFolder, COUNT(*) AS cnt 
+			// 		FROM io_source 
+			// 		WHERE isDelete = 0 AND parentID > 0 GROUP BY parentLevel, fileID, isFolder, name
+			// 		HAVING cnt > 1 
+			// 		ORDER BY isFolder ASC';
+			$idx = 0;
+			$tmp = array();
+			$sql = 'SELECT fileID,count(*) AS cnt FROM io_source WHERE isDelete = 0 AND parentID > 0
+					GROUP BY fileID HAVING cnt > 1 ORDER BY fileID DESC';	// 文件夹排后面
+			$res = $model->query($sql);	// 2千万条数据耗时2分钟
+			$cnt = count($res);
+			// 2.根据sourceID获取parentID+parentLevel+fileID+isFolder+name重复的记录
+			$handle = fopen($file, 'w');	// a为追加模式
+			foreach ($res as $i => $item) {
+				if ($i % 100 == 0 || $i == ($cnt - 1)) {
+					$msg = $this->ratioText($i, $cnt);
+					$this->cliEchoLog('>['.$idx.'] '.$msg, true);
+				}
+			    $tmp[$item['fileID']] = intval($item['cnt']);
+				if (array_sum($tmp) < 10000) continue;
+				$this->groupLevelList($model, $handle, $tmp, $idx);
+			}
+			$this->groupLevelList($model, $handle, $tmp, $idx);
+			fclose($handle);
+
+			if (!filesize($file)) {
+				$this->systemMtce();
+				$this->cliEchoLog('>文件层级正常，无需处理。');exit;
+			}
+			$this->cliEchoLog('>重复文件统计完成，耗时：'.round((microtime(true) - $timeStart),1).'秒。');
+		} else {
+			if (!filesize($file)) {
+				$this->systemMtce();
+				$this->cliEchoLog('>临时表文件为空，请重试。');
+				del_file($file);
+				exit;
+			}
+		}
+
+		// 2.2 比较parentLevel最后一位和parentID，相等说明同一目录下重复，则只保留一条（其他删除）；不等则获取parentID对应的parentLevel并更新
+		$timeStart = microtime(true);
+		$cnt = 0;
+		$res = array();
+		$handle = fopen($file, 'r');
+		while (!feof($handle)) {
+			$tmp = json_decode(trim(fgets($handle)), true);
+			if (!$tmp) continue;
+			$cnt+= intval($tmp['cnt']);
+			$res[] = $tmp;
+		}
+		fclose($handle);
+		$this->cliEchoLog('2.2 正在处理重复文件，共'.$cnt.'条数据...');
+		$idx = $tmpIdx = 0;
+		$ids = $plvls = $updates = $renames = $removes = array();
+		// $data = array('repeat' => 0, 'rename' => 0, 'remove' => 0, 'update' => 0);
+		$data = array('repeat' => 0, 'rename' => 0);
+		foreach($res as $i => $item) {
+			$where = array(
+				'sourceID'		=> array('in', explode(',', $item['ids'])),
+			);
+			$tmps = array();
+			$list = $model->where($where)->field('sourceID,parentID,parentLevel,name')->order('isDelete,sourceID asc')->select();
+			// $cnt += (count($list) - $item['cnt']);	// 执行过程中，总数据量可能有变化，实时更新
+			foreach($list as $j => $value) {
+				$idx++;
+				$tmpIdx++;
+				$sid = $value['sourceID'];
+				$arr = explode(',', $value['parentLevel']);
+				$pid = $arr[count($arr)-2];		// level中的parentID
+				$thePid = $value['parentID'];	// 实际的parentID
+				
+				// 输出进度
+				$prfx = '>'.$idx.'['.$sid.'] ';
+				if ($tmpIdx >= mt_rand(1000,2000) || $idx == $cnt) {
+					$tmpIdx = 0;
+					$msg = $this->ratioText($idx, $cnt);
+					$msg .= ' '.str_replace(array('{','}','"'),'',json_encode($data));
+				}
+				if ($idx % 100 == 0 || $idx == $cnt) {
+					$this->cliEchoLog($prfx.$msg, true);
+				}
+				// 2.1 parentID=parentLevel[-2]，说明层级正常，判断是否有重名：文件夹重命名；文件删除
+				if ($pid == $thePid) {
+					$name = $value['name'];
+					// 1.不重名，不处理
+					if (!in_array($name, $tmps)) {
+						$tmps[] = $name;
+						continue;
+					}
+					// 2.文件重名，删除
+					if ($item['isFolder'] != '1') {
+						$data['repeat']++;
+						// TODO 移到到回收站比较慢；直接批量更新会导致文件没有归属
+						// $res = $model->remove($sid);	// 删除到回收站
+						$removes[] = array(
+							'sourceID',$sid, //where
+							'isDelete',1, //save，只能更新一个字段
+						);
+						$this->_saveAll($model, $removes);
+						continue;
+					}
+					// 3.文件夹重名，只重命名不删除——无法判断子内容是否相同
+					$data['rename']++;
+					$renames[] = array(
+						'sourceID',$sid, //where
+						'name',addslashes($name).'@'.date('YmdHis').'-'.$j //save，只能更新一个字段
+					);
+					$this->_saveAll($model, $renames);
+					continue;
+				}
+				// 不相等的是sourceID=parentID不存在的数据，不做处理
+				// // 2.2 parentID和parentLevel中的不同，说明层级异常，根据parentID查询并更新parentLevel
+				// if (!isset($plvls[$thePid])) {
+				// 	// update io_source set parentLevel = (select concat(parentLevel,sourceID,',') from io_source where sourceID = 27138034) where sourceID = 27138041
+				// 	$res = $model->where(array('sourceID' => $thePid))->field('parentLevel')->find();
+				// 	// parentID不存在，删除
+				// 	if (!$res) {
+				// 		$data['remove']++;
+				// 		// $res = IO::remove(KodIO::make($sid));
+				// 		// $res = $model->remove($sid);
+				// 		$res = $model->where(array('sourceID'=>$sid))->save(array('isDelete'=>1,'modifyTime'=>time()));
+				// 		continue;
+				// 	}
+				// 	$parentLevel = $res['parentLevel'];
+				// 	$plvls[$thePid] = $parentLevel;
+				// } else {
+				// 	$parentLevel = $plvls[$thePid];
+				// }
+				// $parentLevel = $parentLevel . $thePid . ',';
+				// // 批量更新
+				// // $update = array('parentLevel' => $parentLevel, 'modifyTime' => time());
+				// $updates[] = array(
+				// 	'sourceID',$sid, //where
+				// 	'parentLevel',$parentLevel //save，只能更新一个字段
+				// );
+				// $this->_saveAll($model, $updates);
+				// $data['update']++;
+			}
+			$tmps = array();
+		}
+		$res = $this->_saveAll($model, $removes, true);
+		$res = $this->_saveAll($model, $renames, true);
+		// $res = $this->_saveAll($model, $updates, true);
+		del_file($file);
+
+		$logs = array(
+			'重复文件:' . $data['repeat'],
+			'重名目录:' . $data['rename'],
+			// '无效目录:' . $data['remove'],
+			// '层级异常:' . $data['update']
+		);
+		$this->cliEchoLog('>执行完成，统计文件/夹共：'.$idx.'，' . implode('，', $logs) . '。总耗时：'.round((microtime(true) - $timeStart),1).'秒');
+		$this->systemMtce();
+	}
+	// 按fileID分组
+	private function groupLevelList($model, $handle, &$data, &$idx) {
+		if (empty($data)) return;
+		$ids = array_keys($data);
+		$data = array();
+		// 按 fileID 分批处理——已更新过parentID<>parentLevel[-2]的数据，未能更新的是sourceID=parentID不存在的数据，所以此处group by加上parentID
+		$where = 'fileID' . (count($ids) > 1 ? ' IN (' . implode(',', $ids) . ')' : '=' . $ids[0]);
+		$sql = "SELECT GROUP_CONCAT(sourceID) AS ids, isFolder, COUNT(*) AS cnt
+					FROM io_source
+					WHERE {$where} AND isDelete = 0 AND parentID > 0
+					GROUP BY parentID, parentLevel, fileID, isFolder, BINARY name
+					HAVING cnt > 1";
+		$res = $model->query($sql);
+		if (!$res) return;
+		foreach ($res as $item) {
+			$idx += intval($item['cnt']);
+			fwrite($handle, json_encode($item) . "\n");
+		}
+	}
+	// 批量更新
+	private function _saveAll($model, &$update, $done=false) {
+		if (!$done) {
+			if (count($update) < 1000) return;
+		} else {
+			if (empty($update)) return;
+		}
+		if (empty($update)) return;
+		$model->saveAll($update);	// 没有返回结果
+		$update = array();
+	}
+	private function cliEchoLog($msg, $rep = false){
+		static $iscli;
+		if (is_null($iscli)) $iscli = is_cli();
+		if (!$iscli) return echoLog($msg, $rep);
+		// 替换最后执行时没有换行
+		static $repLast;
+		if ($rep) {
+			if ($repLast) echo "\033[A";  // ANSI 转义码：回到上一行
+			$lineLength = (int) exec('tput cols');
+			echo "\r" . str_repeat(' ', $lineLength) . "\r" . $msg . "\n";
+		} else {
+			echo $msg."\n";
+		}
+		ob_flush(); flush();
+		$repLast = $rep;
+	}
+	private function ratioText($idx, $cnt){
+		$now = str_pad($idx, strlen($cnt), ' ', STR_PAD_LEFT);	// 占位，避免内容抖动
+		$rto = str_pad(round(($idx / $cnt) * 100, 1), 5, ' ', STR_PAD_LEFT);
+		return $now.'/'.$cnt.' | '.$rto.'%';
+	}
+	private function systemMtce($status=0){
+		ActionCall('user.index.maintenance', true, $status);
+	}
+	
 }

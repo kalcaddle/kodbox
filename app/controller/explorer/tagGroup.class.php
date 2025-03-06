@@ -27,47 +27,66 @@ class explorerTagGroup extends Controller{
 
 	/*
 	获取设置标签; 前后顺序即为排序关系
-	{idMax:10,group:[{name:xx,icon:xx}...]  ,list:[{id:xx,name:xx},...],   ...};// 标签分组,标签列表;
+	{group:[{name:xx,icon:xx}...]  ,list:[{id:xx,name:xx},...],   ...};// 标签分组,标签列表;
 	*/
 	public function get(){
 		$data = Input::getArray(array(
 			"groupID"	=> array("check"=>"int"),
 		));
-		$tagList = $this->model->get($data['groupID']);
+		$tagList = $this->groupTag($data['groupID']);
 		show_json($tagList);
 	}
 	
 	// 标签数据写入; (groupTag:mysql-text字段; json 64k/100 =6千个) 
-	// 标签设置检测: id不重复;idMax比最大id要大;名称不重复; 分组名称不同;
+	// 标签设置检测: id不重复;名称不重复; 分组名称不同;
 	public function set(){
 		$data = Input::getArray(array(
-			"value"		=> array("check"=>"json"),
+			'diff'		=> array("check"=>"json"),
 			"groupID"	=> array("check"=>"int"),
 		));
 		
-		// $data['value'] = $this->testData();
+		$dataLike = array(
+			'group' => array(array('_idKey_'=>'id','_autoID_'=>"number")),
+			'list'  => array(array('_idKey_'=>'id','_autoID_'=>"number")),
+		);
+		$listData = $this->groupTag($data['groupID']);
+		$data['value']  = kodDiff::diffApply($listData,$data['diff'],$dataLike);
+		
+		// 新建分组时处理;
+		foreach($data['value']['list'] as &$item){
+			if($item['_groupAddTemp']){
+				$group = array_find_by_field($data['value']['group'],'_groupAddTemp',$item['_groupAddTemp']);
+				if($group && $group['id']){$item['group'] = $group['id'];}
+			}
+			unset($item['_groupAddTemp']);
+		};unset($item);
+		foreach ($data['value']['group'] as &$item) {
+			unset($item['_groupAddTemp']);
+		};unset($item);
+		// pr($data['value'],$listData,$data['diff']);exit;
+		
 		if(!$this->tagSetCheck($data['value'],$data['groupID'])){
 			show_json(LNG("common.invalidParam"),false);
 		}
 		Model('SystemLog')->addLog('explorer.tagGroup.set', $data);//操作日志记录;
 		$this->model->set($data['groupID'],$data['value']);
-		show_json($this->model->get($data['groupID']),true);
+		show_json($this->groupTag($data['groupID']),true);
 	}
 	
-	// 标签设置检测: id不重复;idMax比最大id要大;名称不重复; 分组名称不同;  
+	// 标签设置检测: id不重复;名称不重复; 分组名称不同;  
 	// 标签id有删除:前端强提醒, 清空该标签关联到的文档(tagID对应的文档-removeByTag);
 	private function tagSetCheck($listData,$groupID){
-		if(!is_array($listData) || !$listData['idMax'] || !is_array($listData['list'])) return false;
+		if(!is_array($listData) || !is_array($listData['list'])) return false;
 		$idList = array();$tagNameList = array();
 		foreach($listData['list'] as $tag){
-			if(!$tag['id'] || $tag['id'] > $listData['idMax']){return false;}
+			if(!$tag['id']){return false;}
 			if(in_array($tag['id'],$idList)){return false;}
 			if(in_array($tag['name'],$tagNameList)){return false;}
 			$idList[] = $tag['id'];$tagNameList[] = $tag['name'];
 		}
 		
 		// 标签有删除时; 则解除删除标签对文档的关联;
-		$beforeList = $this->model->get($groupID);
+		$beforeList = $this->groupTag($groupID);
 		foreach($beforeList['list'] as $tag){
 			if(in_array($tag['id'],$idList)) continue;
 			$this->model->removeByTag($groupID,$tag['id']);
@@ -102,12 +121,28 @@ class explorerTagGroup extends Controller{
 	private function groupTagGet($groupID){
 		static $list = array();
 		if(!isset($list[$groupID])){
-			$groupTag = $this->model->get($groupID);
+			$groupTag = $this->groupTag($groupID);
 			$groupTag['isGroupRoot'] = Action('filter.userGroup')->allowChangeGroup($groupID);
 			$groupTag['isGroupHasTag'] = isset($groupTag['list']) && count($groupTag['list']) > 0;
 			$list[$groupID] = $groupTag;
 		}
 		return $list[$groupID];
+	}
+	private function groupTag($groupID){
+		$listData = $this->model->get($groupID);//pr($listData);exit;
+		if($listData['_hasDiff']){return $listData;}
+		
+		// 旧版数据处理兼容; 分组id,标签id自适应处理;
+		$listData['_hasDiff'] = true;unset($listData['idMax']);
+		if(!$listData['list'] ){$listData['list']  = array();}
+		if(!$listData['group']){$listData['group'] = array();}
+		kodDiff::arrayAutoID($listData['list']);
+		kodDiff::arrayAutoID($listData['group']);
+		foreach ($listData['list'] as $i => &$tag){
+			$tag['group'] = _get($listData['group'][$tag['group']],'id','1');
+		};unset($tag);
+		$this->model->set($groupID,$listData);
+		return $listData;
 	}
 	
 	// 该部门下文档公共标签关联数据;
@@ -122,7 +157,7 @@ class explorerTagGroup extends Controller{
 	private function getTags($groupID,$tags){
 		static $list = array();
 		if(!isset($list[$groupID])){
-			$arr = $this->model->get($groupID);
+			$arr = $this->groupTag($groupID);
 			$arr['listTag'] = array_to_keyvalue($arr['list'],'id');
 			$list[$groupID] = $arr;
 		}
@@ -131,9 +166,9 @@ class explorerTagGroup extends Controller{
 		$tagList = $list[$groupID];
 		if(!$tags || !$tagList || !$tagList['list']) return $result;
 		foreach($tags as $tagID){
-			$tagInfo = $tagList['listTag'][$tagID];
+			$tagInfo = $tagList['listTag'][$tagID.''];
 			if(!$tagInfo) continue;
-			$tagInfo['groupInfo'] = $tagList['group'][$tagInfo['group']];
+			$tagInfo['groupInfo'] = array_find_by_field($tagList['group'],'id',$tagInfo['group']);
 			unset($tagInfo['group']);
 			$result[] = $tagInfo;
 		}
@@ -226,7 +261,6 @@ class explorerTagGroup extends Controller{
 	// 前后顺序即为排序关系; 标签组包含子标签
 	public function testData(){
 		$listData = array(
-			'idMax'	=> 21,
 			'group' => array(
 				array('name'=>'用户规模','icon'=>'ri-user-line'),
 				array('name'=>'客户分类','icon'=>'ri-profile-line'),
