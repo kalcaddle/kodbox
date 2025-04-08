@@ -315,6 +315,10 @@ class adminRepair extends Controller {
 				$findSource  = $modelSource->where($where)->find();
 				$findHistory = $modelHistory->where($where)->find();
 				if(!$findSource && !$findHistory){
+					// // 正常滞后1天删除的数据，不处理，避免物理文件遗留
+					// $fromTime = time() - 3600*24*1;
+					// if ($item['linkCount'] == '0' && intval($item['modifyTime']) > $fromTime) continue;
+
 					$changeNum++;write_log(array($taskID,$item),'sourceRepair');
 					$task->task['desc'] = $task->task['currentTitle'] = $changeNum.'个不存在';
 					// if (in_array($item['ioType'], $stores)) {IO::remove($item['path']);}
@@ -495,11 +499,12 @@ class adminRepair extends Controller {
 		echoLog("删除完成!共删除source记录{$sCnt}条;file记录{$fCnt}条.");
 	}
 	
-	public function resetSize(){
+	// 指定sourceID重置对应目录大小
+	public function resetSizeById($echo=true){
 		$id = $this->in['sourceID'];
 		if(!$id) return;
 		model('Source')->folderSizeResetChildren($id);
-		echoLog("更新完成!");
+		if ($echo) echoLog("更新完成.".KodIO::make($id));
 	}
 	
 	// 重复文件清理; 根据hashMd5处理;
@@ -651,6 +656,7 @@ class adminRepair extends Controller {
 
 		if (!$this->in['done']) {
 			$this->cliEchoLog('本接口用于修复文件层级异常，调用前请务必备份数据库。如已备份且确定执行，请在地址中追加参数后再次访问：&done=1');
+			$this->cliEchoLog('重复目录会进行重命名（原名@年月日时分秒-1）；重复文件会被删除到当前用户（管理员）个人回收站，执行后可在回收站查看和处理对应文件。');
 			exit;
 		}
 		// 0.重复数据临时表文件
@@ -802,7 +808,7 @@ class adminRepair extends Controller {
 							'sourceID',$sid, //where
 							'isDelete',1, //save，只能更新一个字段
 						);
-						$this->_saveAll($model, $removes);
+						$this->_saveAll($model, $removes, true);
 						continue;
 					}
 					// 3.文件夹重名，只重命名不删除——无法判断子内容是否相同
@@ -844,9 +850,9 @@ class adminRepair extends Controller {
 			}
 			$tmps = array();
 		}
-		$res = $this->_saveAll($model, $removes, true);
-		$res = $this->_saveAll($model, $renames, true);
-		// $res = $this->_saveAll($model, $updates, true);
+		$res = $this->_saveAll($model, $removes, true, true);
+		$res = $this->_saveAll($model, $renames, false,true);
+		// $res = $this->_saveAll($model, $updates, false, true);
 		del_file($file);
 
 		$logs = array(
@@ -878,7 +884,7 @@ class adminRepair extends Controller {
 		}
 	}
 	// 批量更新
-	private function _saveAll($model, &$update, $done=false) {
+	private function _saveAll($model, &$update, $remove=false, $done=false) {
 		if (!$done) {
 			if (count($update) < 1000) return;
 		} else {
@@ -886,6 +892,29 @@ class adminRepair extends Controller {
 		}
 		if (empty($update)) return;
 		$model->saveAll($update);	// 没有返回结果
+		// 添加到个人回收站，管理员自行选择清除
+		if ($remove) {
+			$ids = array();
+			foreach ($update as $value) {$ids[] = $value[1];}
+			// 1.将标记为删除的数据写入回收站
+			$recModel = Model('SourceRecycle');
+			$sql = "insert into io_source_recycle (targetType, targetID, sourceID, userID, parentLevel, createTime) 
+					(select targetType, targetID, sourceID, ".USER_ID.", parentLevel, UNIX_TIMESTAMP()
+					from io_source where sourceID in (".implode(',', $ids)."))";
+			$recModel->execute($sql);
+			// 2.获取写入回收站的parentLevel
+			$where = array('userID'=>USER_ID, 'sourceID'=>array('in',$ids));
+			$list = $recModel->where($where)->field('parentLevel')->select();
+			$list = array_unique(array_to_keyvalue($list, '', 'parentLevel'));
+			// 3.根据parentLevel获取sourceID，重置对应目录大小
+			$list = $this->getResetSizeIds($list);
+			$tmpIn = $this->in;
+			foreach ($list as $i => $id) {
+				$this->in['sourceID'] = $id;
+				$this->resetSizeById(false);
+			}
+			$this->in = $tmpIn;
+		}
 		$update = array();
 	}
 	private function cliEchoLog($msg, $rep = false){
@@ -911,6 +940,61 @@ class adminRepair extends Controller {
 	}
 	private function systemMtce($status=0){
 		ActionCall('user.index.maintenance', true, $status);
+	}
+
+	// 将异常的（没有归属的）删除数据写入个人回收站，并重置目录大小
+	public function resetParentLevelClear(){
+		KodUser::checkRoot();
+		ignore_timeout();
+		echoLog('本接口用于整理异常的删除数据，并重置相关目录大小。执行后可在当前用户（管理员）个人回收站查看和处理相关文件。');
+		$model = Model('SourceRecycle');
+		$maxId = $model->max('id');
+
+		$sql = "insert into io_source_recycle (targetType, targetID, sourceID, userID, parentLevel, createTime) 
+				(select s.targetType, s.targetID, s.sourceID, ".USER_ID.", s.parentLevel, UNIX_TIMESTAMP()
+				from io_source as s 
+				left join io_source_recycle as r on s.sourceID = r.sourceID 
+				where s.isDelete = 1 and r.sourceID is null)";
+		$res = $model->execute($sql);
+		if (!$res) {
+		    echoLog('目录数据正常，无需处理。');exit;
+		}
+		// $maxId = 1014;
+		$where = array('userID'=>USER_ID, 'id'=>array('>',$maxId));
+		$list = $model->where($where)->field('parentLevel')->select();
+		$list = array_unique(array_to_keyvalue($list, '', 'parentLevel'));
+
+		$list = $this->getResetSizeIds($list);
+		echoLog('开始重置目录大小，共计：'.count($list));
+		write_log(array('待重置的目录id列表', $list), 'repair');
+		foreach ($list as $i => $id) {
+			$this->in['sourceID'] = $id;
+		    $this->resetSizeById(false);
+			echoLog('已重置：'.($i+1).' =>'.KodIO::make($id), true);
+		}
+		echoLog('重置完成。');
+	}
+	private function getResetSizeIds($list){
+		$data = array();
+		$hash = array_flip($list); // 转换为哈希表加速查找
+		foreach ($list as $idx => $path) {
+			$trimmed = rtrim($path, ',');
+			$parts = explode(',', $trimmed);
+			$isBase = true;
+			// 检查所有可能的上级路径
+			for ($i = 1; $i < count($parts); $i++) {
+				$parent = implode(',', array_slice($parts, 0, $i)) . ',';
+				if (isset($hash[$parent])) {
+					$isBase = false;
+					break;
+				}
+			}
+			if ($isBase) {
+				// $data[] = $path;
+				$data[] = end(explode(',',trim($path,',')));
+			}
+		}
+		return array_unique(array_filter($data));
 	}
 	
 }

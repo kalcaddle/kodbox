@@ -43,15 +43,9 @@ kodReady.push(function(){
 	});
 	
 	var htmlViewsupport = function(){
-		if(!window.fetch || !window.MutationObserver){return false;}
+		if(!window.fetch || !window.MutationObserver || !window.postMessage){return false;}
 		var frame = document.createElement("iframe");
 		if(!("sandbox" in frame) || !("srcdoc" in frame)){return false;}
-		
-		if($.browserIS.ios){// ios webview中不支持;Safari支持;
-			var ua = navigator.userAgent.toLowerCase();
-			if(ua.indexOf('quark')){return false;}
-			if(ua.indexOf('weixin')){return false;}
-		} 
 		return true;
 	};
 	

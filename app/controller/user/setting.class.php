@@ -345,6 +345,8 @@ class userSetting extends Controller {
 	// 个人操作日志
 	public function userLog(){
 		$type = Input::get('type', null, null);
+		$this->in['userID'] = KodUser::id();
+		if(!$this->in['userID']){return;}
 		if(!$type){
 			return ActionCall('admin.log.userLog');
 		}

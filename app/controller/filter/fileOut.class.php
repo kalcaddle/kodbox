@@ -52,6 +52,7 @@ class filterFileOut extends Controller{
 	}
 	
 	public function fileOut($file,$fileSize,$filename,$ext){
+		// write_log(REQUEST_METHOD.":".$filename.';'.$file,'test');
 		if(!isset($this->in['replaceType']) || !$this->in['replaceType']){
 			if($ext != 'js'){return;}
 			$this->outputJs(IO::getContent($file));
@@ -99,9 +100,10 @@ class filterFileOut extends Controller{
 		$this->outputJs($content);
 	}
 	private function outputJs($content){
-		// $content = str_replace('window.location','window._location_',$content);
-		// $content = str_replace('location.replace(','_location_.replace(',$content);
-		// $content = str_replace('location.href','_location_.href',$content);
+		// window.location处理; 统一替换为_location_;解决跨域问题;
+		$locationHas = "(hash|host|hostname|href|orgin|pathname|port|protocol|reload|replace|search)";
+		$content = preg_replace("/(^|[^\w_.])window\.location($|[^\w_])/","$1window._location_$2",$content);
+		$content = preg_replace("/(^|[^\w_.])location\.".$locationHas."($|[^\w_])/","$1_location_.$2$3",$content);
 		$this->output($content);
 	}
 	private function scriptParseWasm($content){

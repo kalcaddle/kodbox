@@ -366,6 +366,7 @@ define(function(require, exports) {
 			if(!currItem){return;}
 			var url = currItem.srcFile || currItem.src;
 			if(url.indexOf('?')){url += '&download=1';}
+			url+='&accessToken='+G.kod.accessToken;
 			window.open(url);
 		});
 		$button.unbind('click').bind('click', function(e){

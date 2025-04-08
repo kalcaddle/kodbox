@@ -420,7 +420,7 @@ class adminLog extends Controller{
         $data['path'] = rtrim($parse['path'], '/') . '/' . $data['name'];
         unset($data['name']);
         $id = $this->model->addLog('file.upload', $data);
-        if ($id) $this->model->where(array('id' => $id))->save(['type' => 'explorer.upload.fileUpload']);
+        if ($id) $this->model->where(array('id' => $id))->save(array('type' => 'explorer.upload.fileUpload'));
     }
 
 }

@@ -44,10 +44,12 @@ class explorerEditor extends Controller{
 	private function contentPage($path,$size){
 		// if($size >= 1024*1024*20){show_json(LNG('explorer.editor.fileTooBig'),false);}
 		$PAGE_MIN 	= 1024 * 100;
-		$PAGE_MAX 	= 1024 * 1024 * 10;
+		$PAGE_MAX 	= $GLOBALS['config']['settings']['ioReadMax'];
 		$pageNum 	= _get($this->in,'pageNum',1024 * 500);
 		$pageNum	= $pageNum <= $PAGE_MIN ? $PAGE_MIN : ($pageNum >= $PAGE_MAX ? $PAGE_MAX : $pageNum);
-		$pageTotal	= ceil($size/$pageNum);
+		if($pageNum >= $size){$pageNum = $size;}
+
+		$pageTotal	= $pageNum > 0 ? ceil($size/$pageNum):0;
 		$page		= _get($this->in,'page',1);
 		$page		= $page <= 1 ? 1  : ($page >= $pageTotal ? $pageTotal : $page);
 		$from = 0;$length = $size;

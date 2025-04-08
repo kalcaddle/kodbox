@@ -128,6 +128,10 @@ class Html{
 				}
 			}
 		}
+		
+		//屏蔽危险data-url, iframe/a...; src="data:text/html; href="data:text/html,...
+		$val = preg_replace("/\s+(src|href)\s*=(\s*[\"']\s*data\s*:\s*(text|application)\/)/i",' _$1_=$2', $val);		
+		$val = preg_replace("/\s+srcdoc\s*=/i",' _srcdoc_=', $val);// 屏蔽iframe srcdoc
 		return $val;
 	}
 }

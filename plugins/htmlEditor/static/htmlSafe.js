@@ -1,6 +1,24 @@
 ClassBase.define({
 	init:function(){
 		this.bindMessage();
+		this.iframeUrlBase 	=  G.kod.APP_HOST + 'plugins/htmlEditor/static/';
+		this.iframeProxy 	=  this.iframeUrlBase+'iframe-proxy.html';
+		this.allowSameOrgin = false;// 是否允许同源; 开启后iframe同源,能获取到parent或top页面内容-安全问题; 关闭后问题:静态资源无法缓存;		
+		this.allowSrcdoc 	= true;	// 是否启用srcdoc方式加载;
+		
+		if(window.kodHasNetWork){// 有网络时,使用cdn上的代理iframe实现跨域 (静态资源缓存/iframe子内容支持)
+			this.allowSameOrgin = true;
+			this.allowSrcdoc 	= false;
+			this.iframeUrlBase  = $.parseUrl().protocol + '://static.kodcloud.com/update/plugins/app/htmlEditor/static/';
+			this.iframeProxy 	=  this.iframeUrlBase+'iframe-proxy.html';
+		}
+		// this.iframeUrlBase =  G.kod.APP_HOST;
+		// this.iframeProxy   =  G.kod.appApi + 'plugin/htmlEditor/iframe';
+		
+		if($.browserIS.ios){// ios webview中不支持;Safari支持;
+			var ua = navigator.userAgent.toLowerCase();
+			if(ua.indexOf('quark') || ua.indexOf('weixin')){this.allowSrcdoc = false;}
+		}
 	},
 	bindMessage:function(){
 		if(window._htmlSafeHasBindMessage){return;}
@@ -19,23 +37,18 @@ ClassBase.define({
 		});
 	},	
 	support:function(){
-		if(!window.fetch || !window.MutationObserver){return false;}
+		if(!window.fetch || !window.MutationObserver || !window.postMessage){return false;}
 		var frame = document.createElement("iframe");
 		if(!("sandbox" in frame) || !("srcdoc" in frame)){return false;}
-		
-		if($.browserIS.ios){// ios webview中不支持;Safari支持;
-			var ua = navigator.userAgent.toLowerCase();
-			if(ua.indexOf('quark')){return false;}
-			if(ua.indexOf('weixin')){return false;}
-		} 
 		return true;
 	},
 	// 禁用cookie,去除 allow-same-origin;  iframe内请求无法缓存;
 	// https://stackoverflow.com/questions/67680940/iframe-sandbox-is-not-caching-my-js-script
 	iframeAttr:function(){
 		var allow   = "midi; geolocation; camera *; microphone; camera; display-capture; encrypted-media; clipboard-read; clipboard-write;";
-		var sandbox = 'allow-modals allow-orientation-lock allow-forms allow-scripts allow-popups allow-pointer-lock allow-top-navigation-by-user-activation allow-downloads';
-		return "sandbox='"+sandbox+"' allow='"+allow+"' allowfullscreen allowpaymentrequest";
+		var sandbox = 'allow-modals allow-orientation-lock allow-forms allow-scripts allow-popups allow-pointer-lock allow-downloads';
+		if(this.allowSameOrgin){sandbox += ' allow-same-origin';}
+		return "sandbox='"+sandbox+"' allow='"+allow+"' allowfullscreen allowpaymentrequest";//移出 allow-same-origin
 	},
 	iframe:function(){
 		return '<iframe src="" '+this.iframeAttr()+' frameborder="0" style="width:100%;height:100%;border:0;"></iframe>';
@@ -80,7 +93,7 @@ ClassBase.define({
 		var fileContent = function(thePath,addPath,callback){
 			var cache = self.fileContentCache,cacheKey = cacheKeyAll+'__'+thePath+'__'+(addPath || '');
 			if(cache[cacheKey]){return callback && callback(cache[cacheKey]);}
-			pathModel.fileContent({path:thePath},function(content){
+			pathModel.fileContent({path:thePath,pageNum:1024*1024*50},function(content){
 				var newContent = self.parseContent(content,thePath,linkPre,addPath);
 				cache[cacheKey] = newContent;
 				callback && callback(newContent);
@@ -113,19 +126,10 @@ ClassBase.define({
 				});
 			});
 		});
-		
-		var loadTimeout = false;
 		var reloadContent = function(thePath,addPath,theContent){
 			$iframe.attr('data-file-path',thePath);
 			var setContent = function(newContent){
-				$iframe.attr('srcdoc',newContent).trigger('load'); // iOS-微信中无效;
-				$iframe.unbind('iframeMainload').bind('iframeMainload',function(){
-					clearTimeout(loadTimeout);
-				});
-				clearTimeout(loadTimeout);
-				loadTimeout = setTimeout(function(){ // 一段时间未接收到载入消息,则重新设置值(safari下偶尔白屏[未载入引起])
-					$iframe.attr('srcdoc',newContent);
-				},500);
+				self.iframeContent($iframe,newContent);
 			};
 			setContent('');//$iframe.attr('src','about:blank');
 			if(theContent){return setContent(self.parseContent(contentSet,thePath,linkPre,addPath));}
@@ -133,9 +137,31 @@ ClassBase.define({
 		};
 		reloadContent(filePath,false,contentSet);
 	},
+
+	iframeContent:function($iframe,content){
+		if(!this.allowSrcdoc){
+			if(!content){return;}
+			$iframe.attr('src',this.iframeProxy).trigger('load');
+			$iframe.unbind('iframeProxyLoad').bind('iframeProxyLoad',function(){
+				var iframeWindow = $iframe.get(0).contentWindow;
+				iframeWindow.postMessage({type:'render',content:content},'*');
+			});
+			return;
+		}
+		
+		var self = this;
+		$iframe.attr('srcdoc',content).trigger('load'); // iOS-微信中无效;
+		$iframe.unbind('iframeMainload').bind('iframeMainload',function(){
+			clearTimeout(self.loadTimeout);
+		});
+		// 一段时间未接收到载入消息,则重新设置值(safari下偶尔白屏[未载入引起])
+		clearTimeout(self.loadTimeout);
+		self.loadTimeout = setTimeout(function(){$iframe.attr('srcdoc',content);},500);
+	},
 	
 	parseContent:function(content,filePath,linkPre,addPath){
 		var isPathUrl = this.isPathUrl,pathUrlParse = this.pathUrlParse,pathTrue = this.pathTrue;
+		var iframeUrlBase = this.iframeUrlBase,isPathUrlRoot = this.isPathUrlRoot;
 		var urlFilterCurrent = eval('('+this.urlFilter.toString()+')'); // 当前环境作用域; 可以直接使用变量及方法;
 		var domSrcMap = [
 			{tag:'script',key:'src',replaceType:'script-import',typeMatch:'module'},
@@ -161,9 +187,10 @@ ClassBase.define({
 		}
 		var script = `
 		(function(){
-			var linkPre   = "${linkPre}",filePath ="${filePath}",basePath="${basePath}";
-			window._hash  = "`+(addPath || '')+`";window._location_ = `+JSON.stringify(locationNow)+`
+			var linkPre   = "${linkPre}",filePath ="${filePath}",basePath="${basePath}",iframeUrlBase="${this.iframeUrlBase}";
+			window._hash  = "`+(addPath || '')+`";window._location_ = `+JSON.stringify(locationNow)+`;_location_._href = _location_.href;
 			var domSrcMap =`+jsonEncode(domSrcMap)+`;
+			var isPathUrlRoot =`+this.isPathUrlRoot.toString()+`;
 			var urlFilter =`+this.urlFilter.toString()+`;
 			var isPathUrl =`+this.isPathUrl.toString()+`;
 			var pathTrue  =`+this.pathTrue.toString()+`;
@@ -173,7 +200,7 @@ ClassBase.define({
 			(`+this.hookScriptProfill.toString()+`)();
 			(`+this.hookScriptEvent.toString()+`)();`+fileEncode+`
 		})();`;
-		return '<script>'+script+'</script>'+contentNew;
+		return `<!doctype html><script>`+script+'</script>'+contentNew;
 	},
 
 	// ================================================================
@@ -188,6 +215,11 @@ ClassBase.define({
 			if(url.substr(0,ignorePre[i].length) == ignorePre[i]){return false;}
 		}
 		return true;
+	},
+	isPathUrlRoot:function(url){
+		if(!url || typeof(url) != 'string'){return false;}
+		if(url.substr(0,1) != '/'){return false;}
+		return (new URL(linkPre)).origin + url;
 	},
 	pathUrlParse:function(url,_basePath){ // 如果是路径,去除锚点及参数;
 		var _url = url;
@@ -239,11 +271,15 @@ ClassBase.define({
 	},
 	urlFilter:function(url,replaceType){
 		if(!url || typeof(url) != 'string'){return url;}
+		if(url.substr(0,iframeUrlBase.length) == iframeUrlBase){
+			url = url.substr(iframeUrlBase.length);
+		}
 		var paramAdd = '',urlOld = url;// 保持之前参数;
 		if( url && url.substr(0,4) == 'http' && 
 			url.indexOf('&_s_=/') > 0 && url.indexOf('&_s_=/&') === -1){ // 根据url拼接出的url处理;
 			url = url.substr(url.indexOf('&_s_=/') + '&_s_=/'.length);
 		}
+		if(isPathUrlRoot(url)){return isPathUrlRoot(url);}
 		if(!isPathUrl(url)){return url;}
 		if(url.indexOf('?') > 0 && url.substr(0,4) != 'http'){paramAdd = '&_s_=/&'+url.substr(url.indexOf('?')+1);}
 		if(url.indexOf('#') > 0 && url.substr(0,4) != 'http'){paramAdd = '#'+url.substr(url.indexOf('#')+1);}
@@ -330,7 +366,9 @@ ClassBase.define({
 			contentNew = contentNew.replace(style,styleNew);
 		});
 		
-		contentNew = contentNew.replace('window.location','window._location_');
+		// contentNew = contentNew.replace('window.location','window._location_');		
+		contentNew = contentNew.replace(/(^|[^\w_.])window\.location($|[^\w_])/g,"$1window._location_$2");
+		contentNew = contentNew.replace(/(^|[^\w_.])location\.(hash|host|hostname|href|orgin|pathname|port|protocol|reload|replace|search)($|[^\w_])/g,"$1_location_.$2$3");
 		return contentNew;
 	},
 	
@@ -357,27 +395,33 @@ ClassBase.define({
 			return result;
 		};
 		
+		var importMap = {};
+		var scriptImport = function(str,url,mapKey){
+			var q = url.substr(0,1),urlFile = url.substr(1,url.length-2);
+			if(mapKey){importMap[mapKey.substr(1,mapKey.length-2)] = urlFile;}
+			
+			// 不是src路径则不处理;importMap中已引入则
+			if(importMap[urlFile]){return str;}
+			return str.replace(url,q+urlFilter(urlFile,'script-import')+q);
+		};
+		
 		// import 'src.js'; import Stats from 'src.js';
 		var urlFilterScriptImport = function(node){
-			var html =  node.innerText || node.innerHTML;
+			var html =  node.innerText || node.innerHTML,result = html;
 			if(!html || html.indexOf('from') === -1){return;}
-			var result = html.replace(/\s+from\s+(['"].*?['"])/g,function(str,url){
-				var q = url.substr(0,1);
-				return str.replace(url,q+urlFilter(url.substr(1,url.length-2),'script-import')+q);
-			});
-			result = result.replace(/import\s+(['"].*?['"])/g,function(str,url){
-				var q = url.substr(0,1);
-				return str.replace(url,q+urlFilter(url.substr(1,url.length-2),'script-import')+q);
-			});
+			
+			//分别处理单引号和双引号;避免dataUrl中引号导致提前截断问题;
+			result = result.replace(/\s+from\s+('.*?')/g,function(str,url){return scriptImport(str,url);});
+			result = result.replace(/\s+from\s+(".*?")/g,function(str,url){return scriptImport(str,url);});
+			result = result.replace(/import\s+('.*?')/g,function(str,url){return scriptImport(str,url);});
+			result = result.replace(/import\s+(".*?")/g,function(str,url){return scriptImport(str,url);});
 			node.innerHTML = result;
 		};
 		var urlFilterScriptImportMap = function(node){
-			var html =  node.innerText || node.innerHTML;
+			var html =  node.innerText || node.innerHTML,result = html;
 			if(!html){return;}
-			var result = html.replace(/['"]\s*:\s*(['"].*?['"])/g,function(str,url){
-				var q = url.substr(0,1);
-				return str.replace(url,q+urlFilter(url.substr(1,url.length-2),'script-import')+q);
-			});
+			result = result.replace(/(['"].*?['"])\s*:\s*('.*?')/g,function(str,mapKey,url){return scriptImport(str,url,mapKey);});
+			result = result.replace(/(['"].*?['"])\s*:\s*(".*?")/g,function(str,mapKey,url){return scriptImport(str,url,mapKey);});
 			node.innerHTML = result;
 		};
 
@@ -404,7 +448,7 @@ ClassBase.define({
 			var mapItem = domSrcMapObj[(node.tagName || '').toLowerCase()];
 			if(mapItem && node && node[mapItem.key]){
 				var theUrl = node.getAttribute(mapItem.key);
-				var newUrl = urlFilter(theUrl,mapItem.replaceType || '');;
+				var newUrl = urlFilter(theUrl,mapItem.replaceType || '');
 				node[mapItem.key] = newUrl;
 				if(node.tagName == 'SCRIPT' && theUrl != newUrl && !node.getAttribute('_src_')){
 					node.setAttribute('_src_',theUrl); // 保留之前url; getter中重写;
@@ -545,6 +589,7 @@ ClassBase.define({
 		});
 
 		var iframeReset = function(node,args){
+			if(isPathUrlRoot(args[1])){return isPathUrlRoot(args[1]);}
 			if(!isPathUrl(args[1]) || args[1] == 'blank.html'){return args[1];}
 
 			var url = pathUrlParse(args[1],basePath);
@@ -606,10 +651,12 @@ ClassBase.define({
 			};
 			var scriptAdd = `
 			;(function(){
-				var linkPre   = "${linkPre}",filePath ="${filePath}",basePath="${basePath}";
-				var _location = `+JSON.stringify(_location_)+`
+				_location_ = `+JSON.stringify(_location_)+`;
+				_location_.reload = function(){window.location.reload();};
+				var linkPre   = "${linkPre}",filePath ="${filePath}",basePath="${basePath}",iframeUrlBase="${iframeUrlBase}";
+				var isPathUrlRoot =`+isPathUrlRoot.toString()+`;
 				var urlFilter = `+urlFilter.toString()+`;
-				var isPathUrl = `+isPathUrl.toString()+`;
+				var isPathUrl = `+isPathUrl.toString()+`;				
 				var pathTrue  = `+pathTrue.toString()+`;
 				var pathUrlParse =`+pathUrlParse.toString()+`;
 				var htmlContentParse =`+htmlContentParse.toString()+`;
@@ -679,6 +726,7 @@ ClassBase.define({
 		
 		// 引用路径转换处理; 相对路径转换;
 		var pathUrlTrue = function(url,add){
+			if(add && isPathUrlRoot(add)){return isPathUrlRoot(add);}
 			if(add && !isPathUrl(add)){return add;}
 			if(!url || !add){return url;}
 			var char = add.substr(0,1);
@@ -750,7 +798,9 @@ ClassBase.define({
 				var iframe = document.querySelector('[_view_uuid="'+e.data.uuid+'"]');
 				if(!iframe){return;}
 				iframe.setAttribute('data-file-path',e.data.url);
-				iframe.src="";iframe.srcdoc=e.data.content;
+				var doc = iframe.contentDocument;iframe.src="";
+				if(doc){doc.open();doc.write(e.data.content || '');doc.close();}
+				if(!doc){iframe.srcdoc=e.data.content;}
 			}
 		});
 		
@@ -758,6 +808,7 @@ ClassBase.define({
 		var gotoPage = function(url){
 			var urlOld = url;
 			if(url && url.substr(0,1)== '#'){window.location.hash = url;return true;} 
+			if(isPathUrlRoot(url)){window.location.href = isPathUrlRoot(url);return true;}
 			if(!isPathUrl(url)){return false;}
 			url = pathUrlParse(url,basePath);
 			window.parent.postMessage({type:'iframe.event',event:'iframeLinkHref',url:url},'*');
@@ -788,6 +839,19 @@ ClassBase.define({
 			}
 			if(gotoPage(url)){return stopPP(e);};
 		});
+		window._location_.reload  = function(){window.location.reload();};
+		window._location_.replace = function(urlFrom,urlTo){
+			var url = window._location_._href.replace(urlFrom,urlTo);
+			if(gotoPage(url)){return;};
+			window.location.href = url;
+		};
+		Object.defineProperty(window._location_,'href',{
+			set:function(url){
+				if(gotoPage(url)){return;};
+				window.location.href = url;
+			},
+			get:function(){return window._location_._href;}
+		});
 		window.parent.postMessage({type:'iframe.event',event:'iframeMainload'},'*');
 		
 		// location 跳转监听,暂时无解; //onhashchange,popstate,locationchange...
@@ -798,7 +862,6 @@ ClassBase.define({
 			if(gotoPage(url)){return;};
 			return _open.apply(window,arguments);
 		}
-		// window.location.pathname = window._hash;
-		window.location.origin = (new URL(linkPre)).origin; //无效; window.orgin依然为null; setter无效;
+
 	},
 });

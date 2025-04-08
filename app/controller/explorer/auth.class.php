@@ -20,10 +20,10 @@ class explorerAuth extends Controller {
 		$this->actionPathCheck = array(
 			'show'		=> array("explorer.list"=>'path,listAll'),
 			'view'		=> array(
-				'explorer.index'=>'fileOut,fileOutBy,fileView,fileThumb',
+				'explorer.index'=>'fileOut,fileOutBy,unzipList,pathLog,fileView,fileThumb',
 				'explorer.editor' =>'fileGet'
 			),
-			'download'	=> array('explorer.index'=>'fileDownload'),// 下载/复制;下载/复制/文件预览打印
+			'download'	=> array('explorer.index'=>'fileDownload,zipDownload,fileDownloadRemove'),// 下载/复制;下载/复制/文件预览打印
 			'upload'	=> array(
 				'explorer.upload'	=>'fileUpload,serverDownload',
 				'explorer.index'	=>'mkdir,mkfile',

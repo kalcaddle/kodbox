@@ -110,7 +110,7 @@ class explorerListGroup extends Controller{
 		$listGroup = $option['groupListChild']=='1';
 		if(!$listGroup) return false;
 		if($groupID == '1'){
-			return $option['groupRootListChild']=='1';
+			return is_null($option['groupRootListChild']) || $option['groupRootListChild']=='1';
 		}
 		return true;
 	}
