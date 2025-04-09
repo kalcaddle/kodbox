@@ -996,5 +996,121 @@ class adminRepair extends Controller {
 		}
 		return array_unique(array_filter($data));
 	}
+
+	/**
+	 * 清除我的回收站
+	 * @return void
+	 */
+	public function clearMyRecycle(){
+		// KodUser::checkRoot();
+		ignore_timeout();
+
+		echoLog('本接口用于清空当前（登录）用户的回收站（仅限系统文件）。');
+		if (!isset($this->in['done'])) {
+            echoLog('如确认需要执行，请在地址中追加参数后再次访问：&done=1');exit;
+        }
+		// 1.任务
+		$recycleModel = Model('SourceRecycle');
+		$where = array("userID"=>USER_ID);
+		$total = $recycleModel->where($where)->count();
+		if (!$total) {
+		    echoLog('当前回收站为空，无需处理。'); exit;
+		}
+		if ($total > 200000) {
+		    // $recycleList = array_slice($recycleList, 0, 200000);
+		    echoLog('总文件数：'.$total.'，为避免内存溢出，单次仅执行200000条，请分多次执行。');
+		}
+		$recycleList = $recycleModel->where($where)->limit(200000)->select();
+
+		echoLog('开始加载任务...');
+		$pList = $sList = $targetArr = array();
+		foreach ($recycleList as $item) {
+			$sourceID = $item['sourceID'];
+			$pList[] = array("path"=>KodIO::make($sourceID));
+			$sList[] = $sourceID;
+			$key = $item['targetType'].'_'.$item['targetID'];
+			$targetArr[$key] = array(
+				"targetType"	=> $item['targetType'],
+				'targetID'		=> $item['targetID']
+			);
+		}
+		$this->taskCopyCheck($pList);//彻底删除: children数量获取为0,只能是主任务计数;
+		unset($pList);
+		echoLog('任务加载完成。');
+
+		// 2.删除
+		echoLog('开始删除文件，共有：'.count($sList));
+		$sourceModel = Model("Source");
+		foreach ($sList as $i => $theID) {
+			$sourceModel->remove($theID,false);
+			$recycleModel->where(array('sourceID'=>$theID))->delete();
+			echoLog($i+1, true);
+		}
+		unset($sList);
+		echoLog('文件删除完成。');
+
+		//更新目标空间大小;
+		echoLog('开始更新目录空间占用...');
+		foreach ($targetArr as $item) {
+			$sourceModel->targetSpaceUpdate($item['targetType'],$item['targetID']);
+		}
+		unset($targetArr);
+
+		// 3.清空回收站时,重新计算大小; 一小时内不再处理;
+		echoLog('开始更新个人空间占用...');
+		Model('Source')->targetSpaceUpdate(SourceModel::TYPE_USER,USER_ID);
+		$cacheKey = 'autoReset_'.USER_ID;
+		Cache::set($cacheKey,time());
+		$USER_HOME = KodIO::sourceID(MY_HOME);
+		Model('Source')->folderSizeResetChildren($USER_HOME);
+		Model('Source')->userSpaceReset(USER_ID);
+		echoLog('执行完成！');
+	}
+	// 文件移动; 耗时任务;
+	private function taskCopyCheck($list){
+		$list = is_array($list) ? $list : array();
+		$taskID = 'copyMove-'.USER_ID.'-'.rand_string(8);
+		
+		$task = new TaskFileTransfer($taskID,'copyMove');
+		$task->update(0,true);//立即保存, 兼容文件夹子内容过多,扫描太久的问题;
+		for ($i=0; $i < count($list); $i++) {
+			$task->addPath($list[$i]['path']);
+		}
+	}
+
+	/**
+	 * 直接删除个人回收站下的文件（不进入系统回收站）
+	 * @return void
+	 */
+	public function clearUserRecycleNow(){
+	    KodUser::checkRoot();
+		ignore_timeout();
+		echoLog('本接口用于清空指定用户的回收站（仅限系统文件），文件将被直接删除而不存放到系统回收站，请谨慎操作。');
+		if (!isset($this->in['done'])) {
+            echoLog('如确认需要执行，请在地址中追加参数后再次访问：&done=1');exit;
+        }
+		if (empty($this->in['userID'])) {
+			echoLog('请指定用户id：&userID=xx');exit;
+		}
+		$userID = $this->in['userID'];
+		// 查询回收站文件列表
+		$list = Model('SourceRecycle')->alias('r')->field('r.sourceID,s.fileID')
+				->join("INNER JOIN io_source AS s ON r.sourceID = s.sourceID")
+				->where(array("r.userID"=>USER_ID))
+				->select();
+		if (empty($list)) {
+			echoLog('当前回收站为空，无需处理。'); exit;
+		}
+		$sources = $files = array();
+		foreach ($list as $item) {
+			$sources[] = $item['sourceID'];
+			$files[] = $item['fileID'];
+		}
+		unset($list);
+		// 删除
+		echoLog('正在删除，请耐心等待...');
+		Model('Source')->removeRelevance($sources,$files);
+		echoLog('删除完成，共删除文件/夹：'.count($sources).'个。');exit;
+	}
 	
 }
