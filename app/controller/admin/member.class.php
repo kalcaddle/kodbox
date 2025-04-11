@@ -49,7 +49,7 @@ class adminMember extends Controller{
 		if(!$data['groupID']){show_json(array(),true);}
 		if($data['groupID'] == 1) $data['groupID'] = 0;	// 根部门（id=1）获取全部用户
 		$result = $this->model->listByGroup($data['groupID'], $data);
-		$this->showUserfilterAllow($result['list']);
+		$result['list'] = $this->showUserfilterAllow($result['list']);
 		show_json($result,true);
 	}
 	
@@ -59,7 +59,7 @@ class adminMember extends Controller{
 	public function getByID() {
 		$id = Input::get('id','[\d,]*');
 		$result = $this->model->listByID(explode(',',$id));
-		$this->showUserfilterAllow($result);
+		$result = $this->showUserfilterAllow($result);
 		show_json($result,true);
 	}
 
@@ -88,20 +88,21 @@ class adminMember extends Controller{
 			}
 		}
 		
-		$this->showUserfilterAllow($result['list']);
+		$result['list'] = $this->showUserfilterAllow($result['list']);
 		show_json($result,true);
 	}
 	
 	// 过滤不允许的用户信息(根据当前用户可见部门筛选)
 	private function showUserfilterAllow($list){
+		if(!$list || KodUser::isRoot()){return $list;}
 		$userGroupRootShow  = Action("filter.userGroup")->userGroupRootShow(); // 用户所在跟部门;可见范围
 		$userGroupAdmin = Action("filter.userGroup")->userGroupAdmin();// 用户所在部门为管理员的部门;
-		if(!$userGroupRootShow || !$list){return $list;}
+		// if(!$userGroupRootShow){return $list;}
 
 		// 获取完整用户信息, 有部门管理权限且该参数为full才返回用户完整信息,否则精简用户信息(去除邮箱,手机号等敏感信息)
 		$userAllow    = array();
 		$requestAdmin = isset($this->in['requestFromType']) && $this->in['requestFromType'] == 'admin'; // 后端用户列表;
-		foreach ($list as $user){
+		foreach($list as $user){
 			$groupParentAll = array(); 
 			foreach ($user['groupInfo'] as $groupInfo){
 				$parents = Model('Group')->parentLevelArray($groupInfo['parentLevel']);
@@ -110,16 +111,11 @@ class adminMember extends Controller{
 			$groupParentAll = array_unique($groupParentAll);
 			$allowShow = array_intersect($groupParentAll,$userGroupRootShow)  ? true : false; //是否有交集
 			$allowFull = array_intersect($groupParentAll,$userGroupAdmin) ? true : false;
-			if(KodUser::isRoot()){$allowFull = true;$allowShow = true;}//超级管理员(不受权限限制)
-			
 			if(!$allowShow){continue;}
 			if($allowFull && $requestAdmin){$userAllow[] = $user;continue;}
-			$userItem = array();
-			$allowField = explode(',','userID,avatar,name,nickName,groupInfo');
-			foreach ($allowField as $key) {
-				$userItem[$key] = $user[$key];
-			}
-			$userAllow[] = $userItem;
+			
+			$allowField = explode(',','userID,avatar,name,nickName,sex');//groupInfo
+			$userAllow[] = array_field_key($user,$allowField);
 		}
 		// pr($userAllow,$list,$userGroupRootShow,$userGroupAdmin);exit;
 		return $userAllow;
