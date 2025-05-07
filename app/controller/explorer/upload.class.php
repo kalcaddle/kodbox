@@ -217,7 +217,7 @@ class explorerUpload extends Controller{
 		$remotePath = $this->parsePath(KodIO::ioFileDriverGet($savePath),$this->in['key']);
 
 		// 耗时操作;
-		if(!IO::exist($remotePath)){
+		if(!IO::isFile($remotePath)){
 			show_json(LNG("explorer.upload.error"), false);
 		}
 		$path = IO::addFileByRemote($savePath, $remotePath,$paramMore,$this->in['name'],$repeat);

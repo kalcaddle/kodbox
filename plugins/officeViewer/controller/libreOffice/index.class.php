@@ -158,7 +158,7 @@ class officeViewerlibreOfficeIndex extends Controller {
     public function getSoffice(){
         $check = 'LibreOffice';
 		$data = Action($this->pluginName)->_appConfig('lb');
-        $bin = isset($data['soffice']) ? $data['soffice'] : '';
+        $bin = !empty($data['soffice']) ? $data['soffice'] : '/usr/local/bin/soffice';	// 默认路径为cockpit中添加
 		$bin = escapeShell(iconv_system($bin));	// win路径空格处理
         $result = $this->checkBin($bin,$check);
         return $result ? $bin : false;

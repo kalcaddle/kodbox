@@ -585,6 +585,11 @@ class explorerUserShare extends Controller{
 				$data["options"]['canEditSave'] = '0';
 				if($options['shareLinkAllowEdit'] == '0'){$data["options"]['canEditSave'] = '0';}
 			}
+			
+			if(_get($this->in,'hash')){
+				$data['shareHash'] = trim(rawurldecode($this->in['hash']));
+				$data['shareHash'] = substr(preg_replace('/[^\w\-\._]/', '_', $data['shareHash']),0,45);
+			}
 		}
 		return $data;
 	}

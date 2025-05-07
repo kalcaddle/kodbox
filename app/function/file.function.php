@@ -897,36 +897,49 @@ function path_is_absolute($path){
 
 
 function is_text_file($ext){
-	$extArray = array(
-		'3ds','4th','_adb','a','abap','abc','ac','acl','ada','adb','adoc','ahk','alda','am','apex','apl','app','apple-app-site-association','applescript','aql','arcconfig','arclint','as','asc','asciidoc','asl','asm','asn','asn1','asp','aspx','ass','astylerc','atom','authors','aw',
-		'b','babelrc','bak','bash','bash_history','bash_logout','bash_profile','bashrc','bat','bf','bib','brew_all_commands','bro','build','bzl',
-		'c','c9search_results','cabal','cakefile','cbl','cc','cer','cf','cfg','cfm','cgi','changelog','changes','cirru','cl','classpath','clj','cljc','cljs','cljx','cls','cmake','in','cmd','cnf','cob','coffee','commit_editmsg','compile','component','conf','config','configure','container','contributing','copying','coveragerc','cpp','cpy','cql','cr','credits','cs','csd','cshtml','cson','csproj','css','csv','ctp','curly','cxx','cyp','cypher','crt',
-		'd','dae','darglint','dart','def','depcomp','description','desktop','di','diff','dist','dockerfile','dockerfile-dist','dockerfile-master','dockerignore','dot','dox','drl','dsl','dtd','dummy','dxf','dxf-check','dxfb-check','dyalog','dyl','dylan',
-		'e','ecl','edi','editorconfig','edn','eex','ejs','el','elm','empty','epp','erb','erl','err','eslintignore','ex','example','exclude','exs',
-		'f','f77','f90','f95','factor','feature','fetch_head','filters','fingerprint','for','forth','frag','frt','fs','fsi','fsl','fsscript','fsx','fth','ftl','fun','fx',
-		'gbs','gcode','ge','gemfile','gemspec','gendocs_template','geojson','git-credentials','git-version-gen','gitattributes','gitconfig','gitflow_export','gitignore','gitignore_global','gitkeep','gitlog-to-changelog','gitmodules','glsl','gltf','gnumakefile','go','gql','gradle','groovy','gss','guardfile','guess','gunmakefile','gypi',
-		'h','hacking','haml','handlebars','hbs','head','hgignore_global','hh','hjson','hlean','hpp','hrl','hs','hta','htaccess','htgroups','htm','html','html.eex','html.erb','htpasswd','http','hx','hxml','hxx',
-		'i','iml','in','inc','inf','ini','ino','install','install-sh','installversion','intr','inx','io','po',
-		'j2','jack','jade','java','ji','jinja','jinja2','jl','jq','js','jsdtscope','jshintrc','jsm','json','json-check','json5','jsonld','jsp','jssm','jssm_state','jsx',
-		'key','keys','kml','ksh','kt','kts',
-		'la','latex','latte','ldr','lean','less','lesshst','lgc','lhs','license','liquid','lisp','list','lnk','local','localized','lock','log','logic','lp','lql','lrc','ls','lsl','lsp','ltx','lua','lucene',
-		'm','m3u8','m4','magnet','mailcap','make','makefile','manifest','map','markdown','mask','master','mathml','matlab','mbox','mc','md','mdx','mediawiki','mel','meta','mf','mime','missing','mixal','mjs','mkd','ml','mli','mll','mly','mm','mml','mo','mod','module','mps','msc','mscgen','mscin','msgenny','mtl','mush','mustache','mvnw','mycli-history','myclirc','mymetadata','mysql','mysql_history','mz',
-		'name','nb','nc','ncx','netrwhist','news','nginx','nim','nix','nj','njk','nmf','node_repl_history','npmignore','npmrc','nq','nsh','nsi','nt','nunjs','nunjucks','nut',
-		'oak','obj','ocamlmakefile','oexe','opf','orc','orig_head','out','owners','oz',
-		'p','p6','packed-refs','packs','page','pas','patch','pbxproj','pc','pch','pearrc','pem','pgp','pgsql','php','php3','php4','php5','php7','phps','phpt','phtml','pid','pig','pl','pl6','plantuml','plg','plist','plistpch','pls','plugins','ply','pm','pm6','pp','praat','praatscript','prefs','prettierrc','pri','prisma','pro','proc','project','prolog','properties','props','proto','ps1','psc','psd1','psm1','pub','pug','puml','pxd','pxi','py','pylintrc','pyw','pyx',
-		'q','qml','qrc',
-		'r','rake','rakefile','raku','rakumod','rakutest','rb','rd','rdf','readme','red','rediscli_history','reds','refs','reg','rels','repo','resx','rhtml','rkt','rng','rq','rs','rss','rst','ru',
-		's','sample','sas','sass','sbt','scad','scala','schema','scheme','scm','sco','scss','servers','settings','sh','sh_history','sharedmimeinfo','shtml','sieve','sig','siv','sjs','skim','slim','sln','sm','smackspec','smarty','smithy','sml','snippets','sourcetreeconfig','soy','space','sparql','spec','sql','sqlite_history','sqlserver','srt','ss','st','status','stcommitmsg','stl','storyboard','str','strings','styl','stylus','sub','sublime-project','sum','supp','sv','svg','svh','swift','swig',
-		't','targets','tcl','template','tern-project','terragrunt','tex','texi','text','textile','tf','tfvars','tgr','tld','todo','toml','tpl','trigger','ts','tsv','tsx','ttcn','ttcn3','ttcnpp','ttl','twig','txt','typed','types','typescript',
-		'ui','url','using_foreign_code',
-		'v','vala','values','vb','vbproj','vbs','vcproj','vcxproj','version','vert','vfp','vh','vhd','vhdl','viminfo','vm','vmx','vmxd','vmxf','vsixmanifest','vtl','vtt','vue',
-		'wast','wat','we','webapp','webidl','webloc','wiki','wl','wlk','wls','wpgm','wpy','wsdl','wtest',
-		'x3d','xaml','xbl','xcscheme','xhtml','xib','xml','xq','xquery','xsd','xsl','xslt','xu','xul','xy',
-		'yaml','yml','ys','z80','mht','mhtml',
-		'zeek','zsh','zsh-template','zsh-theme','zsh-update','zsh_history','zshrc','zshrc_self',
-		'service','target','lightbgcolor','cshrc','crontab','environment','exports','defs',
-		'odin','jexl','plsql','robot',
-	);
+	static $extArray = false;
+	if(!$extArray){
+		$extArray = array(
+			'3dml,3ds,4th,_adb,a,abap,abc,ac,acl,ada,adb,adoc,ahk,aj,alda,am,anpa,apex,apl,app,apple-app-site-association',
+			'applescript,aql,arcconfig,arclint,as,asc,asciidoc,asl,asm,asn,asn1,asp,aspx,ass,astylerc,atom,authors,aw,awk',
+			'b,babelrc,bak,bas,bash,bash_history,bash_logout,bash_profile,bashrc,bat,bf,bib,blade.php,brew_all_commands,bro,build,bzl',
+			'c,c9search_results,cabal,cakefile,cbl,cc,cer,cf,cfg,cfm,cgi,changelog,changes,cid,cirru,cl,classpath,clj,cljc,cljs,cljx,cls,cmake,cmake.in',
+			'cmd,cnf,cob,codeowners,coffee,commit_editmsg,compile,component,conf,config,configure,container,contributing,copying,coveragerc,cpp,cpy,cql,cr',
+			'credits,crontab,crt,cs,csd,cshrc,cshtml,cson,csproj,css,csv,ctp,curl,curly,cxx,cyp,cypher',
+			'd,dae,darglint,dart,dcurl,def,defs,depcomp,description,desktop,di,diff,dist,dockerfile,dockerfile-dist,dockerfile-master,dockerignore',
+			'dot,dox,drl,dsc,dsl,dtd,dummy,dxf,dxf-check,dxfb-check,dyalog,dyl,dylan',
+			'e,ecl,edi,editorconfig,edn,eex,ejs,el,elm,empty,environment,epp,erb,erl,err,eslintignore,etx,ex,example,exclude,exp,exports,exs',
+			'f,f77,f90,f95,factor,feature,fetch_head,filters,fingerprint,flx,fly,fm,for,forth,frag,frt,fs,fsi,fsl,fsscript,fsx,fth,ftl,fun,fx',
+			'gbs,gcode,ge,gemfile,gemspec,gendocs_template,geojson,git-credentials,git-version-gen,gitattributes,gitconfig,gitflow_export,gitignore',
+			'gitignore_global,gitkeep,gitlog-to-changelog,gitmodules,glsl,gltf,gnumakefile,go,gql,gradle,groovy,gss,guardfile,guess,gunmakefile,gv,gypi',
+			'h,hacking,haml,handlebars,hbs,head,helmignore,hgignore_global,hh,hjson,hlean,hpp,hrl,hs,hta,htaccess,htgroups,htm,html,html.eex,html.erb,htpasswd,http,hx,hxml,hxx',
+			'i,ics,idl,iml,in,inc,inf,ini,ino,install,install-sh,installversion,intr,inx,io,iso19139,itk',
+			'j2,jack,jade,java,jexl,ji,jinja,jinja2,jl,jq,js,jsdtscope,jshintrc,jsm,json,json-check,json5,jsonld,jsp,jssm,jssm_state,jsx',
+			'key,keys,kml,ksh,kt,kts,la,latex,latte,ldr,lean,less,lesshst,lgc,lhs,lic,license,license-gpl,license-mit',
+			'lightbgcolor,liquid,lisp,list,lnk,local,localized,lock,log,logic,lp,lql,lrc,ls,lsl,lsp,ltx,lua,lucene',
+			'm,m3,m3u8,m4,magnet,mailcap,make,makefile,manifest,map,markdown,mask,master,mathml,matlab,mbox,mc,mcurl,md,mdx',
+			'mediawiki,mel,meta,mf,mht,mhtml,mime,missing,mixal,mjs,mkd,ml,mli,mll,mly,mm,mml,mo,mod,module,mps,msc,mscgen',
+			'mscin,msgenny,mtl,mush,mustache,mvnw,mycli-history,myclirc,mymetadata,mysql,mysql_history,mz',
+			'name,nb,nc,ncx,netrwhist,news,nginx,nim,nix,nj,njk,nmf,node_repl_history,npmignore,npmrc,nq,nsh,nsi,nt,nunjs,nunjucks,nut,oak,obj,ocaml,ocamlmakefile,odin',
+			'oexe,opf,orc,orig_head,out,owners,oz',
+			'p,p6,packed-refs,packs,page,pas,patch,pbxproj,pc,pch,pearrc,pem,pgp,pgsql,php,php3,php4,php5,php7,phpclass,phps,phpt,phtml',
+			'pid,pig,pl,pl6,plantuml,plg,plist,plistpch,pls,plsql,plugins,ply,pm,pm6,po,pp,praat,praatscript,pre-commit,prefs,prettierrc',
+			'pri,prisma,pro,proc,project,prolog,properties,props,proto,ps1,psc,psd1,psm1,pub,pug,puml,pxd,pxi,py,pylintrc,pyw,pyx',
+			'q,qml,qrc,r,rake,rakefile,raku,rakumod,rakutest,rb,rd,rdf,readme,red,rediscli_history,reds,refs,reg,rels,repo,rest,resx,rexx,rhtml,rkt,rng,robot,rq,rs,rss,rst,rtx,ru',
+			's,sample,sas,sass,sbt,scad,scala,schema,scheme,scm,sco,scss,scurl,sed,servers,service,settings,sgml,sh,sh_history,sharedmimeinfo,shtml,sieve,sig,siv',
+			'sjs,skim,slim,sln,sm,smackspec,smarty,smithy,sml,snippets,sourcetreeconfig,soy,space,sparql,spec,spot,sql',
+			'sqlite_history,sqlserver,srt,ss,st,status,stcommitmsg,stl,storyboard,str,strings,styl,stylus,sub,sublime-project,sum,supp,sv,svg,svh,swift,swig',
+			't,target,targets,tcl,template,tern-project,terragrunt,tex,texi,text,textile,tf,tfvars,tgr,tld,tmx,todo,toml,tpl,trigger,ts',
+			'tsv,tsx,ttcn,ttcn3,ttcnpp,ttl,twig,txt,typed,types,typescript',
+			'ui,uri,url,using_foreign_code,uu',
+			'v,vala,values,vb,vbproj,vbs,vcf,vcproj,vcs,vcxproj,version,vert,vfp,vh,vhd,vhdl,viminfo,vm,vmx,vmxd,vmxf,vsixmanifest,vtl,vtt,vue',
+			'wast,wat,we,webapp,webidl,webloc,wiki,wl,wlk,wls,wml,wmls,wpgm,wpy,wsdl,wtest',
+			'x-classpath,x-gitattributes,x-gitmodules,x-magnet,x-readme,x-sublime-project,x-vbproj,x-vtt,x3d,xaml,xbl,xcscheme,xhtml,xib,xml,xq,xquery,xsd,xsl,xslt,xu,xul,xy',
+			'y,yaml,yml,ys,z80,zeek,zsh,zsh-template,zsh-theme,zsh-update,zsh_history,zshrc,zshrc_self',
+		);
+		$extArray = explode(',',implode(',',$extArray));
+	}
+	
 	if($ext === -1) return $extArray;
 	return in_array($ext,$extArray);
 }

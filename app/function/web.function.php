@@ -422,14 +422,9 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 		}
 	}
 	if($method == 'GET' && $data){
-		if(is_array($data)){
-			$data = http_build_query($data);
-		}
-		if(strstr($url,'?')){
-			$url = $url.'&'.$data;
-		}else{
-			$url = $url.'?'.$data;
-		}
+		$data = is_array($data) ? http_build_query($data) : '';
+		if($data &&  strstr($url,'?')){$url = $url.'&'.$data;}
+		if($data && !strstr($url,'?')){$url = $url.'?'.$data;}
 	}
 	curl_setopt($ch, CURLOPT_URL,$url);
 	curl_setopt($ch, CURLOPT_HEADER,1);
@@ -442,7 +437,7 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 	// curl_setopt($ch, CURLOPT_SSLVERSION,1);//1|5|6; http://t.cn/RZy5nXF
 	// curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
 	curl_setopt($ch, CURLOPT_TIMEOUT,$timeout);
-	curl_setopt($ch, CURLOPT_REFERER,get_url_link($url));
+	curl_setopt($ch, CURLOPT_REFERER,get_url_root($url));
 	curl_setopt($ch, CURLOPT_NOPROGRESS, false);
 	curl_setopt($ch, CURLOPT_PROGRESSFUNCTION,'curl_progress');curl_progress_start($ch);
 	curl_setopt($ch, CURLOPT_USERAGENT,'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36');
@@ -553,6 +548,82 @@ function url_request_proxy($url,$method='GET',$data=false,$headers=false,$option
 		$url = $config['HTTP_PROXY'] .$add.'_url='.base64_encode($url);
 	};
 	return url_request($url,$method,$data,$headers,$options,$json,$timeout);
+}
+
+
+// 多个url批量请求; ['url1','url2',...],  or [{url,method,data,header,options},...],  
+function url_request_mutil($requests,$timeout=20){
+	$mh = curl_multi_init();
+	$handles = array();
+
+	// 初始化每个请求
+	$hasStart = false;$hasEnd = false;
+	foreach($requests as $index => $request){
+		if(is_string($request)){$request = array('url' => $request,'method'=>'GET');}
+		$ch = curl_init();$url = $request['url'];
+		if(isset($request['method']) && strtoupper($request['method']) === 'POST') {
+			curl_setopt($ch, CURLOPT_POST,1);
+			if(isset($request['data'])){curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($request['data']));}
+		}else{
+			curl_setopt($ch,CURLOPT_HTTPGET,1);
+			$data = is_array($request['data']) ? http_build_query($request['data']) : '';
+			if($data &&  strstr($url,'?')){$url = $url.'&'.$data;}
+			if($data && !strstr($url,'?')){$url = $url.'?'.$data;}
+		}
+		if(isset($request['headers'])){
+			$headers = is_string($request['headers']) ? array($request['headers']) : $headers;
+			curl_setopt($ch,CURLOPT_HTTPHEADER,$headers);
+		}
+		if(is_array($request['options'])){
+			if(isset($request['options']['cookie'])){
+				curl_setopt($ch, CURLOPT_COOKIE, $request['options']['cookie']);
+				unset($request['options']['cookie']);
+			}
+			curl_setopt_array($ch, $request['options']);
+		}
+		
+		curl_setopt($ch, CURLOPT_URL,$url);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER,true);
+		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
+		curl_setopt($ch, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
+		curl_setopt($ch, CURLINFO_HEADER_OUT, 1);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
+		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+		curl_setopt($ch, CURLOPT_TIMEOUT,$timeout);
+		curl_setopt($ch, CURLOPT_REFERER,get_url_link($url));
+		curl_setopt($ch, CURLOPT_USERAGENT,'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36');
+		curl_multi_add_handle($mh, $ch);
+		if(!$hasStart){$hasStart = true;curl_progress_start($ch);}
+		$handles[$index] = $ch;
+	}
+
+	// 执行所有请求;循环调用-每次调用返回当前状态码;
+	$active = null;
+	do{
+		$mrc = curl_multi_exec($mh, $active);
+	}while($mrc == CURLM_CALL_MULTI_PERFORM);
+	while($active && $mrc == CURLM_OK){
+		if(curl_multi_select($mh) == -1){continue;}
+		do{
+			$mrc = curl_multi_exec($mh, $active);
+		}while($mrc == CURLM_CALL_MULTI_PERFORM);
+	}
+
+	// 获取结果
+	$results = array();
+	foreach($handles as $index => $ch){
+		$info = curl_getinfo($ch);
+		$results[$index] = array(
+			'data' 	=> curl_multi_getcontent($ch),
+			'info' 	=> $info,
+			'code'	=> $info['http_code'] >= 200 && $info['http_code'] <= 299,
+		);
+		if(!$hasEnd){$hasEnd = true;curl_progress_end($ch,$results[$index]['data']);}
+		curl_multi_remove_handle($mh, $ch);
+		curl_close($ch);
+	}	
+	curl_multi_close($mh);
+	return $results;
 }
 
 function get_headers_curl($url,$timeout=10,$depth=0,&$headers=array()){

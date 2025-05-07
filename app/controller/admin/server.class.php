@@ -566,6 +566,9 @@ class adminServer extends Controller {
 		if(Input::get('check', null, false)) {
 			show_json(LNG('admin.setting.checkPassed'));
 		}
+		// 3.获取建表sql文件——提前获取，避免异常时无法报错
+		$file = $manageOld->getSqlFile($type);
+		if (!$file) show_json(LNG('admin.install.dbFileError').'(install/'.$type.'.sql)', false);
 
 		// 截断http请求，后面的操作继续执行
 		echo json_encode(array('code'=>true,'data'=>'OK', 'info'=>1));
@@ -574,7 +577,7 @@ class adminServer extends Controller {
 		$taskId	 = 'db.new.table.create';
 		$taskCrt = new Task($taskId, $type, 0, LNG('admin.setting.dbCreate'));
 		// 3.表结构写入目标库
-		$file = $manageOld->getSqlFile($type);
+		// $file = $manageOld->getSqlFile($type);
         $manageNew->createTable($file, $taskCrt);
 		$this->taskToCache($taskCrt, $taskId);
 		$tableNew = $dbNew->getTables();

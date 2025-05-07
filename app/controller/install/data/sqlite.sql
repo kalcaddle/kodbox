@@ -11,7 +11,7 @@ CREATE TABLE "comment" (
   "userID" integer NOT NULL,
   "targetType" smallint NOT NULL,
   "targetID" integer NOT NULL,
-  "content" text NOT NULL,
+  "content" mediumtext NOT NULL,
   "praiseCount" integer NOT NULL,
   "commentCount" integer NOT NULL,
   "status" smallint NOT NULL,

@@ -26,7 +26,7 @@ return array(
 	"officeViewer.main.invalidExt"				=> "Invalid file format",
 
 	"officeViewer.webOffice.name"				=> "Auto Parsing",
-	'officeViewer.webOffice.desc'				=> "When [Auto Parsing] is selected, if the current method is not supported, it will automatically switch to the next one;<br/>If you want to have a unified parsing style or support more formats, you can fix it to a certain parsing method.",
+	'officeViewer.webOffice.desc'				=> "When [Auto Parsing] is specified, if the current method is not supported, it will automatically switch to the next one;<br/>If you want a unified parsing style or support more formats, you can specify other methods.",
 
 	"officeViewer.libreOffice.desc" 			=> "<div style='margin-top:3px;'>Through LibreOffice on the server, convert the file to pdf format to achieve file preview.</div>",
 	"officeViewer.libreOffice.checkError"		=> "Libreoffice call failed. Check whether the software is installed or whether you have execution permission.",
@@ -37,7 +37,7 @@ return array(
 	"officeViewer.libreOffice.pathDesc"			=> "<br/>
 		<span style='margin: 5px 0px;margin-bottom:0px;display: inline-block;'>Libreoffice path is the software path under the installation directory. Please fill in it yourself according to the installation.</span> <br/>
 		<span style='margin-bottom: 10px;display: inline-block;'>If this method is no longer needed, clear the path.</span><br/>
-		<button class='btn btn-success check-libreoffice mr-5' style='padding: 5px 12px;border-radius: 3px;font-size: 13px;'>Check path</button>
+		<button class='btn btn-success check-libreoffice' style='padding: 5px 12px;border-radius: 3px;font-size: 13px;'>Check path</button>
 		<a style='padding: 6px 12px; vertical-align: middle;' target='_blank' href='https://zh-cn.libreoffice.org/get-help/install-howto/'>Installation guide</a>",
 
 	"officeViewer.officeLive.desc" 				=> "Parse files through Microsoft office services to achieve file preview.<br/><code style='color:#c7254e'>The server needs to be on the external network and is accessed by a domain name</code>< br>Intranet users can build it by themselves;<a href='https://kodcloud.com/help/show-5.html' target='_blank'>Learn more</a>",

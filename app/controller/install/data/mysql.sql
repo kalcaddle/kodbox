@@ -8,7 +8,7 @@ CREATE TABLE `comment` (
   `userID` bigint(20) unsigned NOT NULL COMMENT '评论用户id',
   `targetType` smallint(5) unsigned NOT NULL COMMENT '评论对象类型1分享2文件3文章4......',
   `targetID` bigint(20) unsigned NOT NULL COMMENT '评论对象id',
-  `content` text NOT NULL COMMENT '评论内容',
+  `content` mediumtext NOT NULL COMMENT '评论内容',
   `praiseCount` int(11) unsigned NOT NULL COMMENT '点赞统计',
   `commentCount` int(11) unsigned NOT NULL COMMENT '评论统计',
   `status` tinyint(3) unsigned NOT NULL COMMENT '状态 1正常 2异常 3其他',

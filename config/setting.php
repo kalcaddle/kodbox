@@ -641,7 +641,7 @@ $config['authRoleAction']= array(
 
 	'admin.storage.list'	=> array('admin.storage'=>'get'),
 	'admin.storage.edit'	=> array(
-		'admin.storage'		=> 'add,edit,remove',
+		'admin.storage'		=> 'getConfig,add,edit,remove',
 		'admin.backup'		=> 'config,get,remove'
 	),
 

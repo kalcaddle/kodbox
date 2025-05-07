@@ -10,7 +10,7 @@
 | userID | bigint(20) unsigned    | 评论用户id |
 | targetType | smallint(5) unsigned    | 评论对象类型1分享2文件3文章4...... |
 | targetID | bigint(20) unsigned    | 评论对象id |
-| content | text    | 评论内容 |
+| content | mediumtext    | 评论内容 |
 | praiseCount | int(11) unsigned    | 点赞统计 |
 | commentCount | int(11) unsigned    | 评论统计 |
 | status | tinyint(3) unsigned    | 状态 1正常 2异常 3其他 |

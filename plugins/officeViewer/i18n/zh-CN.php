@@ -26,7 +26,7 @@ return array(
 	"officeViewer.main.invalidExt"				=> "不支持的文件格式",
 
 	"officeViewer.webOffice.name"				=> "自动解析",
-	"officeViewer.webOffice.desc"				=> "选择【自动解析】时，如果当前方式不支持，将自动切换为下一种；<br/>如果希望解析风格统一，或支持更多格式，可指定为其中一种方式。",
+	"officeViewer.webOffice.desc"				=> "指定为【自动解析】时，如果当前方式不支持，将自动切换为下一种；<br/>如果希望解析风格统一，或支持更多格式，可指定为其他方式。",
 
 	"officeViewer.libreOffice.desc"				=> "<div style='margin-top:3px;'>通过服务器上的LibreOffice，将文件转换为pdf格式，实现文件预览。</div>",
 	"officeViewer.libreOffice.checkError"		=> "LibreOffice调用失败，检测是否安装该软件，或是否有执行权限。",
@@ -36,7 +36,7 @@ return array(
 	"officeViewer.libreOffice.path"				=> "LibreOffice路径",
 	"officeViewer.libreOffice.pathDesc"			=> "<br/>
 		<span style='margin: 5px 0px;margin-bottom:10px;display: inline-block;'>LibreOffice路径为安装目录下的soffice路径，请根据安装自行填写。</span> <br/>
-		<button class='btn btn-success check-libreoffice mr-5' style='padding: 5px 12px;border-radius: 3px;font-size: 13px;'>连接测试</button>
+		<button class='btn btn-success check-libreoffice' style='padding: 5px 12px;border-radius: 3px;font-size: 13px;'>连接测试</button>
 		<a style='padding: 6px 12px; vertical-align: middle;' target='_blank' href='https://zh-cn.libreoffice.org/get-help/install-howto/'>安装指南</a>",
 
 	"officeViewer.officeLive.desc"				=> "<div style='margin-top:3px;'>通过微软office服务解析文件（通过文件外链解析），实现文件预览。<br/><code style='color:#c7254e'>服务器需在外网，且为域名访问</code><br>内网的用户，可以自己搭建;<a href='https://kodcloud.com/help/show-5.html' target='_blank'>了解详情</a></div>",

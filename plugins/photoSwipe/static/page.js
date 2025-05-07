@@ -86,7 +86,7 @@ define(function(require, exports) {
 						rect.left  = rect.left - (rect.width - boxSize) / 2; //图片取中间后左侧偏移;
 					}
 				}
-				// console.log(102,__json(rect));
+				// console.log(102,__json(rect),index,item);
 				return {
 					x:rect.left || 0,
 					y:rect.top + pageYScroll,
@@ -121,8 +121,14 @@ define(function(require, exports) {
 			//打开图片，加载动画起始位置
 			if(!gallery.loadFinished){
 				var rect = options.getThumbBoundsFn(index);
-				item.w = rect.w * 25;
-				item.h = rect.h * 25;
+				item.w = rect.w;
+				item.h = rect.h;
+				
+				if($(item.$dom).is('svg')){
+					var svg = _.get($(item.$dom).get(0),'viewBox.baseVal') ;
+					item.w  = svg.width  || item.w;
+					item.h  = svg.height || item.h;
+				}
 				gallery.loadFinished = true;
 			}
 		});
@@ -286,7 +292,9 @@ define(function(require, exports) {
 		$('.pswp__item').removeClass('current').removeClass('loading');
 		$dom.parents('.pswp__item').addClass('current').addClass('loading');
 		if(!$loading.length){
+			var $imageNow = $dom.find('.pswp__img');
 			$loading = $("<img class='pswp__img pswp__img--placeholder add' src='"+htmlEncode(current.msrc)+"'>").prependTo($dom);
+			$loading.css({width:$imageNow.width(),height:$imageNow.height()});
 		}
 		if(current.loaded){
 			$dom.parents('.pswp__item').removeClass('loading');
@@ -365,6 +373,9 @@ define(function(require, exports) {
 			var currItem  = gallery.currItem;
 			if(!currItem){return;}
 			var url = currItem.srcFile || currItem.src;
+			
+			// var blobUrl = (URL || webkitURL).createObjectURL(new Blob([url],{type:'image/svg+xml'}));
+			// window.open(blobUrl);return;
 			if(url.indexOf('?')){url += '&download=1';}
 			url+='&accessToken='+G.kod.accessToken;
 			window.open(url);
