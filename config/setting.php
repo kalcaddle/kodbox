@@ -664,15 +664,35 @@ if (file_exists(BASIC_PATH.'config/setting_user_more.php')) {
 if(!defined('INSTALL_CHANNEL')){define('INSTALL_CHANNEL','');}
 
 
-if(GLOBAL_DEBUG_LOG_ALL){
-	Hook::bind('beforeShutdown','writeLogAll');
-	Hook::bind('show_json','writeLogAll');
-}
-// Hook::bind('show_json','writeLogAll');
-function writeLogAll($data=false){
+function logDebug($log,$data=''){
 	// if(ACT == 'fileUpload'){return;}
+	// if(!defined('USER_ID') || USER_ID != '1122'){return;}
+	if(is_object($data) || is_array($data)){
+		$data = json_encode_force($data);
+		$data = ' '.str_replace(array('\\n','\\r','\\t','\\"','\\\'','\/'),array("\n","\r","\t",'"',"'",'/'),$data);
+	}
+	write_log('id-'.REQUEST_ID.'; '.$log.$data,'debug');
+}
+if(GLOBAL_DEBUG_LOG_ALL){
+	Hook::bind('globalRequestBefore','writeLogStart');
+	Hook::bind('show_json','writeLogAll');
+	Hook::bind('beforeShutdown','writeLogAll');
+	Hook::bind('globalRequestAfter','writeLogAllAfter');
+}
+function writeLogStart(){
+	$count = Cache::get('total-request');if(!$count){$count=0;}
+	Cache::set('total-request',$count+1);
+	logDebug('start;queue= '.($count+1),array("in"=>$_REQUEST,'ua'=>$_SERVER['HTTP_USER_AGENT']));
+}
+function writeLogAll($data=false){
 	$caller = get_caller_info();
-	$trace  = think_trace('[trace]');
-	$ua = $_SERVER['HTTP_USER_AGENT'];
-	write_log(array("in"=>$GLOBALS['in'],'ua'=>$ua,'out'=>$data,'call'=>$caller,'trace'=>$trace),'debug');
+	if($data === false){return logDebug('end-log;beforeShutdown');}
+	if($data && is_array($data['data'])){$data['data'] = '[]...';}
+	logDebug('end-out',array('out'=>$data,'call'=>$caller));
+	// logDebug('end-out',array('out'=>$data,'call'=>$caller,'trace'=>think_trace('[trace]')));
+}
+function writeLogAllAfter(){
+	$count  = Cache::get('total-request');if(!$count){$count=1;}
+	Cache::set('total-request',$count-1,600);
+	logDebug('end-all;queue= '.($count-1).';time-use='.sprintf('%.4f s',mtime() - TIME_FLOAT));
 }

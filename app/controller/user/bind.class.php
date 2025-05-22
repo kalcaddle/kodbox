@@ -127,7 +127,7 @@ class userBind extends Controller {
 		);
 		$post['sign'] = $this->makeSign($kodid, $post);
 		$url = $this->config['settings']['kodApiServer'] . 'plugin/platform/';
-		$response = url_request($url, 'GET', $post);
+		$response = url_request($url,'POST',$post);
 		if ($response['status']) {
 			$data = json_decode($response['data'], true);
 			if (!$data) {	// 平台异常报错（show_tips）

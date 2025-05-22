@@ -80,6 +80,7 @@ class adminGroup extends Controller{
 				$result['list'] = array_merge(array($shareHistory),$result['list']);
 			}
 		}
+		$result['list'] = $this->showGroupfilterAllow($result['list']);
 		show_json($result,true);		
 	}
 
@@ -89,6 +90,7 @@ class adminGroup extends Controller{
 	public function getByID() {
 		$id = Input::get('id','[\d,]*');
 		$result = $this->model->listByID(explode(',',$id));
+		$result = $this->showGroupfilterAllow($result);
 		show_json($result,true);
 	}
 	
@@ -115,7 +117,32 @@ class adminGroup extends Controller{
 				$result = array_page_split(array_unique($result['list']),$result['pageInfo']['page'],$result['pageInfo']['pageNum']);
 			}
 		}
+		$result['list'] = $this->showGroupfilterAllow($result['list']);
 		show_json($result,true);
+	}
+	
+	// 过滤不允许的用户信息(根据当前用户可见部门筛选)
+	private function showGroupfilterAllow($list){
+		if(!$list || KodUser::isRoot()){return $list;}
+		$userGroupRootShow  = Action("filter.userGroup")->userGroupRootShow(); // 用户所在跟部门;可见范围
+		$groupAllow = array();
+		foreach($list as $group){
+			if(!$group['groupID'] || $group['groupID']== '-'){
+				if(is_array($group['children'])){ // 子部门情况; appendShareHistory
+					$group['children'] = $this->showGroupfilterAllow($group['children']);
+				}
+				$groupAllow[] = $group;
+				continue;
+			}
+			
+			$groupParentAll = Model('Group')->parentLevelArray($group['parentLevel'].$group['groupID'].',');
+			$groupParentAll = array_unique($groupParentAll);
+			$allowShow = array_intersect($groupParentAll,$userGroupRootShow)  ? true : false; //是否有交集
+			if($allowShow){$groupAllow[] = $group;}
+		}
+		// trace_log([$groupAllow,$list,$userGroupRootShow]);
+		// pr($groupAllow,$list,$userGroupRootShow);exit;
+		return $groupAllow;
 	}
 	
 	/**
@@ -205,7 +232,7 @@ class adminGroup extends Controller{
 		));
 		$del = boolval($data['delAll']);
 		$ids = explode(',', $data['groupID']);
-		if (count($ids)>1 && $del) {
+		if ($del) {
 			$res = $this->model->listChildIds($ids);
 			if ($res === false) show_json(LNG('explorer.error'),false);
 			$ids = array_merge($ids, $res);

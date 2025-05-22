@@ -37,20 +37,25 @@ class kodRarArchive {
 		}else if(strstr($os,'linux') ){
 			$name = get_path_this($file);	// 优先调用系统服务（部分服务器无法运行kod中的执行文件）
 			$srvList = array(
-				'7z'	=> '7zr',	// p7zip
-				'rar'	=> 'unrar',
+				'7z'	=> array('7z','7zr','7zz'),	// p7zip
+				'rar'	=> array('unrar'),
 			);
-			if (isset($srvList[$name])) $name = $srvList[$name];
-		    if(is_executable('/usr/bin/'.$name)) {
-		        $file = '/usr/bin/'.$name;
-		    }else if(is_executable('/usr/local/bin/'.$name)) {
-		        $file = '/usr/local/bin/'.$name;
-		    }else{
-    			$result = shell_exec('apk --version');
-    			if(strstr($result,'apk')){ // apilin 
-    				$file .= '_linux';	// win
-    			}
-		    }
+			$tmpArr = isset($srvList[$name]) ? $srvList[$name] : array($name);
+			foreach ($tmpArr as $name) {
+				if(is_executable('/usr/bin/'.$name)) {
+					$tmpFile = '/usr/bin/'.$name;
+					break;
+				}else if(is_executable('/usr/local/bin/'.$name)) {
+					$tmpFile = '/usr/local/bin/'.$name;
+					break;
+				}
+			}
+			if (isset($tmpFile)) {$file = $tmpFile;} else {
+				$result = shell_exec('apk --version');
+				if(strpos($result,'apk') !== false){	// alpine
+					$file = '/usr/bin/'.$name;	// win
+				}
+			}
 		}
 		
 		

@@ -774,6 +774,13 @@ function array_to_keyvalue($array,$key='',$contentKey=false,$hasSub=false){
 	}
 	return $result;
 }
+function array_to_int($array){
+	$result = array();
+	foreach($array as $v){
+		$result[] = intval($v);
+	}
+	return $result;
+}
 
 /**
  * 根据parentid获取家谱树列表

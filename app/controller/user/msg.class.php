@@ -101,8 +101,7 @@ class userMsg extends Controller {
     public function sendEmailByOwn($data){
         $init = array(
             'address'   => '',  // 收件人
-            // 'cc'        => '',  // 抄送 a;b;c
-            // 'bcc'       => '',  // 暗抄送 a;b;c
+            'cc'        => '',  // 抄送 a;b;c
             'subject'   => '',  // 主题
             'content'   => '',  // 内容
             'signature' => '',  // 发送者名称——和邮件内容里的签名不同
@@ -111,6 +110,8 @@ class userMsg extends Controller {
         foreach($init as $key => &$value) {
             if(isset($data['config'][$key])) $value = $data['config'][$key];
         };
+		if(!$init['cc']){unset($init['cc']);}
+		
         // 发件服务器信息
         if(isset($data['config']['server'])) {
             $init = array_merge($init, $data['config']['server']);

@@ -118,6 +118,16 @@ class explorerListDriver extends Controller{
 		$info['ioType'] = LNG($langKey) != $langKey ? LNG($langKey) : $storage['driver'];
 		$info['ioDriver'] = $storage['driver'];
 		$info['ioIsSystem'] = (isset($storage['default']) && $storage['default'] == 1);
+		
+		// 系统目录不允许写操作; 暂时屏蔽;
+		if($info['ioIsSystem'] && !GLOBAL_DEBUG){
+			if( preg_match("/{io:\d+}\/20\d\d[0-1][0-9]($|\/)/",$info['path'],$match) || 
+				preg_match("/{io:\d+}\/database($|\/)/i",$info['path'],$match)
+			){
+				$info['isReadable']   = false;
+				$info['isWriteable']  = false;
+			}
+		}
 
 		// 根目录;
 		$thePath = trim($parse['param'],'/');

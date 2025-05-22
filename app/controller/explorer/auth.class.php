@@ -56,6 +56,7 @@ class explorerAuth extends Controller {
 
 		$this->targetSpaceCheck();//空间大小检测
 		Action('explorer.listGroup')->pathRootCheck($theAction);
+		Action('explorer.autoPathParse')->parseAuto();
 		
 		// 多个请求或者包含来源去向的，分别进行权限判别；
 		switch ($theAction) {//小写
@@ -228,6 +229,7 @@ class explorerAuth extends Controller {
 	 * 操作屏蔽：remove不支持根目录：用户根目录，部门根目录，分享根目录；
 	 */
 	public function can($path,$action){
+		if(!$path || !is_string($path)){return false;}
 		$isRoot = KodUser::isRoot();
 		$parse  = KodIO::parse($path);
 		$ioType = $parse['type'];

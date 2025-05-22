@@ -196,12 +196,16 @@ class fileThumbPlugin extends PluginBase{
 	// 本地文件:local,io-local, {{kod-local}}全量生成;
 	// 远端:(ftp,oss等对象存储)
 	public function coverMake($cachePath,$path,$coverName,$size){
+		$cckey = md5('fileThumb.conver.'.$path.$coverName.$size);
+		if (cache::get($cckey)) return;
+		Cache::set($cckey, 1, 60);	// 延迟1分钟，避免重复执行（对未生成的图片预览大图时，会执行3次250x250）
 		if(IO::fileNameExist($cachePath,$coverName)){return 'exists;';}
 		if(!is_dir(TEMP_FILES)){mk_dir(TEMP_FILES);}
 		
 		$info = IO::info($path);$ext = $info['ext'];
 		$thumbFile = TEMP_FILES . $coverName;		
 		$localFile = $this->localFile($path);
+		// TODO 可能不应先下载到本地，而应该先判断是否需要生成
 		$movie = '3gp,avi,mp4,m4v,mov,mpg,mpeg,mpe,mts,m2ts,wmv,ogv,webm,vob,flv,f4v,mkv,rmvb,rm';
 		$isVideo = in_array($ext,explode(',',$movie));
 		// 过短的视频封面图,不指定时间;
@@ -216,7 +220,7 @@ class fileThumbPlugin extends PluginBase{
 			if(!$localFile){
 				$localTemp = $thumbFile.'.'.$ext;
 				$localFile = $localTemp;
-				file_put_contents($localTemp,IO::fileSubstr($path,0,1024*600));
+				file_put_contents($localTemp,IO::fileSubstr($path,0,1024*600));	// TODO 太小时不一定能生成
 			}
 			$this->thumbVideo($localFile,$thumbFile,$videoThumbTime);
 		} else {
@@ -325,9 +329,10 @@ class fileThumbPlugin extends PluginBase{
 		}
 
 		$maxWidth = 800;
-		$timeAt   = $videoThumbTime ? '-ss 00:00:03' : '';
+		$timeAt   = $videoThumbTime ? ' -ss 00:00:03' : '';	// 截取时间点，前置（ffmpeg -ss 00:00:03）可直接从第3秒开始处理，提升效率
 		$this->setLctype($file,$tempPath);
-		$script   = $command.' -i '.escapeShell($file).' -y -f image2 '.$timeAt.' -vframes 1 '.escapeShell($tempPath).' 2>&1';
+		$script   = $command . ($this->memLimitParam()) . $timeAt . ' -i '.escapeShell($file).' -y -f image2 -vframes 1 '.escapeShell($tempPath).' 2>&1';
+		// $script = "/usr/bin/time -v ".$script;  // Maximum resident set size
 		$out = shell_exec($script);
 		if(!file_exists($tempPath)) {
 			if ($this->thumbVideoByLink($cacheFile)) return;
@@ -357,9 +362,17 @@ class fileThumbPlugin extends PluginBase{
 	// convert -density 900 banner.psd -colorspace RGB -resample 300 -trim -thumbnail 200x200 test.jpg
 	// convert -colorspace rgb simple.pdf[0] -density 100 -sample 200x200 sample.jpg
 	private function thumbImage($file,$cacheFile,$maxSize,$ext){
-		$this->thumbImageCreate($file,$cacheFile,$maxSize,$ext);
+		$isImage  = false;
 		$isResize = explode(',','gif,png,bmp,jpe,jpeg,jpg,webp,heic');
-		if(in_array($ext,$isResize)) return;
+		if (in_array($ext,$isResize)) {
+			$memNeed = $this->convertmemNeed($file);
+			if (!$memNeed) return;
+			$memFree = $this->sysFreeMemory();
+			if ($memFree > 0 && $memFree < $memNeed) return;
+			$isImage = true;
+		}
+		$this->thumbImageCreate($file,$cacheFile,$maxSize,$ext);
+		if($isImage) return;
 		ImageThumb::createThumb($cacheFile,$cacheFile,$maxSize,$maxSize);
 	}
 	
@@ -411,7 +424,7 @@ class fileThumbPlugin extends PluginBase{
 			case 'jpe':
 			case 'jpg':
 			case 'jpeg':
-			case 'heic':$param = "-auto-orient -resize ".$size;break;
+			case 'heic':$param = "-resize ".$size." -auto-orient";break;
 			
 			default:
 				$dng = 'dng,cr2,erf,raf,kdc,dcr,mrw,nrw,nef,orf,pef,x3f,srf,arw,sr2';
@@ -422,6 +435,11 @@ class fileThumbPlugin extends PluginBase{
 				}
 				break;
 		}
+		// 移除元数据、最低压缩级别、禁止过滤，8位深度——可能执行快一点，内存占用没有区别
+		if ($ext != 'gif') {
+			$param .= ' -strip -define png:compression-level=1 -define png:filter=0 -depth 8';
+		}
+		$param = $this->memLimitParam('convert', $param);	// 加上内存限制
 
 		//linux下$cacheFile不可写问题，先生成到/tmp下;再移动出来
 		$tempPath = $cacheFile;
@@ -579,5 +597,56 @@ class fileThumbPlugin extends PluginBase{
 		// $config = $this->getConfig();
 		//if(!$config['debug']) return;
 		write_log($log,'fileThumb');
+	}
+
+	// 系统可用内存——不一定能获取到
+	public function sysFreeMemory() {
+		$server = new ServerInfo();
+		$memUsage = $server->memUsage();
+		return intval($memUsage['total'] - $memUsage['used']);
+	}
+	// （命令）内存限制参数
+	public function memLimitParam($type = 'ffmpeg', $param = '') {
+		$memBase = 128 * 1024 * 1024; // 128M，最小内存限制——实际可用内存可能更小，暂不处理
+		$memFree = $this->sysFreeMemory();
+		$memFree = $memFree > $memBase ? $memFree : $memBase;
+		$memFree = intval($memFree * 0.7);
+		if ($type != 'ffmpeg') {	// convert
+			$mapLimit = $memFree * 2;
+			$dskLimit = $memFree * 4;
+			$memLimit = $this->sizeFormat($memFree);
+			$mapLimit = $this->sizeFormat($mapLimit);
+			$dskLimit = $this->sizeFormat($dskLimit);
+			// 限制内存后可能失败——某些步骤可能需要连续内存块‌（如解码、色彩空间转换），内存过小无法完成初始化
+			// return " -define resource:limit=true -limit memory {$memLimit} -limit map {$mapLimit} -limit disk {$dskLimit} {$param}";
+			return " -limit memory {$memLimit} -limit map {$mapLimit} -limit disk {$dskLimit} {$param}";
+		}
+		$memLimit = $this->sizeFormat($memFree, $type);
+		return " -max_memory {$memLimit} -threads 2 ";
+	}
+	private function sizeFormat($size, $type = 'convert') {
+		// $temp = explode(' ',size_format($size));
+		// $size = floor($temp[0]) . $temp[1];
+		$temp = explode(' ',size_format($size, 1));
+		$size = $temp[0] . $temp[1];	// 用floor相差较大（比如1.5GB），用小数在某些系统下可能存在解析差异
+		if ($type == 'convert') return $size;
+		return str_replace('B', '', $size);
+	}
+	// ImageMagick生成缩略图所需内存（基本所需，实际要求更多）
+	public function convertmemNeed($image) {
+		// 获取图像信息
+		$imageInfo = getimagesize($image);
+		if (!$imageInfo) {return false;}
+
+		// 获取基本参数
+		$width		= $imageInfo[0];
+		$height		= $imageInfo[1];
+		$channels	= _get($imageInfo, 'channels', 4); // 默认4通道
+		$bits		= _get($imageInfo, 'bits', 8); // 默认8位
+		// 基础内存需求（字节）- 原始图像内存
+		$memory		= $width * $height * $channels * ($bits / 8);
+		// ImageMagick通常需要至少3倍的原始图像内存（原图+工作内存+输出）
+		// return $memory * 3;
+		return $memory;	// convert添加了映射内存和磁盘，所以这里只返回原图所需，用于粗略过滤
 	}
 }

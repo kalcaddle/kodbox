@@ -53,7 +53,7 @@ function think_exception($msg) {
     
 	$desc  = is_array($trace) ? implode("\n",array_slice($trace,-2)) : '';
 	$desc  = preg_replace("/{\w+}#/",'',$desc);
-	think_error_parse($error);
+	think_error_parse($error,$desc);
 	$action = defined('ACTION') ? ' <span style="color:#888;font-size:12px;font-weight:200;">('.ACTION.')</span>' : '';
 	$error = "<div class='desc'>".$error.$action."</div>";
 	$error = $error.'<div style="border-top:1px dotted #eee;padding-top:10px;"><code>'.$desc.'</code></div>';
@@ -61,7 +61,7 @@ function think_exception($msg) {
 	show_tips($error,'',0,'',false);
 }
 
-function think_error_parse(&$error){
+function think_error_parse(&$error,&$desc){
     $errList = array(
         'using password'        => LNG('ERROR_DB_PWD'),
         'timed out'             => LNG('ERROR_DB_TIMEOUT'),
@@ -70,12 +70,28 @@ function think_error_parse(&$error){
         '_NOT_SUPPORT_'         => LNG('ERROR_DB_NOT_SUPPORT'),
         'Access denied'         => LNG('ERROR_DB_XS_DENNIED'),
         'Unknown database'      => LNG('ERROR_DB_NOT_EXIST'),
+        'WRONGPASS'             => 'Redis '.LNG('ERROR_USER_PASSWORD_ERROR')
     );
     $errMsg = LNG('explorer.systemError');
     // $errMsg = '数据库操作异常，请检查对应服务及相关配置。';
+    $rplArr = array(
+        $GLOBALS['config']['database']['DB_HOST'],
+        $GLOBALS['config']['database']['DB_NAME'],
+        $GLOBALS['config']['database']['DB_USER'],
+        $GLOBALS['config']['database']['DB_PWD'] ,
+        $GLOBALS['config']['database']['DB_PORT'],
+        $GLOBALS['config']['cache']['redis']['host'],
+        $GLOBALS['config']['cache']['redis']['port'],
+    );
     foreach($errList as $key => $msg) {
         if(stripos($error, $key) !== false) {
-            $errMsg = $msg; break;
+            $errMsg = $msg;
+            if (stripos($desc, 'Cache/') !== false) {
+                $errMsg = str_replace(LNG('admin.backup.db'), 'Redis ', $errMsg);
+            }
+            $errMsg = str_replace($rplArr, '*', $errMsg);
+            $desc = str_replace($rplArr, '*', $desc);
+            break;
         }
     }
     $error = clear_html($error).'<br/>' . $errMsg;
