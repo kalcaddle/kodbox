@@ -5,10 +5,7 @@ class msgWarningTaskIndex extends Controller {
 		$this->pluginName = 'msgWarningPlugin';
     }
 	public function getConfig() {
-		if (!$this->appConfig) {
-			$this->appConfig = Action($this->pluginName)->getConfig();
-		}
-		return $this->appConfig;
+		return Action($this->pluginName)->getConfig();
 	}
 
 	// 更新同步计划任务
@@ -55,7 +52,8 @@ class msgWarningTaskIndex extends Controller {
 	public function warning() {
 		$config = $this->getConfig();
 		// 1.是否开启了消息预警
-		if($config['enable'] != '1') return;
+		if ($config['enable'] != '1') return;
+		if (!$this->canMsgSendNow($config)) return;
 
 		// 2.获取发送目标
 		$target = array_filter(explode(',', $config['target']));
@@ -132,6 +130,7 @@ class msgWarningTaskIndex extends Controller {
 			$data = Model('SystemWarn')->add($insert);
 			$useTime = intval($config['useTime']);
 		// }
+		if (!$useTime || $useTime < 10) $useTime = 10; // 最小持续时长10分钟
 
 		// 2.获取记录列表，删除指定时长之前的数据
 		$list = Model('SystemWarn')->listData();
@@ -145,22 +144,33 @@ class msgWarningTaskIndex extends Controller {
 		}
 
 		// 3.判断是否符合发送提醒条件——持续的n分钟里，如20分钟，理论上有20条记录，只要达到80%（>=16条），就发送提醒
-		if (!$useTime) return false;
 		$cnt = $useTime * 0.8;
 		if(count($list) >= $cnt) {
 			// 时间间隔需满足20分钟，避免每次都有数据写入时提前（16分钟）触发
 			$max = reset($list);
 			$min = end($list);
-			$time = ceil(($max['createTime'] - $min['createTime'])/60);
+			$time = ceil(($max['createTime'] - $min['createTime'])/60);	// 持续记录数据时长（分钟）
 			if ($time < $useTime) return true;
 
 			// 每发送一次，删除此前的全部记录。持续时长=发送频率
 			foreach($list as $k => $item) {
 				Model('SystemWarn')->remove($item['id']);
 			}
+			// 最后发送时间
+			Action($this->pluginName)->setConfig(array('lastSendTime' => time()));
 			return false;
 		}
 		return true;
+	}
+	// 发送频率检测，每1小时发送一次
+	private function canMsgSendNow ($config) {
+		$lastTime = intval($config['lastSendTime']);
+		if (!$lastTime) return true;
+		$timeStart = strtotime(date('Y-m-d H:00:00'));
+		if (Model('SystemOption')->get('versionType') == 'A') {
+			$timeStart = strtotime(date('Y-m-d 00:00:00'));
+		}
+		return $lastTime < $timeStart;
 	}
 
 }

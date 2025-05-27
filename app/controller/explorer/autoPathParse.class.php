@@ -84,8 +84,16 @@ class explorerAutoPathParse extends Controller {
 		$pathArr  = explode('/',trim($match[3],'/'));
 		$sourceID = $match[2];
 		foreach($pathArr as $i=>$name){
-			$next = $this->parseSource($sourceID,$name);
-			if($next){$sourceID = $next;continue;}
+			$pathInfo = $this->parseSource($sourceID,$name);
+			if(!$pathInfo){ // 不存在时, 当前文档为文件时; 直接返回;  允许文件路径后续追加无效内容;
+				$itemInfo = Model("Source")->field("sourceID,name,isFolder")->where(array('sourceID'=>$sourceID))->find();
+				if($itemInfo && $itemInfo['isFolder'] == '0'){$pathInfo = $itemInfo;}
+			}
+			if($pathInfo && $pathInfo['isFolder'] == '0'){// 如果是文件则直接返回;忽略后续内容;
+				$sourceID = $pathInfo['sourceID'];break;
+			}
+			
+			if($pathInfo){$sourceID = $pathInfo['sourceID'];continue;}
 			if(!$allowNotMatch){return show_json(LNG('common.pathNotExists'),false);}
 			return '{source:'.$sourceID.'}/'.implode('/',array_slice($pathArr,$i));
 		}
@@ -115,9 +123,9 @@ class explorerAutoPathParse extends Controller {
 		if(array_key_exists($cacheKey,$cache)){
 			return $cache[$cacheKey];
 		}
-		$where  = array('parentID'=>$sourceID,'name'=>$name);
-		$info   = Model("Source")->field("sourceID,name")->where($where)->find();
-		$cache[$cacheKey] = $info ? $info['sourceID'] : 0;
+		$where    = array('parentID'=>$sourceID,'name'=>$name);
+		$pathInfo = Model("Source")->field("sourceID,name,isFolder")->where($where)->find();
+		$cache[$cacheKey] = $pathInfo ? $pathInfo : 0;
 		return $cache[$cacheKey];
 	}
 }

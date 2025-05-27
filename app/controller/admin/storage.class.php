@@ -33,13 +33,29 @@ class adminStorage extends Controller {
 			$item['fileNum'] = intval(_get($res, $item['id'].'.cnt', 0));
 			$item['fileUse'] = $fileUse;	// 是否含文件使用信息
 			$item['status']	 = 1;
-			if (strtolower($item['driver']) != 'local') continue;
+			$driver = strtolower($item['driver']);
+			$item['groupType'] = $this->ioGroupType($driver);
+			if ($driver != 'local') continue;
 			$config = $this->model->getConfig($item['id']);
 			$path = $config['basePath'];
 			if (!mk_dir($path) || !path_writeable($path)) {
 				$item['status'] = 0;
 			}
 		}
+	}
+	// 存储类别
+	private function ioGroupType($driver) {
+		$ioList = array(
+			// 'def' => array(),
+			'loc' => array('local'),
+			'obj' => array('oss','cos','qiniu','s3','oos','uss','minio','eos','eds','obs','jos','moss','nos'),
+			'net' => array('ftp','webdav'),
+			'oth' => array('baidu','onedrive')
+		);
+		foreach ($ioList as $type => $list) {
+			if (in_array($driver, $list)) return $type;
+		}
+		return 'oth';
 	}
 
 	/**

@@ -139,7 +139,15 @@ ClassBase.define({
                 'selectType':'mutil',
                 'desc':LNG['msgWarning.config.targetDesc'],
                 'require':1
-            }
+            },
+            // 'freqTime':{
+            //     'type':'number',
+            //     'value':'2',
+            //     "info":{"from":1,"step":1},
+            //     'display':'通知频率',
+            //     'desc':'小时，如果触发预警，每N小时内通知一次',
+            //     'require':1
+            // },
         }
     }
 });
