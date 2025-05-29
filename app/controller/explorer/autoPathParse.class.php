@@ -42,8 +42,9 @@ class explorerAutoPathParse extends Controller {
 		if(!$checkArr[$theAction]){return;}
 		
 		$allowNotMatchAction = array(
-			'explorer.index.mkdir' 			=> 1,
-			'explorer.index.mkfile' 		=> 1,
+			'explorer.index.mkdir' 		=> 1,
+			'explorer.index.mkfile' 	=> 1,
+			'explorer.index.unzip' 		=> 1,
   		);
 		$allowNotMatch  = isset($allowNotMatchAction[$theAction]) ? true : false;
 		foreach($checkArr[$theAction] as $key){

@@ -342,7 +342,7 @@ return array(
     "admin.setting.recDescInfo22"    => "Parameter konfigurasi database baru akan ditambahkan ke file konfigurasi sistem config/setting_user.php. Jika sistem tidak normal setelah pemulihan dijalankan, bagian file yang ditambahkan dapat dihapus tanpa mempengaruhi data sistem sebelumnya.",
     "admin.setting.recDescInfo23"    => "Fungsi ini hanya mendukung pemrosesan data cadangan yang dihasilkan oleh manajemen pencadangan sistem, dan basis data yang dicadangkan sendiri harus diproses dengan cara lain.",
     "admin.setting.recDescInfo31"    => "Catatan: Jika tipe database adalah MySQL, perpustakaan baru (nama perpustakaan asli_tanggal_rebuild saat ini) akan dibuat berdasarkan informasi konfigurasi saat ini. Pengguna non-root mungkin tidak memiliki izin yang memadai, jadi Anda perlu mengatur izin untuk pengguna terlebih dahulu.",
-    "admin.setting.recDescInfo32"    => "Sebagai contoh, informasi konfigurasi database saat ini adalah: user: kod; password: kod123. Gunakan akun root untuk masuk ke database dan jalankan pernyataan SQL yang sesuai untuk mengatur izin (izin dapat dicabut setelah tes lulus dan pemulihan berhasil).",
+    "admin.setting.recDescInfo32"    => "Misalnya, informasi konfigurasi basis data saat ini adalah: Pengguna: uji; Kata sandi: test123. Masuk ke database menggunakan akun root dan jalankan pernyataan SQL yang sesuai untuk menetapkan izin (izin dapat dicabut setelah deteksi lolos dan pemulihan berhasil).",
     "admin.setting.recDescInfo33"    => "Menyetel izin:",
     "admin.setting.recDescInfo34"    => "Cabut izin:",
     "admin.setting.recOpen"          => "Aktifkan pemulihan",

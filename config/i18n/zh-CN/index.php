@@ -342,7 +342,7 @@ return array(
     "admin.setting.recDescInfo22"    => "新的数据库配置参数，将追加到系统配置文件 config/setting_user.php，如执行恢复后系统出现异常，可去掉该文件中追加的部分，不影响此前的系统数据。",
     "admin.setting.recDescInfo23"    => "本功能仅支持处理由系统备份管理产生的备份数据，自行备份的数据库请通过其他方式处理。",
     "admin.setting.recDescInfo31"    => "注意：数据库类型为MySQL时，会根据当前配置信息创建新的库（原库名_当前日期_rebuild），非root用户可能权限不足，需先给用户设置权限。",
-    "admin.setting.recDescInfo32"    => "如当前数据库配置信息为：用户:kod; 密码:kod123。使用root账号登录数据库，执行相应SQL语句设置权限（检测通过并恢复成功后可撤销权限）。",
+    "admin.setting.recDescInfo32"    => "如当前数据库配置信息为：用户:test; 密码:test123。使用root账号登录数据库，执行相应SQL语句设置权限（检测通过并恢复成功后可撤销权限）。",
     "admin.setting.recDescInfo33"    => "设置权限：",
     "admin.setting.recDescInfo34"    => "撤销权限：",
     "admin.setting.recOpen"          => "开启恢复",

@@ -342,7 +342,7 @@ return array(
     "admin.setting.recDescInfo22"    => "Các tham số cấu hình cơ sở dữ liệu mới sẽ được thêm vào tệp cấu hình hệ thống config / setting_user.php. Nếu hệ thống bất thường sau khi thực hiện khôi phục, có thể xóa phần nối thêm của tệp mà không ảnh hưởng đến dữ liệu hệ thống trước đó.",
     "admin.setting.recDescInfo23"    => "Chức năng này chỉ hỗ trợ xử lý dữ liệu sao lưu do hệ thống quản lý sao lưu tạo ra và cơ sở dữ liệu do chính bạn sao lưu sẽ được xử lý theo các cách khác.",
     "admin.setting.recDescInfo31"    => "Lưu ý: Khi loại cơ sở dữ liệu là MySQL, một thư viện mới (tên thư viện gốc_current date_rebuild) sẽ được tạo dựa trên thông tin cấu hình hiện tại. Người dùng không phải root có thể không có đủ quyền, vì vậy trước tiên bạn cần đặt quyền cho người dùng.",
-    "admin.setting.recDescInfo32"    => "Ví dụ, thông tin cấu hình cơ sở dữ liệu hiện tại là: user: kod; password: kod123. Sử dụng tài khoản gốc để đăng nhập vào cơ sở dữ liệu và thực hiện câu lệnh SQL tương ứng để đặt quyền (quyền có thể được thu hồi sau khi kiểm tra được thông qua và khôi phục thành công).",
+    "admin.setting.recDescInfo32"    => "Ví dụ, thông tin cấu hình cơ sở dữ liệu hiện tại là: Người dùng: test; Mật khẩu: test123. Đăng nhập vào cơ sở dữ liệu bằng tài khoản root và thực thi câu lệnh SQL tương ứng để thiết lập quyền (có thể thu hồi quyền sau khi phát hiện thành công và khôi phục thành công).",
     "admin.setting.recDescInfo33"    => "Đặt quyền:",
     "admin.setting.recDescInfo34"    => "Thu hồi quyền:",
     "admin.setting.recOpen"          => "Bật khôi phục",

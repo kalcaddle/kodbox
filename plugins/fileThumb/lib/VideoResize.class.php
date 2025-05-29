@@ -138,7 +138,7 @@ class videoResize {
 		$timeStart 	= time();// 画质/速度: medium/ultrafast/fast
 		$logFile 	= $tempPath.'.log';@unlink($logFile);//-vf scale=480:-2 -b:v 1024k -maxrate 1000k -threads 2
 		$args 		= '-c:a aac -preset medium -vf '.$quality.' -strict -2 -c:v libx264 1>'.$logFile.' 2>&1';
-		$script 	= $command.($plugin->memLimitParam()).' -y -i "'.$localFile.'" '.$args.' "'.$tempPath.'"';
+		$script 	= $plugin->memLimitParam('ffmpeg', $command).' -y -i "'.$localFile.'" '.$args.' "'.$tempPath.'"';
 		
 		// 后台运行
 		if($GLOBALS['config']['systemOS'] == 'windows'){
@@ -376,7 +376,7 @@ class videoResize {
 		$scale = 'scale='.$sizeW.':-2'; //,pad='.$sizeW.':'.$sizeH.':-1:-1 -q:v 1~5 ;质量从最好到最差;
 		$args  = '-sws_flags accurate_rnd -q:v 4 -an'; //更多参数; 设置图片缩放算法(不设置缩小时可能产生绿色条纹花屏);
 		$this->setLctype($localFile,$tempPath);
-		$cmd = $command.($plugin->memLimitParam()).' -y -i '.escapeShell($localFile).' -vf "fps='.$fps.','.$scale.',tile='.$tile.'" '.$args.' '.escapeShell($tempPath);
+		$cmd = $plugin->memLimitParam('ffmpeg', $command).' -y -i '.escapeShell($localFile).' -vf "fps='.$fps.','.$scale.',tile='.$tile.'" '.$args.' '.escapeShell($tempPath);
 		$this->log('[videoPreview start] '.$fileInfo['name'].';size='.size_format($fileInfo['size']),0,0);$timeStart = timeFloat();
 		$this->log('[videoPreview run] '.$cmd,0,0);
 		@shell_exec($cmd);//pr($cmd);exit;

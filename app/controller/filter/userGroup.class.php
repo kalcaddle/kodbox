@@ -30,7 +30,6 @@ class filterUserGroup extends Controller{
 		$paramMap = array(
 			'admin.member.get'			=> array('group'=>'groupID','read'=>'allow','error'=>'list'),
 			'admin.member.search'		=> array('group'=>'parentGroup','read'=>'allow','error'=>'list'),
-			'admin.member.getbyid'		=> array('user'=>'id','read'=>'allow','error'=>'listSimple'),
 			
 			'admin.member.add'			=> array('groupArray'=>'groupInfo','userRole'=>'roleID'),
 			'admin.member.addgroup'		=> array('groupArray'=>'groupInfo','user'=>'userID'),
@@ -48,7 +47,6 @@ class filterUserGroup extends Controller{
 		$paramMap = array(
 			'admin.group.get' 		=> array('group'=>'parentID','read'=>'allow','error'=>'list'),
 			'admin.group.search' 	=> array('group'=>'parentGroup','read'=>'allow','error'=>'list'),
-			'admin.group.getbyid' 	=> array('group'=>'id','read'=>'allow','error'=>'listSimple'),
 
 			'admin.group.add' 		=> array('group'=>'parentID'),
 			'admin.group.edit' 		=> array('group'=>'groupID'),
@@ -118,17 +116,6 @@ class filterUserGroup extends Controller{
 		$groupID = $this->in[$check['group']];
 		$userID  = $this->in[$check['user']];
 		if($groupID && ($groupID == 'root' || $groupID == 'rootOuter')){$groupID = '';}		
-		if($action == 'admin.group.getbyid'){
-			$allowID = $this->allowViewGroup($groupArray,$groupID,true);
-			if(!$allowID){$this->checkError($check);}
-			$this->in[$check['group']] = $allowID;// 过滤出有权限的部分;
-			return;
-		}else if($action == 'admin.member.getbyid'){
-			$allowID = $this->allowViewUser($groupArray,$userID,true);
-			if(!$allowID){$this->checkError($check);}
-			$this->in[$check['user']] = $allowID;// 过滤出有权限的部分;
-			return;
-		}
 		
 		if(!$check['group']) return;
 		if(!$groupID || $this->allowViewGroup($groupArray,$groupID)) return;

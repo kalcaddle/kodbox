@@ -342,7 +342,7 @@ return array(
     "admin.setting.recDescInfo22"    => "新的資料庫設定參數，將追加到系統設定文件config/setting_user.php，如執行恢復後系統出現異常，可去掉該文件中追加的部分，不影響此前的系統資料。",
     "admin.setting.recDescInfo23"    => "本功能僅支持處理由系統備份管理產生的備份資料，自行備份的資料庫請通過其他方式處理。",
     "admin.setting.recDescInfo31"    => "注意：資料庫類型為MySQL時，會根據當前設定資訊建立新的庫（原庫名_當前日期_rebuild），非root使用者可能權限不足，需先給使用者設定權限。",
-    "admin.setting.recDescInfo32"    => "如當前資料庫設定資訊為：使用者:kod; 密碼:kod123。使用root帳號登入資料庫，執行相應SQL語句設定權限（檢測通過並恢復成功後可撤銷權限）。",
+    "admin.setting.recDescInfo32"    => "如目前資料庫設定資訊為：使用者:test; 密碼:test123。使用root帳號登入資料庫，執行對應SQL語句設定權限（偵測通過並恢復成功後可撤銷權限）。",
     "admin.setting.recDescInfo33"    => "設定權限：",
     "admin.setting.recDescInfo34"    => "取消權限：",
     "admin.setting.recOpen"          => "開啟恢復",

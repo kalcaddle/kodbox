@@ -52,6 +52,7 @@ class explorerListSafe extends Controller{
 		
 		$userInfo = Model("User")->getInfoFull(USER_ID);
 		if(_get($data,'current.sourceID') == _get($userInfo,'metaInfo.pathSafeFolder')) return;
+		if(_get($data,'current.sourceID') != _get($userInfo,'sourceInfo.sourceID')) return;	// 仅个人空间根目录下显示
 		if(Model("UserOption")->get('pathSafeSpaceShow') != '1'){return;} // 个人设置已隐藏;
 		$spaceInfo = $this->spaceInfo();
 		

@@ -81,9 +81,13 @@ class explorerAuth extends Controller {
 				
 				// $this->checkAuthArray('download');
 				// 来源文档权限检测: 有编辑权限或者下载权限;
+				$checkAction 	   = 'download'; // 没有下载权限,有复制粘贴权限时,允许从其他地方复制后粘贴(检测读取权限);
+				$seleCanDownload   = Action("user.authRole")->authCanDownload();
+				if(!$seleCanDownload){$checkAction = 'view';}
+				
 				$this->isShowError = false;$errorNum = 0;
 				foreach ($data as $item) {
-					$result = $this->can($item['path'],'download');
+					$result = $this->can($item['path'],$checkAction);
 					if(!$result){$errorNum++;}
 				}
 				$this->isShowError = true;

@@ -72,6 +72,7 @@ $config['PLUGIN_HOST_CDN_APP'] 			= '';//支持配置到cdn的插件; 插件名,
 $config['PLUGIN_HOST_CDN'] 				= $config['PLUGIN_HOST'];//在上面的配置插件中才使用此作为插件静态资源url;
 $config['DEFAULT_PERRMISSIONS'] 		= 0755;
 $config['DEFAULT_PERRMISSIONS_KOD'] 	= 0700; // 内部文件,nginx才能读写;
+$config["GROUP_MEMBER_ALLOW_ALL"]		= 0; // 部门隔离时,是否允许其他用户访问;(开启后, 搜索部门,搜索成员不做过滤)
 
 $config["ADMIN_ALLOW_USER_SAFE"]		= 0; // 是否允许系统管理员访问用户私密空间,默认关闭;ADMIN_ALLOW_SOURCE为0时无效;当有离职等情况需管理时可打开
 $config["ADMIN_ALLOW_IO"] 				= 1; // 物理路径或io路径是否允许操作开关，仅限管理员(禁用后无法直接管理物理路径)

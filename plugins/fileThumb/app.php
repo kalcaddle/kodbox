@@ -331,7 +331,7 @@ class fileThumbPlugin extends PluginBase{
 		$maxWidth = 800;
 		$timeAt   = $videoThumbTime ? ' -ss 00:00:03' : '';	// 截取时间点，前置（ffmpeg -ss 00:00:03）可直接从第3秒开始处理，提升效率
 		$this->setLctype($file,$tempPath);
-		$script   = $command . ($this->memLimitParam()) . $timeAt . ' -i '.escapeShell($file).' -y -f image2 -vframes 1 '.escapeShell($tempPath).' 2>&1';
+		$script   = $this->memLimitParam('ffmpeg', $command) . $timeAt . ' -i '.escapeShell($file).' -y -f image2 -vframes 1 '.escapeShell($tempPath).' 2>&1';
 		// $script = "/usr/bin/time -v ".$script;  // Maximum resident set size
 		$out = shell_exec($script);
 		if(!file_exists($tempPath)) {
@@ -621,8 +621,8 @@ class fileThumbPlugin extends PluginBase{
 			// return " -define resource:limit=true -limit memory {$memLimit} -limit map {$mapLimit} -limit disk {$dskLimit} {$param}";
 			return " -limit memory {$memLimit} -limit map {$mapLimit} -limit disk {$dskLimit} {$param}";
 		}
-		$memLimit = $this->sizeFormat($memFree, $type);
-		return " -max_memory {$memLimit} -threads 2 ";
+		$memLimit = intval($memFree / 1024);	// KB
+		return "ulimit -v {$memLimit}; {$param} -threads 2 ";	// $param=>ffmpeg
 	}
 	private function sizeFormat($size, $type = 'convert') {
 		// $temp = explode(' ',size_format($size));
@@ -635,7 +635,7 @@ class fileThumbPlugin extends PluginBase{
 	// ImageMagick生成缩略图所需内存（基本所需，实际要求更多）
 	public function convertmemNeed($image) {
 		// 获取图像信息
-		$imageInfo = getimagesize($image);
+		$imageInfo = $this->getImgSize($image);
 		if (!$imageInfo) {return false;}
 
 		// 获取基本参数
@@ -648,5 +648,24 @@ class fileThumbPlugin extends PluginBase{
 		// ImageMagick通常需要至少3倍的原始图像内存（原图+工作内存+输出）
 		// return $memory * 3;
 		return $memory;	// convert添加了映射内存和磁盘，所以这里只返回原图所需，用于粗略过滤
+	}
+	// 获取图片信息
+	public function getImgSize($image) {
+		if (!file_exists($image)) return false;
+		$imageInfo = getimagesize($image);
+		if (!$imageInfo) {
+			$res = shell_exec("identify -format '%wx%hx%[channels]x%[depth]' ".escapeshellarg($image));
+			if (!$res) return false;
+			$res		= explode('x', $res);
+			$channels	= $res[2] ? intval(end(explode(' ',$res[2]))) : 0;
+			$bits		= intval($res[3]);
+			$imageInfo = array(
+				intval($res[0]),	// width
+				intval($res[1]),	// height
+				'channels'	=> $channels ? $channels : 4,
+				'bits'		=> $bits ? $bits : 8,
+			);
+		}
+		return $imageInfo;
 	}
 }

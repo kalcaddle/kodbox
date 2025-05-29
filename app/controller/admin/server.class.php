@@ -359,6 +359,7 @@ class adminServer extends Controller {
 			}
 			if(!$allow) show_json(sprintf(LNG('common.env.invalidExt'), $dbType), false);
 		}
+		$this->checkSetFile();
 
 		// 1. 切换了数据库类型，则全新安装，走完整流程
 		if($dbType != $type) {
@@ -633,6 +634,7 @@ class adminServer extends Controller {
 		if(!$info = IO::info($data['path'])){
 			show_json(LNG('admin.setting.recPathErr'), false);
 		}
+		$this->checkSetFile();
 
 		// 1.判断选择的路径是否有效
 		$type = $data['type'];
@@ -840,6 +842,14 @@ class adminServer extends Controller {
 			}
 		}
 		Cache::remove($key);
+	}
+
+	// 检查配置文件（是否可写）
+	private function checkSetFile() {
+		$file = BASIC_PATH . 'config/setting_user.php';
+		if (!path_writeable($file)) {
+			show_json('系统配置文件(config/setting_user.php)没有写入权限！', false);
+		}
 	}
 
 }

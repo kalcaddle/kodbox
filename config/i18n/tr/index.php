@@ -342,7 +342,7 @@ return array(
     "admin.setting.recDescInfo22"    => "Yeni veritabanı yapılandırma parametreleri sistem yapılandırma dosyasına config/setting_user.php eklenecektir.Kurtarma yürütüldükten sonra sistem anormal ise, dosyanın eklenen kısmı önceki sistem verilerini etkilemeden kaldırılabilir.",
     "admin.setting.recDescInfo23"    => "Bu işlev yalnızca sistem yedekleme yönetimi tarafından oluşturulan yedekleme verilerinin işlenmesini destekler ve sizin tarafınızdan yedeklenen veritabanı başka şekillerde işlenmelidir.",
     "admin.setting.recDescInfo31"    => "Not: Veritabanı türü MySQL olduğunda, mevcut yapılandırma bilgilerine göre yeni bir kitaplık (orijinal kitaplık adı_geçerli tarih_yeniden oluşturma) oluşturulacaktır.Kök olmayan kullanıcılar yeterli izinlere sahip olmayabilir, bu nedenle önce kullanıcı için izinleri ayarlamanız gerekir.",
-    "admin.setting.recDescInfo32"    => "Örneğin, mevcut veritabanı yapılandırma bilgileri: user: kod; password: kod123. Veritabanında oturum açmak için kök hesabı kullanın ve izinleri ayarlamak için ilgili SQL deyimini çalıştırın (test geçildikten ve kurtarma başarılı olduktan sonra izinler iptal edilebilir).",
+    "admin.setting.recDescInfo32"    => "Örneğin, mevcut veritabanı yapılandırma bilgileri şöyledir: Kullanıcı: test; Şifre: test123. Kök hesabını kullanarak veritabanına giriş yapın ve izinleri ayarlamak için ilgili SQL ifadesini çalıştırın (algılama geçtikten ve kurtarma başarılı olduktan sonra izinler iptal edilebilir).",
     "admin.setting.recDescInfo33"    => "İzinleri ayarlama:",
     "admin.setting.recDescInfo34"    => "İzinleri iptal et:",
     "admin.setting.recOpen"          => "Kurtarmayı aç",

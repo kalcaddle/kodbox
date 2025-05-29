@@ -123,6 +123,7 @@ class adminGroup extends Controller{
 	
 	// 过滤不允许的用户信息(根据当前用户可见部门筛选)
 	private function showGroupfilterAllow($list){
+		if($GLOBALS['config']["GROUP_MEMBER_ALLOW_ALL"]){return $list;}
 		if(!$list || KodUser::isRoot()){return $list;}
 		$userGroupRootShow  = Action("filter.userGroup")->userGroupRootShow(); // 用户所在跟部门;可见范围
 		$groupAllow = array();
