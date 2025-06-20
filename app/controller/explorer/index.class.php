@@ -221,10 +221,27 @@ class explorerIndex extends Controller{
 			$hasFind   = false;
 			$fileHash  = KodIO::hashPath($fileInfo);
 			$thumbList = array(250,600,1200,2000,3000,5000);	// 缩略图尺寸
+			// 同时删除缩略图目录下fileID对应的所有记录（即包括其他文件生成的相同缩略图）
+			$coverList = array();
 			foreach ($thumbList as $width){
 				$coverName = "cover_{$fileHash}_{$width}.png";
-				$sourceID  = IO::fileNameExist($fileThumbInfo['path'],$coverName);
-				Cache::remove($coverName);
+				$coverList[] = $coverName;
+				// $coverName = "cover_{$fileHash}_{$width}.jpg";	// 缩略图格式改为jpg，暂不处理
+				// $coverList[] = $coverName;
+			}
+			$parentID = KodIO::sourceID($fileThumbInfo['path']);
+			$where = array(
+				's.parentID'	=> $parentID,
+				's.name'		=> array('in',$coverList),
+				's.isDelete'	=> 0
+			);
+			$list = Model('Source')->alias('s')->field('s2.sourceID,s2.name')
+					->join("INNER JOIN `io_source` s2 ON s.parentID = s2.parentID AND s.fileID = s2.fileID")
+					->where($where)->select();
+			if (!$list) $list = array();
+			foreach ($list as $item){
+				$sourceID = $item['sourceID'];
+				Cache::remove($item['name']);
 				if(!$sourceID){continue;}
 				$hasFind = true;
 				IO::remove(KodIO::make($sourceID),false);
@@ -251,7 +268,7 @@ class explorerIndex extends Controller{
 	public function setAuth(){
 		$result = false;
 		$actionAllow = array(
-			'getData','clearChildren','getAllChildren','getGroupUser',
+			'getData','clearChildren','getAllParent','getAllChildren','getGroupUser',
 			'getAllChildrenByUser','setAllChildrenByUser','chmod',
 		);
 		$data = Input::getArray(array(
@@ -280,6 +297,11 @@ class explorerIndex extends Controller{
 			}else if($data['action'] == 'getAllChildren'){
 				//该文件夹下所有单独设置过权限的内容; 按层级深度排序-由浅到深(文件夹在前)
 				$result = Model('SourceAuth')->getAllChildren($info['sourceID']);
+				$result = array_page_split($result);
+				show_json($result,true);
+			}else if($data['action'] == 'getAllParent'){
+				//该文件夹所有有权限的用户或部门;向上回溯全部查询; 有权限的用户列表(用户/部门,最终合并计算后的权限;权限来源)
+				$result = Model('SourceAuth')->getAllParent($info['sourceID']);
 				$result = array_page_split($result);
 				show_json($result,true);
 			}else if($data['action'] == 'getAllChildrenByUser'){

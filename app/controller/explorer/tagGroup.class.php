@@ -100,7 +100,12 @@ class explorerTagGroup extends Controller{
 		if($pathInfo['targetType'] != 'group') return $pathInfo;
 		
 		$groupID = $pathInfo['targetID'];
-		$groupTagInfo = $this->groupTagGet($groupID);		
+		$groupTagInfo = $this->groupTagGet($groupID);
+		
+		// 是否为部门管理员,继承当前文档权限( 下层权限小于上层权限, 使用下层权限)
+		if(is_array($pathInfo['auth']) && !AuthModel::authCheckRoot($pathInfo['auth']['auth'])){
+			$groupTagInfo['isGroupRoot'] = false;
+		}
 		$pathInfo['sourceInfo']['isGroupRoot']   = $groupTagInfo['isGroupRoot'];	// 是否为该部门管理员
 		$pathInfo['sourceInfo']['isGroupHasTag'] = $groupTagInfo['isGroupHasTag'];	// 是否有公共标签
 
@@ -122,7 +127,7 @@ class explorerTagGroup extends Controller{
 		static $list = array();
 		if(!isset($list[$groupID])){
 			$groupTag = $this->groupTag($groupID);
-			$groupTag['isGroupRoot'] = Action('filter.userGroup')->allowChangeGroup($groupID);
+			$groupTag['isGroupRoot']   = Action('filter.userGroup')->allowChangeGroup($groupID);
 			$groupTag['isGroupHasTag'] = isset($groupTag['list']) && count($groupTag['list']) > 0;
 			$list[$groupID] = $groupTag;
 		}

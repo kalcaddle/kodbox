@@ -60,6 +60,12 @@ ClassBase.define({
 		var self = this;
 		var linkPre = pathModel.urlMake('fileOutBy','viewToken='+(G.kod.viewToken || ''));
 		var apiHostTo = window.API_HOST;// chrome xhr跨域时,发送options请求进行预检处理;需要带上index.php,否则会被nginx拦截报错;
+		
+		// if(G.kod.WEB_ROOT && filePath.substr(0,G.kod.WEB_ROOT.length) == G.kod.WEB_ROOT){
+		// 	var srcUrl = '/'+filePath.substr(G.kod.WEB_ROOT.length);
+		// 	return $iframe.attr('src',srcUrl).trigger('load');
+		// }
+		
 		if(apiHostTo.indexOf('/?') == apiHostTo.length - 2){
 			apiHostTo = apiHostTo.replace('/?','/index.php?');
 		}

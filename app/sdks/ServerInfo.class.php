@@ -5,6 +5,7 @@
  * CPU、内存使用率
  */
 class ServerInfo {
+    private $sysOs;
     function __construct() {
         $phpos = strtoupper(PHP_OS);    // PHP_OS_FAMILY
         if (substr($phpos, 0, 3) === 'WIN') {

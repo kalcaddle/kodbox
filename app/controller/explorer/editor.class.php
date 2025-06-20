@@ -47,6 +47,7 @@ class explorerEditor extends Controller{
 		$PAGE_MAX 	= $GLOBALS['config']['settings']['ioReadMax'];
 		$pageNum 	= _get($this->in,'pageNum',1024 * 500);
 		$pageNum	= $pageNum <= $PAGE_MIN ? $PAGE_MIN : ($pageNum >= $PAGE_MAX ? $PAGE_MAX : $pageNum);
+		$pageNumOld = $pageNum;
 		if($pageNum >= $size){$pageNum = $size;}
 
 		$pageTotal	= $pageNum > 0 ? ceil($size/$pageNum):0;
@@ -73,7 +74,7 @@ class explorerEditor extends Controller{
 			'content' 	=> $content,
 			'pageInfo'	=> array(
 				'page'		=> $page,
-				'pageNum'	=> $pageNum,
+				'pageNum'	=> $pageNumOld,
 				'pageTotal'	=> $pageTotal,
 				'totalNum'	=> $size
 			)

@@ -37,6 +37,7 @@ class explorerAutoPathParse extends Controller {
 			'explorer.usershare.add'	 	=> array('path'),
 			'explorer.upload.fileupload'	=> array('path'),
 			'explorer.upload.serverdownload'=> array('path'),
+			'explorer.editor.fileget'		=> array('path'),
 			'explorer.editor.filesave'		=> array('path'),
 		);
 		if(!$checkArr[$theAction]){return;}

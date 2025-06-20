@@ -15,7 +15,7 @@ return array(
 	'webdav.config.systemAutoMount'	=> "Client auto mount",
 	'webdav.config.systemAutoMountDesc'	=> "PC client is opened, webdav is automatically mounted",
 	
-	'webdav.tips.https'			=> "<b>https:</b> HTTPS is recommended, encrypted transmission is more secure; (the default limit for windows mount WebDAV must be HTTPS, which can be removed)",
+	'webdav.tips.https'			=> "<b>https:</b> HTTPS is recommended, encrypted transmission is more secure; ",
 	'webdav.tips.upload'		=> "<b>Upload and download restrictions:</b> The maximum file upload support depends on the upload limit and timeout of the server,It can be set according to your own needs; recommended upload file size limit: 500MB; timeout 3600; <a href='https://doc.kodcloud.com/#/others/options' target='_blank'>Learn more</a>",
 	'webdav.tips.auth'			=> "<b>Read and write permissions:</b> Read and write permissions are exactly the same as those on the web side; because the protocol has no error reporting mechanism, unsuccessful operation is basically equivalent to no permissions",
 	'webdav.tips.uploadUser'	=> "<b>Upload and download restrictions:</b> The maximum file upload support depends on the server upload limit and timeout; consult the administrator for server upload configuration.",

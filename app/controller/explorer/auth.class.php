@@ -102,6 +102,11 @@ class explorerAuth extends Controller {
 				$this->checkAuthArray('remove');
 				$this->canWrite($this->in['path']);
 				break;
+			case 'explorer.upload.serverdownload':
+			    if($this->in['path']){
+			        $this->canWrite($this->in['path']);
+			    }
+				break;
 			default:
 				//直接检测；定义在actionPathCheck中的方法；参数为path，直接检测
 				$actionType = $this->actionParse();
