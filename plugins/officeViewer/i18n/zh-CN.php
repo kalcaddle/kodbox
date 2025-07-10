@@ -15,6 +15,7 @@ return array(
 	'officeViewer.meta.service'					=> "服务设置",
 	'officeViewer.meta.openType'				=> "解析方式",
 	'officeViewer.meta.instruction'				=> "使用说明",
+	'officeViewer.meta.svcOpen'					=> "启用服务",
 
 	'officeViewer.main.error'					=> "操作失败！",
 	'officeViewer.main.invalidType'				=> "无效的打开方式，请联系管理员！",
@@ -26,7 +27,13 @@ return array(
 	"officeViewer.main.invalidExt"				=> "不支持的文件格式",
 
 	"officeViewer.webOffice.name"				=> "自动解析",
-	"officeViewer.webOffice.desc"				=> "指定为【自动解析】时，如果当前方式不支持，将自动切换为下一种；<br/>如果希望解析风格统一，或支持更多格式，可指定为其他方式。",
+	"officeViewer.webOffice.desc"				=> "选择【自动解析】时，会首先使用<code style='color:#c7254e'>前端解析</code>方式（doc、ppt除外），如果不支持，将自动切换为下一种；<br>前端解析速度快、无需借助外网和其他服务，但部分内容可能显示不全或异常。<br><br>如果希望显示风格统一，或支持更多格式，可选择其他方式。",
+	"officeViewer.webOffice.parsing"			=> "正在解析",
+	"officeViewer.webOffice.reqErrPath"			=> "请求失败，检查文件是否正常！",
+	"officeViewer.webOffice.reqErrNet"			=> "加载时间过长，检查网络是否正常！",
+	"officeViewer.webOffice.reqErrUrl"			=> "文件请求失败，请检查地址是否正常！",
+	"officeViewer.webOffice.noEditTips"			=> "不支持内容编辑，请选择其他方式！",
+	"officeViewer.webOffice.warning"			=> "⚠️ 当前模式下，公式、图表等内容可能显示不全或异常，查看完整内容请选用其他方式",
 
 	"officeViewer.libreOffice.desc"				=> "<div style='margin-top:3px;'>通过服务器上的LibreOffice，将文件转换为pdf格式，实现文件预览。</div>",
 	"officeViewer.libreOffice.checkError"		=> "LibreOffice调用失败，检测是否安装该软件，或是否有执行权限。",
@@ -38,6 +45,12 @@ return array(
 		<span style='margin: 5px 0px;margin-bottom:10px;display: inline-block;'>LibreOffice路径为安装目录下的soffice路径，请根据安装自行填写。</span> <br/>
 		<button class='btn btn-success check-libreoffice' style='padding: 5px 12px;border-radius: 3px;font-size: 13px;'>连接测试</button>
 		<a style='padding: 6px 12px; vertical-align: middle;' target='_blank' href='https://zh-cn.libreoffice.org/get-help/install-howto/'>安装指南</a>",
+	'officeViewer.libreOffice.check' 			=> "服务器检测",
+	'officeViewer.libreOffice.checkTitle' 		=> "LibreOffice环境检测",
+	'officeViewer.libreOffice.checkIng' 		=> "环境检测中...",
+	'officeViewer.libreOffice.checkDesc' 		=> "请核对服务器信息，配置正确后再试！",
+	'officeViewer.libreOffice.checkOk' 			=> "恭喜，一切正常",
+	'officeViewer.libreOffice.checkErr' 		=> "运行环境异常",
 
 	"officeViewer.officeLive.desc"				=> "<div style='margin-top:3px;'>通过微软office服务解析文件（通过文件外链解析），实现文件预览。<br/><code style='color:#c7254e'>服务器需在外网，且为域名访问</code><br>内网的用户，可以自己搭建;<a href='https://kodcloud.com/help/show-5.html' target='_blank'>了解详情</a></div>",
 	"officeViewer.officeLive.apiServer"			=> "服务器接口",
@@ -56,5 +69,8 @@ return array(
 	'officeViewer.yzOffice.uploadError' 		=> "上传失败,请检查php执行超时时间!",
 	'officeViewer.yzOffice.convert' 			=> "正在转换,请稍后...",
 	'officeViewer.yzOffice.transferAgain'		=> "重新转换",
-	'officeViewer.yzOffice.linkExpired'			=> "链接已失效"
+	'officeViewer.yzOffice.linkExpired'			=> "链接已失效",
+
+	'officeViewer.main.fileSizeErr'				=> "文件已损坏（size=0），无法预览！",
+	'officeViewer.main.typeErr'					=> "没有有效的文件编辑方式",
 );

@@ -2,8 +2,9 @@
  * kod处理;
  * https://github.com/mozilla/pdf.js
 
- * 版本更新（v2.10.377->v2.5.207）：v2.5.207以上在钉钉中显示乱码
- * 问题修复:https://github.com/mozilla/pdf.js/pull/13698/files
+ * 图片显示模糊，问题修复：https://github.com/mozilla/pdf.js/pull/13698/files
+ * 版本更新：（v2.10.377->v2.5.207）：v2.5.207以上在钉钉中显示乱码
+ * 版本更新：v5.3.31，修复pdf放大模糊问题
  */
 (function(){
 	var ua 	= navigator.userAgent;
@@ -56,26 +57,27 @@ var pdfLoaded = function(){
 }
 
 $(document).ready(function (){
-	$('.print,.download').hide();
+	$('#editorStampButton').parent().hide();	// 编辑或添加图像
+	$('.hiddenMediumView,.visibleMediumView #secondaryPrint,.visibleMediumView #secondaryDownload').hide();
 	var checkTimer = setInterval(function(){
 		if(!window.PDFViewerApplication || !PDFViewerApplication.eventBus) return;
 
 		clearInterval(checkTimer);
 		pdfLoaded();
-		enablePinchZoom();
+		// enablePinchZoom();
 		searchAuto();
 		setTimeout(function(){
-			if(pdfOptions.canDownload == '1'){
-				$('.print,.download').show();
+			if(canDownload == '1'){
+				$('.hiddenMediumView,.visibleMediumView #secondaryPrint,.visibleMediumView #secondaryDownload').show();
 				return;
 			}
-			PDFViewerApplication.eventBus._listeners['print'] = [];
-			PDFViewerApplication.eventBus._listeners['afterprint'] = [];
-			PDFViewerApplication.eventBus._listeners['beforeprint'] = [];
-			PDFViewerApplication.supportsPrinting = false;
+			// PDFViewerApplication.eventBus._listeners['print'] = [];
+			// PDFViewerApplication.eventBus._listeners['afterprint'] = [];
+			// PDFViewerApplication.eventBus._listeners['beforeprint'] = [];
+			PDFViewerApplication.supportsPrinting = false;	// 无效
 			PDFViewerApplication.download = function(){};
 			window.print = function(){};
-			$('.print,.download').remove();
+			$('.hiddenMediumView,.visibleMediumView #secondaryPrint,.visibleMediumView #secondaryDownload').remove();
 		},500);
 	},50);
 	
@@ -84,7 +86,7 @@ $(document).ready(function (){
 		args = jsonDecode(urlDecode(args));
 		if(!args || typeof(args) != 'object' || !args.search) return;
 		
-		$("#viewFind").trigger('click');
+		$("#viewFindButton").trigger('click');
 		$("#findInput").val(args.search);
 		$('[for="findHighlightAll"]').trigger('click');
 		setTimeout(function(){$("#findInput").focus();},500);

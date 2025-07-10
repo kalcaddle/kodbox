@@ -63,31 +63,36 @@
 		<!--</div>-->
 		
 		<script type="text/javascript">
-		var updateStatus = function(success,msg){
-			var $result = $('.check-result');
-			if(success){
-				$result.find('.icon').removeClass('icon-loading').addClass('icon-success');
-				$result.find('.check-result-title').html("恭喜，一切正常");
-			}else{
-				$result.find('.icon').removeClass('icon-loading').addClass('icon-error');
-				$result.find('.check-result-title').html("运行环境异常");
-				$result.find('.error-info').html(msg);
-				$result.find('.error-info').removeClass('hidden');
-			}
-		}
-		$(document).ready(function(){
-			$.ajax({
-				url:"<?php echo $this->pluginApi.'libreOffice/index/check&check=1';?>",
-				timeout:5000,
-				error:function(){
-				    updateStatus(false);
-				},
-				success: function(data){
-				    updateStatus(data.code,data.data);
+			var LNG = <?php echo json_encode($LNG, JSON_HEX_TAG | JSON_HEX_APOS);?>;
+			var updateStatus = function(success,msg){
+				var $result = $('.check-result');
+				if(success){
+					$result.find('.icon').removeClass('icon-loading').addClass('icon-success');
+					$result.find('.check-result-title').html(LNG['officeViewer.libreOffice.Ok']);
+				}else{
+					$result.find('.icon').removeClass('icon-loading').addClass('icon-error');
+					$result.find('.check-result-title').html(LNG['officeViewer.libreOffice.Err']);
+					$result.find('.error-info').html(msg);
+					$result.find('.error-info').removeClass('hidden');
 				}
+			}
+			$(document).ready(function(){
+				$('title').text(LNG['officeViewer.libreOffice.checkTitle']);
+				$('.check-result .check-result-title').text(LNG['officeViewer.libreOffice.checkIng']);
+				$('.check-result .check-result-desc').text(LNG['officeViewer.libreOffice.checkDesc']);
+
+				$.ajax({
+					url:"<?php echo $this->pluginApi.'libreOffice/index/check&check=1';?>",
+					timeout:5000,
+					error:function(){
+						updateStatus(false);
+					},
+					success: function(data){
+						updateStatus(data.code,data.data);
+					}
+				});
 			});
-		});
-	</script>
+		</script>
 	</div>
 </body>
 </html>

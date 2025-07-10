@@ -1,8 +1,8 @@
 {
 	"id":"pdfjs",
-	"name":"PDF阅读器",
-	"title":"PDF阅读器",
-	"version":"1.49",
+	"name":"{{LNG['pdfjs.meta.name']}}",
+	"title":"{{LNG['pdfjs.meta.title']}}",
+	"version":"1.51",
 	"source":{
 		"icon":"{{pluginHost}}static/app/images/icon.png",
 		"screenshoot":[

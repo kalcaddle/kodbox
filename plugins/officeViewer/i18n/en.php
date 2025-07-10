@@ -15,6 +15,7 @@ return array(
 	'officeViewer.meta.service'					=> "Service settings",
 	'officeViewer.meta.openType'				=> "Mode",
 	'officeViewer.meta.instruction'				=> "Instructions",
+	'officeViewer.meta.svcOpen'					=> "Enable Services",
 
 	'officeViewer.main.error'					=> "File opening failed!",
 	'officeViewer.main.invalidType'				=> "Invalid open mode",
@@ -26,7 +27,13 @@ return array(
 	"officeViewer.main.invalidExt"				=> "Invalid file format",
 
 	"officeViewer.webOffice.name"				=> "Auto Parsing",
-	'officeViewer.webOffice.desc'				=> "When [Auto Parsing] is specified, if the current method is not supported, it will automatically switch to the next one;<br/>If you want a unified parsing style or support more formats, you can specify other methods.",
+	'officeViewer.webOffice.desc'				=> "When [Auto Parsing] is selected, the <code style='color:#c7254e'>front-end parsing</code> method will be used first (except doc and ppt). If it is not supported, it will automatically switch to the next one;<br>The front-end parsing speed is fast and does not require the use of external networks and other services, but some content may be incomplete or abnormal.<br><br>If you want to display a unified style or support more formats, you can choose other methods.",
+	"officeViewer.webOffice.parsing"			=> "Parsing",
+	"officeViewer.webOffice.reqErrPath"			=> "Request failed, check if the file is normal!",
+	"officeViewer.webOffice.reqErrNet"			=> "Loading time is too long, check if the network is normal!",
+	"officeViewer.webOffice.reqErrUrl"			=> "File request failed, please check if the address is normal!",
+	"officeViewer.webOffice.noEditTips"			=> "Content editing is not supported, please choose other methods!",
+	"officeViewer.webOffice.warning"			=> "⚠️ In the current mode, formulas, charts and other contents may be incomplete or abnormal. Please use other methods to view the complete content.",
 
 	"officeViewer.libreOffice.desc" 			=> "<div style='margin-top:3px;'>Through LibreOffice on the server, convert the file to pdf format to achieve file preview.</div>",
 	"officeViewer.libreOffice.checkError"		=> "Libreoffice call failed. Check whether the software is installed or whether you have execution permission.",
@@ -39,8 +46,14 @@ return array(
 		<span style='margin-bottom: 10px;display: inline-block;'>If this method is no longer needed, clear the path.</span><br/>
 		<button class='btn btn-success check-libreoffice' style='padding: 5px 12px;border-radius: 3px;font-size: 13px;'>Check path</button>
 		<a style='padding: 6px 12px; vertical-align: middle;' target='_blank' href='https://zh-cn.libreoffice.org/get-help/install-howto/'>Installation guide</a>",
-
-	"officeViewer.officeLive.desc" 				=> "Parse files through Microsoft office services to achieve file preview.<br/><code style='color:#c7254e'>The server needs to be on the external network and is accessed by a domain name</code>< br>Intranet users can build it by themselves;<a href='https://kodcloud.com/help/show-5.html' target='_blank'>Learn more</a>",
+	'officeViewer.libreOffice.check' 			=> "Server Detection",
+	'officeViewer.libreOffice.checkTitle' 		=> "LibreOffice environment detection",
+	'officeViewer.libreOffice.checkIng' 		=> "Environmental testing...",
+	'officeViewer.libreOffice.checkDesc' 		=> "Please check the server information and try again after configuring correctly!",
+	'officeViewer.libreOffice.checkOk' 			=> "Congratulations, everything is fine",
+	'officeViewer.libreOffice.checkErr' 		=> "Abnormal operating environment",
+	
+		"officeViewer.officeLive.desc" 				=> "Parse files through Microsoft office services to achieve file preview.<br/><code style='color:#c7254e'>The server needs to be on the external network and is accessed by a domain name</code>< br>Intranet users can build it by themselves;<a href='https://kodcloud.com/help/show-5.html' target='_blank'>Learn more</a>",
 	"officeViewer.officeLive.apiServer" 		=> "Server Interface",
 	"officeViewer.officeLive.apiServerDesc"		=> "<div class='can-select'>Microsoft official service and third-party service interface, choose one to fill in:<br/>
 													<div class='mt-5'> https://view.officeapps.live.com/op/embed.aspx?src=</div>

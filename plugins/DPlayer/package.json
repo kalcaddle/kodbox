@@ -2,7 +2,7 @@
 	"id":"DPlayer",
 	"name":"{{LNG['DPlayer.meta.name']}}",
 	"title":"{{LNG['DPlayer.meta.title']}}",
-	"version":"1.42",//23.05.30
+	"version":"1.43",//23.05.30
 	"source":{
 		"icon":"{{pluginHost}}static/images/icon.png",
 	},
@@ -23,8 +23,8 @@
 		},
 		"subtitle":{
 			"type":"switch",
-			"display":"自动加载字幕",
-			"desc":"字幕需要放在视频文件同位置,与视频文件同名并追加.vtt. 例如: test.mp4 => test.mp4.vtt",
+			"display":"{{LNG['DPlayer.meta.subtitle']}}",
+			"desc":"{{LNG['DPlayer.meta.subtitleDesc']}}",
 			"value":"0"
 		},
 		"step001":"<hr/>",

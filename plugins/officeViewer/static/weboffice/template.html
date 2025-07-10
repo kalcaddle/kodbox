@@ -5,7 +5,7 @@
 	<meta name="apple-mobile-web-app-capable" content="yes"/>
 	<title><?php echo clear_html($fileName);?></title>
 	<link rel="icon" href="<?php $this->url('static/images/icon.png');?>">
-	<script>var kodSdkConfig = {api:'<?php echo APP_HOST;?>'};</script>
+	<script>var kodSdkConfig = {api:'<?php echo APP_HOST;?>', lang: '<?php echo I18n::getType();?>'};</script>
 	<?php $this->link('app/dist/sdk.js','static');?>
 	<!-- <?php $this->link('style/dist/main.css','static');?> -->
 	<?php $this->link('style/lib/font-icon/style.css','static');?>
@@ -21,7 +21,9 @@
 			ext:	'<?php echo clear_quote($fileExt);?>',	// 文件后缀
 			write:	'<?php echo clear_quote($canWrite);?>',	// 是否可写; 可写才能编辑;
 		};
-		var lang = {edit:"<?php echo LNG('common.edit');?>"}
+		kodSdkConfig.LNG = <?php echo json_encode($LNG, JSON_HEX_TAG | JSON_HEX_APOS);?>;
+		kodSdkConfig.LNG['common.edit'] = "<?php echo LNG('common.edit');?>";
+		kodSdkConfig.LNG['explorer.wordLoading'] = "<?php echo LNG('explorer.wordLoading');?>";
 	</script>
 </head>
 
@@ -29,7 +31,7 @@
 	<div class="edit-btn">
 		<button><i class="font-icon ri-edit-line-2"></i><?php echo LNG('common.edit');?></button>
 	</div>
-	<div class="page-box <?php echo 'kod-' . clear_quote($fileApp) . '-box';?>">
+	<div class="page-box <?php echo 'kod-' . clear_quote($fileApp) . '-box ' . clear_quote($fileExt);?>">
 		<div id="output"></div>
 	</div>
     <div id="msgbox" class="hidden">
@@ -60,6 +62,7 @@
 			$this->link('static/weboffice/luckysheet/luckysheet.umd.js');
 			$this->link('static/weboffice/luckysheet/luckyexcel.umd.min.js');
 			$this->link('static/weboffice/sheetjs/xlsx.core.min.js');
+			$this->link('static/weboffice/exceljs/exceljs.min.js');
 			$this->link('static/weboffice/luckysheet/utils.js');
 			$this->link('static/weboffice/luckysheet/index.js');
 			break;
@@ -91,7 +94,7 @@
 
 	<script>
 		$(function(){
-			// 非wb方式添加到iframe中
+			// 非wb方式添加到iframe中，以保持样式一致
 			var app = FILE_INFO.app;
 			if (app == 'yz' || app == 'lb' || app == 'ol') {
 				$('body').addClass(app);
@@ -111,7 +114,7 @@
 				var $dialog = _$(window.frameElement).parents('.aui-content');
 				var data = base64Encode(jsonEncode({path:FILE_INFO.path, name:FILE_INFO.name, ext:FILE_INFO.ext}));
 				var $button = _$('<div class="officeViewer-edit-btn">\
-					<button data="'+data+'"><i class="font-icon ri-edit-line-2"></i>'+lang.edit+'</button></div>').appendTo($dialog);
+					<button data="'+data+'"><i class="font-icon ri-edit-line-2"></i>'+kodSdkConfig.LNG['common.edit']+'</button></div>').appendTo($dialog);
 				$button.find('button').trigger('click');
 			}
 			// 添加编辑按钮：页面打开

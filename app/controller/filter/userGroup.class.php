@@ -159,7 +159,7 @@ class filterUserGroup extends Controller{
 		// 不允许编辑用户,仅允许设置用户权限(安全保密员角色); 只能设置用户角色和用户所在部门权限,不能设置用户所在部门
 		if(!$allowUserEdit && $allowUserAuth){
 			if($action != 'admin.member.edit'){return false;} 	// 只允许调用edit;其他方法禁用			
-			$keepKey  = array('userID','groupInfo','roleID','HTTP_X_PLATFORM','CSRF_TOKEN','URLrouter','URLremote');
+			$keepKey  = array('userID','groupInfo','roleID','HTTP_X_PLATFORM','HTTP_X_PLATFORM_1','CSRF_TOKEN','URLrouter','URLremote');
 			foreach ($this->in as $key=>$v) {
 				if(!in_array($key,$keepKey)){unset($this->in[$key]);unset($_REQUEST[$key]);}
 			}

@@ -1,13 +1,13 @@
 {
 	"id":"simpleClock",
 	"name":"clock",
-	"title":"时钟 clock",
-	"version":"1.12",
+	"title":"{{LNG['simpleClock.meta.title']}}",
+	"version":"1.13",
 	"category":"tools",
 	"source":{
 		"className":"font-icon ri-time-line bg-blue-6"
 	},
-	"description":"桌面时钟挂件(desktop widget)",
+	"description":"{{LNG['simpleClock.meta.desc']}}",
 	"auther":{
 		"copyright":"kodcloud.",
 		"homePage":"http://www.kodcloud.com",

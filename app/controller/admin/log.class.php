@@ -372,10 +372,15 @@ class adminLog extends Controller{
     }
     // 文件预览日志
     public function fileViewLog($path){
-        if (MOD == 'plugin' && ACT != 'index') return;
         $in = $this->in;
+        if (MOD == 'plugin') {
+            if (ACTION == 'plugin.fileThumb.cover') {
+                if (!isset($in['width']) || $in['width'] == '250') return;
+            } else if (ACT != 'index') {
+                return;
+            }
+        }
         if (strtolower(ACT) == 'fileout') {
-            // if (isset($in['download']) && $in['download'] == 1) return;
             if(isset($in['type']) && $in['type'] == 'image'){
                 if (isset($in['width']) && $in['width'] == '250') return;
             }

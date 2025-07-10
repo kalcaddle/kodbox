@@ -103,7 +103,42 @@ body .page-box.fit-content #output{
     list-style-type: none;
     counter-reset: li;
 }
-.page-box #output ol li:before {
+.page-box #output ol li::before {
     content: counter(li)'、';
     counter-increment: li;
 }
+
+body.weboffice-page.loaded::after {
+    /* content: 'xxx'; */
+    content: attr(data-content);
+    /* position: absolute; */
+    position: fixed;
+    bottom: 5px;
+    font-size: 0.85em;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 3px;
+    /* color: #f77714;
+    background: #fff3cf;
+    color: #c17500; */
+    padding: 3px 10px;
+    border-radius: 4px;
+    /* width: max-content; */
+    text-align: center;
+    z-index: 9999;
+
+    /* max-width: 80%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; */
+
+    /* opacity: 1;
+    transition: opacity 1s ease; */
+
+    color: #555;
+    background: #f6f6f6;
+    opacity: 0.9;
+}
+/* body.weboffice-page.loaded.tip-hide::after {
+    opacity: 0;
+} */

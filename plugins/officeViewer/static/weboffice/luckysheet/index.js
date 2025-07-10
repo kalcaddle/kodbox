@@ -6,11 +6,18 @@ $(function(){
         var allowEdit = _.get(FILE_INFO, 'canWrite') == '1' ? true : false;
         // 获得转化后的表格数据后，使用luckysheet初始化，或者更新已有的luckysheet工作簿
         // 注：luckysheet需要引入依赖包和初始化表格容器才可以使用
+        var lngMap = {
+            'zh-CN': 'zh',
+            'zh-TW': 'zh_tw',
+            'en': 'en',
+            'es': 'es',
+        };
+        var lang = lngMap[kodSdkConfig.lang] || 'en';
         luckysheet.create({
             container: 'output', // 容器id
             data:exportJson.sheets,
             // plugins: ['chart'],  // luckyexcel暂不支持导入图表——解析的数据没有chart相关内容
-            lang: 'zh',
+            lang: lang,
             // title:exportJson.info.name,
             // userInfo:exportJson.info.name.creator,
             // showinfobar: false,
@@ -29,16 +36,36 @@ $(function(){
             // sheetFormulaBar: false, // 是否显示公式栏
             enableAddBackTop: false,//返回头部按钮
             // functionButton: '<button id="" class="btn btn-primary" style="padding:3px 6px;font-size: 12px;margin-right: 10px;">下载</button>',  // 需要显示信息栏
+            hook: {
+                cellRenderBefore: function (cell, position, sheetFile, ctx) {
+                    var fmt = _.get(cell, 'ct.fa', '');
+                    if (fmt && utils.xlsxCellFormat(cell)) {
+                        var val = utils.xlsxNumFormat(cell.v, fmt);
+                        if (val) cell.m = val;
+                    }
+                },
+                // cellRenderAfter: function (cell, position, sheetFile, ctx) {
+                //     // 设置单元格值
+                //     // luckysheet.setCellValue(position.r, position.c, {m:val}, {order: 0}); // 死循环
+                //     // 插入图片（写入单元格）
+                //     var img = new Image();
+                //     img.src = '';
+                //     img.onload = function () {
+                //         ctx.drawImage(img, position.start_c, position.start_r, 200, 266);
+                //     }
+                // },
+            }
         });
         // $('body').addClass('page-loaded');
         $('body').bind('keydown', function (e) {
             // ctrl+s
             if (e.keyCode == 83 && (e.ctrlKey || e.metaKey)) {
-                Tips.tips('不支持内容编辑，请选择其他方式！', 'warning', 3000);
+                Tips.tips(kodSdkConfig.LNG['officeViewer.webOffice.noEditTips'], 'warning', 3000);
                 return false;
             }
         });
         $('body.weboffice-page').addClass('loaded');
+        page.wbAlert();
     }
 
     // 读取文件内容，生成luckysheet配置参数——导入
@@ -46,7 +73,9 @@ $(function(){
         // 1.xlsx，直接luckyexcel读取
         if(file.ext == 'xlsx') {
             setLuckySheet(file.content, function(content){
+                utils.xlsxImageShow(content); // 图片处理
                 LuckyExcel.transformExcelToLucky(content, function(exportJson, luckysheetfile){
+                    // utils.luckysheetDataFormat(exportJson);  // 处理特定格式数据，弃用；替换为cellRenderBefore中重写
                     setLuckySheet(exportJson, function(exportJson){
                         loadLuckySheet(exportJson);
                         if(tipsLoading){tipsLoading.close();tipsLoading = false;}

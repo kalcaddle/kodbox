@@ -50,8 +50,16 @@ class officeViewerPlugin extends PluginBase{
 
 	// 入口
 	public function index(){
-		$path   = $this->filePath($this->in['path'],true,true);
-		if (!$this->fileInfo['size']) show_tips('文件已损坏（size=0），无法预览！');
+		// $path   = $this->filePath($this->in['path'],true,true);
+		$path   = $this->filePathGet($this->in['path'],true);	// 加载模板方式也会触发plugin.fileView，故不使用filePath
+		if (!empty($this->fileInfo['fileID'])) {
+			$info = Model('File')->fileInfo($this->fileInfo['fileID']);
+			if(!$info || !IO::exist($info['path'])){
+				$msg = LNG('common.pathNotExists').LNG('common.phyFileNotExists');
+				show_tips($msg);
+			}
+		}
+		if (!$this->fileInfo['size']) show_tips(LNG('officeViewer.main.fileSizeErr'));
 
 		$config = $this->getConfig();
 		$openType = isset($config['openType']) ? $config['openType'] : '';
@@ -121,15 +129,15 @@ class officeViewerPlugin extends PluginBase{
 	 * @return void
 	 */
 	public function isNetwork($domain = true){
-		$key = md5($this->pluginName . '_kodbox_server_network_' . intval($domain));
-		$check = Cache::get($key);
-		if($check !== false) return (boolean) $check;
-		$time = ($check ? 30 : 3) * 3600 * 24;	// 可访问保存30天，否则3天
-
 		// 1. 判断是否为域名
 		$host = get_url_domain(APP_HOST);
 		if($host == 'localhost') return false;
 		if($domain && !is_domain($host)) return false;
+
+		$key = md5($this->pluginName . '_kodbox_server_network_' . intval($domain) . '_' . $host);
+		$check = Cache::get($key);
+		if($check !== false) return (boolean) $check;
+		$time = ($check ? 30 : 3) * 3600 * 24;	// 可访问保存30天，否则3天
 
 		// 2. 判断外网能否访问
 		$data = array('type' => 'network', 'url' => APP_HOST);
@@ -171,6 +179,7 @@ class officeViewerPlugin extends PluginBase{
 			$assign['fileUrl'] .= "&disable_name=1&name=/".$assign['fileName'];
 		}
 		if ($link) $assign['fileUrl'] = $link;
+		$assign['LNG'] = $this->initLang();
 		$this->assign($assign);
 		$this->display($this->pluginPath.'static/weboffice/template.html');
 	}
@@ -181,6 +190,7 @@ class officeViewerPlugin extends PluginBase{
 	 * @return void
 	 */
 	public function includeTpl($template){
+		$LNG = $this->initLang();
 		include($this->pluginPath.$template);
 	}
 
@@ -209,7 +219,7 @@ class officeViewerPlugin extends PluginBase{
 
 			$list[$app] = intval($fileSort);
 		}
-		if (!$list) show_json('没有有效的文件编辑方式', false);
+		if (!$list) show_json(LNG('officeViewer.main.typeErr'), false);
 		arsort($list, SORT_NUMERIC);
 		$app = key($list);	// 从当前指针位置返回键名（排序会重置指针）
 

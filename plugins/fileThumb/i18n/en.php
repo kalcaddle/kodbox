@@ -27,16 +27,31 @@ return array(
 	'fileThumb.config.videoTypeLimitDesc'	=> 'Transcoding only when the file format is specified',
 	'fileThumb.config.playType'				=> 'Default quality',
 	'fileThumb.config.playTypeDesc'			=> 'When Normal mode is selected, video transcoding must be completed',
-	
-	
-	'fileThumb.check.title'				=> 'Check Server',
+	'fileThumb.config.imageSizeLimit' 		=> 'Supported maximum image',
+	'fileThumb.config.imageSizeLimitDesc' 	=> 'Image files larger than this value will not generate thumbnails (thumbnail generation will take up a lot of server resources, it is recommended to manually add cover images for large images)',
+
+	'fileThumb.config.svcType' 				=> 'Service mode',
+	'fileThumb.config.igryOpen' 			=> 'Enable service',
+	'fileThumb.config.igryOpenDesc' 		=> 'Enable imaginary service',
+	'fileThumb.config.igryDesc' 			=> '1.imaginary is a high-performance image processing service based on HTTP, which can significantly improve the efficiency of thumbnail generation and reduce the risk of server memory overflow;<br/>
+												2.imaginary only supports the processing of some image formats. The generation of more formats and file cover images (such as Office) also relies on ImageMagick/FFmpeg services;<br/>
+												3. When installing the service, you need to enable URL processing (-enable-url-source)',
+	'fileThumb.config.igryHost' 			=> 'Service address',
+	'fileThumb.config.igryApiKey' 			=> 'API key',
+	'fileThumb.config.igryApiKeyDesc' 		=> 'API key (-key)',
+	'fileThumb.config.igryUrlKey' 			=> 'URL key',
+	'fileThumb.config.igryUrlKeyDesc' 		=> 'URL signature key (-url-signature-key), at least 32 characters',
+	'fileThumb.config.igryNotMust' 			=> 'Not required',
+
+	'fileThumb.check.title'				=> 'Check Service',
 	'fileThumb.check.ing'				=> 'Checking...',
-	'fileThumb.check.tips'				=> 'Please check the server information and try again after correct configuration!',
+	'fileThumb.check.tips'				=> 'Please check the service information and try again after correct configuration!',
 	'fileThumb.check.ok'				=> 'Congratulations, everything is OK!',
 	'fileThumb.check.faild'				=> 'Abnormal running environment!',
 	'fileThumb.check.notFound'			=> 'Software not found, please install and try again',
 	'fileThumb.check.error'				=> 'Call failed. Check whether the software is installed or whether you have execution permission',
-
+	'fileThumb.check.svcOk' 			=> 'Service is normal',
+	'fileThumb.check.svcErr' 			=> 'Service is abnormal',
 	
 	'fileThumb.video.normal'			=> 'Normal',
 	'fileThumb.video.before'			=> 'Original',

@@ -1,8 +1,13 @@
 <?php
 
 class fileThumbPlugin extends PluginBase{
+	private $imgExts;
+	private $webExts;
+	private $ioFileInfo;
 	function __construct(){
 		parent::__construct();
+		$this->imgExts = array('gif','png','bmp','jpe','jpeg','jpg','webp','heic','heif');
+		$this->webExts = array('png','jpg','jpeg','bmp','webp','gif');
 	}
 	public function regist(){
 		$this->hookRegist(array(
@@ -30,7 +35,7 @@ class fileThumbPlugin extends PluginBase{
 		if($current && $current['targetType'] == 'system' && strstr($current['pathDisplay'],'plugin/fileThumb/')){return $data;}
 
 		$config 		= $this->getConfig('fileThumb');
-		$supportWeb 	= explode(',','png,jpg,jpeg,bmp,webp,gif');
+		$supportWeb 	= $this->webExts;
 		$supportThumb 	= explode(',',$config['fileThumb'].','.implode(',',$supportWeb));
 		$supportView  	= explode(',',$config['fileExt'].','.implode(',',$supportWeb));
 		$cachePath 		= false;$timeStart = timeFloat();
@@ -117,7 +122,11 @@ class fileThumbPlugin extends PluginBase{
 		$data = $this->listParse(array('folderList'=>array(),'fileList'=>array($file)));
 		return $data['fileList'][0];
 	}
-	
+
+	/**
+	 * 缩略图预览
+	 * @return void
+	 */
 	public function cover(){
 		$path  = $this->filePath($this->in['path'],false);
 		$width = intval($this->in['width']);
@@ -131,11 +140,20 @@ class fileThumbPlugin extends PluginBase{
 		$sourceID = IO::fileNameExist($this->cachePath,$coverName);
 		// pr(IO::Info(kodIO::make($sourceID)));exit;
 		if($sourceID){IO::fileOut(kodIO::make($sourceID));exit;}
+		// 1200预览输出原图
+		if($width == 1200 && in_array($file['ext'], $this->webExts)) {
+			IO::fileOut($path);exit;
+		}
 		echo $result;
 	}
 
-	//linux 注意修改获取bin文件的权限问题;
+	/**
+	 * 检查服务
+	 * linux 注意修改获取bin文件的权限问题;
+	 * @return void
+	 */
 	public function check(){
+		$this->checkImgnry();	// imaginary服务检查
 		Cache::remove('fileThumb.getFFmpeg');
 		Cache::remove('fileThumb.getConvert');
 		if(isset($_GET['action']) && $_GET['action'] == 'stopAll'){
@@ -176,7 +194,7 @@ class fileThumbPlugin extends PluginBase{
 		}
 		include($this->pluginPath.'static/check.html');
 	}
-	
+
 	// 标清视频;
 	public function videoSmall(){
 		if(!$this->getFFmpeg()) return;
@@ -185,7 +203,7 @@ class fileThumbPlugin extends PluginBase{
 		$video = new videoResize();
 		$video->start($this);
 	}
-	
+	// 视频预览图
 	public function videoPreview(){
 		if(!$this->getFFmpeg()) return;
 		@include_once($this->pluginPath.'lib/VideoResize.class.php');
@@ -203,6 +221,7 @@ class fileThumbPlugin extends PluginBase{
 		if(!is_dir(TEMP_FILES)){mk_dir(TEMP_FILES);}
 		
 		$info = IO::info($path);$ext = $info['ext'];
+		if ($ext == 'gif' && $size != 250) return;	// gif大图不转换，预览输出原图
 		$thumbFile = TEMP_FILES . $coverName;		
 		$localFile = $this->localFile($path);
 		// TODO 可能不应先下载到本地，而应该先判断是否需要生成
@@ -224,7 +243,18 @@ class fileThumbPlugin extends PluginBase{
 			}
 			$this->thumbVideo($localFile,$thumbFile,$videoThumbTime);
 		} else {
-			if(!$localFile){$localFile = $localTemp = $this->pluginLocalFile($path);}
+			// 检查文件大小
+			if (!$this->thumbSizeLimit($localFile,'size',$info['size'])) {
+				return 'covert error! file size > limit;';
+			}
+			// 下载文件到本地
+			if(!$localFile){
+				// 支持imaginary的s3系文件使用url生成缩略图，省略中转下载
+				$localFile = $this->localFile2Url($path,$ext);
+				if (!$localFile) {
+					$localFile = $localTemp = $this->pluginLocalFile($path);
+				}
+			}
 			if($ext == 'ttf'){
 				$this->thumbFont($localFile,$thumbFile,$size);
 			}else{
@@ -244,23 +274,10 @@ class fileThumbPlugin extends PluginBase{
 		}
 		Cache::set($coverName,'no',600);
 		del_file($thumbFile);
-		$this->log('cover=makeError:'.$localFile.';temp='.$thumbFile,'fileThumb');
+		$this->log('cover=makeError:'.$localFile.';temp='.$thumbFile);
 		return 'convert error! localFile='.get_path_this($localFile);
 	}
-	private function getSize($size){
-		$sizeAllow = array(250,1200,3000);
-		for ($i=0;$i<count($sizeAllow);$i++){
-			if($i == 0 && $size <= $sizeAllow[$i]){
-				$size = $sizeAllow[$i];break;
-			}else if($size > $sizeAllow[$i - 1] && $size <= $sizeAllow[$i]){
-				$size = $sizeAllow[$i];break;
-			}else if($i == count($sizeAllow) - 1 && $size > $sizeAllow[$i]){
-				$size = $sizeAllow[$i];break;
-			}
-		}
-		return $size;
-	}
-	
+
 	// 获取文件 hash
 	public function localFile($path){
 		$io = IO::init($path);
@@ -292,7 +309,17 @@ class fileThumbPlugin extends PluginBase{
 		}
 		return false;
 	}
+	// s3系对象存储，通过imaginary用文件url生成缩略图
+	private function localFile2Url($path,$ext){
+		if (request_url_safe($path)) return false;
+		if (!in_array($this->ioFileInfo['ioDriver'], array('s3','eds','eos','minio','oos'))) return false;
+		// 是否支持imaginary
+		$api = $this->getImgnryApi($ext);
+		if (!$api) return false;
+		return Action('explorer.share')->link($path);
+	}
 	
+	// 缩略图：字体
 	private function thumbFont($fontFile,$cacheFile,$maxSize){
 		$textMore = '
 		可道云在线云盘
@@ -316,156 +343,71 @@ class fileThumbPlugin extends PluginBase{
 		imagedestroy($im);
 	}
 
+	// 缩略图：视频
 	private function thumbVideo($file,$cacheFile,$videoThumbTime){
-		$command = $this->getFFmpeg();
-		if(!$command){
-			echo "Ffmpeg ".LNG("fileThumb.check.notFound");
-			return false;
+		$api = $this->getImgmgkApi('ffmpeg');
+		if ($api) {
+			$res = $api->createThumbVideo($file,$cacheFile,$videoThumbTime);
+			if ($res) return true;
 		}
-		$tempPath = $cacheFile;
-		if($GLOBALS['config']['systemOS'] == 'linux' && is_writable('/tmp/')){
-			mk_dir('/tmp/fileThumb');
-			$tempPath = '/tmp/fileThumb/'.rand_string(15).'.jpg';
-		}
-
-		$maxWidth = 800;
-		$timeAt   = $videoThumbTime ? ' -ss 00:00:03' : '';	// 截取时间点，前置（ffmpeg -ss 00:00:03）可直接从第3秒开始处理，提升效率
-		$this->setLctype($file,$tempPath);
-		$script   = $this->memLimitParam('ffmpeg', $command) . $timeAt . ' -i '.escapeShell($file).' -y -f image2 -vframes 1 '.escapeShell($tempPath).' 2>&1';
-		// $script = "/usr/bin/time -v ".$script;  // Maximum resident set size
-		$out = shell_exec($script);
-		if(!file_exists($tempPath)) {
-			if ($this->thumbVideoByLink($cacheFile)) return;
-			return $this->log('video thumb error,'.$out.';cmd='.$script);
-		}
-
-		move_path($tempPath,$cacheFile);
-		$cm = new ImageThumb($cacheFile,'file');
-		$cm->prorate($cacheFile,$maxWidth,$maxWidth);
+		// 生成失败，尝试调用OSS直链生成
+		$this->thumbVideoByLink($cacheFile);
 	}
 	// 对象存储通过链接获取缩略图——当前仅支持OSS
 	// https://help.aliyun.com/zh/oss/user-guide/video-snapshots?
 	private function thumbVideoByLink($cacheFile) {
-		if (!isset($this->ioFileInfo['ioDriver']) || $this->ioFileInfo['ioDriver'] != 'oss') return;
-		// 获取缩略图链接
-		$options = array('x-oss-process' => 'video/snapshot,t_10000,f_jpg,w_250,m_fast');
-		$link = IO::link($this->ioFileInfo['path'], $options);
+		$driver = _get($this->ioFileInfo, 'ioDriver', '');
+		if ($driver != 'oss') return false;
+		$path = $this->ioFileInfo['path'];
+		switch ($driver) {
+			case 'oss':
+				// 费用：截帧数*(0.1/1k)/1000
+				$options = array('x-oss-process' => 'video/snapshot,t_10000,f_jpg,w_250,m_fast');
+				$link = IO::link($path, $options);
+				break;
+		}
 		if (!$link) return;
-		// 写入文件——视频缩略图收费，写入文件，避免反复调用（截帧数*(0.1/1k)/1000）
+
+		// 写入文件——视频缩略图收费，写入文件，避免反复调用
 		$content = curl_get_contents($link);
 		if (!$content) return;
 		file_put_contents($cacheFile, $content);
 		return @file_exists($cacheFile) ? true : false;
 	}
 
-	// imagemagick  -density 100 //耗时间,暂时去除
-	// convert -density 900 banner.psd -colorspace RGB -resample 300 -trim -thumbnail 200x200 test.jpg
-	// convert -colorspace rgb simple.pdf[0] -density 100 -sample 200x200 sample.jpg
+	// 缩略图：图片
 	private function thumbImage($file,$cacheFile,$maxSize,$ext){
-		$isImage  = false;
-		$isResize = explode(',','gif,png,bmp,jpe,jpeg,jpg,webp,heic');
-		if (in_array($ext,$isResize)) {
-			$memNeed = $this->convertmemNeed($file);
-			if (!$memNeed) return;
-			$memFree = $this->sysFreeMemory();
-			if ($memFree > 0 && $memFree < $memNeed) return;
-			$isImage = true;
+		// 1.使用imaginary接口
+		$api = $this->getImgnryApi($ext);
+		if ($api) return $api->createThumb($file,$cacheFile,$maxSize,$ext);
+		// 检查图片大小，提前拦截——imagick执行过程中不受PHP内存限制，也拦截
+		$isImg = false;
+		if (in_array($ext, $this->imgExts)) {
+			$isImg = true;
+			if (!$this->thumbSizeLimit($file)) return;
 		}
-		$this->thumbImageCreate($file,$cacheFile,$maxSize,$ext);
-		if($isImage) return;
+		// 2.使用imagick扩展
+		$api = $this->getImgickApi($ext);
+		if ($api) return $api->createThumb($file,$cacheFile,$maxSize,$ext);
+		// 3.使用ImageMagick
+		$api = $this->getImgmgkApi();
+		if ($api) $api->createThumb($file,$cacheFile,$maxSize,$ext);
+		if ($isImg) return;
+		// 生成的封面图，再用gd生成缩略图
 		ImageThumb::createThumb($cacheFile,$cacheFile,$maxSize,$maxSize);
 	}
-	
-	public function thumbImageCreate($file,$cacheFile,$maxSize,$ext){
-		$command = $this->getConvert();
-		if(!$command){
-			echo "ImageMagick ".LNG("fileThumb.check.notFound");
-			return false;
-		}
-		$size  = $maxSize.'x'.$maxSize;
-		$param = "-auto-orient -alpha off -quality 90 -size ".$size;
-		$tempName = rand_string(15).'.png';
-		switch ($ext){
-			case 'eps':
-			case 'psb':
-			case 'psd':
-			case 'ps'://ps,ai,pdf; ==> window:缺少组件;mac:命令行可以执行，但php执行有问题
-			case 'ai':$file.= '[0]';break;
-			case 'pdf':$file.= '[0]';
-				$param = "-auto-orient -alpha remove -alpha off -quality 90 -size ".$size." -background white";
-				break; // pdf 生成缩略图透明背景变为黑色问题处理;
-			
-			/**
-			 * 生成doc/docx封面; or转图片;
-			 * 
-			 * mac: 使用liboffice=>soffice 关联convert的delegate;
-			 * centos : unoconv (yum install unoconv); 
-			 * 		转doc/docx/ppt/pptx/xls/xlsx/odt/odf为pdf; 再用convert提取某页为图片;
-			 * 		实现office预览方案之一;(中文字体copy)
-			 * 		unoconv -f pdf /data/from.docx /data/toxx.pdf;
-			 * 		// https://github.com/ScoutsGidsenVL/Pydio/blob/master/plugins/editor.imagick/class.IMagickPreviewer.php
-			 */
-			case 'ppt':
-			case 'pptx':
-			case 'doc':
-			case 'docx':$file.= '[0]';break;
 
-			// https://legacy.imagemagick.org/Usage/thumbnails/
-			case 'tif':$file.= '[0]';$param .= " -flatten ";break;
-			//case 'gif':$file.= '[0]';break;
-			case 'gif':
-				$param = "-thumbnail ".$size;
-				$tempName = rand_string(15).'.gif';
-				break;
-			
-			case 'webp':
-			case 'png':
-			case 'bmp':$param = "-resize ".$size;break;
-			case 'jpe':
-			case 'jpg':
-			case 'jpeg':
-			case 'heic':$param = "-resize ".$size." -auto-orient";break;
-			
-			default:
-				$dng = 'dng,cr2,erf,raf,kdc,dcr,mrw,nrw,nef,orf,pef,x3f,srf,arw,sr2';
-				$dng = $dng.',3fr,crw,dcm,fff,iiq,mdc,mef,mos,plt,ppm,raw,rw2,srw,tst';
-				if(in_array($ext,explode(',',$dng))){
-					$param = "-resize ".$size;
-					//$file = 'rgb:'.$file.'[0]';
-				}
-				break;
+	// 获取convert/ffmpeg命令
+	public function getCommand($type = 'convert') {
+		if ($type == 'convert') {
+			$command = $this->getConvert();
+		} else {
+			$command = $this->getFFmpeg();
 		}
-		// 移除元数据、最低压缩级别、禁止过滤，8位深度——可能执行快一点，内存占用没有区别
-		if ($ext != 'gif') {
-			$param .= ' -strip -define png:compression-level=1 -define png:filter=0 -depth 8';
-		}
-		$param = $this->memLimitParam('convert', $param);	// 加上内存限制
-
-		//linux下$cacheFile不可写问题，先生成到/tmp下;再移动出来
-		$tempPath = $cacheFile;
-		if($GLOBALS['config']['systemOS'] == 'linux' && is_writable('/tmp/')){
-			mk_dir('/tmp/fileThumb');
-			if(is_writable('/tmp/fileThumb')){ // 可能有不可写的情况;
-				$tempPath = '/tmp/fileThumb/'.$tempName;
-			}
-		}
-		$this->setLctype($file,$tempPath);
-		$script = $command.' '.$param.' '.escapeShell($file).' '.escapeShell($tempPath).' 2>&1';
-		$out = shell_exec($script);
-		if(!file_exists($tempPath)) return $this->log('image thumb error:'.$out.';cmd='.$script);
-		move_path($tempPath,$cacheFile);
-		return true;
+		if ($command) return $command;
+		echo ucfirst($type).' '.LNG("fileThumb.check.notFound");
+		return false;
 	}
-
-	// 设置地区字符集，避免中文被过滤
-	private function setLctype($path,$path2=''){
-		if (stripos(setlocale(LC_CTYPE, 0), 'utf-8') !== false) return;
-		if (Input::check($path,'hasChinese') || ($path2 && Input::check($path2,'hasChinese'))) {
-			setlocale(LC_CTYPE, "en_US.UTF-8");
-		}
-	}
-	
-	
 	public function getFFmpeg(){
 		return $this->getCall('fileThumb.getFFmpeg',600,array($this,'getFFmpegNow'));
 	}
@@ -599,8 +541,32 @@ class fileThumbPlugin extends PluginBase{
 		write_log($log,'fileThumb');
 	}
 
+	// 根据文件大小检查是否支持生成缩略图
+	private function thumbSizeLimit($file, $type='pixel', $size=0) {
+		// 1.按文件大小限制——主要是Imagick/ImageMagick，imaginary可以在容器限制，暂时统一拦截
+		if ($type == 'size') {
+			$config = $this->getConfig();
+			$sizeLimit = intval(_get($config, 'thumbSizeLimit', 50));
+			if ($size < 1024*1024*$sizeLimit) {
+				return true;
+			}
+			$this->log('cover=makeError:'.$file.'; file size too large: '.$size);
+			return false;
+		}
+		// 2.按像素计算大小限制
+		$memNeed = $this->sysMemoryNeed($file);
+		if ($memNeed) {
+			$memFree = $this->sysMemoryFree();
+			// 系统可用内存不一定能获取到，没获取到也执行
+			if (!$memFree || ($memNeed < $memFree)) {
+				return true;
+			}
+		}
+		$this->log('cover=makeError:'.$file.'; need memory too large: '.$size);
+		return false;
+	}
 	// 系统可用内存——不一定能获取到
-	public function sysFreeMemory() {
+	public function sysMemoryFree() {
 		$server = new ServerInfo();
 		$memUsage = $server->memUsage();
 		return intval($memUsage['total'] - $memUsage['used']);
@@ -608,9 +574,8 @@ class fileThumbPlugin extends PluginBase{
 	// （命令）内存限制参数
 	public function memLimitParam($type = 'ffmpeg', $param = '') {
 		$memBase = 128 * 1024 * 1024; // 128M，最小内存限制——实际可用内存可能更小，暂不处理
-		$memFree = $this->sysFreeMemory();
-		$memFree = $memFree > $memBase ? $memFree : $memBase;
-		$memFree = intval($memFree * 0.7);
+		$memFree = $this->sysMemoryFree();
+		$memFree = max($memBase, intval($memFree * 0.5));
 		if ($type != 'ffmpeg') {	// convert
 			$mapLimit = $memFree * 2;
 			$dskLimit = $memFree * 4;
@@ -619,10 +584,17 @@ class fileThumbPlugin extends PluginBase{
 			$dskLimit = $this->sizeFormat($dskLimit);
 			// 限制内存后可能失败——某些步骤可能需要连续内存块‌（如解码、色彩空间转换），内存过小无法完成初始化
 			// return " -define resource:limit=true -limit memory {$memLimit} -limit map {$mapLimit} -limit disk {$dskLimit} {$param}";
-			return " -limit memory {$memLimit} -limit map {$mapLimit} -limit disk {$dskLimit} {$param}";
+			// return " -limit memory {$memLimit} -limit map {$mapLimit} -limit disk {$dskLimit} {$param}";
+			if(!is_dir(TEMP_FILES)){mk_dir(TEMP_FILES);}
+            $path = TEMP_FILES . 'imagemagick'; mk_dir($path);
+			$cmd  = " -limit memory {$memLimit} -limit map {$mapLimit} -limit disk {$dskLimit} ";
+			$cmd .= "-define registry:temporary-path={$path} ";	// 指定临时目录
+			return $cmd . $param;
 		}
-		$memLimit = intval($memFree / 1024);	// KB
-		return "ulimit -v {$memLimit}; {$param} -threads 2 ";	// $param=>ffmpeg
+		// $memLimit = intval($memFree / 1024);	// KB
+		// return "ulimit -v {$memLimit}; {$param} -threads 2 ";	// $param=>ffmpeg
+		$memLimit = $memFree;	// max_alloc 支持无后缀(bytes)和有后缀(m/g)
+		return "{$param} -max_alloc {$memLimit} -threads 2 ";	// $param=>ffmpeg;
 	}
 	private function sizeFormat($size, $type = 'convert') {
 		// $temp = explode(' ',size_format($size));
@@ -633,7 +605,7 @@ class fileThumbPlugin extends PluginBase{
 		return str_replace('B', '', $size);
 	}
 	// ImageMagick生成缩略图所需内存（基本所需，实际要求更多）
-	public function convertmemNeed($image) {
+	public function sysMemoryNeed($image) {
 		// 获取图像信息
 		$imageInfo = $this->getImgSize($image);
 		if (!$imageInfo) {return false;}
@@ -652,20 +624,83 @@ class fileThumbPlugin extends PluginBase{
 	// 获取图片信息
 	public function getImgSize($image) {
 		if (!file_exists($image)) return false;
-		$imageInfo = getimagesize($image);
-		if (!$imageInfo) {
-			$res = shell_exec("identify -format '%wx%hx%[channels]x%[depth]' ".escapeshellarg($image));
-			if (!$res) return false;
-			$res		= explode('x', $res);
-			$channels	= $res[2] ? intval(end(explode(' ',$res[2]))) : 0;
-			$bits		= intval($res[3]);
-			$imageInfo = array(
-				intval($res[0]),	// width
-				intval($res[1]),	// height
-				'channels'	=> $channels ? $channels : 4,
-				'bits'		=> $bits ? $bits : 8,
-			);
+		// 使用内置函数获取
+		if ($imageInfo = getimagesize($image)) return $imageInfo;
+		// 通过外部服务获取
+		$ext = get_path_ext($image);
+		$apiMethods = array(
+			array('method' => 'getImgnryApi', 'param' => $ext),
+			array('method' => 'getImgickApi', 'param' => $ext),
+			array('method' => 'getImgmgkApi', 'param' => 'convert')
+		);
+		foreach ($apiMethods as $apiMethod) {
+			$func = $apiMethod['method'];
+			$api = $this->$func($apiMethod['param']);
+			if ($api && $imageInfo = $api->getImgSize($image)) {
+				return $imageInfo;
+			}
 		}
-		return $imageInfo;
+		return false;
+	}
+
+	// ------------------------------------------- 外部服务 -------------------------------------------
+
+	// imagry环境检查
+	public function checkImgnry(){
+		$type = $this->in['type'];
+		if ($type != 'imgnry') return;
+		if(isset($_GET['check'])){
+			$rest = $this->getThumbApi('imgnry')->status();
+			$code = $rest ? 1 : 0;
+			$this->setConfig(array('imgnryStatus' => $code));
+			$msg = LNG('fileThumb.check.svc'.($code ? 'Ok' : 'Err'));
+			show_json($msg, boolval($code));
+		}
+		include($this->pluginPath.'static/check.html');
+		exit;
+	}
+
+	// 获取缩略图服务
+	public function getThumbApi($type='imgnry') {
+		$typeArr = array(
+			'imgnry' => 'Imaginary',
+			'imgick' => 'Imagick',
+			'imgmgk' => 'ImageMagick',
+		);
+		static $api = array();
+		if (!isset($api[$type])) {
+			$class = 'Kod'.$typeArr[$type];
+			@include_once($this->pluginPath."lib/{$class}.class.php");
+			if (!class_exists($class)) {return false;}
+			$api[$type] = new $class($this);
+		}
+		return $api[$type];
+	}
+
+	// 获取Imaginry对象
+	public function getImgnryApi($ext) {
+		// 检查服务是否启用
+		static $imgnryStatus = null;
+		if (is_null($imgnryStatus)) {
+			$config = $this->getConfig();
+			$open = intval($config['imgnryOpen']);
+			$stat = intval($config['imgnryStatus']);
+			$imgnryStatus = $open && $stat ? true : false;
+		}
+		if (!$imgnryStatus) return false;
+		// 判断是否支持
+		$api = $this->getThumbApi('imgnry');
+		return (!$api || !$api->isSupport($ext)) ? false : $api;
+	}
+	// 获取Imagick扩展对象
+	public function getImgickApi($ext) {
+		if (!class_exists('Imagick')) return false;
+		$api = $this->getThumbApi('imgick');
+		return (!$api || !$api->isSupport($ext)) ? false : $api;
+	}
+	// 获取ImageMagick对象
+	public function getImgmgkApi($type='convert') {
+		if (!$this->getCommand($type)) return false;
+		return $this->getThumbApi('imgmgk');
 	}
 }

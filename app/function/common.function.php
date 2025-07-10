@@ -547,9 +547,8 @@ function array_sort_by($records, $field='', $orderDesc=false,$fieldMore=false){
 		$sortBy1[] = isset($item[$field]) ? $item[$field]: _get($item,$field,'');
 		if($fieldMore){$sortBy2[] = isset($item[$fieldMore]) ? $item[$fieldMore]: _get($item,$fieldMore,'');}
 	}
-		
-	if($fieldMore){ array_multisort($sortBy1,$order,$flag,$sortBy2,$order,$flag,$records);}
-	if(!$fieldMore){array_multisort($sortBy1,$order,$flag,$records);}
+	if($fieldMore){ array_multisort($sortBy1,$order,$flag,  $sortBy2,$order,$flag,  $records);}
+	if(!$fieldMore){array_multisort($sortBy1,$order,$flag,  $records);}
 	return $records;
 }
 

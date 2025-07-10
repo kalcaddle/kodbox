@@ -22,6 +22,9 @@ return array(
 	'webdav.tips.uploadUser'	=> "<b>上传下载限制:</b> 支持上传最大文件取决于服务器上传限制及超时时间; 具体咨询管理员进行服务器上传相关配置.",
 	'webdav.tips.use'			=> "如何使用: 开启WebDAV服务后,进入个人中心进行查看(修改配置后需要刷新页面生效);",
 	'webdav.tips.use3thAccount'	=> "如启用了钉钉或企业微信，需设置密码后(能正常使用账号密码登录)方能使用webdav。",
+	'webdav.tips.configErr'		=> "您当前服务器不支持PATH_INFO模式<br/>形如 /index.php/index方式的访问;
+									同时不能丢失header参数Authorization;否则无法登录;
+									<a href='http://doc.kodcloud.com/v2/#/help/pathInfo' target='_blank'>了解如何开启</a>",
 	
 	'webdav.help.title'			=> "如何使用",
 	'webdav.help.connect'		=> "立即连接使用",

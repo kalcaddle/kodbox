@@ -6,7 +6,7 @@ CREATE TABLE `comment` (
   `commentID` bigint(20) unsigned NOT NULL AUTO_INCREMENT COMMENT '评论id',
   `pid` bigint(20) unsigned NOT NULL COMMENT '该评论上级ID',
   `userID` bigint(20) unsigned NOT NULL COMMENT '评论用户id',
-  `targetType` smallint(5) unsigned NOT NULL COMMENT '评论对象类型1分享2文件3文章4......',
+  `targetType` int(10) unsigned NOT NULL COMMENT '评论对象类型1分享2文件3文章4......',
   `targetID` bigint(20) unsigned NOT NULL COMMENT '评论对象id',
   `content` mediumtext NOT NULL COMMENT '评论内容',
   `praiseCount` int(11) unsigned NOT NULL COMMENT '点赞统计',
@@ -273,8 +273,8 @@ CREATE TABLE `share` (
   `isShareTo` tinyint(4) unsigned NOT NULL COMMENT '是否为内部分享；默认为0',
   `password` varchar(255) NOT NULL COMMENT '访问密码,为空则无密码',
   `timeTo` int(11) unsigned NOT NULL COMMENT '到期时间,0-永久生效',
-  `numView` int(11) unsigned NOT NULL COMMENT '预览次数',
-  `numDownload` int(11) unsigned NOT NULL COMMENT '下载次数',
+  `numView` bigint(20) unsigned NOT NULL COMMENT '预览次数',
+  `numDownload` bigint(20) unsigned NOT NULL COMMENT '下载次数',
   `options` varchar(1000) NOT NULL COMMENT 'json 配置信息;是否可以下载,是否可以上传等',
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   `modifyTime` int(11) unsigned NOT NULL COMMENT '最后修改时间',
@@ -350,7 +350,7 @@ CREATE TABLE `system_log` (
 
 DROP TABLE IF EXISTS `system_option`;
 CREATE TABLE `system_option` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `type` varchar(50) NOT NULL COMMENT '配置类型',
   `key` varchar(255) NOT NULL,
   `value` text NOT NULL,
@@ -365,7 +365,7 @@ CREATE TABLE `system_option` (
 
 DROP TABLE IF EXISTS `system_session`;
 CREATE TABLE `system_session` (
-  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `id` bigint(20) unsigned NOT NULL AUTO_INCREMENT,
   `sign` varchar(128) NOT NULL COMMENT 'session标识',
   `userID` bigint(20) unsigned NOT NULL COMMENT '用户id',
   `content` text NOT NULL COMMENT 'value',
@@ -390,7 +390,7 @@ CREATE TABLE `user` (
   `avatar` varchar(255) NOT NULL COMMENT '头像',
   `sex` tinyint(4) unsigned NOT NULL COMMENT '性别 (0女1男)',
   `password` varchar(100) NOT NULL COMMENT '密码',
-  `sizeMax` double unsigned NOT NULL COMMENT '群组存储空间大小(GB) 0-不限制',
+  `sizeMax` bigint(20) unsigned NOT NULL COMMENT '群组存储空间大小(GB) 0-不限制',
   `sizeUse` bigint(20) unsigned NOT NULL COMMENT '已使用大小(byte)',
   `status` tinyint(3) unsigned NOT NULL COMMENT '用户启用状态 0-未启用 1-启用',
   `lastLogin` int(11) unsigned NOT NULL COMMENT '最后登陆时间',

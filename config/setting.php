@@ -255,7 +255,7 @@ $config['settingSystemDefault'] = array(
 	'passwordLockNumber'=> '5',			// 密码连续错误允许次数;
 	'passwordLockTime'	=> '60',		// 密码连续错误锁定时间;
 	
-	'passwordRule'		=> 'none',		// 限制密码强度;none-不限制;strong-中等强度;strongMore-高强度
+	'passwordRule'		=> 'strongMore',// 限制密码强度;none-不限制;strong-中等强度;strongMore-高强度
 	'loginCheckAllow'	=> '',			// 登录限制
 	'csrfProtect'		=> '1',		 	// 开启csrf保护	
 	'downloadZipClient' => '1',			// 开启前端打包压缩下载(需要能够链接外网,或https);
@@ -426,7 +426,7 @@ $config['settings']['userDefaultTag'] = array(
 	array('name'=>"explorer.tag.default1",'style'=>'label-blue-normal'),
 	array('name'=>'explorer.tag.default2','style'=>'label-red-normal'),
 	array('name'=>'explorer.tag.default3','style'=>'label-yellow-normal'),
-	array('name'=>"2020",'style'=>'label-green-normal'),
+	array('name'=>"common.others",'style'=>'label-green-normal'),
 );
 
 

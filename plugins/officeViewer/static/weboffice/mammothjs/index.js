@@ -23,6 +23,7 @@
         $('#output .wd-catalog').parent().addClass('wd-catalog-line');
         $('#output .wd-catalog').before('<span class="dot"></span>');
         $('body.weboffice-page').addClass('loaded');
+        page.wbAlert(true);
     }
 
     var transformParagraph = function (element) {

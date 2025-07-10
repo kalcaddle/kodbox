@@ -6,6 +6,55 @@
   "description": "多彩图片icon",
   "glyphs": [
     {
+      "icon_id": "15418899",
+      "name": "人工智能",
+      "font_class": "ai-line",
+      "unicode": "e9ca",
+      "unicode_decimal": 59850
+    },
+    {
+      "icon_id": "18012331",
+      "name": "人工智能服务-纯色紫",
+      "font_class": "ai-brain",
+      "unicode": "e6b4",
+      "unicode_decimal": 59060
+    },
+    {
+      "icon_id": "39475794",
+      "name": "魔法棒",
+      "font_class": "magic-star",
+      "unicode": "e8de",
+      "unicode_decimal": 59614
+    },
+    {
+      "icon_id": "42675517",
+      "name": "魔法棒",
+      "font_class": "magic-star1",
+      "unicode": "e7ab",
+      "unicode_decimal": 59307
+    },
+    {
+      "icon_id": "42907631",
+      "name": "魔法棒",
+      "font_class": "magic-star2",
+      "unicode": "e6d8",
+      "unicode_decimal": 59096
+    },
+    {
+      "icon_id": "42995666",
+      "name": "ai-box",
+      "font_class": "ai-box",
+      "unicode": "e6b5",
+      "unicode_decimal": 59061
+    },
+    {
+      "icon_id": "43339914",
+      "name": "ai-box2",
+      "font_class": "ai-box2",
+      "unicode": "e6b6",
+      "unicode_decimal": 59062
+    },
+    {
       "icon_id": "14465158",
       "name": "menu-dots",
       "font_class": "menu-dots",

@@ -15,7 +15,7 @@
 body.weboffice-page {background: #f6f6f6; margin: 8px 0px;}
 body.weboffice-page.yz {background: #ebebeb; overflow: hidden;}
 body.weboffice-page .page-box{background: #fff;}
-body.weboffice-page .page-box.kod-pptxjs-box .slide:after{z-index: 1000000 !important;}
+body.weboffice-page .page-box.kod-pptxjs-box .slide::after{z-index: 1000000 !important;}
 body.weboffice-page .page-box #output>iframe {
     position: absolute; 
     width: 100vw;
@@ -29,6 +29,77 @@ body.weboffice-page .page-box #output>iframe {
 body.weboffice-page.lb .page-box #output>iframe {
     top: -32px
 }
+body.weboffice-page.ol .page-box #output>iframe {
+    height: calc(100vh - 8px);
+}
+body.weboffice-page.ol .page-box.xls #output::after, 
+body.weboffice-page.ol .page-box.xlsx #output::after {
+    content: '';
+    position: absolute;
+    left: 0px;
+    /* left: 30px; */
+    right: 0px;
+    bottom: 0px;
+    height: 26px;
+    background: #f5f5f5;
+    border-top: 1px solid #ddd;
+}
+body.weboffice-page.ol.loaded .page-box.ppt #output::before, 
+body.weboffice-page.ol.loaded .page-box.pptx #output::before,
+body.weboffice-page.ol.loaded .page-box.ppt #output::after, 
+body.weboffice-page.ol.loaded .page-box.pptx #output::after {
+    content: '';
+    position: absolute;
+    /* right: 44px;
+    width: 46px; */
+    right: 2px;
+    width: 100px;
+    height: 22px;
+    bottom: 1px;
+    background: #444;
+    border-top: 1px solid #555;
+}
+body.weboffice-page.ol.loaded .page-box.ppt #output::before, 
+body.weboffice-page.ol.loaded .page-box.pptx #output::before {
+    left: 2px;
+    width: 100px;
+    z-index: 9;
+}
+body.weboffice-page.loaded .page-box.kod-luckysheet-box #output::after, 
+body.weboffice-page.loaded .page-box.kod-pptxjs-box #output::after {
+    /* content: 'xxx'; */
+    content: attr(data-content);
+    position: absolute;
+    bottom: 5px;
+    font-size: 0.85em;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 3px;
+    /* color: #f77714;
+    background: #fff3cf;
+    color: #c17500; */
+    padding: 3px 10px;
+    border-radius: 4px;
+    /* width: max-content; */
+    text-align: center;
+    z-index: 9999;
+
+    /* max-width: 80%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; */
+
+    /* opacity: 1;
+    transition: opacity 1s ease; */
+
+    color: #555;
+    background: #f6f6f6;
+    opacity: 0.9;
+}
+/* body.weboffice-page.loaded .page-box.kod-luckysheet-box #output.tip-hide::after, 
+body.weboffice-page.loaded .page-box.kod-pptxjs-box #output.tip-hide::after {
+    opacity: 0;
+} */
 
 .weboffice-page .hidden {display: none;}
 .weboffice-page .loading-msg .loading-msg-content .loading-msg-title{font-size: 14px;}

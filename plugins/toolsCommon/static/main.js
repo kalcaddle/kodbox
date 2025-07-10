@@ -4,24 +4,24 @@ kodReady.push(function(){
     Events.bind("router.after", function () {   // router.before
         if (!$.isWap) return;
         var payLink = _.get(Router, 'query.payLink') || '';
+        if (!payLink) return;
+        Router.go(Router.hash); // 去掉参数，防止重复执行
         payLink = jsonDecode(base64Decode(urlDecode(payLink)));
-        if (!payLink || !payLink.link || !payLink.text) return;
-        var data = _.pick(payLink, ['type','orderNo','code']);  // sign
-        if (_.keys(data).length != 3) return;
+        if (!payLink) return;
+        var result = _.pick(payLink, ['code','data','info']);
+        if (_.keys(result).length != 3) return;
 
-        // 获取订单信息，触发前端事件并跳转
-        $.dialog.confirm(payLink.text,function(){
-            $.ajax({
-                url: payLink.link,
-                data: $.extend({}, data, {query: 1, language: G.lang}),
-                dataType:'jsonp',
-                success:function(result){
-                    Events.trigger('pay.finished',result);  // 监听执行后自行处理跳转
-                }
-            });
-        },function(){
-            var parse = $.parseUrl(window.location.href);
-			window.location.href = parse.urlPath + '#' + Router.hash;
-        });
+        _.delay(function(){
+            Events.trigger('pay.finished', result); // 滞后触发，避免事件尚未绑定
+            var icon = 'warning';
+            if (_.get(result,'info') == 2) {
+                icon = 'succeed';
+                kodApi.requestSend('user/license&resetNow=1');
+            }
+            var text = _.get(result,'data.title','') +'<br/>'+_.get(result,'data.text','');
+            $.dialog.alert(text, function () {
+                _.delay(function(){Router.refresh();}, 500);
+            }, icon);
+        }, 1000);
     }, this);
 });

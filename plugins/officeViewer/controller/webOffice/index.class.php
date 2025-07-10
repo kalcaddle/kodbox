@@ -5,8 +5,8 @@
  * doc：https://github.com/SheetJS/js-word  // x
  * docx：https://github.com/mwilliamson/mammoth.js
  * xls/xlsx：https://github.com/SheetJS/sheetjs
- * xlsx：https://github.com/mengshukeji/Luckysheet
- *       https://mengshukeji.github.io/LuckysheetDocs/zh/guide
+ * xlsx：https://github.com/dream-num/Luckysheet
+ *       https://dream-num.github.io/LuckysheetDocs/zh/guide
  *       https://madewith.cn/709
  * ppt：https://github.com/SheetJS/js-ppt   // x
  * pptx：https://github.com/meshesha/PPTXjs

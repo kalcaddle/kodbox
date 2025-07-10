@@ -137,10 +137,7 @@ class webdavPlugin extends PluginBase{
 		if(!is_array($config) || $config['isOpen'] != '1'){return;}
 		$this->autoApplyApache();
 		if($this->checkSupport()) return;
-		show_tips(
-		"您当前服务器不支持PATH_INFO模式<br/>形如 /index.php/index方式的访问;
-		同时不能丢失header参数Authorization;否则无法登录;
-		<a href='http://doc.kodcloud.com/v2/#/help/pathInfo' target='_blank'>了解如何开启</a>",false);exit;
+		show_tips(LNG('webdav.tips.configErr'),false);exit;
 	}
 	
 	// apache 丢失Authorization情况自动加入配置;

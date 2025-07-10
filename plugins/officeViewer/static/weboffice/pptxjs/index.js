@@ -33,7 +33,7 @@ $(function(){
     }
     // 开始载入pptx文件
     try{
-        var tipsLoading = Tips.loadingMask(false,'加载中',0.5);
+        var tipsLoading = Tips.loadingMask(false,kodSdkConfig.LNG['explorer.wordLoading'],0.5);
         $('.page-box').addClass(isWap() ? 'is-in-wap' : 'not-in-wap');
         $('.page-box.not-in-wap #output').html('</div><div id="left_slides_bar"></div>');
         $.ajax({
@@ -44,7 +44,7 @@ $(function(){
             },
             error: function(err){
                 if(tipsLoading){tipsLoading.close();tipsLoading = false;}
-                page.showTips('文件请求失败，请检查地址是否正常！');
+                page.showTips(kodSdkConfig.LNG['officeViewer.webOffice.reqErrUrl']);
             }
         });
         window.onerror = function (message, url, line, column, error) {
@@ -152,6 +152,7 @@ $(function(){
         // 结束
         if(tipsLoading){tipsLoading.close();tipsLoading = false;}
         $('body.weboffice-page').addClass('loaded');
+        page.wbAlert();
     });
     // 页面尺寸随窗口变化
     var setPgHeight = function(wap){

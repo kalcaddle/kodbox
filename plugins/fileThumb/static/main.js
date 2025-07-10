@@ -26,6 +26,15 @@ kodReady.push(function(){
 			pluginName:"{{pluginName}}",
 		});
 	});
+	Events.bind('plugin.config.formAfter', function(_this){
+		var form = _this['form{{pluginName}}'];
+		if (!form || !form.$el) return;
+		if (form.getValue('imgnryApiKey')) {
+			_.delay(function(){
+				form.$('.item-imgnryMore button').click();
+			},10);
+		}
+	});
 	
 	var status = {
 		STATUS_SUCCESS	:2,	//已转码成功; 播放标清视频
@@ -130,6 +139,11 @@ kodReady.push(function(){
 			padding:4px 10px;border-radius:3px;opacity: 0.8;\
 		}";
 		style += styleIconList.join(',') +','+ styleIconSplit.join(',') + "{width:15px;height:15px;line-height:15px;font-size:14px;}";
+		// style += '.form-row.form-userSelect .setting-content .select-user-box{padding:10px 0px;}';
+		style += ".app-config-fileThumb.dialog-form .form-box .form-row.item-imgnryMore{\
+					display: inline-block;position: absolute;margin-top:-35px;margin-left: 420px;\
+				}\
+				.app-config-fileThumb.dialog-form .form-box .form-row.item-imgnryMore .setting-title {display: none;}";
 		$.addStyle(style);
 	}
 	if(!$.hasKey('plugin.fileThumb.style')){loadStyle();}

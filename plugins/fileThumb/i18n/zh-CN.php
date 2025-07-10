@@ -29,14 +29,31 @@ return array(
 	'fileThumb.config.videoTypeLimitDesc'	=> '指定文件格式才转码',
 	'fileThumb.config.playType'				=> '视频播放默认画质',
 	'fileThumb.config.playTypeDesc'			=> '选择流畅模式时,需要视频已经转码完成',
-	
-	'fileThumb.check.title'				=> '服务器检测',
+	'fileThumb.config.imageSizeLimit'		=> '支持的最大图片',
+	'fileThumb.config.imageSizeLimitDesc'	=> '大于此值的图片文件不生成缩略图（缩略图生成会占用大量服务器资源，大图建议手动添加封面图）',
+
+	'fileThumb.config.svcType'				=> '服务方式',
+	'fileThumb.config.igryOpen'				=> '启用服务',
+	'fileThumb.config.igryOpenDesc'			=> '启用imaginary服务',
+	'fileThumb.config.igryDesc'				=> '1.imaginary是基于HTTP的高性能图像处理服务，它能显著提高缩略图生成效率，并降低服务器内存溢出风险；<br/>
+												2.imaginary仅支持部分图片格式处理，更多格式及文件封面图（如Office）生成，还依赖于ImageMagick/FFmpeg服务；<br/>
+												3.安装服务时，需启用允许URL处理（-enable-url-source）',
+	'fileThumb.config.igryHost'				=> '服务地址',
+	'fileThumb.config.igryApiKey'			=> 'API 密钥',
+	'fileThumb.config.igryApiKeyDesc'		=> 'API密钥（-key）',
+	'fileThumb.config.igryUrlKey'			=> 'URL密钥',
+	'fileThumb.config.igryUrlKeyDesc'		=> 'URL签名密钥（-url-signature-key），至少32个字符',
+	'fileThumb.config.igryNotMust'			=> '非必需',
+
+	'fileThumb.check.title'				=> '服务检测',
 	'fileThumb.check.ing'				=> '环境检测中',
-	'fileThumb.check.tips'				=> '请核对服务器信息，配置正确后再试！',
+	'fileThumb.check.tips'				=> '请核对服务信息，配置正确后再试！',
 	'fileThumb.check.ok'				=> '恭喜，一切正常！',
-	'fileThumb.check.faild'				=> '运行环境异常！ ',
+	'fileThumb.check.faild'				=> '运行环境异常！',
 	'fileThumb.check.notFound'			=> '软件未找到，请安装后再试',
 	'fileThumb.check.error'				=> '调用失败，检测是否安装该软件，或是否有执行权限',
+	'fileThumb.check.svcOk'				=> '服务正常',
+	'fileThumb.check.svcErr'			=> '服务异常',
 
 	'fileThumb.video.normal'			=> '流畅',
 	'fileThumb.video.before'			=> '原画',

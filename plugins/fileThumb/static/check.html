@@ -65,31 +65,34 @@
 		<!--</div>-->
 		
 		<script type="text/javascript">
-		var updateStatus = function(success,msg){
-			var $result = $('.check-result');
-			if(success){
-				$result.find('.icon').removeClass('icon-loading').addClass('icon-success');
-				$result.find('.check-result-title').html("<?php echo LNG('fileThumb.check.ok');?>");
-			}else{
-				$result.find('.icon').removeClass('icon-loading').addClass('icon-error');
-				$result.find('.check-result-title').html("<?php echo LNG('fileThumb.check.faild');?>");
-				$result.find('.error-info').html(msg);
-				$result.find('.error-info').removeClass('hidden');
-			}
-		}
-		$(document).ready(function(){
-			$.ajax({
-				url:"<?php echo $this->pluginApi.'check&check=1';?>",
-				timeout:5000,
-				error:function(){
-				    updateStatus(false);
-				},
-				success: function(data){
-				    updateStatus(data.code,data.data);
+			var type = '<?php echo isset($this->in["type"]) ? $this->in["type"] : "";?>';
+			var updateStatus = function(success,msg){
+				var $result = $('.check-result');
+				if(success){
+					$result.find('.icon').removeClass('icon-loading').addClass('icon-success');
+					$result.find('.check-result-title').html("<?php echo LNG('fileThumb.check.ok');?>");
+					msg = type == 'imgnry' ? 'Imaginary' : 'ImageMagick';
+					$result.find('.error-info').html(msg).removeClass('hidden');
+				}else{
+					$result.find('.icon').removeClass('icon-loading').addClass('icon-error');
+					$result.find('.check-result-title').html("<?php echo LNG('fileThumb.check.faild');?>");
+					$result.find('.error-info').html(msg).removeClass('hidden');
+					// $result.find('.error-info').removeClass('hidden');
 				}
+			}
+			$(document).ready(function(){
+				$.ajax({
+					url:"<?php echo $this->pluginApi.'check&check=1';?>&type="+type,
+					timeout:5000,
+					error:function(){
+						updateStatus(false);
+					},
+					success: function(data){
+						updateStatus(data.code,data.data);
+					}
+				});
 			});
-		});
-	</script>
+		</script>
 	</div>
 </body>
 </html>

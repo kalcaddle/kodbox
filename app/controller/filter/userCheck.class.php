@@ -12,6 +12,10 @@ class filterUserCheck extends Controller {
 	}
 	public function bind(){
 		$this->options = Model('systemOption')->get();
+		if(isset($this->in['HTTP_X_PLATFORM_1'])){ // 新版APP端,对此参数做了编码处理;
+			$this->in['HTTP_X_PLATFORM'] = base64_decode($this->in['HTTP_X_PLATFORM_1']);
+			$_REQUEST['HTTP_X_PLATFORM'] = $this->in['HTTP_X_PLATFORM'];
+		}
 		$this->ipCheck();
 		$this->setAppLang();		
 		Hook::bind('user.index.loginSubmitBefore',array($this,'loginSubmitBefore'));
@@ -32,7 +36,7 @@ class filterUserCheck extends Controller {
 	 * 
 	 * none:不限制,默认;
 	 * strong: 中等强度, 长度大于6; 必须同时包含英文和数字;
-	 * strongMore: 高强度, 长度大于8; 必须同时包含数字,大写英文,小写英文;
+	 * strongMore: 高强度, 长度大于8; 必须同时包含数字,大写英文,小写英文; =>[数字、大、小写字母、特殊字符]至少含3种
 	 * 
 	 * 检测点: 用户注册;用户修改密码;管理员添加用户;管理员修改用户;导入用户;
 	 * 前端点: 登录成功后:如果密码规则不匹配当前强度,则提示修改密码;[提示点:注册密码,修改密码,编辑用户设置密码,添加用户设置密码]
@@ -45,12 +49,17 @@ class filterUserCheck extends Controller {
 		$hasChar   		= preg_match('/[A-Za-z]/',$password);
 		$hasCharBig 	= preg_match('/[A-Z]/',$password);
 		$hasCharSmall  	= preg_match('/[a-z]/',$password);
-		//$hasCharOthers = preg_match('/[~!@#$%^&*]/',$password);
+		$hasCharOthers  = preg_match('/[~!@#$%^&*]/',$password);
 
 		if( $type == 'strong' && $length >= 6 && $hasNumber && $hasChar){
 			return true;
-		}else if( $type == 'strongMore' && $length >= 8 && $hasNumber && $hasCharBig && $hasCharSmall){
-			return true;
+		}else if( $type == 'strongMore' && $length >= 8){
+			$classCnt = 0;
+			if($hasNumber)		$classCnt++;
+			if($hasCharBig) 	$classCnt++;
+			if($hasCharSmall) 	$classCnt++;
+			if($hasCharOthers) 	$classCnt++;
+			if ($classCnt >= 3) return true;
 		}
 		return false;
 	}
@@ -70,7 +79,7 @@ class filterUserCheck extends Controller {
 	 * ip黑名单限制处理;
 	 * 仅判断:IP+设备 (仅限所有人时情况,指定用户时忽略,在登录时判断);
 	 */
-	private function ipCheck(){
+	private function ipCheck(){	
 		$this->_checkConfig();
 		if(_get($this->config,'loginIpCheckIgnore') == '1') return true;// 手动关闭ip白名单检测;
 		if(!_get($this->options,'loginCheckAllow')) return true;

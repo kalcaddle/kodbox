@@ -2,7 +2,7 @@
 	"id":"fileThumb",
 	"name":"{{LNG['fileThumb.meta.name']}}",
 	"title":"{{LNG['fileThumb.meta.title']}}",
-	"version":"2.07",
+	"version":"2.09",
 	"category":"file,media",
 	"source":{
 		"icon":"{{pluginHost}}static/icon.png"
@@ -17,9 +17,9 @@
 		"formStyle":{
 			"loadFile":"{{pluginHost}}static/check.js",
 			"tabs":{
-				"{{LNG['admin.setting.base']}}":"pluginAuth,imagickBin,ffmpegBin",
+				"{{LNG['admin.setting.base']}}":"pluginAuth,pluginSaveKeepOpen,coverType,imagickBin,ffmpegBin,imgnryDesc,imgnryHost,imgnryMore,imgnryApiKey,imgnryUrlKey,imgnryOpen,imgnryDesc2",
 				"{{LNG['fileThumb.video.title']}}":"videoConvertDesc,videoConvert,videoConvertLimit,videoConvertLimitTo,videoConvertTask,videoConvertType,sep003,videoPlayType",
-				"{{LNG['admin.setting.others']}}":",sep001,fileSort,fileExt,fileThumb,sep002,debug"
+				"{{LNG['admin.setting.others']}}":",sep001,thumbSizeLimit,fileSort,fileExt,fileThumb,sep002,debug"
 			}
 		},
 		"pluginAuth":{
@@ -29,6 +29,22 @@
 			"desc":"{{LNG['admin.plugin.authDesc']}}",
 			"require":1
 		},
+		"pluginSaveKeepOpen":{"className":"hidden","type":"input","value":"0"},
+
+		"coverType":{
+			"type":"segment",
+			"value":"imgick",
+			"display":"{{LNG['fileThumb.config.svcType']}}",
+			"info":{
+				"imgick":"ImageMagick",
+				"imgnry":"Imaginary"
+			},
+			"switchItem":{
+				"imgick":"imagickBin,ffmpegBin",
+				"imgnry":"imgnryDesc,imgnryHost,imgnryMore,imgnryApiKey,imgnryUrlKey,imgnryOpen,imgnryDesc2"
+			}
+		},
+
 		"imagickBin":{
 			"type":"input",
 			"value":"convert",
@@ -42,12 +58,70 @@
 			"display":"ffmpegBin {{LNG['explorer.file.path']}}",
 			"require":1,
 			"desc":"ps,ai,pdf {{LNG['fileThumb.config.use']}}<br/><br/>
-					<button class='btn btn-success check-psd-server mr-10'>{{LNG['fileThumb.config.test']}}</button>
-					<button class='btn btn-default convert-stop-all mr-10'>Stop All</button>
+					<button class='btn btn-success check-psd-server mr-10' style='border-radius:3px;'>{{LNG['fileThumb.config.test']}}</button>
+					<button class='btn btn-default convert-stop-all' style='border-radius:3px;'>Stop All</button>
 					<button class='btn btn-link check-psd-help' >{{LNG['fileThumb.config.help']}}</button>"
 		},
 
+		"imgnryOpen":{
+			"type":"switch",
+			"value":"0",
+			"display":"{{LNG['fileThumb.config.igryOpen']}}",
+			// "switchItem":{"1":"imgnryDesc,imgnryHost,imgnryMore,imgnryApiKey,imgnryUrlKey,imgnryDesc2"},
+			"switchItem":{"1":"imgnryDesc,imgnryHost,imgnryMore,imgnryDesc2"},
+			"desc":"{{LNG['fileThumb.config.igryOpenDesc']}}",
+		},
+		"imgnryDesc":{
+			"type":"html",
+			"value":"{{LNG['fileThumb.config.igryDesc']}}",
+			"display":"{{LNG['admin.setting.recDesc']}}",
+		},
+		"imgnryHost":{
+			"type":"input",
+			"value":"",
+			"display":"{{LNG['fileThumb.config.igryHost']}}",
+		},
+		"imgnryMore":{
+            "type":"button",
+            "info":{
+                "more":{
+                    "display":"{{LNG['common.more']}} <b class='caret'></b>",
+                    "className":"btn btn-default btn-sm",
+                }
+            },
+            "switchItem":{
+                "more":"imgnryApiKey,imgnryUrlKey"
+            },
+        },
+		"imgnryApiKey":{
+			"type":"input",
+			"value":"",
+			"display":"{{LNG['fileThumb.config.igryApiKey']}}",
+			"desc":"{{LNG['fileThumb.config.igryApiKeyDesc']}}",
+			"attr":{"placeholder":"{{LNG['fileThumb.config.igryNotMust']}}"}
+		},
+		"imgnryUrlKey":{
+			"type":"input",
+			"value":"",
+			"display":"{{LNG['fileThumb.config.igryUrlKey']}}",
+			"desc":"{{LNG['fileThumb.config.igryUrlKeyDesc']}}",
+			"attr":{"placeholder":"{{LNG['fileThumb.config.igryNotMust']}}"}
+		},
+		"imgnryDesc2":{
+			"type":"html",
+			"value":"<button class='btn btn-success check-imgnry-server' style='border-radius:3px;'>{{LNG['fileThumb.config.test']}}</button>
+					<button class='btn btn-link check-imgnry-help' >{{LNG['fileThumb.config.help']}}</button>",
+			"display":"",
+		},
+
+
 		// "sep001":"<h4>{{LNG['fileThumb.config.file']}}:</h4>",
+		"thumbSizeLimit":{
+			"type":"number",
+			"value":"50","titleRight":"MB",
+			"display":"{{LNG['fileThumb.config.imageSizeLimit']}}",
+			"desc":"{{LNG['fileThumb.config.imageSizeLimitDesc']}}"
+		},
 		"fileSort":{
 			"type":"number",
 			"display":"{{LNG['admin.plugin.fileSort']}}",

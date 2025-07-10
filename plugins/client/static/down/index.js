@@ -1,7 +1,7 @@
 ClassBase.define({
 	init: function (param) {}, 
 
-    bindEvent (param) {
+    bindEvent: function (param) {
         var _this = param.parent;
         var type = param.type;
         if (type == 'menu' && !_this.$('.menuBar .menu-dropdown-user .client-download').length) {

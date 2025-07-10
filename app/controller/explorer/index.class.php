@@ -390,10 +390,8 @@ class explorerIndex extends Controller{
 		$ext     = get_path_ext($this->in['path']);
 		$tplFile = $tplPath.'newfile.'.$ext;
 		$content = _get($this->in,'content','');
-		if( isset($this->in['content']) ){
-			if( _get($this->in,'base64') ){ //文件内容base64;
-				$content = base64_decode($content);
-			}
+		if($content){
+			if(_get($this->in,'base64') ){$content = base64_decode($content);}
 		}else if(@file_exists($tplFile)){
 			$content = file_get_contents($tplFile);
 		}

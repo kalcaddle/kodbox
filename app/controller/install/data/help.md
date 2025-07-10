@@ -8,7 +8,7 @@
 | commentID | bigint(20) unsigned   `自动增量`  | 评论id |
 | pid | bigint(20) unsigned    | 该评论上级ID |
 | userID | bigint(20) unsigned    | 评论用户id |
-| targetType | smallint(5) unsigned    | 评论对象类型1分享2文件3文章4...... |
+| targetType | int(10) unsigned    | 评论对象类型1分享2文件3文章4...... |
 | targetID | bigint(20) unsigned    | 评论对象id |
 | content | mediumtext    | 评论内容 |
 | praiseCount | int(11) unsigned    | 点赞统计 |
@@ -196,8 +196,8 @@
 | isShareTo | tinyint(4) unsigned    | 是否为内部分享；默认为0 |
 | password | varchar(255)    | 访问密码,为空则无密码 |
 | timeTo | int(11) unsigned    | 到期时间,0-永久生效 |
-| numView | int(11) unsigned    | 预览次数 |
-| numDownload | int(11) unsigned    | 下载次数 |
+| numView | bigint(20) unsigned    | 预览次数 |
+| numDownload | bigint(20) unsigned    | 下载次数 |
 | options | varchar(1000)    | json 配置信息;是否可以下载,是否可以上传等 |
 | createTime | int(11) unsigned    | 创建时间 |
 | modifyTime | int(11) unsigned    | 最后修改时间 |
@@ -246,7 +246,7 @@
 ### system_option 系统配置表
 | 字段 | 类型 | 字段说明 |
 | ---- | ---- | ---- |
-| id | int(11) unsigned   `自动增量` |
+| id | bigint(20) unsigned   `自动增量` |
 | type | varchar(50)    | 配置类型 |
 | key | varchar(255)   |
 | value | text   |
@@ -257,7 +257,7 @@
 ### system_session session
 | 字段 | 类型 | 字段说明 |
 | ---- | ---- | ---- |
-| id | int(10) unsigned   `自动增量` |
+| id | bigint(20) unsigned   `自动增量` |
 | sign | varchar(128)    | session标识 |
 | userID | bigint(20) unsigned    | 用户id |
 | content | text    | value |
@@ -278,7 +278,7 @@
 | avatar | varchar(255)    | 头像 |
 | sex | tinyint(4) unsigned    | 性别 (0女1男) |
 | password | varchar(100)    | 密码 |
-| sizeMax | double unsigned    | 群组存储空间大小(GB) 0-不限制 |
+| sizeMax | bigint(20) unsigned    | 群组存储空间大小(GB) 0-不限制 |
 | sizeUse | bigint(20) unsigned    | 已使用大小(byte) |
 | status | tinyint(3) unsigned    | 用户启用状态 0-未启用 1-启用 |
 | lastLogin | int(11) unsigned    | 最后登陆时间 |

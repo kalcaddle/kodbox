@@ -1,4 +1,5 @@
 kodReady.push(function(){
+	LNG.set(jsonDecode(urlDecode("{{LNG}}")));
 	Events.bind('explorer.kodApp.before',function(appList){
 		appList.push({
 			name:'{{package.id}}',
@@ -25,7 +26,8 @@ kodReady.push(function(){
 		form.$('.item-wbFileExt .setting-content').css('pointer-events','none');
 		return;
 	});
-	
+
+	// 编辑按钮
 	$.setStyle('\
 	.officeViewer-edit-btn{position:absolute;z-index:999;bottom:60px;right:40px;visibility:hidden;}\
 	.officeViewer-edit-btn button{\

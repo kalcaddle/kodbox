@@ -48,6 +48,7 @@ class userIndex extends Controller {
 		TaskQueue::addSubmit();		// 结束后有任务时批量加入
 		TaskRun::autoRun();			// 定期执行及延期任务处理;
 		CacheLock::unlockRuntime(); // 清空异常时退出,未解锁的加锁;
+		Cache::limitRuntimeClear();	// 标记的运行进程结束; 计数-1;
 		Hook::trigger('globalRequestAfter');
 	}
 	private function initDB(){
@@ -65,7 +66,7 @@ class userIndex extends Controller {
 		$systemPass = Model('SystemOption')->get('systemPassword');
 		if(isset($_REQUEST['accessToken'])){
 			$token = $_REQUEST['accessToken'];
-			if(!$token || strlen($token) > 500){show_json('token error!',false);}
+			if(!$token || strlen($token) > 500){show_json('token error!',false,ERROR_CODE_LOGOUT);}
 
 			$pass = substr(md5('kodbox_'.$systemPass),0,15);
 			$sessionSign = Mcrypt::decode($token,$pass);
