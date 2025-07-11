@@ -92,8 +92,9 @@ class explorerLightApp extends Controller{
      */
     public function initApp(){
 		$this->clearOldApps();
-		$str = file_get_contents(BASIC_PATH.'data/system/apps.php');
-		$data= json_decode(substr($str, strlen('<?php exit;?>')),true);
+		$str  = file_get_contents(BASIC_PATH.'data/system/apps.php');
+		$data = json_decode(substr($str, strlen('<?php exit;?>')),true);
+		$data = is_array($data) ? $data : array();
 		$data = array_reverse($data);
 		foreach ($data as $app) {
 			$type = $app['type'] == 'app' ? 'js' : $app['type'];
