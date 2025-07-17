@@ -1,14 +1,14 @@
 {
 	"id":"storeImport",
-	"name":"数据导入",
-	"title":"存储数据快速导入",
-	"version":"1.07",
+	"name":"{{LNG['storeImport.meta.name']}}",
+	"title":"{{LNG['storeImport.meta.title']}}",
+	"version":"1.08",
 	"category":"tools",
 	"hidden":1,
 	"source":{
 		"className":"font-icon ri-folder-transfer-line bg-blue-6"
 	},
-	"description":"本插件提供了存储数据导入功能，通过对指定磁盘或对象存储添加的存储进行扫描，实现存储数据快速导入到网盘。",
+	"description":"{{LNG['storeImport.meta.desc']}}",
 	"auther":{
 		"copyright":"kodcloud.",
 		"homePage":"http://www.kodcloud.com",

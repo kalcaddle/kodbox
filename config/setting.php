@@ -214,7 +214,7 @@ $config['settings']['appType'] = array(
 $config['defaultPlugins'] = array(
 	'adminer','DPlayer','jPlayer','photoSwipe','picasa','pdfjs','htmlEditor',
 	'simpleClock','client','webodf','webdav','toolsCommon','oauth','fileThumb',
-	'yzOffice','officeViewer','msgWarning','storeImport'
+	'officeViewer','msgWarning','storeImport'
 );
 
 //初始化系统配置

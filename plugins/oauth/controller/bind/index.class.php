@@ -454,12 +454,18 @@ class oauthBindIndex extends Controller {
 		$info = Session::get('kodUser');
 		if($this->isEmptyPwd($info['userID'])) show_json(LNG('user.unbindWarning'), false);
 
-		Model('User')->startTrans();
-		$del = Model('User')->metaSet($info['userID'], $type . self::BIND_META_INFO, null);
-		$del = Model('User')->metaSet($info['userID'], $type . self::BIND_META_UNIONID, null);
-		Model('User')->commit();
-
-		if ($del === false) {
+		$model = Model('User');
+		$model->startTrans();
+		try {
+			$del1 = $model->metaSet($info['userID'], $type . self::BIND_META_INFO, null);
+			$del2 = $model->metaSet($info['userID'], $type . self::BIND_META_UNIONID, null);
+			if ($del1 === false || $del2 === false) {
+				$model->rollback();
+				show_json(LNG('explorer.error'), false);
+			}
+			$model->commit();
+		} catch (\Exception $e) {
+			$model->rollback();
 			show_json(LNG('explorer.error'), false);
 		}
 		$this->updateUserInfo($info['userID']);

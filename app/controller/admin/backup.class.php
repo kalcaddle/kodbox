@@ -148,7 +148,7 @@ class adminBackup extends Controller{
 		$model->checkConfig($data);
 	}
     
-    // 还原，禁止任何操作
+    // 还原，禁止任何操作——未实现
     public function restore(){
         $id  = Input::get('id','int');
         echo json_encode(array('code'=>true,'data'=>'OK'));

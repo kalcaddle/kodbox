@@ -1,6 +1,7 @@
 kodReady.push(function(){
 	var staticPath = "{{pluginHost}}static/";
 	var version = '?v={{package.version}}';
+	LNG.set(jsonDecode(urlDecode("{{LNG}}")));
 
 	var impPage = null;
 	Events.bind('router.after.admin/storage/index', function(){

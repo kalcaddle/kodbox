@@ -1,24 +1,23 @@
 <!DOCTYPE html>
 <html dir="ltr" mozdisallowselectionprint moznomarginboxes>
 	<?php 
-    $langMap = array(
-      'zh-CN' => 'zh-CN',
-      'zh-TW' => 'zh-TW',
-      'en'    => 'en-US',
-      'ar'    => 'ar',
-      'es'    => 'es-ES',
-      'fr'    => 'fr',
-      'it'    => 'it',
-      'ja'    => 'ja',
-      'ko'    => 'ko',
-      'pl'    => 'pl',
-      'pt'    => 'pt-PT',
-      'ru'    => 'ru',
-      'tr'    => 'tr',
-    );
+		$langMap = array(
+			'zh-CN' => 'zh-CN',
+			'zh-TW' => 'zh-TW',
+			'en'    => 'en-US',
+			'ar'    => 'ar',
+			'es'    => 'es-ES',
+			'fr'    => 'fr',
+			'it'    => 'it',
+			'ja'    => 'ja',
+			'ko'    => 'ko',
+			'pl'    => 'pl',
+			'pt'    => 'pt-PT',
+			'ru'    => 'ru',
+			'tr'    => 'tr',
+		);
 		$lang = I18n::getType();
     $lang = isset($langMap[$lang]) ? $langMap[$lang] : 'en-US';
-		// $langPath = $this->pluginHostDefault."static/pdfjs/web/locale/".$lang.'/';
 	?>
 	<head>
 		<meta charset="utf-8">
@@ -26,11 +25,11 @@
 		<meta name="google" content="notranslate">
 		<meta http-equiv="X-UA-Compatible" content="IE=edge">
 		<title><?php echo clear_html($fileName);?></title>
-    <link rel="resource" type="application/l10n" href="<?php echo $this->pluginHostDefault.'static/pdfjs/web/locale/locale.json';?>">
+    <link rel="resource" type="application/l10n" href="<?php echo $this->pluginHostDefault;?>static/pdfjs/web/locale/locale.json">
 		<script type="text/javascript">
 			var fileName 	= "<?php echo str_replace("\n",' ',clear_quote($fileName));?>";
 			var staticPath  = "<?php echo $this->pluginHost;?>static/";
-      var canDownload = "<?php echo intval($canDownload);?>";
+      		var canDownload = "<?php echo intval($canDownload);?>";
 			var kodSdkConfig = {api:'<?php echo APP_HOST;?>'};
 		</script>
 		<?php $this->link('static/pdfjs/web/viewer.css');?>
@@ -41,21 +40,38 @@
 		<?php $this->link('static/pdfjs/build/pdf.worker.js');?>
 		<?php $this->link('static/pdfjs/web/viewer.js');?>
 		<?php $this->link('static/pdfjs/add.js');?>
-    <script>
-      pdfjsLib.GlobalWorkerOptions.cMapPacked = true;
-      pdfjsLib.GlobalWorkerOptions.isEvalSupported = false;
-      // pdfjsLib.GlobalWorkerOptions.enableSandbox = false;  // 无效
-      pdfjsLib.GlobalWorkerOptions.imageResourcesPath = staticPath+'pdfjs/web/images/';
-      pdfjsLib.GlobalWorkerOptions.cMapUrl = staticPath+'pdfjs/web/cmaps/';
+		<script>
+      // defaultUrl需在viewer.js之前加载；但加载pdf.worker.js后在此处加载也正常
+      // pdfjsLib.GlobalWorkerOptions.workerSrc = ''; // 也有效
+      var options = {
+        annotationEditorMode: -1, // 注释编辑器模式：-1：隐藏；0：可用；1：不可用
+        // disablePreferences: true,  // 禁用首选项
+        // enableScripting: false,  // 启用脚本
+        sidebarViewOnLoad: 0, // 加载侧边栏
+        // forcePageColors: true,
 
-      // 需在viewer.js之前加载；但加载pdf.worker.js后在此处也正常
-      pdfjsLib.GlobalWorkerOptions.workerSrc = '<?php $this->url('static/pdfjs/build/pdf.worker.js');?>';
-      // pdfjsLib.disableAutoFetch = true;  // 禁用自动 worker 加载
-      // 加载pdf文件；也可在页面加载前通过设置（修改）参数file=urlencode(url)实现
-      PDFViewerApplicationOptions.set('defaultUrl', '<?php echo clear_quote($fileUrl);?>');
-      PDFViewerApplicationOptions.set("localeProperties", {lang: '<?php echo $lang; ?>'});
-      // PDFViewer/PDFWorker
-    </script>
+        renderAnnotationsAsImageBitmap: false,  // 禁用ImageBitmap
+        scrollMode: 0,
+        renderingQueue: true, // 
+        disableAutoFetch: true, // 禁止预加载
+        // disableStream: true,
+        // maxImageSize: 1024*1024, // 限制图片大小为1MB
+        // scale: 1.0, // 默认缩放比例
+        // useOnlyCssZoom: true, // 用CSS缩放替代Canvas重绘
+        disableFontFace: true,  // 禁用@font-face减少字体解析错误
+
+        isEvalSupported: false,
+        imageResourcesPath: staticPath+'pdfjs/web/images/',
+        cMapUrl: staticPath+'pdfjs/web/cmaps/',
+        cMapPacked: true,
+        standardFontDataUrl: staticPath+'pdfjs/web/standard_fonts/',
+
+        workerSrc: staticPath + 'pdfjs/build/pdf.worker.js',
+        defaultUrl: "<?php echo clear_quote($fileUrl);?>",
+        localeProperties: {lang: '<?php echo $lang; ?>'},
+      };
+      PDFViewerApplicationOptions.setAll(options);  // PDFViewerApplicationOptions.set(key,value);
+		</script>
 	</head>
 
 	<body tabindex="0">

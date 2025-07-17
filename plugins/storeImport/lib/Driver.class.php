@@ -14,7 +14,7 @@ class impDriver {
         // 基础类是否存在
         $class    = 'PathDriver'.$sfxType;
         if( !class_exists($class) ){
-            throw new Exception('不支持的存储类型：'.$class);
+            throw new Exception(LNG('storeImport.main.ioNotSup').$class);
         }
         // 独立子类、S3系子类
         if (in_array($type, $this->ioList['sg'])) {
@@ -25,7 +25,7 @@ class impDriver {
             $class = 'impDrvS3';
         } 
         if( !class_exists($class) ){
-            throw new Exception('不支持的存储类型：'.$class);
+            throw new Exception(LNG('storeImport.main.ioNotSup').$class);
         }
         // 自定义子类是否存在
         $config = $store['config'];

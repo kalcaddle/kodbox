@@ -142,6 +142,7 @@ class userView extends Controller{
 	}
 	
 	public function plugins(){
+		$GLOBALS['SHOW_PLUGIN_JS'] = true;
 		ob_get_clean();
 		header("Content-Type: application/javascript; charset=utf-8");
 		echo 'var kodReady=[];';

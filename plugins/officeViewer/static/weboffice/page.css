@@ -83,17 +83,8 @@ body.weboffice-page.loaded .page-box.kod-pptxjs-box #output::after {
     /* width: max-content; */
     text-align: center;
     z-index: 9999;
-
-    /* max-width: 80%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis; */
-
-    /* opacity: 1;
-    transition: opacity 1s ease; */
-
-    color: #555;
-    background: #f6f6f6;
+	font-size:12px;min-width: 350px;
+    color: #888;background: #f6f6f6;
     opacity: 0.9;
 }
 /* body.weboffice-page.loaded .page-box.kod-luckysheet-box #output.tip-hide::after, 

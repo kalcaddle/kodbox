@@ -791,7 +791,7 @@ function url_header($url){
 		}
 	}
 	if(isset($header['x-outfilename']) && $header['x-outfilename']){
-		$name = $header['x-outfilename'];
+		$name = rawurldecode($header['x-outfilename']);
 	}
 	if(!$name){
 		$name = get_path_this($fileUrl);

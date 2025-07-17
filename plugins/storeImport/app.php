@@ -42,11 +42,11 @@ class storeImportPlugin extends PluginBase{
 		// 1.1 检查原始目录
 		$parse = KodIO::parse($pathFrom);
 		if ($parse['type'] != KodIO::KOD_IO) {
-			$this->showJson('原始数据目录错误，必须为存储目录：{io:x}', false);
+			$this->showJson(LNG('storeImport.main.ioPathErr'), false);
 		}
 		$store = Model('Storage')->driverInfo($parse['id']);
 		if (!$store) {
-			$this->showJson('原始数据所在存储无效！', false);
+			$this->showJson(LNG('storeImport.main.ioStoreErr'), false);
 		}
 		$type = strtolower($store['driver']);
 		$ioList = array(
@@ -54,21 +54,21 @@ class storeImportPlugin extends PluginBase{
 			's3' => array('s3','bos','cos','eds','eos','jos','minio','obs','oos','moss','nos')
 		);
 		if (!in_array($type, $ioList['sg']) && !in_array($type, $ioList['s3'])) {
-			$this->showJson('不支持此存储类型导入：'.$store['driver'], false);
+			$this->showJson(LNG('storeImport.main.ioNotSupErr').$store['driver'], false);
 		}
 		if (is_array($store['config'])) {	// 兼容旧版
 			$store['config'] = json_encode($store['config']);
 		}
 		$check = Model('Storage')->checkConfig($store, true);
 		if ($check !== true) {
-			$this->showJson('原始数据所在存储无法连接。'.$check, false);
+			$this->showJson(LNG('storeImport.main.ioFromNetErr').$check, false);
 		}
 		if ($type != 'local') $this->in['hash'] = 0;
 
 		// 1.2 检查目标目录
 		$parse = KodIO::parse($pathTo);
 		if ($parse['type'] != KodIO::KOD_SOURCE) {
-			$this->showJson('网盘存放目录错误，必须为网盘系统目录：个人空间或部门及其子目录', false);
+			$this->showJson(LNG('storeImport.main.ioToErr'), false);
 		}
 
 		// 2. 开始导入
@@ -83,13 +83,13 @@ class storeImportPlugin extends PluginBase{
 		$taskId = $this->_taskId();
 		$task = Task::get($taskId);	// TODO task存在时为false，不存在为null，待确认
 		if (!isset($this->in['process'])) {
-			if ($task) $this->showJson('任务执行中，请勿重复操作！', false);
+			if ($task) $this->showJson(LNG('storeImport.task.rptErr'), false);
 			Cache::remove($taskId);
 			return;
 		}
 		if ($this->in['kill']) {
 			if (!$task) $task = array('taskPercent' => 1);
-			$task['desc'] = '任务手动终止！';
+			$task['desc'] = LNG('storeImport.task.stopByUser');
 			$task['status'] = 'kill';
 			Cache::set($taskId, $task);	// 避免process继续请求
 			Task::kill($taskId);
@@ -119,13 +119,13 @@ class storeImportPlugin extends PluginBase{
 		// $checkHash = intval($this->in['hash']);
 
 		// 0. 开始输出提示
-		$text = '存储导入数据，开始：from=>'.$pathFrom.'; to=>'.$pathTo;
+		$text = LNG('storeImport.main.start').'from=>'.$pathFrom.'; to=>'.$pathTo;
 		$this->webEcho($text);
 		$this->cliEcho($pathFrom, $text, 0);
 
 		// 1. 开始任务
 		$taskId = $this->_taskId();
-		$task	= new Task($taskId, 'storeImport', 0, '存储数据导入');
+		$task	= new Task($taskId, 'storeImport', 0, LNG('storeImport.main.dataImport'));
 		$info = $this->pathTotalInfo($pathFrom);
 		$task->task['taskTotal'] = $info['total'];
 
@@ -270,8 +270,8 @@ class storeImportPlugin extends PluginBase{
 
 		// 5. 结束任务
 		$task->task['taskPercent'] = 1;	// 强制设为1
-		$task->task['desc'] = '成功:'.$rest['success'].',失败:'.$rest['error'];
-		$msg = '总记录:'.$task->task['taskTotal'] .','. $task->task['desc'];
+		$task->task['desc'] = LNG('common.success').':'.$rest['success'].','.LNG('common.fail').':'.$rest['error'];
+		$msg = LNG('admin.setting.dbCnt').':'.$task->task['taskTotal'] .','. $task->task['desc'];
 		Cache::set($taskId, $task->task);
 		$task->end();
 
@@ -280,7 +280,7 @@ class storeImportPlugin extends PluginBase{
 		$this->ioFileCache($pathFrom, 'clear');
 		
 		// 5.2 提示输出：页面、cli
-		$text = '存储导入数据，完成：from=>'.$pathFrom.'; to=>'.$pathTo.'。'.$msg;
+		$text = LNG('storeImport.main.end').'from=>'.$pathFrom.'; to=>'.$pathTo.'。'.$msg;
 		$this->webEcho($text);
 		$this->cliEcho($pathFrom, $msg, 1);
 
@@ -369,7 +369,7 @@ class storeImportPlugin extends PluginBase{
 		}
 		// 3.日志文件移动到目标目录
 		$log = false;
-		$logPath = IO::mkdir($pathTo.'/导入失败日志-长度超256字符');
+		$logPath = IO::mkdir($pathTo.'/'.LNG('storeImport.task.errLog'));
 
 		$path = LOG_PATH.strtolower($this->pluginName);
 		$list = IO::listPath($path,true);
@@ -393,7 +393,7 @@ class storeImportPlugin extends PluginBase{
 	private function writeLog($res, $path, &$rest, $type='file') {
 		if ($this->echoLog) {
 			$total = $GLOBALS['STORE_IMPORT_FILE_CNT'];
-			echoLog('['.$this->pathIdx.'/'.$total.'].导入'.($res ? '成功' : '失败').'('.$type.').'.$path, ($res ? true : false));
+			echoLog('['.$this->pathIdx.'/'.$total.'].'.LNG('storeImport.main.import').LNG('common.'.($res ? 'success' : 'fail')).'('.$type.').'.$path, ($res ? true : false));
 		}
 		if ($res) {
 			$rest['success']++; return true;
@@ -421,7 +421,7 @@ class storeImportPlugin extends PluginBase{
 
 		$pathFrom = trim($this->in['pathFrom'], '/');
         $pathTo	  = trim($this->in['pathTo'], '/');
-		$errMsg	  = is_string($result['data']) ? $result['data'] : '异常终止！';
+		$errMsg	  = is_string($result['data']) ? $result['data'] : LNG('storeImport.task.stopErr');
 		if ($pathFrom && $pathTo) {
 			$taskId	  = $this->_taskId();
 			$task	  = Task::get($taskId);
@@ -432,7 +432,7 @@ class storeImportPlugin extends PluginBase{
 			Task::kill($taskId);
 		}
 		$text = array(
-		    '存储导入数据，异常中断：from=>'.$pathFrom.'; to=>'.$pathTo,
+		    LNG('storeImport.task.stopErrDesc').'from=>'.$pathFrom.'; to=>'.$pathTo,
 		    $this->in,
 		    $result,
 		    get_caller_info()
@@ -456,7 +456,7 @@ class storeImportPlugin extends PluginBase{
 
 		$now = str_pad($idx, strlen($cnt), ' ', STR_PAD_LEFT);	// 占位，避免内容抖动
 		$rto = str_pad(round($pct * 100, 1), 5, ' ', STR_PAD_LEFT);
-		return '('.$now.'/'.$cnt.')'.$rto.'% | 剩余时间约：'.$this->timeNeedFormat($timeRem);
+		return '('.$now.'/'.$cnt.')'.$rto.'% | '.LNG('storeImport.task.afterTime').$this->timeNeedFormat($timeRem);
 	}
 	// 剩余时间（s）格式化
 	private function timeNeedFormat($sTime=0) {
@@ -464,10 +464,10 @@ class storeImportPlugin extends PluginBase{
 		$m = floor(($sTime % 3600) / 60);	// 剩余分钟数
 		$s = $sTime % 60;	// 剩余秒数
 		$time = '';
-		if ($h > 0) $time .= $h . '小时';
-		if ($m > 0) $time .= $m . '分';
+		if ($h > 0) $time .= $h . LNG('common.hour');
+		if ($m > 0) $time .= $m . LNG('common.minute');
 		if ($s > 0 || ($h == 0 && $m == 0)) {
-			$time .= $s . '秒';
+			$time .= $s . LNG('common.second');
 		}
 		return $time;
 	}
@@ -496,8 +496,8 @@ class storeImportPlugin extends PluginBase{
 		// 1.1 输出标题
 		// 存储导入数据：from=>{io:xx}; to=>{source:xx}
 		// 准备导入... => 正在导入...(35.4GB)
-		echo str_replace('，开始', '', $msg).PHP_EOL;
-		echo '准备导入...(读取中，请稍候)';
+		echo str_replace(LNG('storeImport.task.startExt'), '', $msg).PHP_EOL;
+		echo LNG('storeImport.task.starting');
 		ob_flush(); flush();
 		
 		// 1.2 统计文件总数
@@ -506,7 +506,7 @@ class storeImportPlugin extends PluginBase{
 		$this->timeStart = timeFloat();
 
 		echo "\r";
-		echo '正在导入...('.str_pad($size,3).')'.PHP_EOL;
+		echo LNG('storeImport.task.ing').'('.str_pad($size,3).')'.PHP_EOL;
 	}
 
 	// 终端执行导入
@@ -514,14 +514,14 @@ class storeImportPlugin extends PluginBase{
 	public function cliImport(){
 		$this->isCli = true;
 		if (!is_cli() || !isset($_SERVER['argv'])) {
-			$this->showJson('非法请求！', false);
+			$this->showJson(LNG('common.illegalRequest'), false);
 		}
 		$args = $this->cliArgs();
 		if (!$args || empty($args['pathFrom']) || empty($args['pathTo'])) {
-			$this->showJson('无效的参数！', false);
+			$this->showJson(LNG('common.invalidParam'), false);
 		}
-		if (!KodUser::isLogin()) $this->showJson('登录状态已失效，请求重新获取执行命令。',false);
-		if (!KodUser::isRoot()) $this->showJson('您无权执行此操作！',false);
+		if (!KodUser::isLogin()) $this->showJson(LNG('storeImport.main.loginTokenErr'),false);
+		if (!KodUser::isRoot()) $this->showJson(LNG('storeImport.main.noPermission'),false);
 		$this->in['pathFrom'] = $args['pathFrom'];
 		$this->in['pathTo'] = $args['pathTo'];
 		$this->start();

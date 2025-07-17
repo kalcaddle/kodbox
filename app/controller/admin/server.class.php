@@ -679,6 +679,9 @@ class adminServer extends Controller {
 
 		// 2.导入数据库
 		ActionCall('user.index.maintenance', true, 1);
+		register_shutdown_function(function() {
+            ActionCall('user.index.maintenance', true, 0);
+        });
 		// 2.1 下载备份文件到本地临时目录
 		$pathLoc = $this->tmpActPath('recovery');
 		$path = $this->recLocPath($type, $path, $pathLoc);
@@ -686,7 +689,6 @@ class adminServer extends Controller {
 		$fileList = array_to_keyvalue($list['fileList'], 'name', 'path');
 		$file = $fileList[$type . '.sql'];	// sqlite.sql、mysql.sql
 		if(!$file) {
-			ActionCall('user.index.maintenance', true, 0);
 			show_json(LNG('admin.setting.dbFileDownErr'), false);
 		}
 
@@ -717,7 +719,6 @@ class adminServer extends Controller {
 		$taskSet->update(1);
 		$this->taskToCache($taskSet);
 
-		ActionCall('user.index.maintenance', true, 0);
 		// $this->in['clear'] = 1;
 		// $this->in['success'] = 1;
 		// $this->taskClear('recovery');
@@ -744,7 +745,6 @@ class adminServer extends Controller {
 			if(!$name) {
 				$name = USER_SYSTEM . rand_string(12) . '.php';
 				if(!@touch($name)) {
-					ActionCall('user.index.maintenance', true, 0);
 					show_json(LNG('admin.setting.dbCreateError'), false);
 				}
 			}

@@ -373,6 +373,12 @@ define(function(require, exports) {
 			var currItem  = gallery.currItem;
 			if(!currItem){return;}
 			var url = currItem.srcFile || currItem.src;
+			var svgPre = 'data:image/svg+xml;base64,';
+			if(_.isObject(currItem.data) && _.startsWith(currItem.data.src,svgPre)){
+				var fileName = _.trim(currItem.data.title || '') || time();
+				$.htmlDownload(currItem.data.src,fileName,'image/svg+xml');
+				return;
+			}
 			
 			// var blobUrl = (URL || webkitURL).createObjectURL(new Blob([url],{type:'image/svg+xml'}));
 			// window.open(blobUrl);return;
