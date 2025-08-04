@@ -134,8 +134,7 @@ class explorerShare extends Controller{
 		}
 		if(is_array($result)){
 			if($encode){$result = $this->shareItemInfo($result);}
-			// $result['shareID'] = $this->share['shareID'];
-			// $result['shareOption']  = $this->share['options'];
+			$result['shareID'] = $this->share['shareID'];
 		}
 		return $result;
 	}
