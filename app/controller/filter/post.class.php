@@ -40,7 +40,7 @@ class filterPost extends Controller{
 		}
 		
 		// webdav 挂载kod; 当前开启了csrf防护,直接接口上传时不处理;
-		if($theACT == 'fileupload'){
+		if($theACT == 'fileupload' || $theMod.'.'.$theST == 'explorer.shareout'){
 			allowCROS();// 允许跨域访问;外部联合分享, 前端直传;
 			if($_SERVER['REQUEST_METHOD'] == 'OPTIONS'){exit;}
 			if(isset($_POST['clientFrom']) && $_POST['clientFrom'] =='webdav-kodbox'){return;}

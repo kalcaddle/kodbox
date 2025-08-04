@@ -777,6 +777,7 @@ class S3 {
 			do {
 				$tryCnt++;
 				$etag = $this->uploadPart($bucket, $uri, ($i + 1), $uploadId, $requestHeaders);
+				// if (!$etag) usleep(self::UPLOAD_RETRY_WAIT);
 			} while (!$etag && $tryCnt < self::UPLOAD_RETRY);
 			if (!$etag) return false;
 			$partList[] = array('PartNumber' => ($i + 1), 'ETag' => $etag);
@@ -786,6 +787,7 @@ class S3 {
 			do {
 				$tryCnt++;
 				$complete = $this->completeMultiUpload($bucket, $uri, $uploadId, $partList);
+				// if (!$complete) usleep(self::UPLOAD_RETRY_WAIT);
 			} while (!$complete && $tryCnt < self::UPLOAD_RETRY);
 			return $complete;
 		}
@@ -1046,10 +1048,12 @@ class S3 {
 		if ($saveTo !== false) {
 			if (is_resource($saveTo)) {
 				$rest->fp = &$saveTo;
-			} elseif (($rest->fp = @fopen($saveTo, 'wb')) !== false) {
-				$rest->file = realpath($saveTo);
 			} else {
-				$rest->response->error = array('code' => 0, 'message' => 'Unable to open save file for writing: ' . $saveTo);
+				if (($rest->fp = @fopen($saveTo, 'wb')) !== false) {
+					$rest->file = realpath($saveTo);
+				} else {
+					$rest->response->error = array('code' => 0, 'message' => 'Unable to open save file for writing: ' . $saveTo);
+				}
 			}
 		}
 		if ($rest->response->error === false) {
@@ -1948,7 +1952,7 @@ class S3 {
 			return $strlen;
 		}
 		if (strtolower(substr($data, 0, 4)) == 'http') {
-			$this->response->code = (int) substr($data, 9, 3);
+			$this->response->code = curl_getinfo($curl, CURLINFO_HTTP_CODE);
 		} else {
 			$data = trim($data);
 			if (strpos($data, ': ') === false) {
