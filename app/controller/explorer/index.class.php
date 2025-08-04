@@ -639,8 +639,8 @@ class explorerIndex extends Controller{
 		$code = $result ? true:false;
 		$msg  = $copyType == 'copy'?LNG('explorer.pastSuccess'):LNG('explorer.cutePastSuccess');
 		
-		if(count($result) == 0){$msg = LNG('explorer.error');}
-		if($errorList){$msg .= "(".count($errorList)." error)\n".IO::getLastError();}
+		if(count($result) == 0){$msg = IO::getLastError(LNG('explorer.error'));}
+		if($errorList){$msg .= "(".count($errorList)." error)";}
 		show_json($msg,$code,$result,$infoMore);
 	}
 	
@@ -653,10 +653,11 @@ class explorerIndex extends Controller{
 			
 			// 外链分享处理; 权限限制相关校验; 关闭下载--不支持转存; 转存数量限制处理;
 			$info = Action('explorer.share')->sharePathInfo($path);
-			if(!$info){
+			$shareInfo = Action('explorer.share')->shareInfoLast();
+			if(!$info || !$shareInfo){
 				show_json($GLOBALS['explorer.sharePathInfo.error'], false);
 			}
-			if($info['option'] && $info['option']['notDownload'] == '1'){
+			if($shareInfo['options'] && $shareInfo['options']['notDownload'] == '1'){
 				show_json(LNG('explorer.share.noDownTips'), false);
 			}
 			$list[$i]['path'] = $info['path'];

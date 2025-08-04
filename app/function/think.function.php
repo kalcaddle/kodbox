@@ -360,7 +360,7 @@ function think_trace($value = '[think]', $label = '', $level = 'DEBUG', $record 
 		return;
 	}
 
-	$logMax 	= 10;//最多纪录前10条sql; 避免额外开销及内存不可控
+	$logMax 	= 100;//最多纪录前30条sql; 避免额外开销及内存不可控
 	$level  	= strtoupper($level);
 	$keyTrace 	= $level.'-trace';
 	$keyList	= $level.'-list';

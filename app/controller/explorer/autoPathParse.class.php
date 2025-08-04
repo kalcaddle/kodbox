@@ -88,7 +88,7 @@ class explorerAutoPathParse extends Controller {
 		foreach($pathArr as $i=>$name){
 			$pathInfo = $this->parseSource($sourceID,$name);
 			if(!$pathInfo){ // 不存在时, 当前文档为文件时; 直接返回;  允许文件路径后续追加无效内容;
-				$itemInfo = Model("Source")->field("sourceID,name,isFolder")->where(array('sourceID'=>$sourceID))->find();
+				$itemInfo = Model("Source")->field("sourceID,name,isFolder")->where(array('sourceID'=>$sourceID,'isDelete'=>0))->find();
 				if($itemInfo && $itemInfo['isFolder'] == '0'){$pathInfo = $itemInfo;}
 			}
 			if($pathInfo && $pathInfo['isFolder'] == '0'){// 如果是文件则直接返回;忽略后续内容;
@@ -125,7 +125,7 @@ class explorerAutoPathParse extends Controller {
 		if(array_key_exists($cacheKey,$cache)){
 			return $cache[$cacheKey];
 		}
-		$where    = array('parentID'=>$sourceID,'name'=>$name);
+		$where    = array('parentID'=>$sourceID,'name'=>$name,'isDelete'=>0);
 		$pathInfo = Model("Source")->field("sourceID,name,isFolder")->where($where)->find();
 		$cache[$cacheKey] = $pathInfo ? $pathInfo : 0;
 		return $cache[$cacheKey];

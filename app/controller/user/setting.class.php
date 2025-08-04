@@ -99,7 +99,7 @@ class userSetting extends Controller {
 	 * @return type
 	 */
 	public function checkMsgCode($type, $code, $data = array(), $set = false) {
-		$typeList = array('setting', 'regist', 'findpwd');	// 个人设置、注册、找回密码
+		$typeList = array('setting', 'regist', 'findpwd', 'deregist');	// 个人设置、注册、找回密码、注销
 		if(!in_array($data['type'], $typeList)){
 			show_json(LNG('common.invalid') . LNG('explorer.file.action'), false);
 		}

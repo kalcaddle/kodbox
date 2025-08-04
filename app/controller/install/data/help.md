@@ -198,7 +198,7 @@
 | timeTo | int(11) unsigned    | 到期时间,0-永久生效 |
 | numView | bigint(20) unsigned    | 预览次数 |
 | numDownload | bigint(20) unsigned    | 下载次数 |
-| options | varchar(1000)    | json 配置信息;是否可以下载,是否可以上传等 |
+| options | text  | json 配置信息  |
 | createTime | int(11) unsigned    | 创建时间 |
 | modifyTime | int(11) unsigned    | 最后修改时间 |
 

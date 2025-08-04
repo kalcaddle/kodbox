@@ -58,17 +58,17 @@
         // maxImageSize: 1024*1024, // 限制图片大小为1MB
         // scale: 1.0, // 默认缩放比例
         // useOnlyCssZoom: true, // 用CSS缩放替代Canvas重绘
-        disableFontFace: true,  // 禁用@font-face减少字体解析错误
+        // disableFontFace: true,  // 禁用@font-face减少字体解析错误——会导致部分文本无法显示或乱码
 
         isEvalSupported: false,
         imageResourcesPath: staticPath+'pdfjs/web/images/',
         cMapUrl: staticPath+'pdfjs/web/cmaps/',
         cMapPacked: true,
         standardFontDataUrl: staticPath+'pdfjs/web/standard_fonts/',
-
         workerSrc: staticPath + 'pdfjs/build/pdf.worker.js',
-        defaultUrl: "<?php echo clear_quote($fileUrl);?>",
         localeProperties: {lang: '<?php echo $lang; ?>'},
+
+        defaultUrl: "<?php echo clear_quote($fileUrl);?>",
       };
       PDFViewerApplicationOptions.setAll(options);  // PDFViewerApplicationOptions.set(key,value);
 		</script>

@@ -104,9 +104,10 @@ function get_server_ip(){
 
 function get_url_link($url){
 	if(!$url) return "";
-	$res = parse_url($url);
+	$res  = parse_url($url);
 	$port = (empty($res["port"]) || $res["port"] == '80')?'':':'.$res["port"];
-	return $res['scheme']."://".$res["host"].$port.$res['path'];
+	$path = preg_replace("/\/+/","/",$res["path"]);
+	return $res['scheme']."://".$res["host"].$port.$path;
 }
 function get_url_root($url){
 	if(!$url) return "";
@@ -259,9 +260,11 @@ function is_wap(){
 function http_close(){
 	ignore_timeout();
 	static $firstRun = false;
-	if($firstRun) return; //避免重复调用;
+	if($firstRun){return;} //避免重复调用;
 	
-	if(function_exists('fastcgi_finish_request')) {
+	// 进程终止情况不再调用手动中断连接; 后续echo时部分服务器会报错; 从而后续绑定的beforeShutdown未执行情况;
+	if($GLOBALS['requestShutdownGlobal']){return;} 
+	if(function_exists('fastcgi_finish_request')){
 		fastcgi_finish_request();
 	} else {
 		header("Connection: close");
@@ -497,9 +500,9 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 	//error
 	if($response_info['http_code'] == 0){
 		$error_message = curl_error($ch);
-		$error_message = $error_message ? "\n".$error_message : 'Network error!';
+		$error_message = $error_message ? $error_message : 'Network error!';
 		return array(
-			'data'		=> "API call to $url failed;".$error_message,
+			'data'		=> "Request error:".get_url_root($url).";\n".$error_message,
 			'code'		=> 0,
 			'header'	=> $response_info,
 		);

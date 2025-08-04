@@ -139,8 +139,9 @@ class adminStorage extends Controller {
 			}
 		}
 		// 存储中有file记录，先迁移文件再删除存储，否则直接删除存储
-		$cnt = Model('File')->where(array('ioType' => $id))->count();
-		if($cnt) {
+		$res = Model('File')->where(array('ioType' => $id))->field(array('count(*)'=>'cnt','sum(size)'=>'size'))->find();
+		$GLOBALS['IO_FILE_RES'] = $res;	// 避免后面再次查询（数据量大时比较耗时）
+		if(intval($res['cnt'])) {
 			$info = $this->model->listData($id);
 			$chks = $this->model->checkConfig($info,true);
 			// 存储无法链接，确认后直接删除

@@ -206,9 +206,10 @@ class PathDriverWebdav extends PathDriverBase {
 
 		if(!is_array($result['data']) || !array_key_exists('code',$result['data'])) return false;
 		if(!$result['data']['code']) return $result['data'];//结束;
-		$hashInfo = _get($result['data'],'info.checkFileHash');
+		$infoData = _get($result,'data.info',array());
+		$hashInfo = _get($infoData,'checkFileHash');
 		if(!is_array($hashInfo) || !$hashInfo['hashMd5']) return false;
-		if($hashInfo['uploadChunkSize']){$this->uploadChunkSize = $hashInfo['uploadChunkSize'];}
+		if($infoData['uploadChunkSize']){$this->uploadChunkSize = $infoData['uploadChunkSize'];}
 		$fileMd5 = IO::hashMd5($localPath);
 		if($hashInfo['hashMd5'] != $fileMd5) return false;
 		

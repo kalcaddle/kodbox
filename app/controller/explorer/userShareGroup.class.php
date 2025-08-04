@@ -296,6 +296,7 @@ class explorerUserShareGroup extends Controller{
 		foreach($this->shareListData['user'] as $userID=>$userShare){
 			$userInfo  = Model('User')->getInfo($userID);
 			$userAllow = false;
+			if(!$userInfo){$userInfo = Model('User')->getInfoSimpleOuter($userID);}
 			foreach ($userInfo['groupInfo'] as $groupInfo){
 				$groupLevel = $groupInfo['parentLevel'].$groupInfo['groupID'].',';//层级
 				if($this->groupAllowShow($groupInfo['groupID'],$groupLevel)){$userAllow = true;break;}

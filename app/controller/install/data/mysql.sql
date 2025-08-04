@@ -275,7 +275,7 @@ CREATE TABLE `share` (
   `timeTo` int(11) unsigned NOT NULL COMMENT '到期时间,0-永久生效',
   `numView` bigint(20) unsigned NOT NULL COMMENT '预览次数',
   `numDownload` bigint(20) unsigned NOT NULL COMMENT '下载次数',
-  `options` varchar(1000) NOT NULL COMMENT 'json 配置信息;是否可以下载,是否可以上传等',
+  `options` text COMMENT 'json 配置信息 ',
   `createTime` int(11) unsigned NOT NULL COMMENT '创建时间',
   `modifyTime` int(11) unsigned NOT NULL COMMENT '最后修改时间',
   PRIMARY KEY (`shareID`),

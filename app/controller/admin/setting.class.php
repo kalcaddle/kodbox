@@ -14,6 +14,11 @@ class adminSetting extends Controller {
 
 	public function get(){
 		$data = Model('SystemOption')->get();
+		if(!$data['shareOutSiteApiKey']){
+			Model('SystemOption')->set('shareOutSiteApiKey',rand_string(16));
+			$data = Model('SystemOption')->get();
+		}
+		
 		$data = array_merge($this->config['settingSystemDefault'],$data);
 		$removeKey = array(
 			'versionLicense','versionUser','versionHashUser','versionHash',

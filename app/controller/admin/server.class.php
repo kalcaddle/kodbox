@@ -642,25 +642,20 @@ class adminServer extends Controller {
 		if($info['type'] != 'folder') {
 			show_json(LNG('admin.setting.recSysPathErr'), false);
 		}
-		// 1.1 结构文件是否存在
-		if(!IO::fileNameExist($path, $type.'.sql')) {
-			show_json(LNG('admin.setting.recSysTbErr'), false);
-		}
-		// 1.2 数据表文件是否完整
+		// 1.1 检查备份列表是否有效——只检查关键的几个表文件
+		$manage = new DbManage();
+		// 获取解密名称列表，兼容旧版（明文）
+		$data = $manage->unmixBakListGet($path);
+		if (!$data) $data = array();
 		$list = IO::listPath($path, true);
-		$tableNew = array();
-		foreach($list['fileList'] as $value) {
-			$tableNew[] = basename($value['name'], '.sql');
-		}
-		$tableOld = Model()->db()->getTables();
-		$tableOld = array_diff($tableOld, array('______', 'sqlite_sequence'));
-		$diff = array_diff($tableOld, $tableNew);	// 当前表vs备份表，当前有新增表时会失败
-		if(!empty($diff)) {
-			$cnt = count($diff);
-			$msg = str_replace('[0]',$cnt, LNG('admin.setting.recDbFileErr'));
-			if ($cnt > 5) $diff = array_slice($diff, 0, 5);
-			$msg .= '<br/>'.implode(',',$diff).($cnt > 5 ? '...' : '');
-			show_json($msg, false);
+		$list = array_to_keyvalue($list['fileList'], '', 'name');
+		$tables = array($type, 'group', 'user', 'io_source', 'io_file', 'system_option');
+		foreach ($tables as $table) {
+			$name = $table . '.sql';
+			$name = _get($data, $name, $name);
+			if (!in_array($name, $list)) {
+				show_json(LNG('admin.setting.recSysTbErr'), false);
+			}
 		}
 		// 检测结果直接返回
 		if(Input::get('check', null, false)) {
@@ -685,6 +680,10 @@ class adminServer extends Controller {
 		// 2.1 下载备份文件到本地临时目录
 		$pathLoc = $this->tmpActPath('recovery');
 		$path = $this->recLocPath($type, $path, $pathLoc);
+		if (!$path || !is_dir($path)) {
+			show_json(LNG('admin.setting.dbFileDownErr'), false);
+		}
+		$manage->unmixBakList($path);
 		$list = IO::listPath($path, true);
 		$fileList = array_to_keyvalue($list['fileList'], 'name', 'path');
 		$file = $fileList[$type . '.sql'];	// sqlite.sql、mysql.sql

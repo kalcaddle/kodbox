@@ -137,7 +137,7 @@ class Downloader {
 		curl_setopt($ch, CURLOPT_NOPROGRESS, false);
 		curl_setopt($ch, CURLOPT_PROGRESSFUNCTION,'curl_progress');curl_progress_start($ch);
 		curl_setopt($ch, CURLOPT_USERAGENT,'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36');
-		$res = curl_exec($ch);curl_progress_end($ch);
+		$res = curl_exec($ch);curl_progress_end($ch,$res);
 		curl_close($ch);
 		fclose($fp);
 

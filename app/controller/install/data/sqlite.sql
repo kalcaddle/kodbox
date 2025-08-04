@@ -292,7 +292,7 @@ CREATE TABLE "share" (
   "timeTo" integer NOT NULL,
   "numView" integer NOT NULL,
   "numDownload" integer NOT NULL,
-  "options" varchar(1000) NOT NULL,
+  "options" text,
   "createTime" integer NOT NULL,
   "modifyTime" integer NOT NULL
 );

@@ -12,14 +12,14 @@ class userRegist extends Controller {
 		parent::__construct();
 	}
 	
-	public function checkAllow(){
+	public function checkAllow($regist=true){
 		if (!isset($this->regOpen)) {
 			$regist = Model("SystemOption")->get("regist");
 			$this->regOpen = $regist['openRegist'] == '1';
 		}
-		if (!$this->regOpen) {
-			show_json("未开启注册,请联系管理员!",false);
-		}
+		if ($this->regOpen) return true;
+		$msg = $regist ? LNG('user.registNotAllow') : LNG('user.deregistNotAllow');
+		show_json($msg,false);
 	}
 	
 	/**
@@ -30,14 +30,18 @@ class userRegist extends Controller {
 			'type'		=> array('check' => 'in', 'param' => array('email', 'phone')),
 			'input'		=> array('check' => 'require'),
 			'source'	=> array('check' => 'require'),
-			'checkCode'	=> array('check' => 'require'),
+			// 'checkCode'	=> array('check' => 'require'),
 		));
+		// 非后端调用（前端请求）需要图形验证码
+		if (!$GLOBALS['BACKEND_CALL_SENDMSGCODE']) {
+			$data['checkCode'] = Input::get('checkCode', 'require');
+		}
 		$type	= $data['type'];
 		$input	= $data['input'];
 		$source	= $data['source'];
 
-		// 个人设置、注册、找回密码
-		if(!in_array($source, array('setting', 'regist', 'findpwd'))){
+		// 个人设置、注册、找回密码、注销
+		if(!in_array($source, array('setting', 'regist', 'findpwd', 'deregist'))){
 			show_json(LNG('common.invalidRequest'), false);
 		}
 		if (!Input::check($input, $type)) {
@@ -45,7 +49,11 @@ class userRegist extends Controller {
 			show_json(LNG('common.invalid') . LNG('common.' . $text), false);
 		}
 		// 图形验证码
-		Action('user.setting')->checkImgCode($data['checkCode']);
+		if (!$GLOBALS['BACKEND_CALL_SENDMSGCODE']) {
+			Action('user.setting')->checkImgCode($data['checkCode']);
+		} else {
+			unset($GLOBALS['BACKEND_CALL_SENDMSGCODE']);
+		}
 
 		// 1.1前端注册检测
 		if ($source == 'regist') {
@@ -216,6 +224,63 @@ class userRegist extends Controller {
 			$msg .= LNG('user.waitCheck');
 		}
 		show_json($msg, $code);
+	}
+
+	/**
+	 * 注销
+	 * 1.确认注销——发送验证码
+	 * 2.输入验证码，提交注销
+	 * @return void
+	 */
+	public function deregist(){
+		KodUser::checkLogin();
+		$this->checkAllow(false);	// 未开启注册
+
+		// 1.验证用户资格
+		$userInfo = Session::get("kodUser");
+		if (!$userInfo) {show_json(LNG('oauth.main.notLogin'), false);}
+		if ($userInfo['userID'] == '1') {
+			show_json('系统管理员不支持此操作！', false);
+		}
+		if (!$userInfo['email']) {
+			show_json('请先绑定邮箱，用于验证码获取！', false);
+		}
+
+		// 2.注销用户
+		// 2.1 发送验证码
+		if (!isset($this->in['code'])) {
+			$this->in = array(
+				'type'		=> 'email',
+				'input'		=> $userInfo['email'],
+				'source'	=> 'deregist',
+			);
+			$GLOBALS['BACKEND_CALL_SENDMSGCODE'] = true;
+			ActionCallResult("user.regist.sendMsgCode",function(&$res){
+				if ($res['code']) {
+					$res['data'] = LNG('explorer.safe.sendMailTips') . ', ' . LNG('explorer.safe.sendMailGet');
+				}
+				return $res;
+			});
+		}
+
+		// 2.2 验证验证码，注销用户
+		$data = array(
+			'type'	=> 'email',
+			'input'	=> $userInfo['email'],
+		);
+		// 消息验证码校验
+		if(!$code = Input::get('code')){
+			show_json(LNG('user.inputVerifyCode'), false);
+		}
+		$param = array(
+			'type'	=> 'deregist',
+			'input' => $data['input']
+		);
+		Action('user.setting')->checkMsgCode($data['type'], $code, $param);
+
+		// 删除用户
+		$this->in['userID'] = $userInfo['userID'];
+		Action("admin.member")->remove();
 	}
 
 }

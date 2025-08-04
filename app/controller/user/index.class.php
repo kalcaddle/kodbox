@@ -43,8 +43,8 @@ class userIndex extends Controller {
 		}
 	}
 	public function shutdownEvent(){
-		http_close();
 		$GLOBALS['requestShutdownGlobal'] = true;// 请求结束后状态标记;
+		http_close();
 		TaskQueue::addSubmit();		// 结束后有任务时批量加入
 		TaskRun::autoRun();			// 定期执行及延期任务处理;
 		CacheLock::unlockRuntime(); // 清空异常时退出,未解锁的加锁;

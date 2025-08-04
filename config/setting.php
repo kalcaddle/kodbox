@@ -282,8 +282,11 @@ $config['settingSystemDefault'] = array(
 	'shareLinkAllowGuest'			=> '1',		// 外链分享允许未登录游客访问
 	'shareLinkUserDisableSkip'		=> '1',		// 账号被禁用时,屏蔽该用户的外链分享
 	'shareLinkAllowEdit'			=> '1',		// 外链允许允许启用编辑
+	'shareOutAllowSend'				=> '1',		// 允许联合分享到外部站点;
+	'shareOutAllowRecive'			=> '1',		// 允许联合分享接收外部站点的分享推送;
+	'shareOutSiteSafe' 				=> '',		// 联合分享,授信站点;
+	'shareOutSiteApiKey' 			=> '',		// 联合分享,授信站点自己的apiKey;访问后台自动生成;
 	'desktopAppDisable'				=> '',		// 桌面默认快捷方式入口隐藏项;
-	
 	
 	'treeOpen'			=> 'my,myFav,myGroup,rootGroup,recentDoc,fileType,fileTag,driver',//树目录开启功能;
 	'groupListChild'	=> '1',//罗列子部门; 0=不罗列;1=全部罗列;2=仅树目录罗列;
@@ -532,6 +535,7 @@ $config['authNotNeedLogin'] = array(
 	'user.regist.*',
 	'user.view.*',
 	'explorer.share.*',
+	'explorer.shareOut.*',
 	'sitemap.*',
 	'install.*',			// 安装/更新
 	'plugin.*',				// 插件排除，权限单独检测;

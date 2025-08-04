@@ -10,46 +10,21 @@ class explorerRecycleDriver extends Controller{
 		parent::__construct();
 	}
 	public function removeCheck($path,$toRecycle=true){
-		if(!$toRecycle) return IO::remove($path,$toRecycle);
 		$path 		= KodIO::clear($path);
 		$pathParse  = KodIO::parse($path);
-		$beforePath = get_path_father($path);
-		
-		$recycleName  = '.recycle/user_'.USER_ID.'/';
-		$recycleLocal = rtrim(DATA_PATH,'/').'/'.$this->localRecycleFolder().'/user_'.USER_ID.'/';
-		if(!$pathParse['type']){// 物理路径
-			$recyclePath = $recycleLocal;
-			return $this->moveToRecycle($path,$recyclePath,$beforePath);
+		$driver 	= IO::init($path);
+		if(!$toRecycle || $pathParse['type'] == KodIO::KOD_SOURCE){
+			return IO::remove($path,$toRecycle);
 		}
-
-		// io路径
-		if($pathParse['type'] == KodIO::KOD_IO){
-			$recyclePath = rtrim($pathParse['pathBase'],'/').'/'.$recycleName;
-			return $this->moveToRecycle($path,$recyclePath,$beforePath);
-		}
+		$recycleLocal = rtrim(DATA_PATH,'/').'/'.$this->localRecycleFolder().'/';
+		$recyclePath  = rtrim($pathParse['pathBase'],'/').'/.recycle/';
+		if(!$pathParse['type']){$recyclePath = $recycleLocal;}
 		
 		// 协作分享内容: 某人删除时, 移动到自己的回收站(物理路径及io路径; db路径处理)
-		if($pathParse['type'] == KodIO::KOD_SHARE_ITEM){
-			$driver = IO::init($path);
-			if($driver->getType() == 'drivershareitem'){
-				$pathParseIO = KodIO::parse($driver->path);
-				if(!$pathParseIO['type']){// 物理路径
-					$recyclePath = $recycleLocal;
-					return $this->moveToRecycle($driver->path,$recyclePath,$beforePath);
-				}
-				// io路径
-				if($pathParseIO['type'] == KodIO::KOD_IO){
-					$recyclePath = rtrim($pathParse['pathBase'],'/').'/'.$recycleName;
-					return $this->moveToRecycle($driver->path,$recyclePath,$beforePath);
-				}
-			}
-
-			// 个人或部门文件夹协作分享给其他人; 其他任何人删除后进入自己的回收站;
-			if($driver->getType() == 'dbshareitem' && $toRecycle){
-				$list = $this->listData();$list[$path] = $beforePath;$this->resetList($list);
-			}
+		if($pathParse['type'] == KodIO::KOD_SHARE_ITEM && $driver->getType() == 'dbshareitem'){
+			$recyclePath  = rtrim($driver->getPathRoot(),'/').'/.recycle/';
 		}
-		return IO::remove($path,$toRecycle);
+		return $this->moveToRecycle($path,$recyclePath,IO::pathFather($path));
 	}
 	
 	/**
@@ -132,7 +107,7 @@ class explorerRecycleDriver extends Controller{
 				in_array($beforePath,$sourceArr) || 
 				in_array(trim($beforePath,'/').'/',$sourceArr)
 			){
-				IO::remove($toPath);
+				IO::remove($toPath,false);
 				unset($listNew[$toPath]);
 			}
 		}
@@ -145,17 +120,9 @@ class explorerRecycleDriver extends Controller{
 	public function restore($sourceArr){
 		$list = $this->listData();
 		$listNew = $list;
-		foreach ($list as $toPath => $fromPath){
-			// 还原所有, 或者当前在待还原列表中则还原该项;
-			$beforePath = rtrim($fromPath,'/').'/'.get_path_this($toPath);
-			if(!$sourceArr || 
-				in_array($beforePath,$sourceArr) || 
-				in_array(rtrim($beforePath,'/'),$sourceArr) ||
-				in_array(rtrim($beforePath,'/').'/',$sourceArr)
-			){
-				IO::move($toPath,$fromPath,REPEAT_RENAME_FOLDER);
-				unset($listNew[$toPath]);
-			}
+		foreach($list as $thePath => $beforePath){
+			IO::move($thePath,$beforePath,REPEAT_RENAME_FOLDER);
+			unset($listNew[$thePath]);
 		}
 		if(count($listNew) != count($list)){
 			$this->resetList($listNew);
@@ -169,14 +136,15 @@ class explorerRecycleDriver extends Controller{
 	 */
 	private function moveToRecycle($path,$recyclePath,$beforePath){
 		if(substr($path,0,strlen($recyclePath)) == $recyclePath){
-			return IO::remove($path);//已经在回收站中,则不再处理;
+			return IO::remove($path,false);//已经在回收站中,则不再处理;
 		}
 		
 		$destPath = IO::mkdir($recyclePath);
 		$destInfo = $destPath ? IO::info($destPath):false;
-		if(!$destInfo){return IO::remove($path);} //新建失败,则尝试直接删除;
+		if(!$destInfo){return $path;} //新建失败则返回;
+		if(IO::isParentOf($destPath,$path)){return IO::remove($path,false);} // 已经在回收站中则直接删除;
 
-		$toPath = IO::move($path,$recyclePath,REPEAT_RENAME_FOLDER);
+		$toPath = IO::move($path,$destPath,REPEAT_RENAME_FOLDER);
 		$list = $this->listData();
 		$list[$toPath] = $beforePath;
 		$this->resetList($list);

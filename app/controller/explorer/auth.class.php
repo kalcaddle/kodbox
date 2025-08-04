@@ -258,6 +258,12 @@ class explorerAuth extends Controller {
 		if(!$isRoot && !Action('user.authRole')->canCheckRole($action)){
 			return $this->errorMsg(LNG('explorer.noPermissionAction'),1021);
 		}
+		if($ioType == KodIO::KOD_SHARE_OUTER){ // 外部分享内容; 权限在内容自行处理;
+			$driver = IO::init($path);
+			if($driver->allowAction($action)){return true;}
+			return $this->errorMsg(IO::getLastError(LNG('explorer.noPermissionAction')),1021);
+		}
+		
 		// 物理路径 io路径拦截；只有管理员且开启了访问才能做相关操作;
 		if( $ioType == KodIO::KOD_IO || $ioType == false ){
 			if( request_url_safe($path) ) return $action == 'view';

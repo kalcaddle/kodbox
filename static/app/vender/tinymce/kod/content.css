@@ -14,7 +14,9 @@ body.mce-content-body{
     margin: 0;padding:10px 15px;
     box-sizing: border-box;
 }
-
+body.mce-content-body:not([dir=rtl])[data-mce-placeholder]:not(.mce-visualblocks)::before{
+	margin-top:4px;left:initial;opacity:0.5;
+}
 .mce-content-body p,.article-content-body p{
 	margin: 0.3em 0;
     line-height: 1.4em;

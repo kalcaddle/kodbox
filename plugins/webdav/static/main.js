@@ -3,22 +3,43 @@ kodReady.push(function () {
 		host:  G.kod.APP_HOST+'index.php/dav/',
 		allow: parseInt("{{isAllow}}"),
 		systemAutoMount: parseInt("{{systemAutoMount}}"),
-		pathAllow: '{{pathAllow}}'
+		pathAllow: '{{pathAllow}}',
+		version: '{{package.version}}'
 	};
 	
+	// 菜单地址，兼容旧版
+	var newMenuVers = (G.kod.version+'.'+G.kod.build) > '1.60.03' ? true : false;
+	var newMenuHash = function(hash){
+		if (newMenuVers) return hash;
+		if (arguments[1]) return arguments[1];	// 直接用指定hash
+		return hash.replace('/server/', '/storage/');	// 替换server部分
+	}
 	Events.bind("admin.leftMenu.before",function(menuList){
-		menuList.push({
-			title:LNG['webdav.meta.name'],	// 文件服务
-			icon:"ri-hard-drive-fill-2",
-			link:"admin/storage/webdav",
-			after:'admin/storage/share',//after/before; 插入菜单所在位置;
+		var menu = {
+			title:LNG['admin.server.file'],	// 文件服务
+			icon:"ri-folder-shared-fill",
+			link:newMenuHash("admin/server/webdav"),
+			before:newMenuHash('admin/server/index','admin/storage/share'),//after/before; 插入菜单所在位置;
 			sort:100,
 			pluginName:"{{pluginName}}",
-		});
+		};
+		menuList.push(menu);
 	});
-	Events.bind("admin.leftMenu.after",function(self){
-		var $menu = self.$('.admin-menu-left .menu-content>.menu-items');
-		$menu.find('.menu-item[link-href="admin/storage/share"]').after($menu.find('.menu-item[link-href="admin/storage/webdav"]'));
+	// 菜单页预览：合并配置菜单
+	Events.bind('plugin.config.formBefore', function(formData, options, _this){
+		if (_.get(options, 'id') != 'app-config-{{pluginName}}') return;
+		if (Router.hash != newMenuHash('admin/server/webdav')) return;
+		formData.sep002 = '<hr/>';
+		formData.formStyle.tabs[LNG['webdav.config.tab1']] += ',sep002,mountWebdav,mountDetail,kodboxUpload,kodboxDownload';
+		formData.formStyle.tabs[LNG['webdav.config.tab2']] = '';
+		formData.isOpen.switchItem['1'] += ',sep002,mountWebdav';
+	});
+	// 关闭服务时，同时关闭挂载存储
+	Events.bind('plugin.config.formAfter', function(_this){
+		var form = _this['formwebdav'];
+		if (!form || !form.$el) return;
+		if (Router.hash != newMenuHash('admin/server/webdav')) return;
+		form.$('.form-row.item-mountWebdav').before(form.$('.form-row.item-sep002'));
 	});
 	Events.bind("user.leftMenu.before",function(menuList){
 		if(!G.webdavOption.allow) return;

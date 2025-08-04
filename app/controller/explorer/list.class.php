@@ -53,6 +53,10 @@ class explorerList extends Controller{
 			case KodIO::KOD_IO:
 			default:$data = IO::listPath($path);break;
 		}
+		if($data === false){ // 获取失败情况处理;
+			if($thePath){return false;}
+			return show_json(IO::getLastError(LNG('explorer.error')),false);
+		}
 		$this->parseData($data,$path,$pathParse,$current);
 		Action('explorer.listView')->listDataSet($data);
 

@@ -8,10 +8,11 @@ function allowCROS(){
 	$GLOBALS['_allowCROS'] = true;
 	
 	$allowMethods = 'GET, POST, OPTIONS, DELETE, HEAD, MOVE, COPY, PUT, MKCOL, PROPFIND, PROPPATCH, LOCK, UNLOCK';
-	$allerHeaders = 'ETag, Content-Type, Content-Length, Accept-Encoding, X-Requested-with, Origin, Authorization';
+	$allerHeaders = 'ETag, Content-Type, Content-Length, Accept-Encoding, X-Requested-with, Origin, X-Kod-Cookie, Authorization, Access-Control-Request-Private-Network, Access-Control-Request-Credentials, Access-Control-Allow-Credentials, Access-Control-Allow-Origin, Access-Control-Allow-Methods, Access-Control-Allow-Headers, Access-Control-Max-Age';
 	header('Access-Control-Allow-Origin: *');    				// 允许的域名来源;
 	header('Access-Control-Allow-Methods: '.$allowMethods); 	// 允许请求的类型
 	header('Access-Control-Allow-Headers: '.$allerHeaders);		// 允许请求时带入的header
+	header('Access-Control-Allow-Private-Network: true');		// 允许私有网络
 	header('Access-Control-Allow-Credentials: true'); 			// 设置是否允许发送 cookie; js需设置:xhr.withCredentials = true;
 	header('Access-Control-Max-Age: 3600');	
 }

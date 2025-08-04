@@ -109,9 +109,11 @@ class explorerShare extends Controller{
 	public function sharePathInfo($path,$encode=false,$infoChildren=false){
 		$parse = KodIO::parse($path);
 		if(!$parse || $parse['type'] != KodIO::KOD_SHARE_LINK){return false;}
-		$check = ActionCallHook('explorer.share.initShare',$parse['id']);
-		if(is_array($check)){
-			$GLOBALS['explorer.sharePathInfo.error'] = $check['data'];
+		$this->showErrorStop = true;
+		$error = $this->initShare($parse['id']);
+		$this->showErrorStop = false;
+		if($error){
+			$GLOBALS['explorer.sharePathInfo.error'] = $error;
 			return false; // 不存在,时间过期,下载次数超出,需要登录,需要密码;
 		}
 		$truePath = $this->parsePath($path);
@@ -120,23 +122,24 @@ class explorerShare extends Controller{
 		}else{
 			$result = IO::info($truePath);
 		}
+		if(!$result){return false;}
 		
 		// 仅文件,判断预览;
-		if(	$result['type'] == 'file' && 
-			$this->share['options'] && 
-			$this->share['options']['notDownload'] == '1' &&
-			$this->share['options']['notView'] == '1'){
+		$canView 	 = _get($this->share,'options.notView') != '1';
+		$canDownload = _get($this->share,'options.notDownload') != '1';
+		if($this->shareOuterAuth){$canDownload = true;}
+		if($result['type'] == 'file' && !$canDownload && !$canView){
+			$GLOBALS['explorer.sharePathInfo.error'] = LNG('explorer.share.noViewTips');
 			return false;
-		}		
+		}
 		if(is_array($result)){
-			if($encode){
-				$result = $this->shareItemInfo($result);
-			}
-			$result['shareID'] = $this->share['shareID'];
-			$result['option']  = $this->share['options'];
+			if($encode){$result = $this->shareItemInfo($result);}
+			// $result['shareID'] = $this->share['shareID'];
+			// $result['shareOption']  = $this->share['options'];
 		}
 		return $result;
 	}
+	public function shareInfoLast(){return $this->share;}
 
 	/**
 	 * 通过分享hash获取分享信息；
@@ -168,11 +171,12 @@ class explorerShare extends Controller{
 	public function initShare($hash=''){
 		if($this->share && !isset($GLOBALS['isRootCall'])) return;
 		$this->share = $share = $this->model->getInfoByHash($hash);
+		$this->shareOuterAuth = Action('explorer.shareOut')->sendCheckAuth($this->share);
 		if(!$share || $share['isLink'] != '1'){
-			$this->showError(LNG('explorer.share.notExist'),30100);
+			return $this->showError(LNG('explorer.share.notExist'),30100);
 		}
 		if($share['sourceInfo']['isDelete'] == '1'){
-			$this->showError(LNG('explorer.share.notExist'),30100);
+			return $this->showError(LNG('explorer.share.notExist'),30100);
 		}
 		if(isset($GLOBALS['isRootCall']) && $GLOBALS['isRootCall']){return;} //后台任务队列获取属性,不做判断;
 		
@@ -180,14 +184,15 @@ class explorerShare extends Controller{
 		if(!Action('explorer.authUser')->canShare($share)){
 			$userInfo = Model('User')->getInfoSimpleOuter($share['userID']);
 			$tips = '('.$userInfo['name'].' - '.LNG('common.noPermission').')';
-			$this->showError(LNG('explorer.share.notExist') .$tips,30100);
+			return $this->showError(LNG('explorer.share.notExist') .$tips,30100);
 		}
 
 		//检测是否过期
 		if($share['timeTo'] && $share['timeTo'] < time()){
-			$this->showError(LNG('explorer.share.expiredTips'),30101,$this->get(true));
+			return $this->showError(LNG('explorer.share.expiredTips'),30101,$this->get(true));
 		}
-
+		if($this->shareOuterAuth){return;}
+		
 		//检测下载次数限制
 		if( $share['options'] && 
 			$share['options']['downloadNumber'] && 
@@ -195,14 +200,14 @@ class explorerShare extends Controller{
 			$msg = LNG('explorer.share.downExceedTips');
 			$pathInfo = explode('/', $this->in['path']);
 			if(!empty($pathInfo[1]) || is_ajax()) {
-				$this->showError($msg,30102,$this->get(true));
+				return $this->showError($msg,30102,$this->get(true));
 			}
-			show_tips($msg);
+			return $this->showError($msg,30102,$this->get(true));
 		}
 		//检测是否需要登录
 		$user = Session::get("kodUser");
 		if( $share['options'] && $share['options']['onlyLogin'] == '1' && !is_array($user)){
-			$this->showError(LNG('explorer.share.loginTips'),30103,$this->get(true));
+			return $this->showError(LNG('explorer.share.loginTips'),30103,$this->get(true));
 		}
 		//检测密码
 		$passKey  = 'Share_password_'.$share['shareID'];
@@ -210,20 +215,20 @@ class explorerShare extends Controller{
 			if( isset($this->in['password']) && strlen($this->in['password']) < 500 ){
 				$code = md5(BASIC_PATH.Model('SystemOption')->get('systemPassword'));
 				$pass = Mcrypt::decode(trim($this->in['password']),md5($code));
-				
 				if($pass == $share['password']){
 					Session::set($passKey,$pass);
 				}else{
-					$this->showError(LNG('explorer.share.errorPwd'),false);
+					return $this->showError(LNG('explorer.share.errorPwd'),false);
 				}
 			}
 			// 检测密码
 			if( Session::get($passKey) != $share['password'] ){
-				$this->showError(LNG('explorer.share.needPwd'),30104,$this->get(true));
+				return $this->showError(LNG('explorer.share.needPwd'),30104,$this->get(true));
 			}
 		}
 	}
 	private function showError($msg,$code,$info=false){
+		if($this->showErrorStop){return $msg ? $msg:'error';}
 		$action = strtolower(ACT);
 		$tipsAction = array('fileout','filedownload');
 		if(in_array($action,$tipsAction)){return show_tips($msg);}
@@ -235,55 +240,49 @@ class explorerShare extends Controller{
 	 * 下载次数，预览次数记录
 	 */
 	private function authCheck(){
-		$ACT   = strtolower(ACT);
-		$share = $this->share;
-		$where = array("shareID"=>$share['shareID']);
+		$ACT   		= strtolower(ACT);
+		$options 	= is_array($this->share['options']) ? $this->share['options'] : array();
+		$where 		= array("shareID"=>$this->share['shareID']);
+		// 分享者角色没有上传权限时, 忽略配置开启上传;
+		$actionUpload 	= array('fileupload','mkdir','mkfile');
+		$actionEdit 	= array('fileupload','mkdir','mkfile','pathrename','pathDelete','pathcopy','pathcute','pathcuteto','pathcopyto','pathpast','filesave');
+		$canUpload 		= $options['canUpload']   == '1';
+		$canEdit 		= $options['canEditSave'] == '1';
+		$canView	 	= $options['notView'] 	  != '1';
+		$canDownload 	= $options['notDownload'] != '1';
+		$outerAuth 		= $this->shareOuterAuth; // 对外联合分享访问, 权限采用外站分享的权限;
+		if($outerAuth == 'read' || $outerAuth == 'write'){$canView = true;$canDownload = true;}
+		if($outerAuth == 'write'){$canEdit = true;}
 		if($ACT == 'get'){
 			$this->model->where($where)->setAdd('numView');
 			$this->cacheShareClear();
 		}
+		
 		//权限检测；是否允许下载、预览、上传;
-		if( $share['options'] && 
-			$share['options']['notDownload'] == '1' && 
-			((equal_not_case(ACT,'fileOut') && $this->in['download']=='1') || 
-			equal_not_case(ACT,'zipDownload')) ){
+		$isDownload = ($ACT == 'fileout' && $this->in['download']=='1') || $ACT =='zipdownload' || $ACT =='filedownload';
+		if(!$canDownload && $isDownload){
 			$this->showError(LNG('explorer.share.noDownTips'),false);
 		}
-		if( $share['options'] && 
-			$share['options']['notView'] == '1' && 
-			$share['options']['notDownload'] == '1' && 
-			(	equal_not_case(ACT,'fileGet') ||
-				equal_not_case(ACT,'fileOut') ||
-				equal_not_case(ACT,'unzipList')
-			)
-		){
+		if(!$canView && !$canDownload && in_array($ACT,array('fileget','fileout','unziplist'))){
 			$this->showError(LNG('explorer.share.noViewTips'),false);
 		}
 		
-		// 分享者角色没有上传权限时, 忽略配置开启上传;
-		$shareUser = $share['userID'];
-		$actionUpload = array('fileupload','mkdir','mkfile');
-		$actionEdit   = array('fileupload','mkdir','mkfile','pathrename','pathcopy','pathcute','pathcuteto','pathcopyto','pathpast','filesave');
-		$canUpload 	  = is_array($share['options']) && $share['options']['canUpload'] == '1';
-		$canEdit 	  = is_array($share['options']) && $share['options']['canEditSave'] == '1';
 		// TODO 有编辑权限,一定包含上传权限;
 		if(in_array($ACT,$actionUpload) && !$canEdit){
-			if($canUpload && !Action('user.authRole')->authCanUser('explorer.upload',$shareUser)){$canUpload = false;}
+			if($canUpload && !Action('user.authRole')->authCanUser('explorer.upload',$this->share['userID'])){$canUpload = false;}
 			if($canUpload && isset($this->in['path']) && !$this->checkPathAuth($this->in['path'])){$canUpload = false;}
 			if(!$canUpload){$this->showError(LNG('explorer.noPermissionWriteAll'),false);}
 		}
 		if(in_array($ACT,$actionEdit) && !in_array($ACT,$actionUpload)){// 目的地检测;必须为当前分享文件夹下子内容;
-			if($canEdit && !Action('user.authRole')->authCanUser('explorer.edit',$shareUser)){$canEdit = false;}
+			if($canEdit && !Action('user.authRole')->authCanUser('explorer.edit',$this->share['userID'])){$canEdit = false;}
 			if($canEdit && isset($this->in['path']) && !$this->checkPathAuth($this->in['path'])){$canEdit = false;}
 			if($canEdit && isset($this->in['dataArr']) && !$this->checkPathAuth($this->in['dataArr'],true)){$canEdit = false;}
-			if($canEdit && Model('SystemOption')->get('shareLinkAllowEdit') == '0'){$canEdit = false;}
+			if($canEdit && $outerAuth != 'write' && Model('SystemOption')->get('shareLinkAllowEdit') == '0'){$canEdit = false;}
 			if(!$canEdit){$this->showError(LNG('explorer.noPermissionWriteAll'),false);}
 		}
 		
-		if((equal_not_case(ACT,'fileOut') && $this->in['download']=='1') ||
-			equal_not_case(ACT,'zipDownload') || 
-			equal_not_case(ACT,'fileDownload') ){
-			// 下载计数; 分片下载时仅记录起始为0的项(并忽略长度为0的请求),忽略head请求;
+		// 下载计数; 分片下载时仅记录起始为0的项(并忽略长度为0的请求),忽略head请求;
+		if($isDownload){
 			if(!Action('admin.log')->checkHttpRange()){return;}
 			$this->model->where($where)->setAdd('numDownload');
 			$this->cacheShareClear();
@@ -304,9 +303,8 @@ class explorerShare extends Controller{
 	
 	// 清除分享方法缓存
 	private function cacheShareClear(){
-		$share = $this->share;
-		$this->model->cacheFunctionClear('listSimple', $share['userID']);
-		$this->model->cacheFunctionClear('getInfo', $share['shareID']);
+		$this->model->cacheFunctionClear('listSimple', $this->share['userID']);
+		$this->model->cacheFunctionClear('getInfoShare', $this->share['shareID']);
 	}
 	/**
 	 * 检测并获取真实路径;
@@ -356,7 +354,9 @@ class explorerShare extends Controller{
 		
 		if(count($fileList) == 1){
 			// 单个文件属性; 没有仅用预览,则开放预览链接;
-			if($result[0]['type'] == 'file' &&  _get($this->share,'options.notDownload') != '1' ){
+			$canDownload = _get($this->share,'options.notDownload') != '1';
+			if($this->shareOuterAuth){$canDownload = true;}
+			if($result[0]['type'] == 'file' && $canDownload ){
 				$param = "shareID=".$this->share['shareHash']."&path=".rawurlencode($result[0]['path']);
 				$param .= '&name=/'.rawurlencode($result[0]['name']);
 				$result[0]['downloadPath'] = urlApi('explorer/share/fileOut',$param);
@@ -373,7 +373,7 @@ class explorerShare extends Controller{
 		
 		$path = $this->parsePath($path);
 		$this->fileCheckDownload($path);
-		$isDownload = isset($this->in['download']) && $this->in['download'] == 1;
+		$isDownload = $this->in['download'] == '1';
 		Hook::trigger('explorer.fileOut', $path);
 		if(isset($this->in['type']) && $this->in['type'] == 'image'){
 			$info = IO::info($path);
@@ -405,11 +405,11 @@ class explorerShare extends Controller{
 		$this->fileOut();
 	}
 	
-	private function call($action){
-		if(isset($this->in['path'])){
+	private function call($action,$parsePath=false){
+		$self = $this;
+		if(isset($this->in['path']) && !$parsePath){
 			$this->in['path'] = $this->parsePath($this->in['path'],true);
 		}
-		$self = $this;
 		ActionCallResult($action,function(&$res) use($self){
 			if(!$res['code']){return;}
 			if(ACT == 'fileSave'){$res['info'] = $this->shareItemInfo($res['info']);return;}
@@ -430,12 +430,14 @@ class explorerShare extends Controller{
 	public function fileUpload(){$this->call("explorer.upload.fileUpload");}
 	public function mkfile(){$this->call("explorer.index.mkfile");}
 	public function mkdir(){$this->call("explorer.index.mkdir");}
-
+	public function pathDelete(){$this->call("explorer.index.pathDelete");}
 	public function pathRename(){$this->call("explorer.index.pathRename");}
-	public function pathCopy(){$this->call("explorer.index.pathCopy");}
-	public function pathCute(){$this->call("explorer.index.pathCute");}
-	public function pathCuteTo(){$this->call("explorer.index.pathCuteTo");}
-	public function pathCopyTo(){$this->call("explorer.index.pathCopyTo");}
+	
+	// path,pathArr都不处理路径为source,确保io一致,否则source内容外链分享:新建再删除,会产生脏数据
+	public function pathCuteTo(){$this->call("explorer.index.pathCuteTo",true);}
+	public function pathCopyTo(){$this->call("explorer.index.pathCopyTo",true);}
+	public function pathCute(){$this->call("explorer.index.pathCute",true);}
+	public function pathCopy(){$this->call("explorer.index.pathCopy",true);}
 	public function pathPast(){$this->call("explorer.index.pathPast");}
 	public function fileSave(){$this->call("explorer.editor.fileSave");}
 	
@@ -650,11 +652,12 @@ class explorerShare extends Controller{
 		$name = !empty($userInfo['nickName']) ? $userInfo['nickName'] : $userInfo['name'];
 		unset($userInfo['nickName'], $userInfo['name']);
 		$userInfo['nameDisplay'] = $this->parseName($name);
+		$userInfo['userID'] = 'user:'.$userInfo['userID'];
 		return $userInfo;
 	}
 	private function parseName($name){
 		$len = mb_strlen($name);
-		return $len > 2 ? mb_substr($name,0,2).'***':$name;
+		return $len > 3 ? mb_substr($name,0,3).'***':$name;
 	}
 
 	/**
