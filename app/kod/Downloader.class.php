@@ -9,20 +9,14 @@
 
 class Downloader {
 	static function start($url,$saveFile,$timeout = 10) {
-		if(!request_url_safe($url)) return array('code'=>false,'data'=>'url error!');
-		
 		$dataFile = $saveFile . '.download.cfg';
-		$saveTemp = $saveFile . '.downloading';		
-		//header:{'url','length','name','supportRange'}
-		if(is_array($url)){
-			$fileHeader = $url;
-		}else{
-			$fileHeader = url_header($url);
-		}
+		$saveTemp = $saveFile . '.downloading';
+		$fileHeader = is_array($url) ? $url : url_header($url); // 兼容传入的header情况;
+		
 		$url = $fileHeader['url'];
-		if(!$url){
-			return array('code'=>false,'data'=>'url error!');
-		}
+		if(!$url || !request_url_safe($url)){return array('code'=>false,'data'=>'url error!');}
+		if(!$fileHeader['status']){return array('code'=>false,'data'=>LNG('admin.plugin.installNetworkError'));}
+		
 		//默认下载方式if not support range
 		if(!$fileHeader['supportRange'] || 
 			$fileHeader['length'] == 0 ){
