@@ -71,7 +71,7 @@ function think_error_parse(&$error,&$desc){
         'connection refused'    => LNG('ERROR_DB_CONN_RFS'),
         'getaddrinfo failed'    => LNG('ERROR_DB_ADR'),
         '_NOT_SUPPORT_'         => LNG('ERROR_DB_NOT_SUPPORT'),
-        'Access denied'         => LNG('ERROR_DB_XS_DENNIED'),
+        'Access denied for user'=> LNG('ERROR_DB_XS_DENNIED'),
         'Unknown database'      => LNG('ERROR_DB_NOT_EXIST'),
         'WRONGPASS'             => 'Redis '.LNG('ERROR_USER_PASSWORD_ERROR')
     );

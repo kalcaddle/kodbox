@@ -11,12 +11,13 @@ class adminStorage extends Controller {
 	 * @return void
 	 */
     public function get() {
-		$result = $this->model->listData();
-		$this->parseData($result);
-		show_json($result,true);
+		$list = $this->model->listData();
+		$this->parseData($list);
+		$list = Hook::filter('admin.storage.get.parse', $list);
+		show_json($list);
 	}
-	private function parseData(&$result){
-		$ids = array_to_keyvalue($result, '', 'id');
+	private function parseData(&$list){
+		$ids = array_to_keyvalue($list, '', 'id');
 
 		// 获取各存储中占用空间、文件数(io_file)、存储状态
 		$key = md5('io.list.get.'.implode(',',$ids));
@@ -28,7 +29,7 @@ class adminStorage extends Controller {
 			Cache::set($key, $res, 600);	// 10分钟
 		}
 		$fileUse = $res !== false ? true : false;
-		foreach ($result as &$item) {
+		foreach ($list as &$item) {
 			$item['sizeUse'] = intval(_get($res, $item['id'].'.size', 0));
 			$item['fileNum'] = intval(_get($res, $item['id'].'.cnt', 0));
 			$item['fileUse'] = $fileUse;	// 是否含文件使用信息

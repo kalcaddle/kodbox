@@ -509,6 +509,7 @@ class explorerUserShare extends Controller{
 		
 		if(!$result) show_json(LNG('explorer.error'),false);
 		$shareInfo = $this->model->getInfo($result);
+		$shareInfo = Action('explorer.shareOut')->sendShareSiteAppend($shareInfo);
 		show_json($shareInfo,true);
 	}
 

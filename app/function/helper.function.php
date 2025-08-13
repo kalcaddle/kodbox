@@ -350,6 +350,12 @@ function check_version_cache(){
 	$content = file_get_contents(BASIC_PATH.'config/version.php');
 	$result  = match_text($content,"'KOD_VERSION','(.*)'");
 	if($result != KOD_VERSION){
+		// 强制刷新opcache，cache用于避免跳转死循环
+		if (function_exists('opcache_reset') && !Cache::get('check_version_opcache_reset')) {
+            opcache_reset();
+			Cache::set('check_version_opcache_reset', 1, 300);
+			header('Location:'.this_url());exit;
+        }
 		$ver = KOD_VERSION.'==>'.$result;
 		show_tips(LNG('common.env.phpCacheOpenTips')."<br/>".$ver);
 	}

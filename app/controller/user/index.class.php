@@ -199,7 +199,7 @@ class userIndex extends Controller {
 	public function accessTokenGet(){
 		if(!KodUser::isLogin()){show_json('user not login!',ERROR_CODE_LOGOUT);}
 		show_json($this->accessToken(),true);
-	}	
+	}
 	public function accessTokenCheck($token){
 		if(!$token || strlen($token) > 500) return false;
 

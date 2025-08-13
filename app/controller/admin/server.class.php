@@ -645,14 +645,14 @@ class adminServer extends Controller {
 		// 1.1 检查备份列表是否有效——只检查关键的几个表文件
 		$manage = new DbManage();
 		// 获取解密名称列表，兼容旧版（明文）
-		$data = $manage->unmixBakListGet($path);
-		if (!$data) $data = array();
+		$mxList = $manage->unmixBakListGet($path);
+		if (!$mxList) $mxList = array();
 		$list = IO::listPath($path, true);
 		$list = array_to_keyvalue($list['fileList'], '', 'name');
 		$tables = array($type, 'group', 'user', 'io_source', 'io_file', 'system_option');
 		foreach ($tables as $table) {
 			$name = $table . '.sql';
-			$name = _get($data, $name, $name);
+			$name = _get($mxList, $name, $name);
 			if (!in_array($name, $list)) {
 				show_json(LNG('admin.setting.recSysTbErr'), false);
 			}

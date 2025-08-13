@@ -249,7 +249,7 @@ function ignore_timeout(){
 	set_timeout();
 }
 
-// 48 * 60 * 60
+// 48 * 60 * 60  // 48h
 function set_timeout($timeout=172800){
 	static $firstRun = false;
 	if($firstRun) return; //避免重复调用; 5000次100ms;

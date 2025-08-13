@@ -244,14 +244,17 @@ class explorerAuth extends Controller {
 		$ioType = $parse['type'];
 		
 		if($ioType == KodIO::KOD_SHARE_LINK){
-			$shareInfo  = Action('explorer.share')->sharePathInfo($path);
-			if($shareInfo && in_array($action,array('view','show'))) return true;
-			if($shareInfo && $action == 'download' && _get($shareInfo,'option.notDownload') !='1' ) return true;
-			if($shareInfo && $action == 'edit' && _get($shareInfo,'option.canEditSave') == '1' ){
-				if(Model('SystemOption')->get('shareLinkAllowEdit') == '0'){ // 全局开关;
-					return $this->errorMsg(LNG('explorer.pathNotSupport'),1108);
+			$pathInfo	= Action('explorer.share')->sharePathInfo($path);
+			$shareInfo	= Action('explorer.share')->shareInfoLast();
+			if ($pathInfo && $shareInfo) {
+				if(in_array($action,array('view','show'))) return true;
+				if($action == 'download' && _get($shareInfo,'options.notDownload') !='1' ) return true;
+				if($action == 'edit' && _get($shareInfo,'options.canEditSave') == '1' ){
+					if(Model('SystemOption')->get('shareLinkAllowEdit') == '0'){ // 全局开关;
+						return $this->errorMsg(LNG('explorer.pathNotSupport'),1108);
+					}
+					return true;
 				}
-				return true;
 			}
 			return $this->errorMsg(LNG('explorer.pathNotSupport'),1108);
 		}
