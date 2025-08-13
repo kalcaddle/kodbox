@@ -197,7 +197,7 @@ class explorerTagGroup extends Controller{
 
 		$tagInfo['sourceRoot'] = "groupPath";
 		$result['currentFieldAdd'] = $tagInfo;
-		$result['groupTagList'] = Model("GroupTag")->get();
+		$result['groupTagList'] = Model("GroupTag")->get($groupID);
 		return $result;
 	}
 
