@@ -495,6 +495,7 @@ function path_haschildren($dir,$checkFile=false){
  * 删除文件 传入参数编码为操作系统编码. win--gbk
  */
 function del_file($fullpath){
+	if (!file_exists($fullpath)) return true;
 	if (!@unlink($fullpath)) { // 删除不了，尝试修改文件权限
 		@chmod($fullpath, DEFAULT_PERRMISSIONS);
 		if (!@unlink($fullpath)) {return false;}

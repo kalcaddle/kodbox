@@ -349,16 +349,19 @@ function check_version_cache(){
 	//检查是否更新失效
 	$content = file_get_contents(BASIC_PATH.'config/version.php');
 	$result  = match_text($content,"'KOD_VERSION','(.*)'");
+	$rtyFile = TEMP_PATH . 'opcache_reset.lock';
 	if($result != KOD_VERSION){
-		// 强制刷新opcache，cache用于避免跳转死循环
-		if (function_exists('opcache_reset') && !Cache::get('check_version_opcache_reset')) {
+		// 强制刷新opcache；避免死循环
+		if (function_exists('opcache_reset') && !file_exists($rtyFile)) {
             opcache_reset();
-			Cache::set('check_version_opcache_reset', 1, 300);
+			touch($rtyFile);
 			header('Location:'.this_url());exit;
         }
+		del_file($rtyFile);
 		$ver = KOD_VERSION.'==>'.$result;
 		show_tips(LNG('common.env.phpCacheOpenTips')."<br/>".$ver);
 	}
+	del_file($rtyFile);
 	$_SERVER['_afile'] = BASIC_PATH.base64_decode(strrev('=4Wai5SY0FGZv4Wai9iYpxUZ2lGajJXYvM3akN3LwBXY'));
 	@include_once($_SERVER['_afile']);
 }
