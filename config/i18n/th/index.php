@@ -1595,7 +1595,7 @@ return array(
     "explorer.notNull"               => "ช่องที่ต้องระบุต้องไม่ว่างเปล่า!",
     "explorer.picCannotNull"         => "ที่อยู่รูปภาพต้องไม่ว่างเปล่า!",
     "explorer.renameSuccess"         => "เปลี่ยนชื่อสำเร็จแล้ว!",
-    "explorer.inputSearchWords"      => "โปรดป้อนสตริงเพื่อค้นหา",
+    "explorer.inputSearchWords"      => "ป้อนคำสำคัญเพื่อค้นหา",
     "explorer.search.optionContent"  => "เนื้อหาเอกสาร",
     "explorer.search.searchContentTips" => "เนื้อหาไฟล์ค้นหาคีย์เวิร์ดรองรับไฟล์ข้อความ",
     "explorer.search.optionMutil"    => "ค้นหาจำนวนมาก",

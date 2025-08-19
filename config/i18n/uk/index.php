@@ -1595,7 +1595,7 @@ return array(
     "explorer.notNull"               => "Обов’язкові поля не можуть бути порожніми!",
     "explorer.picCannotNull"         => "Адреса зображення не може бути порожньою!",
     "explorer.renameSuccess"         => "Перейменовано успішно!",
-    "explorer.inputSearchWords"      => "Введіть рядок для пошуку",
+    "explorer.inputSearchWords"      => "Введіть ключові слова для пошуку",
     "explorer.search.optionContent"  => "зміст документа",
     "explorer.search.searchContentTips" => "Зміст файлу пошуку за ключовими словами, підтримка текстового файлу",
     "explorer.search.optionMutil"    => "Масовий пошук",

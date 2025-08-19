@@ -1595,7 +1595,7 @@ return array(
     "explorer.notNull"               => "Wymagane pola nie mogą być puste!",
     "explorer.picCannotNull"         => "Adres zdjęcia nie może być pusty!",
     "explorer.renameSuccess"         => "Zmiana nazwy powiodła się!",
-    "explorer.inputSearchWords"      => "Wpisz ciąg, aby wyszukać",
+    "explorer.inputSearchWords"      => "Wprowadź słowa kluczowe, aby wyszukać",
     "explorer.search.optionContent"  => "treść dokumentu",
     "explorer.search.searchContentTips" => "Treść pliku wyszukiwania słów kluczowych, plik tekstowy wsparcia",
     "explorer.search.optionMutil"    => "Wyszukiwanie zbiorcze",

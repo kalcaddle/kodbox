@@ -1595,7 +1595,7 @@ return array(
     "explorer.notNull"               => "Zorunlu alanlar boş olamaz!",
     "explorer.picCannotNull"         => "Resim adresi boş olamaz!",
     "explorer.renameSuccess"         => "Başarıyla yeniden adlandırıldı!",
-    "explorer.inputSearchWords"      => "Lütfen aranacak dizeyi giriniz",
+    "explorer.inputSearchWords"      => "Aramak için anahtar kelimeleri girin",
     "explorer.search.optionContent"  => "belge içeriği",
     "explorer.search.searchContentTips" => "Anahtar kelime arama dosyası içeriği, destek metin dosyası",
     "explorer.search.optionMutil"    => "Toplu arama",

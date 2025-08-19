@@ -1595,7 +1595,7 @@ return array(
     "explorer.notNull"               => "Pflichtfelder dürfen nicht leer sein!",
     "explorer.picCannotNull"         => "Bildadresse darf nicht leer sein!",
     "explorer.renameSuccess"         => "Erfolgreich umbenannt!",
-    "explorer.inputSearchWords"      => "Bitte geben Sie den Suchbegriff ein",
+    "explorer.inputSearchWords"      => "Geben Sie Schlüsselwörter für die Suche ein",
     "explorer.search.optionContent"  => "Dokumentinhalt",
     "explorer.search.searchContentTips" => "Inhalt der Schlüsselwortsuchdatei, Unterstützungstextdatei",
     "explorer.search.optionMutil"    => "Massensuche",

@@ -1595,7 +1595,7 @@ return array(
     "explorer.notNull"               => "প্রয়োজনীয় ক্ষেত্রগুলি খালি থাকতে পারে না!",
     "explorer.picCannotNull"         => "ছবির ঠিকানা খালি থাকতে পারে না!",
     "explorer.renameSuccess"         => "সফলভাবে নামকরণ!",
-    "explorer.inputSearchWords"      => "অনুসন্ধান করার জন্য দয়া করে স্ট্রিংটি প্রবেশ করুন",
+    "explorer.inputSearchWords"      => "অনুসন্ধানের জন্য কীওয়ার্ড লিখুন",
     "explorer.search.optionContent"  => "নথি সামগ্রী",
     "explorer.search.searchContentTips" => "কীওয়ার্ড অনুসন্ধান ফাইলের সামগ্রী, পাঠ্য ফাইল সমর্থন করুন support",
     "explorer.search.optionMutil"    => "বাল্ক অনুসন্ধান",

@@ -1595,7 +1595,7 @@ return array(
     "explorer.notNull"               => "必填項不能為空!",
     "explorer.picCannotNull"         => "圖片地址不能為空!",
     "explorer.renameSuccess"         => "重命名成功！",
-    "explorer.inputSearchWords"      => "請輸入要搜尋的字符串",
+    "explorer.inputSearchWords"      => "輸入關鍵字搜尋",
     "explorer.search.optionContent"  => "文件內容",
     "explorer.search.searchContentTips" => "關鍵字搜尋文件內容,支持文本文件",
     "explorer.search.optionMutil"    => "批量搜尋",

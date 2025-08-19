@@ -1595,7 +1595,7 @@ return array(
     "explorer.notNull"               => "Os campos obrigatórios não podem estar em branco!",
     "explorer.picCannotNull"         => "O endereço da imagem não pode estar vazio!",
     "explorer.renameSuccess"         => "Renomeado com sucesso!",
-    "explorer.inputSearchWords"      => "Digite a string para pesquisar",
+    "explorer.inputSearchWords"      => "Insira palavras-chave para pesquisar",
     "explorer.search.optionContent"  => "conteúdo do documento",
     "explorer.search.searchContentTips" => "Conteúdo do arquivo de pesquisa de palavra-chave, arquivo de texto de suporte",
     "explorer.search.optionMutil"    => "Bulk search",

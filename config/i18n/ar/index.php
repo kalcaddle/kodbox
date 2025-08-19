@@ -1595,7 +1595,7 @@ return array(
     "explorer.notNull"               => "الحقول المطلوبة لا يمكن أن تكون فارغة!",
     "explorer.picCannotNull"         => "لا يمكن أن يكون عنوان الصورة فارغًا!",
     "explorer.renameSuccess"         => "إعادة تسمية بنجاح!",
-    "explorer.inputSearchWords"      => "يرجى إدخال السلسلة للبحث",
+    "explorer.inputSearchWords"      => "أدخل الكلمات الرئيسية للبحث",
     "explorer.search.optionContent"  => "محتوى المستند",
     "explorer.search.searchContentTips" => "محتوى ملف البحث عن الكلمات الرئيسية ، ودعم ملف نصي",
     "explorer.search.optionMutil"    => "البحث الشامل",

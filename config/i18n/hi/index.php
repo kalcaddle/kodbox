@@ -1595,7 +1595,7 @@ return array(
     "explorer.notNull"               => "आवश्यक फ़ील्ड खाली नहीं हो सकती!",
     "explorer.picCannotNull"         => "चित्र पता खाली नहीं हो सकता!",
     "explorer.renameSuccess"         => "सफलतापूर्वक नाम दिया गया!",
-    "explorer.inputSearchWords"      => "कृपया खोज करने के लिए स्ट्रिंग दर्ज करें",
+    "explorer.inputSearchWords"      => "खोजने के लिए कीवर्ड दर्ज करें",
     "explorer.search.optionContent"  => "दस्तावेज़ सामग्री",
     "explorer.search.searchContentTips" => "कीवर्ड खोज फ़ाइल सामग्री, पाठ फ़ाइल का समर्थन करें",
     "explorer.search.optionMutil"    => "थोक खोज",

@@ -1595,7 +1595,7 @@ return array(
     "explorer.notNull"               => "필수 입력란은 비워 둘 수 없습니다!",
     "explorer.picCannotNull"         => "사진 주소는 비워 둘 수 없습니다!",
     "explorer.renameSuccess"         => "성공적으로 개명되었습니다!",
-    "explorer.inputSearchWords"      => "검색 할 문자열을 입력하십시오",
+    "explorer.inputSearchWords"      => "검색할 키워드를 입력하세요",
     "explorer.search.optionContent"  => "문서 내용",
     "explorer.search.searchContentTips" => "키워드 검색 파일 내용, 지원 텍스트 파일",
     "explorer.search.optionMutil"    => "대량 검색",

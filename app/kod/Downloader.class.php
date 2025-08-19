@@ -97,7 +97,7 @@ class Downloader {
 			fclose($downloadFp);
 			fclose($fp);
 
-			self::checkGzip($fileTemp);
+			// self::checkGzip($fileTemp);
 			if(!@rename($fileTemp,$fileName)){
 				usleep(round(rand(0,1000)*50));//0.01~10ms
 				@unlink($fileName);
@@ -125,6 +125,7 @@ class Downloader {
 		}
 		curl_setopt($ch, CURLOPT_FILE, $fp);
 		curl_setopt($ch, CURLOPT_REFERER,get_url_link($url));
+		curl_setopt($ch, CURLOPT_ENCODING,'');// 内容不进行编码;
 		curl_setopt($ch, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
@@ -140,13 +141,11 @@ class Downloader {
 			return array('code'=>false,'data'=>'downloading');
 		}
 		if($res && filesize_64($fileTemp) != 0){
-			self::checkGzip($fileTemp);
+			// self::checkGzip($fileTemp);
 			if(!@rename($fileTemp,$fileName)){
 				@unlink($fileName);
 				$res = @rename($fileTemp,$fileName);
-				if(!$res){
-					return array('code'=>false,'data'=>'rename error![curl]');
-				}
+				if(!$res){return array('code'=>false,'data'=>'rename error![curl]');}
 			}
 			return array('code'=>true,'data'=>'success');
 		}
@@ -154,9 +153,8 @@ class Downloader {
 	}
 
 	static function checkGzip($file){
-		$char = "\x1f\x8b";
-		$str  = file_sub_str($file,0,2);
-		if($char != $str) return;
+		return; // 不处理gzip 流, 避免gz等文件下载被解压问题;
+		if(file_sub_str($file,0,2) != "\x1f\x8b") return;
 
 		ob_start();   
 		readgzfile($file);   

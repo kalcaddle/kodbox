@@ -1595,7 +1595,7 @@ return array(
     "explorer.notNull"               => "Обязательные поля не могут быть пустыми!",
     "explorer.picCannotNull"         => "Адрес изображения не может быть пустым!",
     "explorer.renameSuccess"         => "Переименован успешно!",
-    "explorer.inputSearchWords"      => "Пожалуйста, введите строку для поиска",
+    "explorer.inputSearchWords"      => "Введите ключевые слова для поиска",
     "explorer.search.optionContent"  => "содержание документа",
     "explorer.search.searchContentTips" => "Содержание файла поиска по ключевым словам, текстовый файл поддержки",
     "explorer.search.optionMutil"    => "Массовый поиск",

@@ -1595,7 +1595,7 @@ return array(
     "explorer.notNull"               => "தேவையான புலங்கள் காலியாக இருக்க முடியாது!",
     "explorer.picCannotNull"         => "பட முகவரி காலியாக இருக்க முடியாது!",
     "explorer.renameSuccess"         => "வெற்றிகரமாக மறுபெயரிடப்பட்டது!",
-    "explorer.inputSearchWords"      => "தேட சரம் உள்ளிடவும்",
+    "explorer.inputSearchWords"      => "தேடுவதற்கு முக்கிய வார்த்தைகளை உள்ளிடவும்.",
     "explorer.search.optionContent"  => "ஆவண உள்ளடக்கம்",
     "explorer.search.searchContentTips" => "முக்கிய தேடல் கோப்பு உள்ளடக்கம், உரை கோப்பை ஆதரிக்கவும்",
     "explorer.search.optionMutil"    => "மொத்த தேடல்",

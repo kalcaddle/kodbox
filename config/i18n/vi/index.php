@@ -1595,7 +1595,7 @@ return array(
     "explorer.notNull"               => "Các trường bắt buộc không thể để trống!",
     "explorer.picCannotNull"         => "Địa chỉ ảnh không thể để trống!",
     "explorer.renameSuccess"         => "Đổi tên thành công!",
-    "explorer.inputSearchWords"      => "Vui lòng nhập chuỗi để tìm kiếm",
+    "explorer.inputSearchWords"      => "Nhập từ khóa để tìm kiếm",
     "explorer.search.optionContent"  => "nội dung tài liệu",
     "explorer.search.searchContentTips" => "Nội dung tệp tìm kiếm từ khóa, tệp văn bản hỗ trợ",
     "explorer.search.optionMutil"    => "Tìm kiếm hàng loạt",

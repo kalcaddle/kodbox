@@ -1595,7 +1595,7 @@ return array(
     "explorer.notNull"               => "必須フィールドは空にできません！",
     "explorer.picCannotNull"         => "画像アドレスは空にできません！",
     "explorer.renameSuccess"         => "名前を変更しました！",
-    "explorer.inputSearchWords"      => "検索する文字列を入力してください",
+    "explorer.inputSearchWords"      => "検索するキーワードを入力してください",
     "explorer.search.optionContent"  => "ドキュメントの内容",
     "explorer.search.searchContentTips" => "キーワード検索ファイルの内容、サポートテキストファイル",
     "explorer.search.optionMutil"    => "一括検索",

@@ -503,6 +503,7 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 		$error_message = $error_message ? $error_message : 'Network error!';
 		return array(
 			'data'		=> "Request error:".get_url_root($url).";\n".$error_message,
+			'status'	=> false,
 			'code'		=> 0,
 			'header'	=> $response_info,
 		);

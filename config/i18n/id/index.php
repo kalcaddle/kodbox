@@ -1595,7 +1595,7 @@ return array(
     "explorer.notNull"               => "Bidang yang wajib diisi tidak boleh kosong!",
     "explorer.picCannotNull"         => "Alamat gambar tidak boleh kosong!",
     "explorer.renameSuccess"         => "Berganti nama dengan sukses!",
-    "explorer.inputSearchWords"      => "Silakan masukkan string untuk mencari",
+    "explorer.inputSearchWords"      => "Masukkan kata kunci untuk pencarian",
     "explorer.search.optionContent"  => "konten dokumen",
     "explorer.search.searchContentTips" => "Konten file pencarian kata kunci, mendukung file teks",
     "explorer.search.optionMutil"    => "Pencarian massal",

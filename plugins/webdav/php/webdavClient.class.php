@@ -268,7 +268,8 @@ class webdavClient {
 		if(isset($fileInfo['range']) && $fileInfo['range']){
 			$this->setHeader('Range',$fileInfo['range']);
 		}
-		$fp = fopen ($fileInfo['path'],'w+');
+		$fp = fopen($fileInfo['path'],'w+');
+		if(!$fp){return;}
 		curl_setopt($curl, CURLOPT_HTTPGET,1);
 		curl_setopt($curl, CURLOPT_HEADER,0);//不输出头
 		curl_setopt($curl, CURLOPT_FILE, $fp);

@@ -1595,7 +1595,7 @@ return array(
     "explorer.notNull"               => "Required fields cannot be empty!",
     "explorer.picCannotNull"         => "Picture address cannot be empty!",
     "explorer.renameSuccess"         => "Renamed successfully!",
-    "explorer.inputSearchWords"      => "Please enter the string to search",
+    "explorer.inputSearchWords"      => "Enter keywords to search",
     "explorer.search.optionContent"  => "Document content",
     "explorer.search.searchContentTips" => "Keyword search file content, support text file",
     "explorer.search.optionMutil"    => "Bulk search",

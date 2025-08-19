@@ -290,6 +290,9 @@ class adminServer extends Controller {
             show_json(LNG('explorer.error'), false);
 		}
 		Cache::deleteAll();
+		if (function_exists('opcache_reset')) {
+            opcache_reset();
+        }
 		show_json(LNG('explorer.success'));
 	}
 	private function _cacheCheck($type){
