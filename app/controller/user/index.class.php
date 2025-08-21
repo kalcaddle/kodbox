@@ -476,6 +476,7 @@ class userIndex extends Controller {
 		// api临时访问接口; 不处理cookie; 不影响已登录用户session; 允许跨域
 		Session::$sessionSign = guid();
 		Session::set('kodUser', $userInfo);
+		Session::set('pathSafe-userIsLogin','1');
 		unset($_REQUEST['accessToken']);
 	}
 	// 维护多个应用
