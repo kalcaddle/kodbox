@@ -921,8 +921,10 @@ class installIndex extends Controller {
      * 系统默认设置
      */
     public function systemDefault(){
-        $default = $this->config['settingSystemDefault'];
-        $res = Model('SystemOption')->set($default);
+        $optionsHas = Model('SystemOption')->get();// 获取已存在配置(数据库初始值,自动激活情况);
+        $optionsHas = is_array($optionsHas) ? $optionsHas:array();
+        $options = array_merge($this->config['settingSystemDefault'],$optionsHas);
+        $res = Model('SystemOption')->set($options);
         
         if(!$res) show_json(LNG('admin.install.defSetError'), false);
     }

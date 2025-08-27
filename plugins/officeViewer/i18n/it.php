@@ -1,6 +1,6 @@
 <?php
 return array(
-    "officeViewer.meta.name"         => "Lettore d'ufficio",
+    "officeViewer.meta.name"         => "Lettore Office",
     "officeViewer.meta.title"        => "Anteprima di Office Online",
     "officeViewer.meta.desc"         => "Anteprima online dei file di Office. Questa applicazione integra WebOffice, LibreOffice, OfficeLive, Yongzhong Office e altri metodi per soddisfare le esigenze di base di anteprima online dei file di Office.",
     "officeViewer.meta.netwrokDesc"  => "<h4>illustrare:</h4> Questa applicazione potrebbe richiedere richieste di rete esterne durante il funzionamento. Tra queste, WebOffice e LibreOffice non necessitano di richieste di rete esterne. Altre interfacce di rete esterne che potrebbero essere coinvolte sono le seguenti:<br/> \nofficeLive：<br/> \n <span class='blue-6'>https://owa-box.vips100.com</span><br/> \n <span class='blue-6'>https://docview.mingdao.com</span><br/> \n <span class='blue-6'>https://preview.tita.com</span><br/> \n <span class='blue-6'>https://view.officeapps.live.com</span><br/> \n Ufficio di Yongzhong:<br/> \n <span class='blue-6'>http://dcs.yozosoft.com</span>",
