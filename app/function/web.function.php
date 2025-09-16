@@ -564,18 +564,19 @@ function url_request_mutil($requests,$timeout=20){
 	$hasStart = false;$hasEnd = false;
 	foreach($requests as $index => $request){
 		if(is_string($request)){$request = array('url' => $request,'method'=>'GET');}
-		$ch = curl_init();$url = $request['url'];
+		$ch 	= curl_init();
+		$url 	= $request['url'];
+		$data 	= is_array($request['data']) ? http_build_query($request['data']) : $request['data'].'';
 		if(isset($request['method']) && strtoupper($request['method']) === 'POST') {
 			curl_setopt($ch, CURLOPT_POST,1);
-			if(isset($request['data'])){curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($request['data']));}
+			if($data){curl_setopt($ch, CURLOPT_POSTFIELDS,$data);}
 		}else{
 			curl_setopt($ch,CURLOPT_HTTPGET,1);
-			$data = is_array($request['data']) ? http_build_query($request['data']) : '';
 			if($data &&  strstr($url,'?')){$url = $url.'&'.$data;}
 			if($data && !strstr($url,'?')){$url = $url.'?'.$data;}
 		}
 		if(isset($request['headers'])){
-			$headers = is_string($request['headers']) ? array($request['headers']) : $headers;
+			$headers = is_string($request['headers']) ? array($request['headers']) : $request['headers'];
 			curl_setopt($ch,CURLOPT_HTTPHEADER,$headers);
 		}
 		if(is_array($request['options'])){
@@ -617,12 +618,14 @@ function url_request_mutil($requests,$timeout=20){
 	$results = array();
 	foreach($handles as $index => $ch){
 		$info = curl_getinfo($ch);
+		$body = curl_multi_getcontent($ch);
 		$results[$index] = array(
-			'data' 	=> curl_multi_getcontent($ch),
+			'data' 	=> $body,
 			'info' 	=> $info,
-			'code'	=> $info['http_code'] >= 200 && $info['http_code'] <= 299,
+			'status'=> $info['http_code'] >= 200 && $info['http_code'] <= 299,
+			'code'	=> $info['http_code'],
 		);
-		if(!$hasEnd){$hasEnd = true;curl_progress_end($ch,$results[$index]['data']);}
+		if(!$hasEnd){$hasEnd = true;curl_progress_end($ch,$body);}
 		curl_multi_remove_handle($mh, $ch);
 		curl_close($ch);
 	}	

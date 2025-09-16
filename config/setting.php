@@ -558,6 +558,7 @@ $config['authAllowAction'] = array(
 	'explorer.userShare.get',
 	'explorer.userShare.myShare',
 	'explorer.userShare.shareDisplay',
+	'explorer.userShare.shareExit',
 	
 	'explorer.tagGroup.get','explorer.tagGroup.set',
 	'explorer.tagGroup.filesRemoveFromTag','explorer.tagGroup.filesAddToTag',

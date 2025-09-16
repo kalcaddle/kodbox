@@ -1,37 +1,52 @@
 kodReady.push(function(){
 	var staticPath = "{{pluginHost}}static/";
 	var version = '?v={{package.version}}';
+	LNG.set(jsonDecode(urlDecode("{{LNG}}")));
+	LNG['admin.menu.notice'] = LNG['msgWarning.main.kodNotice'];	// 原通知管理=>站内消息
+	G.msgWarningOption = jsonDecode(urlDecode("{{config}}"));
 
 	// 后台菜单
-	G.msgWarningOption = jsonDecode(urlDecode("{{config}}"));
-	LNG.set(jsonDecode(urlDecode("{{LNG}}")));
 	Events.bind("admin.leftMenu.before",function(menuList){
 		menuList.push({
 			title:"{{package.name}}",
-			icon:"ri-volume-vibrate-fill",
-			link:"admin/tools/warning",			
-			after:'admin/loginCheck',//after/before; 插入菜单所在位置;
-			fileSrc:'{{pluginHost}}static/msg/setting.js',
+			icon:"ri-volume-up-fill",
+			link:"admin/setting/warning",			
+			after:'admin/setting/notice',//after/before; 插入菜单所在位置;
+			fileSrc:'{{pluginHost}}static/admin/index.js',
 		});
 	});
 
-	// 进入前后端时，显示消息提醒
-	var warn = null;
-	var showMsg = function(self){
-		if (_.get(G, 'user.isRoot') != 1) return;
-		if (warn) return warn.showTips();
-		requireAsync(staticPath+'msg/index.js'+version, function(Msg){
-			warn = new Msg({parent:self});
-			warn.showTips();
+	// 页面通知
+	var ntcView = null;
+	var showNtc = function(self){
+		if (ntcView) return ntcView.showTips();
+		requireAsync([
+			staticPath+'msg/index.js'+version,
+			staticPath+'msg/index.css'+version,
+		], function(NtcView){
+			ntcView = new NtcView({parent:self});
+			ntcView.showTips();
 		});
 	}
 	Events.bind('admin.leftMenu.after', function(_this){
-		showMsg(_this);
+		showNtc(_this);
 	});
 	Events.bind('router.after.explorer',function(_this){
-		showMsg(_this);
+		showNtc(_this);
 	});
+	Events.bind('router.after.desktop',function(_this){
+		showNtc(_this);
+	});
+	// 会触发2次
+	var isLoad=false;
+	Events.bind('router.after.setting/user/index',function(_this){
+		if (isLoad) return;
+		isLoad=true;
+		showNtc(_this);
+	});
+	// Events.bind('router.after', function(){
+	// });
 
 	if($.hasKey('plugin.msgWarning.style')) return;
-	$.addStyle('.dialog-plugin-config.app-config-msgWarning{width:560px;}');
+	// requireAsync("{{pluginHost}}static/main.css");
 });

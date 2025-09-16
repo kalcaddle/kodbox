@@ -280,9 +280,7 @@ function folder_info($path){
 function get_path_this($path){
 	$path = str_replace('\\','/', rtrim($path,'/'));
 	$pos = strrpos($path,'/');
-	if($pos === false){
-		return $path;
-	}
+	if($pos === false){return $path;}
 	return substr($path,$pos+1);
 }
 /**
@@ -292,9 +290,7 @@ function get_path_this($path){
 function get_path_father($path){
 	$path = str_replace('\\','/', rtrim($path,'/'));
 	$pos = strrpos($path,'/');
-	if($pos === false){
-		return $path;
-	}
+	if($pos === false){return $path;}
 	return substr($path, 0,$pos+1);
 }
 /**
@@ -302,9 +298,10 @@ function get_path_father($path){
  */
 function get_path_ext($path){
 	$name = get_path_this($path);
-	$ext = '';
-	if(strstr($name,'.')){$ext = substr($name,strrpos($name,'.')+1);}
-	$isMatch = preg_match("/[0-9a-zA-Z_]+/",$ext,$match);// 只允许数字字母和下划线
+	$pos  = strrpos($name,'.');
+	$ext  = '';
+	if($pos !== false){$ext = substr($name,$pos+1);}
+	$isMatch = preg_match("/[0-9a-zA-Z_\-]+/",$ext,$match);// 只允许数字字母和下划线
 	return ($isMatch && $match[0]) ? strtolower($match[0]):'';
 }
 function get_path_ext_name($path){

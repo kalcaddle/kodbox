@@ -286,6 +286,59 @@ class explorerUserShare extends Controller{
 		show_json(LNG('explorer.success'),true);
 	}
 	
+	// 自己退出当前分享 (所有协作成员都为用户,且成员包含自己时--可退出;)
+	public function shareExit(){
+		$data = Input::getArray(array(
+			"shareArr"	=> array("check"=>"json","default"=>array()),
+		));
+		$isRoot = KodUser::isRoot();
+		$errorArr = array();
+		foreach($data['shareArr'] as $shareID){
+			$shareInfo  = $this->model->getInfo($shareID);
+			if( !$shareInfo || _get($shareInfo,'isShareTo') != '1' ||
+				!is_array($shareInfo['authList'])){
+				$errorArr[] = LNG('explorer.share.notExist');
+				continue;
+			}
+			
+			$allUser = true;$hasSelf = false;$selfIndex = 0;
+			$authListNew = array();
+			foreach($shareInfo['authList'] as $i => $item){
+				$isUser = $item['targetType'] == SourceModel::TYPE_USER;
+				if(!$isUser){$allUser = false;}
+				if($isUser && $item['targetID'] == KodUser::id()){
+					$hasSelf = true;$selfIndex = $i;
+				}else{
+					$authListNew[] = $item;
+				}
+			}
+			// if(!$allUser){$errorArr[] = "share target all must be [user]";continue;}
+			if(!$hasSelf){$errorArr[] = "share target not include you";continue;}
+			
+			$shareOptions = is_array($shareInfo['options']) ? $shareInfo['options']:array();
+			if($shareOptions['site']){
+				$shareTarget = _get($shareOptions,'shareTarget',array());
+				$shareTargetNew = array();$userSecret = '';
+				foreach($shareTarget as $i => $userItem){
+					if($i == $selfIndex){$userSecret = $userItem['secret'];}
+					if($i != $selfIndex){$shareTargetNew[] = $userItem;}
+				}
+				$res = Action("explorer.shareOut")->shareUserExit($shareOptions['site'],$shareOptions['shareID'],$userSecret);
+				if(is_array($res) && $res['info'] == 'kodbox'){
+					if(!$res['code']){$errorArr[] = $res['data'];}
+				}
+				$shareOptions['shareTarget'] = $shareTargetNew;
+			}
+			if(!$authListNew && $shareInfo['isLink'] == '0'){
+				$this->model->remove($shareID);
+			}else{
+				$this->model->shareEdit($shareID,array('isShareTo'=>'1','authTo'=>$authListNew,'options'=>$shareOptions));
+			}
+		}
+		$code = count($errorArr) > 0 ? false:true;
+		$msg  = $code ? LNG('explorer.success') : implode(',',$errorArr);
+		show_json($msg,$code);
+	}	
 	
 	// 分享内容属性; 默认$sourceID为空则分享本身属性; 指定则文件夹字内容属性;
 	public function sharePathInfo($shareID,$sourceID=false,$withChildren=false){

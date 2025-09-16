@@ -362,7 +362,7 @@ class adminServer extends Controller {
 			}
 			if(!$allow) show_json(sprintf(LNG('common.env.invalidExt'), $dbType), false);
 		}
-		$this->checkSetFile();
+		$this->checkSetFileWrt();
 
 		// 1. 切换了数据库类型，则全新安装，走完整流程
 		if($dbType != $type) {
@@ -377,7 +377,7 @@ class adminServer extends Controller {
 		$data = $this->filterMysqlData();
 		$match = true;
 		foreach($data as $key => $value) {
-			if($value != $database[$key]) {
+			if ($value != $database[$key]) {
 				$match = false;
 				break;
 			}
@@ -637,7 +637,7 @@ class adminServer extends Controller {
 		if(!$info = IO::info($data['path'])){
 			show_json(LNG('admin.setting.recPathErr'), false);
 		}
-		$this->checkSetFile();
+		$this->checkSetFileWrt();
 
 		// 1.判断选择的路径是否有效
 		$type = $data['type'];
@@ -655,7 +655,7 @@ class adminServer extends Controller {
 		$tables = array($type, 'group', 'user', 'io_source', 'io_file', 'system_option');
 		foreach ($tables as $table) {
 			$name = $table . '.sql';
-			$name = _get($mxList, $name, $name);
+			$name = _get($mxList, $name, $name);	// 没有解密名则取原名（兼容旧版）
 			if (!in_array($name, $list)) {
 				show_json(LNG('admin.setting.recSysTbErr'), false);
 			}
@@ -847,11 +847,10 @@ class adminServer extends Controller {
 	}
 
 	// 检查配置文件（是否可写）
-	private function checkSetFile() {
+	private function checkSetFileWrt() {
 		$file = BASIC_PATH . 'config/setting_user.php';
-		if (!path_writeable($file)) {
-			show_json('系统配置文件(config/setting_user.php)没有写入权限！', false);
-		}
+		if (path_writeable($file)) return;
+		show_json(LNG('explorer.wrtSetUserError'), false);
 	}
 
 }

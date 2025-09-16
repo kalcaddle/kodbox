@@ -50,10 +50,10 @@ class explorerShare extends Controller{
 	}
 	
 	// 构造加密链接,相同文件每次一样,确保浏览器能够缓存;
-	public function linkFile($file){
+	public function linkFile($file,$addParam=''){
 		$pass = Model('SystemOption')->get('systemPassword');
 		$hash = Mcrypt::encode($file,$pass,false,'kodcloud');
-		return urlApi('explorer/share/file',"hash={$hash}");
+		return urlApi('explorer/share/file',"hash={$hash}".($addParam ? '&'.$addParam:'') );
 	}
 	
 	public function linkSafe($path,$downFilename=''){
@@ -262,7 +262,7 @@ class explorerShare extends Controller{
 		if(!$canDownload && $isDownload){
 			$this->showError(LNG('explorer.share.noDownTips'),false);
 		}
-		if(!$canView && !$canDownload && in_array($ACT,array('fileget','fileout','unziplist'))){
+		if(!$canView && in_array($ACT,array('fileget','fileout','unziplist'))){
 			$this->showError(LNG('explorer.share.noViewTips'),false);
 		}
 		

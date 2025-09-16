@@ -247,7 +247,9 @@ class explorerAuth extends Controller {
 			$pathInfo	= Action('explorer.share')->sharePathInfo($path);
 			$shareInfo	= Action('explorer.share')->shareInfoLast();
 			if ($pathInfo && $shareInfo) {
-				if(in_array($action,array('view','show'))) return true;
+				// if(in_array($action,array('view','show'))) return true;
+				if($action == 'show') return true;
+				if($action == 'view' && _get($shareInfo,'options.notView') !='1' ) return true;
 				if($action == 'download' && _get($shareInfo,'options.notDownload') !='1' ) return true;
 				if($action == 'edit' && _get($shareInfo,'options.canEditSave') == '1' ){
 					if(Model('SystemOption')->get('shareLinkAllowEdit') == '0'){ // 全局开关;

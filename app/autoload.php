@@ -175,7 +175,7 @@ function ActionCallApi($uri,$param='',$allowExec=true){
 	$res = '';
 	$phpBin = phpBinCommand();
 	if($allowExec && $phpBin && function_exists('shell_exec')){
-		$command = $phpBin.' '.BASIC_PATH.'index.php '.escapeshellarg($uri);
+		$command = $phpBin.' '.BASIC_PATH.'index.php '.escapeShell($uri);
 		$res = shell_exec($command);
 	}
 	if(!$res){

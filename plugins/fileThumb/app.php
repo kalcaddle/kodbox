@@ -215,11 +215,17 @@ class fileThumbPlugin extends PluginBase{
 	// 远端:(ftp,oss等对象存储)
 	public function coverMake($cachePath,$path,$coverName,$size){
 		$cckey = md5('fileThumb.conver.'.$path.$coverName.$size);
-		if (cache::get($cckey)) return;
+		if (Cache::get($cckey)) return;
 		Cache::set($cckey, 1, 60);	// 延迟1分钟，避免重复执行（对未生成的图片预览大图时，会执行3次250x250）
 		if(IO::fileNameExist($cachePath,$coverName)){return 'exists;';}
 		if(!is_dir(TEMP_FILES)){mk_dir(TEMP_FILES);}
-		
+
+		// 清除pathInfo缓存，避免队列任务中历史版本影响
+		$parse = KodIO::parse($path);
+		if ($parse['type'] == KodIO::KOD_SOURCE && $parse['id']) {
+			Model('Source')->sourceCacheClear($parse['id']);
+		}
+
 		$info = IO::info($path);$ext = $info['ext'];
 		if ($ext == 'gif' && $size != 250) return;	// gif大图不转换，预览输出原图
 		$thumbFile = TEMP_FILES . $coverName;		

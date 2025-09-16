@@ -36,7 +36,7 @@ class ServerInfo {
         if ($readList[$file]) {
             return @file_get_contents($file) ?: '';
         }
-        return shell_exec('cat '.$file) ?: '';
+        return shell_exec('cat '.escapeShell($file)) ?: '';
     }
 
     /**

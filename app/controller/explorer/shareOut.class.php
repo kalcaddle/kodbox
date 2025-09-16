@@ -168,8 +168,16 @@ class explorerShareOut extends Controller{
 		});
 	}
 	
+	// 接收端, 成员用户退出协作处理
+	public function shareUserExit($siteFrom,$shareID,$secret){
+		if(!$siteFrom || !$shareID || !$secret){return false;}
+		$apiFrom 	= $siteFrom.'/index.php?explorer/shareOut/sendShareUserExit';
+		$param 		= array('shareID'=>$shareID,'secret'=>$secret);
+		$response 	= url_request($apiFrom,'POST',$param,false,false,true,3);
+		return $response['data'];
+	}
 	
-	//==================== 作为发送方提供的接口 ===================
+	//==================== 作为[联合分享发送方]提供的接口 ===================
 	
 	// 外部用户访问权限校验; return: false/read/write; (接收端内部IO向发起端请求, 发起端校验处理);
 	// 校验通过返回对应权限; 不通过则默认使用外链分享各个限制;
@@ -189,6 +197,33 @@ class explorerShareOut extends Controller{
 		if($config['shareLinkAllow'] != '1'){show_json(LNG('explorer.shareOut.errorDisableShare'),false,'kodbox');}
 		if($config['shareOutAllowSend'] != '1'){show_json(LNG('explorer.shareOut.errorDisableSend'),false,'kodbox');}
 		show_json("ok:check",true,'kodbox');
+	}
+	
+	// 分享端,接收成员用户退出协作处理;
+	public function sendShareUserExit(){
+		$config = Model('SystemOption')->get();
+		if($config['shareLinkAllow'] != '1'){show_json(LNG('explorer.shareOut.errorDisableShare'),false,'kodbox');}
+		if($config['shareOutAllowSend'] != '1'){show_json(LNG('explorer.shareOut.errorDisableSend'),false,'kodbox');}
+		$data = Input::getArray(array(
+			'shareID'	=> array("check"=>"number"),
+			'secret'	=> array("check"=>"require"),
+		));
+		$model 		= Model('Share');
+		$shareInfo 	= $model->getInfo($data['shareID']);
+		$shareOut 	= _get($shareInfo,'options.shareOut',array());
+		$shareOutNew = array();$hasFind = false;
+		foreach($shareOut as $item){
+			if($item['secret'] != $data['secret']){$shareOutNew[] = $item;continue;}
+			$hasFind = true;
+		}
+		if(!$hasFind){show_json(LNG('explorer.share.notExist'),false,'kodbox');}
+		
+		$shareOptions = $shareInfo['options'];
+		$shareOptions['shareOut'] = $shareOutNew;
+		if(!$shareOutNew){unset($shareOptions['shareOut']);}
+		$model->shareEdit($data['shareID'],array('isLink'=>'1','options'=>$shareOptions));
+		$model->cacheFunctionClear('listSimple',$shareInfo['userID']);// 自己分享列表信息更新;
+		show_json('ok',true,'kodbox');
 	}
 	
 	// 当前站点分享信息获取时,授信站点列表获取(apiKey加密); 供前端显示用(前端获取用户部门信息)

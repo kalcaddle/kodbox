@@ -680,7 +680,7 @@ class S3 {
 				$rest->setAmzHeader('x-amz-content-sha256', $input['sha256sum']);
 			}
 
-			$rest->setAmzHeader('x-amz-acl', $acl);
+			// $rest->setAmzHeader('x-amz-acl', $acl);	// cos文件acl会转为桶的匿名用户策略条目，随文件增多条目会超限，故不设置（继承桶策略权限）
 			foreach ($metaHeaders as $h => $v) {
 				$rest->setAmzHeader('x-amz-meta-' . $h, $v);
 			}
@@ -1120,7 +1120,7 @@ class S3 {
 		if ($storageClass !== self::STORAGE_CLASS_STANDARD) { // Storage class
 			$rest->setAmzHeader('x-amz-storage-class', $storageClass);
 		}
-		$rest->setAmzHeader('x-amz-acl', $acl);
+		// $rest->setAmzHeader('x-amz-acl', $acl);
 		$rest->setAmzHeader('x-amz-copy-source', sprintf('/%s/%s', $srcBucket, rawurlencode($srcUri)));
 		if (sizeof($requestHeaders) > 0 || sizeof($metaHeaders) > 0) {
 			$rest->setAmzHeader('x-amz-metadata-directive', 'REPLACE');

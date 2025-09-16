@@ -1,0 +1,306 @@
+.admin-page .sys-notice-page .reset-app-btn {
+    display: inline-block;
+    position: absolute;
+    right: 30px;
+    top: 10px;
+}
+.admin-page .sys-notice-page .reset-app-btn .btn {
+    /* padding: 5px 8px; */
+    border-radius: 4px;
+    padding: 6px 10px;
+    font-size: 0.95em;
+}
+
+.admin-page .sys-notice-page .toolbar .dialog-form.target-form.form-inline .form-box .form-row .setting-content input.form-input-text {
+    width: 100px;
+    height: 26px;
+}
+.admin-page .sys-notice-page .toolbar .dialog-form.target-form.form-inline .form-box .form-row .setting-content .input-title-right {
+    margin-right: 0px;
+    z-index: 99;
+}
+/* .dialog-form.dialog-form-has-menu.dialog-form-style-simple.form-box-title-block .form-box .form-row  */
+.admin-page .sys-notice-page .toolbar .dialog-form.target-form.form-inline .form-box .form-row.item-level .setting-title, 
+.admin-page .sys-notice-page .toolbar .dialog-form.target-form.form-inline .form-box .form-row.item-class .setting-title {
+    display: initial !important;
+    width: auto;
+    margin: 5px;
+    margin-right: 2px;
+}
+.admin-page .sys-notice-page .toolbar .dialog-form.target-form.form-inline .form-box .form-row.item-level .setting-title:after, 
+.admin-page .sys-notice-page .toolbar .dialog-form.target-form.form-inline .form-box .form-row.item-class .setting-title:after { 
+    content: '';
+}
+.admin-page .sys-notice-page .toolbar .dialog-form.target-form.form-inline .form-box .form-row.item-level .setting-content, 
+.admin-page .sys-notice-page .toolbar .dialog-form.target-form.form-inline .form-box .form-row.item-class .setting-content {
+    width: 100px;
+}
+.admin-page .sys-notice-page .toolbar .dialog-form.target-form.form-inline .form-box .form-row {
+    padding: 0px;
+    margin-right: 10px;
+}
+.admin-page .sys-notice-page .kodTable .toolbar {
+    padding-bottom: 0px;
+}
+
+/* 级别opt */
+span.select2-container .select2-results__option .ntc-lvl {
+    /* border-left: 3px solid;
+    padding-left: 5px; */
+    height: 10px;
+    width: 10px;
+    display: inline-block;
+    border-radius: 100%;
+}
+
+/* evnt list */
+.admin-page .sys-notice-page .ntc-evnt-page .kodTable .list-row.row-content .list-col[field=notice] .ntc-icon, 
+.admin-page .sys-notice-page .ntc-logs-page .kodTable .list-row.row-content .list-col[field=method] .ntc-icon {
+    vertical-align: text-bottom;
+}
+/* .admin-page .sys-notice-page .ntc-evnt-page .kodTable .list-row.row-content .list-col[field=type] .label, 
+.admin-page .sys-notice-page .ntc-logs-page .kodTable .list-row.row-content .list-col[field=method] .label {
+    border: 1px solid #108ee9;
+    border-radius: 1em;
+    color: #666;
+    font-size: .9em;
+    padding: 0.3em 0.5em 0.2em;
+} */
+
+/* 通知方式图标 */
+/* 32px */
+.admin-page .sys-notice-page i.ntc-icon.ktips, 
+.admin-page .sys-notice-page i.ntc-icon.kwarn {
+    font-size: 20px;
+    width: 32px;
+    height: 32px;
+    line-height: 32px;
+    margin-right: 8px;
+    border-radius: 6px;
+    color: #fff;
+}
+.admin-page .sys-notice-page i.ntc-icon:not(.ktips,.kwarn) {
+    width: 32px;
+    height: 32px;
+    margin-right: 8px;
+    background: url(../images/type-icon.png);
+    background-size: 100%;
+    border-radius: 6px;
+    display: inline-block;
+}
+.admin-page .sys-notice-page i.ntc-icon.email {
+    background-position: 0 32px;
+}
+.admin-page .sys-notice-page i.ntc-icon.dding {
+    background-position: 0 0;
+}
+.admin-page .sys-notice-page i.ntc-icon.feishu {
+    background-position: 0 128px;
+}
+.admin-page .sys-notice-page i.ntc-icon.weixin {
+    background-position: 0 64px;
+}
+.admin-page .sys-notice-page i.ntc-icon.wechat {
+    background-position: 0 96px;
+}
+.admin-page .sys-notice-page i.ntc-icon.sms {
+    background-position: 0 160px;
+}
+/* 24px */
+.admin-page .sys-notice-page i.ntc-icon.sz-24 {
+    width: 24px;
+    height: 24px;
+    font-size: 14px;
+    line-height: 24px;
+}
+.admin-page .sys-notice-page i.ntc-icon.email.sz-24 {
+    background-position: 0 24px;
+}
+.admin-page .sys-notice-page i.ntc-icon.feishu.sz-24 {
+    background-position: 0 96px;
+}
+.admin-page .sys-notice-page i.ntc-icon.weixin.sz-24 {
+    background-position: 0 48px;
+}
+.admin-page .sys-notice-page i.ntc-icon.wechat.sz-24 {
+    background-position: 0 72px;
+}
+.admin-page .sys-notice-page i.ntc-icon.sms.sz-24 {
+    background-position: 0 120px;
+}
+
+/* type list: 通知方式标题（图标后） */
+.admin-page .sys-notice-page .ntc-type-page .kodTable .list-row.row-content .list-col[field=name] span {
+    vertical-align: top;
+    height: 32px;
+    line-height: 32px;
+    display: inline-block;
+}
+
+/* logs list */
+.admin-page .sys-notice-page .ntc-logs-page .kodTable .list-row.row-content .list-col[field=desc] {
+    max-width: 200px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+
+/* evnt dg */
+.dialog-form.ntc-evnt-set-dg .form-box .form-row.form-html .setting-content {
+    margin-top: 5px;
+}
+.dialog-form.ntc-evnt-set-dg .aui-content>[switch-key-ntcmore=more] .tab-content.notice .form-row.item-ntcTimeFrom, 
+.dialog-form.ntc-evnt-set-dg .aui-content>[switch-key-ntcmore=more] .tab-content.notice .form-row.item-ntcTimeTo {
+    display: inline-block !important;
+}
+.dialog-form.ntc-evnt-set-dg .aui-content>[switch-key-ntcmore=more] .tab-content.notice .form-row.item-ntcTimeFrom .setting-content, 
+.dialog-form.ntc-evnt-set-dg .aui-content>[switch-key-ntcmore=more] .tab-content.notice .form-row.item-ntcTimeTo .setting-content {
+    /* display: contents; */
+    float: none;
+    display: inline-block;
+    width: auto;
+}
+.dialog-form.ntc-evnt-set-dg .aui-content>[switch-key-ntcmore=more] .tab-content.notice .form-row.item-ntcTimeTo {
+    padding-left: 0px;
+}
+.dialog-form.ntc-evnt-set-dg .aui-content>[switch-key-ntcmore=more] .tab-content.notice .form-row.item-ntcTimeTo .setting-title {
+    display: none;
+}
+.app-wap-small .dialog-form.ntc-evnt-set-dg .aui-content>[switch-key-ntcmore=more] .tab-content.notice .form-row.item-ntcTimeFrom .setting-content input, 
+.app-wap-small .dialog-form.ntc-evnt-set-dg .aui-content>[switch-key-ntcmore=more] .tab-content.notice .form-row.item-ntcTimeTo .setting-content input {
+    width: auto !important;
+}
+/* .dialog-form.ntc-evnt-set-dg .form-box .form-row.item-status.not-allowed .setting-content { */
+/* .dialog-form.ntc-evnt-set-dg .form-box .form-row.not-allowed .setting-content {
+    cursor: not-allowed;
+    pointer-events: none;
+    opacity: .6;
+} */
+/* .dialog-form.ntc-evnt-set-dg .switch-not-allowed .setting-content label,  */
+.dialog-form.ntc-evnt-set-dg .switch-not-allowed .setting-content, 
+.admin-page .sys-notice-page .kodTable .list-row.row-content .list-col[field=status] label.switch-not-allowed {
+    pointer-events: none;
+    opacity: .7;
+}
+
+
+/* select clear  */
+/* .dialog-form.ntc-evnt-set-dg .form-row.item-ntcMethod span.select2-container .select2-selection .select2-selection__choice .select2-selection__choice__remove, 
+.dialog-form.ntc-evnt-set-dg .form-row.item-ntcMethod span.select2-container .select2-selection .select2-selection__clear {
+}
+.select2-container.form-select2-dropdown-key-ntcMethod .select2-results__options>li[data-value="kwarn"] {
+} */
+
+/* 通知示例 */
+/* ktips */
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeKtips .setting-content .eg-box {
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 6px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    width: 300px;
+    /* padding: 10px 10px 10px 15px; */
+    padding: 10px;
+    line-height: 1.5em;
+    display: flex;
+}
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeKtips .setting-content .eg-box .icon i{
+    font-size: 24px;
+    /* margin-left: -5px; */
+}
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeKtips .setting-content .eg-box .content{
+    margin-left: 5px;
+    color: #999;
+}
+/* kwarn */
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeKwarn .setting-content .eg-box {
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: 4px;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    width: 320px;
+    /* padding: 0px 8px; */
+}
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeKwarn .setting-content .eg-box .topbar {
+    padding: 8px;
+    color: #666;
+    padding-bottom: 0px;
+}
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeKwarn .setting-content .eg-box .content {
+    height: 105px;
+    border-radius: 3px;
+    margin: 0px 7px;
+    overflow-y: auto;
+    background: #fcfcfc;
+    padding: 7px;
+    margin: 0px 15px;
+}
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeKwarn .setting-content .eg-box .content i{
+    height: 8px;
+    width: 8px;
+    display: inline-block;
+    border-radius: 100%;
+    margin-right: 5px;
+}
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeKwarn .setting-content .eg-box .content span:last-child {
+    color: #666;
+    display: inline-block;
+    margin-left: 12px;
+}
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeKwarn .setting-content .eg-box .botbar {
+    text-align: right;
+    padding: 8px;
+    padding-top: 0px;
+}
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeKwarn .setting-content .eg-box .botbar .btn{
+    background: -webkit-linear-gradient(-200deg, #006CFA, #1acbff);
+    color: #fff;
+    border: none;
+    border-radius: 2px;
+    font-size: .9em;
+    pointer-events: none;
+}
+/* email */
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeEmail .setting-content .eg-box {
+    background: rgba(255, 255, 255, 0.98);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.15);
+    width: 320px;
+}
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeEmail .setting-content .eg-box .content {
+    padding: 15px 30px;
+    height: 150px;
+}
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeEmail .setting-content .eg-box .content>div:last-child {
+    position: absolute;
+    bottom: 20px;
+}
+/* weixin/dding */
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeWeixin .setting-content .eg-box, 
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeDding .setting-content .eg-box {
+    background: #f4f5f8;
+    width: 300px;
+    display: flex;
+    padding: 15px 10px;
+    height: 150px;
+}
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeWeixin .setting-content .eg-box .path-ico, 
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeDding .setting-content .eg-box .path-ico {
+    width: 24px;
+    height: 24px;
+}
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeWeixin .setting-content .eg-box .content>div:last-child, 
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeDding .setting-content .eg-box .content>div:last-child {
+    padding: 6px 12px;
+    background: #fff;
+    border-radius: 4px;
+    width: 210px;
+    margin-left: 10px;
+    height: fit-content;
+}
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeWeixin .setting-content .eg-box .content>div:last-child {
+    border-left: 3px solid #2292e1;
+}
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeWeixin .setting-content .eg-box .content>div:last-child .title, 
+.dialog-form.ntc-evnt-set-dg .form-box .tab-content.eg .item-egTypeDding .setting-content .eg-box .content>div:last-child .title {
+    color: #444;
+    font-weight: 600;
+}

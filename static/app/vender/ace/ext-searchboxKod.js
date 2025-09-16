@@ -457,6 +457,7 @@ ace.define("ace/ext/searchboxKod", ["require", "exports", "module", "ace/lib/dom
 		}
 
 		this.highlight = function(re) {
+			if(!this.editor || !this.editor.session){return;}
 			this.editor.session.highlight(re || this.editor.$search.$options.re);
 			this.editor.renderer.updateBackMarkers()
 		};

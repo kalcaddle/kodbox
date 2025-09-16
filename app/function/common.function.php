@@ -292,6 +292,7 @@ function echoLog($log,$replace=false){
 	static $isFirst    = true;
 	static $timeBefore = false;
 	static $logOutBefore  = '';
+	static $logReplaceBefore  = '';
 	static $replaceID  = '';
 	if($isFirst){
 		ignore_timeout();
@@ -302,7 +303,7 @@ function echoLog($log,$replace=false){
 	
 	$timeDelay  = 0.05;// 临时替换的输出内容, 50ms内只输出一次;
 	$timeAt     = timeFloat();
-	if($timeBefore && $replace && ($timeAt - $timeBefore) < $timeDelay){return;}
+	if($timeBefore && $replace && ($timeAt - $timeBefore) < $timeDelay){$logReplaceBefore = $log;return;}
 	$timeBefore = $timeAt;
 	$timeFloat 	= explode(".",mtime());
 	$timeNow 	= date("H:i:s.",time()).sprintf("%03d",substr($timeFloat[1],0,3));
@@ -325,6 +326,10 @@ function echoLog($log,$replace=false){
 	$replaceIdBefore = $replaceID;
 	if(!$replace){$replaceID = '';}
 	if($replace){$replaceID = $replaceID ? $replaceID:rand_string(10);}
+	if(!$replace && $replaceIdBefore){
+		if(!$log && $logReplaceBefore){$log = $logReplaceBefore;}
+		if(!$log){return;} // 替换转不替换,log为空则保留前一次替换的内容;
+	}
 	
 	if(!strstr($log,'<')){$log = str_replace(array(" "),array("&nbsp;"),$log);} // 没有html标签时替换空格
 	$log = str_replace(array('`',"\n"),array('`',"<br/>"),$log);

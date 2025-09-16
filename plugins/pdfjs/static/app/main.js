@@ -11,10 +11,10 @@ kodReady.push(function(){
 				core.openFile('{{pluginApi}}',"{{config.openWith}}",_.toArray(arguments));
 			}
 		});
-		$.addStyle(".x-item-icon.x-ofd{background-image:url('{{pluginHost}}static/ofd/img/icon.png');}");
 		_.delay(function(){
 			if(!window.kodApp || !kodApp.remove){return;}
 			kodApp.remove('pdfView');
 		},100);
 	});
+	$.addStyle(".x-item-icon.x-ofd{background-image:url('{{pluginHost}}static/ofd/img/icon.png');}");
 });

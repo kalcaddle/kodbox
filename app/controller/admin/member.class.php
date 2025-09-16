@@ -115,7 +115,7 @@ class adminMember extends Controller{
 			if(!$allowShow){continue;}
 			if($allowFull && $requestAdmin){$userAllow[] = $user;continue;}
 			
-			$allowField = explode(',','userID,avatar,name,nickName,sex');//groupInfo
+			$allowField = explode(',','userID,avatar,name,nickName,sex,groupInfo');//groupInfo
 			$userAllow[] = array_field_key($user,$allowField);
 		}
 		// pr($userAllow,$list,$userGroupRootShow,$userGroupAdmin);exit;
