@@ -20,6 +20,7 @@ return array(
     "msgWarning.main.goSet"          => "前往配置",
     "msgWarning.main.appReset"       => "恢復預設",
     "msgWarning.main.ifAppReset"     => "執行後將重置所有設定（通知事件、通知網關），是否繼續？",
+    "msgWarning.main.invalidUser"    => "無效的傳送對象",
     "msgWarning.ntc.event"           => "通知事件",
     "msgWarning.ntc.target"          => "通知對象",
     "msgWarning.ntc.method"          => "通知方式",
@@ -146,5 +147,5 @@ return array(
     "msgWarning.ops.admEmlErr"       => "您尚未綁定信箱，為確保通知或找回密碼等功能正常，請盡快綁定信箱。",
     "msgWarning.svr.usageErr"        => "近%s分鐘內，伺服器%s使用率持續超過%s(目前為%s)，為避免影響系統的正常使用，請檢查並最佳化相關配置。",
     "msgWarning.svr.diskSizeErr"     => "伺服器系統盤剩餘空間不足(%s)，為保障系統正常運行，請及時處理。",
-    "msgWarning.data.dataFileDownErr" => "截止目前（%s），今日共有%d位用戶下載檔次數達到上限（%d次），詳情可在後台操作日誌中查看。"
+    "msgWarning.data.downFileErr"    => "截止目前（%s），今日共有%d位用戶下載檔次數達到上限（%d次），詳情可在後台操作日誌中查看。"
 );

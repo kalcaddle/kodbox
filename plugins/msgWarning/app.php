@@ -22,8 +22,17 @@ class msgWarningPlugin extends PluginBase{
 		// 通知绑定事件
 		// 文件下载限制
         Hook::bind('explorer.fileDownload', $this->pluginName.'Plugin.act.index.fileDownload');
+
+		// Hook::bind('show_json',array($this,'showErrJson'));
+		// Hook::bind('show_tips',array($this,'showErrTips'));
 	}
 	public function echoJs(){
+		// 初始化计划任务——随系统安装时无法执行到切换状态、保存配置等
+		$config = $this->getConfig();
+		if (!$config['initTask']) {
+			$this->apiAct()->updateTask(1);
+			$this->setConfig(array('initTask' => 1));
+		}
 		$this->echoFile('static/main.js');
 	}
 
@@ -32,6 +41,7 @@ class msgWarningPlugin extends PluginBase{
 		if ($status) {
 			$this->loadLib('evnt')->initData();
 			$this->loadLib('logs')->initTable();
+			$this->setConfig(array('pluginAuth' => json_encode(array('all'=>1))));
 		}
 		$this->apiAct()->updateTask($status);
 	}
@@ -40,6 +50,7 @@ class msgWarningPlugin extends PluginBase{
 		$status = 1;
 		$this->loadLib('evnt')->initData();
 		$this->loadLib('logs')->initTable();
+		$config['pluginAuth'] = json_encode(array('all'=>1));	// 插件权限
 		$this->apiAct()->updateTask($status);
         return $config;
 	}

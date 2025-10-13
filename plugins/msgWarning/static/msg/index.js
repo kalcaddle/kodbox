@@ -1,16 +1,23 @@
 ClassBase.define({
 	init: function (param) {
         this.ntcNotifyList = {};
+        this.ntcRequesting = false;
     },
 
     // 显示异常信息
     showTips: function(){
-        var self = this;
-        var userID = _.get(G, 'user.userID');
-        if (!userID) return;
+        if (!_.get(G, 'user.userID')) return;
+        if (this.ntcRequesting) return;
+        this.ntcRequesting = true;
 
         // 获取消息
+        var self = this;
         var getNotice = function(){
+            // 非活动页不请求；$(document).on("visibilitychange", function);
+            if (document.hidden) {
+                self._delay(function(){getNotice();}, 1000 * 60);
+                return;
+            }
             kodApi.requestSend('plugin/msgWarning/notice', {}, function(result){
                 self._delay(function(){getNotice();}, 1000 * 60);   // 每分钟请求一次
                 if (!result || !result.code) return;

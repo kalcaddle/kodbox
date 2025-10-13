@@ -21,6 +21,7 @@ return array(
 	'msgWarning.main.goSet'				=> '前往配置',
 	'msgWarning.main.appReset'			=> '恢复默认',
 	'msgWarning.main.ifAppReset'		=> '执行后将重置所有配置（通知事件、通知网关），是否继续？',
+	'msgWarning.main.invalidUser'		=> '无效的发送对象',
 
 	'msgWarning.ntc.event'				=> '通知事件',
 	'msgWarning.ntc.target'				=> '通知对象',
@@ -159,5 +160,5 @@ return array(
 	'msgWarning.ops.admEmlErr'			=> '您尚未绑定邮箱，为确保通知或找回密码等功能正常，请尽快绑定邮箱。',
 	'msgWarning.svr.usageErr'			=> '近%s分钟内，服务器%s使用率持续超过%s(目前为%s)，为避免影响系统的正常使用，请检查并优化相关配置。',
 	'msgWarning.svr.diskSizeErr'		=> '服务器系统盘剩余空间不足(%s)，为保障系统正常运行，请及时处理。',
-	'msgWarning.data.dataFileDownErr'	=> '截止目前（%s），今日共有%d位用户下载文件次数达到上限（%d次），详情可在后台操作日志中查看。',
+	'msgWarning.data.downFileErr'		=> '截止目前（%s），今日共有%d位用户下载文件次数达到上限（%d次），详情可在后台操作日志中查看。',
 );

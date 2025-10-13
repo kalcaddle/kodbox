@@ -20,6 +20,7 @@ return array(
     "msgWarning.main.goSet"          => "Ir para Configuração",
     "msgWarning.main.appReset"       => "Restaurar padrões",
     "msgWarning.main.ifAppReset"     => "Após executar este comando, todas as configurações (eventos de notificação, gateway de notificação) serão redefinidas. Deseja continuar?",
+    "msgWarning.main.invalidUser"    => "Objeto de envio inválido",
     "msgWarning.ntc.event"           => "Eventos de Notificação",
     "msgWarning.ntc.target"          => "Destinatários da notificação",
     "msgWarning.ntc.method"          => "Método de notificação",
@@ -146,5 +147,5 @@ return array(
     "msgWarning.ops.admEmlErr"       => "Você ainda não vinculou seu endereço de e-mail. Para garantir o funcionamento normal das notificações ou da recuperação de senha, vincule seu endereço de e-mail o mais rápido possível.",
     "msgWarning.svr.usageErr"        => "Nos últimos %s minutos, o uso do servidor %s excedeu %s (atualmente %s). Para evitar afetar o uso normal do sistema, verifique e otimize as configurações relevantes.",
     "msgWarning.svr.diskSizeErr"     => "O disco do sistema do servidor não possui espaço livre suficiente (%s). Para garantir o funcionamento normal do sistema, resolva este problema imediatamente.",
-    "msgWarning.data.dataFileDownErr" => "Até o momento (%s), um total de %d usuários baixou arquivos, atingindo o limite máximo (%d vezes). Os detalhes podem ser visualizados no log de operações em segundo plano."
+    "msgWarning.data.downFileErr"    => "Até o momento (%s), um total de %d usuários baixou arquivos, atingindo o limite máximo (%d vezes). Os detalhes podem ser visualizados no log de operações em segundo plano."
 );

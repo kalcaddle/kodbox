@@ -20,6 +20,7 @@ return array(
     "msgWarning.main.goSet"          => "Accéder à la configuration",
     "msgWarning.main.appReset"       => "Restaurer les paramètres par défaut",
     "msgWarning.main.ifAppReset"     => "Après avoir exécuté cette commande, toutes les configurations (événements de notification, passerelle de notification) seront réinitialisées. Voulez-vous continuer ?",
+    "msgWarning.main.invalidUser"    => "Objet d'envoi non valide",
     "msgWarning.ntc.event"           => "Événements de notification",
     "msgWarning.ntc.target"          => "Destinataires des notifications",
     "msgWarning.ntc.method"          => "Méthode de notification",
@@ -146,5 +147,5 @@ return array(
     "msgWarning.ops.admEmlErr"       => "Vous n'avez pas encore associé votre adresse e-mail. Pour garantir le bon fonctionnement des notifications et de la récupération de votre mot de passe, veuillez l'associer dès que possible.",
     "msgWarning.svr.usageErr"        => "Au cours des %s dernières minutes, l'utilisation du serveur %s a dépassé %s (actuellement %s). Pour éviter toute perturbation du fonctionnement normal du système, veuillez vérifier et optimiser les configurations concernées.",
     "msgWarning.svr.diskSizeErr"     => "L'espace disque disponible sur le disque système du serveur est insuffisant (%s). Pour garantir le bon fonctionnement du système, veuillez résoudre ce problème rapidement.",
-    "msgWarning.data.dataFileDownErr" => "À ce jour (%s), %d utilisateurs ont téléchargé des fichiers, atteignant la limite maximale (%d fois). Les détails sont disponibles dans le journal des opérations en arrière-plan."
+    "msgWarning.data.downFileErr"    => "À ce jour (%s), %d utilisateurs ont téléchargé des fichiers, atteignant la limite maximale (%d fois). Les détails sont disponibles dans le journal des opérations en arrière-plan."
 );

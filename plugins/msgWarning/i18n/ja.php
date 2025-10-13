@@ -20,6 +20,7 @@ return array(
     "msgWarning.main.goSet"          => "設定へ移動",
     "msgWarning.main.appReset"       => "デフォルトに戻す",
     "msgWarning.main.ifAppReset"     => "このコマンドを実行すると、すべての設定（通知イベント、通知ゲートウェイ）がリセットされます。続行しますか？",
+    "msgWarning.main.invalidUser"    => "送信オブジェクトが無効です",
     "msgWarning.ntc.event"           => "通知イベント",
     "msgWarning.ntc.target"          => "通知の受信者",
     "msgWarning.ntc.method"          => "通知方法",
@@ -146,5 +147,5 @@ return array(
     "msgWarning.ops.admEmlErr"       => "メールアドレスがまだ紐付けられていません。通知やパスワード取得機能を正常に動作させるため、できるだけ早くメールアドレスを紐付けてください。",
     "msgWarning.svr.usageErr"        => "過去%s分間、サーバー%sの使用量が%s（現在%s）を超えました。システムの正常な使用に影響が及ばないように、関連する設定を確認し、最適化してください。",
     "msgWarning.svr.diskSizeErr"     => "サーバーのシステムディスクの空き容量が不足しています (%s)。システムの正常な動作を確保するため、この問題を速やかに解決してください。",
-    "msgWarning.data.dataFileDownErr" => "現在（%s）までに合計%d人のユーザーがファイルをダウンロードしており、上限（%d回）に達しています。詳細はバックグラウンド操作ログで確認できます。"
+    "msgWarning.data.downFileErr"    => "現在（%s）までに合計%d人のユーザーがファイルをダウンロードしており、上限（%d回）に達しています。詳細はバックグラウンド操作ログで確認できます。"
 );

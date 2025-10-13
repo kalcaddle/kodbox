@@ -19,7 +19,9 @@ class filterAttachment extends Controller{
 		Hook::bind('admin.notice.add.after',array($this,'doNoticeLink'));
 		Hook::bind('admin.notice.edit.after',array($this,'doNoticeLinkEdit'));
 		Hook::bind('admin.notice.remove.after',array($this,'doNoticeClear'));
+		
 		Hook::bind('comment.index.add.after',array($this,'doCommentLink'));
+		Hook::bind('comment.index.edit.after',array($this,'doNoticeLinkEdit'));
 		Hook::bind('comment.index.remove.after',array($this,'doCommentClear'));
 	}
 	public function doNoticeLink($json){Action('explorer.attachment')->noticeLink($json['info']);}

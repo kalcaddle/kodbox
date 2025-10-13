@@ -274,6 +274,7 @@ class userIndex extends Controller {
 			"name"		=> array("check"=>"require",'lengthMax'=>500),
 			"password"	=> array('check'=>"require",'lengthMax'=>500),
 		));
+		$data['name'] = trim($data['name']);
 		$checkCode = Input::get('checkCode', 'require', '');
 		if( need_check_code() && $data['name'] != 'guest'){
 			Action('user.setting')->checkImgCode($checkCode);
@@ -295,9 +296,10 @@ class userIndex extends Controller {
 	private function loginWithToken(){
 		if (!isset($this->in['loginToken'])) return false;
 		$apiToken = $this->config['settings']['apiLoginToken'];
-		$param = explode('|', $this->in['loginToken']);
+		$loginToken = trim($this->in['loginToken']);
+		$param = explode('|', $loginToken);
 		if (strlen($apiToken) < 5 ||
-			count($param) != 2 || strlen($this->in['loginToken']) > 500 ||
+			count($param) != 2 || strlen($loginToken) > 500 ||
 			md5(base64_decode($param[0]) . $apiToken) != $param[1]
 		) {
 			return show_json('API 接口参数错误!', false);

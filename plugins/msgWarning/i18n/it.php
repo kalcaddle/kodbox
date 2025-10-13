@@ -20,6 +20,7 @@ return array(
     "msgWarning.main.goSet"          => "Vai alla configurazione",
     "msgWarning.main.appReset"       => "Ripristina impostazioni predefinite",
     "msgWarning.main.ifAppReset"     => "Dopo aver eseguito questo comando, tutte le configurazioni (eventi di notifica, gateway di notifica) verranno ripristinate. Vuoi continuare?",
+    "msgWarning.main.invalidUser"    => "Oggetto di invio non valido",
     "msgWarning.ntc.event"           => "Eventi di notifica",
     "msgWarning.ntc.target"          => "Destinatari della notifica",
     "msgWarning.ntc.method"          => "Metodo di notifica",
@@ -146,5 +147,5 @@ return array(
     "msgWarning.ops.admEmlErr"       => "Non hai ancora associato il tuo indirizzo email. Per garantire il normale funzionamento delle notifiche o il recupero della password, ti preghiamo di associare il tuo indirizzo email il prima possibile.",
     "msgWarning.svr.usageErr"        => "Negli ultimi %s minuti, l'utilizzo del server %s ha superato %s (attualmente %s). Per evitare di compromettere il normale utilizzo del sistema, si prega di controllare e ottimizzare le configurazioni pertinenti.",
     "msgWarning.svr.diskSizeErr"     => "Il disco di sistema del server non ha spazio libero sufficiente (%s). Per garantire il normale funzionamento del sistema, si prega di risolvere tempestivamente il problema.",
-    "msgWarning.data.dataFileDownErr" => "Ad oggi (%s), un totale di %d utenti hanno scaricato file, raggiungendo il limite massimo (%d volte). I dettagli possono essere visualizzati nel registro delle operazioni in background."
+    "msgWarning.data.downFileErr"    => "Ad oggi (%s), un totale di %d utenti hanno scaricato file, raggiungendo il limite massimo (%d volte). I dettagli possono essere visualizzati nel registro delle operazioni in background."
 );

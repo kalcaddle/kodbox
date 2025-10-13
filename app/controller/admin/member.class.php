@@ -484,13 +484,14 @@ class adminMember extends Controller{
 		}
 		$line = fgets($handle);	// 获取分隔符
 		$separator = $this->getCsvSep(trim($line));
+		// rewind($handle);	// 重置指针——fgets会移动指针，但第一行本就需要排除（标题），去掉后续的unset即可
 		$dataList = array();
 		while (($data = fgetcsv($handle,0,$separator)) !== false) {
             $dataList[] = $data;
 		}
         fclose($handle);
         // 2.获取列表数据
-        unset($dataList[0]);
+        // unset($dataList[0]);
 		$dataList = array_filter($dataList);
         $list = array();
         $keys = array('name'=>'','nickName'=>'','password'=>'','sex'=>1,'phone'=>'','email'=>'');

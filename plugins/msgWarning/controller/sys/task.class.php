@@ -95,7 +95,6 @@ class msgWarningSysTask extends Controller {
 				
 				// 2.获取通知消息
 				$message = $msgAct->index($evntInfo);
-				write_log(array('通知消息---',$event,$message), 'notice');		// 	TODO 
 				$tempMsg = Hook::trigger('msgWarning.msg.'.$event, $evntInfo);	// 附加通知；eg: msgWarning.msg.sysStoreDefErr
 				if($tempMsg && is_array($tempMsg)){
 					$message = $tempMsg; 
@@ -122,7 +121,7 @@ class msgWarningSysTask extends Controller {
 				}
 				// 4.1 预警级+ 写入log日志
 				if ($evntInfo['level'] >= 3) {
-					write_log('【系统通知】'.$evntInfo['title'].': '.$message, 'warning');
+					write_log('【系统通知】'.$evntInfo['title'].': '.($message.join('; ')), 'warning');
 				}
 
 				// 4.2 发送通知
@@ -209,13 +208,11 @@ class msgWarningSysTask extends Controller {
 			if (isset($groupUsers[$tmpKey])) {
 				$list = $groupUsers[$tmpKey];
 			} else {
-				$list = Model('user_group')->where(array('groupID' => array('in', $group)))->field('userID')->select();
+				$list = Model('user_group')->alias('g')->field('u.userID')
+						->join('INNER JOIN user as u ON u.userID = g.userID AND u.status = 1')
+						->where(array('g.groupID' => array('in', $group)))
+						->select();
 				$list = array_to_keyvalue($list, '', 'userID');
-				if (!empty($list)) {
-					$where = array('status' => 1, 'userID' => array('in', $list));
-					$list = Model('User')->where($where)->field('userID')->select();
-					$list = array_to_keyvalue($list, '', 'userID');
-				}
 				$groupUsers[$tmpKey] = $list;
 			}
 		}
@@ -225,7 +222,7 @@ class msgWarningSysTask extends Controller {
 		return array_filter(array_unique($users));
 	}
 
-	// 获取用于缓存的数据
+	// 获取用于缓存的数据：{ktips:1,2,3,kwarn:1,2,3,msg:{title,level,message}}
 	private function ntcCache($evntInfo, $methods) {
 		$cache = array();
 		$users = implode(',', $evntInfo['target']);
@@ -273,6 +270,7 @@ class msgWarningSysTask extends Controller {
 	 * @return void [ktips=>[event=>[title,level,message],...],kwarn=>[event=>[title,level,message],...]]
 	 */
 	public function webNotice() {
+		if(!defined('USER_ID') || !USER_ID) show_json(array());
 		$cckey = $this->pluginName.'.webNtcList.'.date('Ymd');
 		$cache = Cache::get($cckey);
 		if (empty($cache)) show_json(array());

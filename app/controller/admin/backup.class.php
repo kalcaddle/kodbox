@@ -11,20 +11,82 @@ class adminBackup extends Controller{
 	 * 初始化备份计划任务
 	 * @return void
 	 */
-	public function taskInit(){
-		if(Model('systemOption')->get('autoTaskInit','backup') == 'ok') return;
-		// 数据备份
-		$data = array (
-			'name'	=> LNG('admin.task.backup'),
-			'type'	=> 'method',
-			'event' => 'admin.backup.start',
-			'time'	=> '{"type":"day","month":"1","week":"1","day":"02:00","minute":"10"}',
-			'desc'	=> LNG('admin.task.backupDesc'),
-			'enable' => '0',
-			'system' => '1',
+	public function taskInit($config=false){
+		$optModel = Model('systemOption');
+		$tskModel = Model('SystemTask');
+		// 获取配置
+		if (!$config) $config = $this->model->configSimple();
+
+		// 初始化标识
+		$autoTaskKey = 'autoTaskInit';
+		$fileTaskKey = 'fileTaskInit';
+		$isTaskInit = array(
+			$autoTaskKey => $optModel->get($autoTaskKey, 'backup'),
+			$fileTaskKey => $optModel->get($fileTaskKey, 'backup'),
 		);
-		if(!Model('SystemTask')->add($data)) return; 
-		Model('systemOption')->set('autoTaskInit','ok','backup');
+		$taskEvent = array(
+			$autoTaskKey => 'admin.backup.autoTask',
+			$fileTaskKey => 'admin.backup.fileTask',
+		);
+
+		// 1.没有启用，删除任务
+		if ($config['enable'] != '1') {
+			foreach ($isTaskInit as $initKey => $initVal) {
+				if($initVal != 'ok') continue;
+				$task = $tskModel->findByKey('event', $taskEvent[$initKey]);
+				if ($task) $tskModel->remove($task['id'],true);
+				$optModel->set($initKey, '', 'backup');
+			}
+			return;
+		}
+		// 2.有启用，更新原任务（兼容旧版）
+		if($optModel->get('autoTaskUpdate','backup') != 'ok') {
+			// 旧任务时间，可以直接删除，但还得在添加时更新（时间）
+			$task = $tskModel->findByKey('event','admin.backup.start');
+			if ($task) {
+				$update = array(
+					'event'		=> 'admin.backup.autoTask',
+					'desc'		=> LNG('admin.backup.taskDbDesc'),
+					'enable'	=> 1,
+				);
+				$tskModel->update($task['id'], $update);
+				$isTaskInit[$autoTaskKey] = 'ok';
+				$optModel->set($autoTaskKey,'ok','backup');
+			}
+			$optModel->set('autoTaskUpdate','ok','backup');
+		}
+		// 3.添加任务
+		// 授权失效后已存在的文件备份任务应该删除，考虑到内容已切换，可以不处理
+		foreach ($isTaskInit as $initKey => $initVal) {
+			if ($initVal == 'ok') continue;
+			if ($initKey == $fileTaskKey && $config['content'] != 'all') continue;
+			$data = $this->taskInitData($initKey);
+			if(!$tskModel->add($data)) return;
+			$optModel->set($initKey,'ok','backup');
+		}
+	}
+	private function taskInitData($taskKey) {
+		$data = array(
+			'autoTaskInit' => array(
+				'name'	=> LNG('admin.task.backup'),
+				'type'	=> 'method',
+				'event' => 'admin.backup.autoTask',
+				'time'	=> '{"type":"day","month":"1","week":"1","day":"02:00","minute":"10"}',
+				'desc'	=> LNG('admin.backup.taskDbDesc'),
+				'enable' => 1,
+				'system' => 1,
+			),
+			'fileTaskInit' => array(
+				'name'	=> LNG('admin.task.backup').' ('.LNG('common.file').')',
+				'type'	=> 'method',
+				'event' => 'admin.backup.fileTask',
+				'time'	=> '{"type":"minute","minute":"60"}',
+				'desc'	=> LNG('admin.backup.taskFileDesc'),
+				'enable' => 1,
+				'system' => 1,
+			),
+		);
+		return $data[$taskKey];
 	}
 
 	/**
@@ -32,12 +94,19 @@ class adminBackup extends Controller{
 	 * @return void
 	 */
     public function config(){
+		// 0.前端（其他）请求
 		$this->bakConfig();
-		$data	= $this->model->config();		// 备份配置信息
-		if (!$data) show_json(LNG('admin.backup.errInitTask'), false);
+		// 1.获取备份配置信息
+		$data = $this->model->config(true);
+		// pr($data);exit;
+		if (!$data) {
+			show_json(LNG('admin.backup.errInitTask'), false);
+		}
+		// 2.获取当前数据库类型
 		$database = array_change_key_case($GLOBALS['config']['database']);
 		$data['dbType'] = Action('admin.server')->_dbType($database);	// mysql/sqlite
-		$last	= $this->model->lastItem();		// 最近一条备份记录
+		// 3.获取最近一条备份记录
+		$last	= $this->model->lastItem();
 		if($data['enable'] != '1') {
 		    $process= null;
 		    if(isset($last['status'])) $last['status'] = 1;
@@ -57,24 +126,13 @@ class adminBackup extends Controller{
 		if (Input::get('check',null,0) != '1') return;
 		// 检查备份是否有效
 		$io = Input::get('io', 'int');
-		if ($this->in['auto'] != '1') {
-			$this->checkStore($io);
-			show_json('ok');
+		$check = $this->checkStore($io);
+		if ($check !== true) {
+			show_json($chk, false);
 		}
-		// 默认存储，自动创建备份存储：[path]/backup/
-		$data = Model('Storage')->listData($io);
-		$data['name'] = LNG('admin.backup.storage');
-		$data['default'] = 0;
-		$config = json_decode($data['config'], true);
-		$config['basePath'] = rtrim($config['basePath'], '/') . '/backup';
-		$data['config'] = json_encode($config);
-		unset($data['id']);
-
-		$this->in = $data;
-		ActionCallResult("admin.storage.add",function(&$res){
-			if (!$res['code']) $res['data'] = LNG('admin.backup.errAutoStore');
-			return $res;
-		});
+		// 检查是否存在系统数据
+		$cnt = Model('File')->where(array('ioType'=>$io))->count();
+		if ($cnt) {show_json(LNG('admin.backup.addStoreHasFile'), false);}
 	}
 
 	/**
@@ -99,7 +157,7 @@ class adminBackup extends Controller{
 	}
 
 	/**
-	 * 删除
+	 * 删除备份记录
 	 */
 	public function remove() {
 		$id  = Input::get('id','int');
@@ -110,45 +168,101 @@ class adminBackup extends Controller{
 	
 	// 激活授权,自动开启备份;(没有开启时,设置仅备份数据库;备份到默认存储)
 	public function initStart($status){
-		$data = $this->model->config();
-		if($data['enable'] == '1') return;
+		// 1.获取配置信息，已激活则不处理——计划任务不一定开启，暂不处理
 		$backup = Model('SystemOption')->get('backup');
 		$backup = json_decode($backup, true);
+		if (!$backup) $backup = array();
+		if ($backup['enable'] == '1') return;
 
+		// 2.添加/更新（激活）配置
 		$driver = KodIO::defaultDriver();
 		$backup['io'] = $driver['id'];
 		$backup['content'] = 'sql';	// 备份内容：all/sql
-		// $backup['enable'] = 1;
+		$backup['enable'] = 1;
 		Model('SystemOption')->set('backup', $backup);
-		$update = array('enable' => 1);
-		Model('SystemTask')->update($data['id'], $update);
+
+		// 3.添加并激活计划任务
+		$this->taskInit($backup);
 	}
 
-    // 备份——终止http请求，后台运行
-    public function start(){
-		set_timeout();
+	/**
+	 * 计划任务
+	 * @return void
+	 */
+	public function autoTask() {
+		if (!KodUser::isRoot()) return;
+		return $this->start(true);
+	}
+	/**
+	 * 计划任务（文件）
+	 * @return void
+	 */
+	public function fileTask() {
+		if (!KodUser::isRoot()) return;
+		return $this->start(true, 'file');
+	}
+
+    /**
+	 * 备份——终止http请求，后台运行
+	 * @param boolean $runTask
+	 * @param boolean $type	备份内容：db/file，默认为db
+	 * @return void
+	 */
+    public function start($runTask=false,$type=''){
+		// 0.获取备份内容/类型
+		if (empty($type)) {
+			$type = Input::get('type',null,'db');
+		}
+		// 1.检查备份是否开启
 		$config = $this->model->config();
 		if($config['enable'] != '1') {
+			if ($runTask) return;
 			show_json(LNG('admin.backup.notOpen'), false);
 		}
-		$this->checkStore($config['io']);
-		mk_dir(TEMP_FILES);
-		if(!path_writeable(TEMP_FILES)) {
-			show_json(LNG('admin.backup.pathNoWrite'), false);
+
+		// 2.检查存储是否有效
+		// 2.1 检查是否为默认存储——文件备份
+		if ($type == 'file') {
+			$driver = KodIO::defaultDriver();
+			if ($driver['id'] == $config['io']) {
+				if ($runTask) return;
+				show_json(LNG('admin.backup.needNoDefault'), false);
+			}
 		}
-        echo json_encode(array('code'=>true,'data'=>'OK'));
-		http_close();
-		$this->model->start();
+		// 2.2 检查存储是否有效
+		$check = $this->checkStore($config['io']);
+		if ($check !== true) {
+			if ($runTask) return;
+			show_json($check, false);
+		}
+
+		// 3.检查临时目录是否可写——数据库备份
+		if ($type != 'file') {
+			mk_dir(TEMP_FILES);
+			if(!path_writeable(TEMP_FILES)) {
+				show_json(LNG('admin.backup.pathNoWrite'), false);
+			}
+		}
+
+		// 手动执行，终止http请求
+		if (!$runTask) {
+			echo json_encode(array('code'=>true,'data'=>'OK'));
+			http_close();
+		}
+		return $this->model->start($type);
     }
 	// 检查存储是否有效
 	private function checkStore($io){
 		$model = Model('Storage');
 		$data = $model->listData($io);
 		if (!$data) show_json(LNG('admin.backup.storeNotExist'), false);
-		$model->checkConfig($data);
+		return $model->checkConfig($data, true);
 	}
     
-    // 还原，禁止任何操作——未实现
+    /**
+	 * 还原，禁止任何操作——未实现
+	 * @return void
+	 */
     public function restore(){
         $id  = Input::get('id','int');
         echo json_encode(array('code'=>true,'data'=>'OK'));
@@ -156,6 +270,10 @@ class adminBackup extends Controller{
         $this->model->restore($id);
 	}
 
+	/**
+	 * 终止备份
+	 * @return void
+	 */
 	public function kill(){
 		$id  = Input::get('id','int');
 		$res = $this->model->kill($id);

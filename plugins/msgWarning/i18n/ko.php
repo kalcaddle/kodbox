@@ -20,6 +20,7 @@ return array(
     "msgWarning.main.goSet"          => "구성으로 이동",
     "msgWarning.main.appReset"       => "기본값 복원",
     "msgWarning.main.ifAppReset"     => "이 명령을 실행하면 모든 구성(알림 이벤트, 알림 게이트웨이)이 재설정됩니다. 계속하시겠습니까?",
+    "msgWarning.main.invalidUser"    => "잘못된 전송 객체입니다.",
     "msgWarning.ntc.event"           => "알림 이벤트",
     "msgWarning.ntc.target"          => "알림 수신자",
     "msgWarning.ntc.method"          => "알림 방법",
@@ -146,5 +147,5 @@ return array(
     "msgWarning.ops.admEmlErr"       => "아직 이메일 주소를 등록하지 않으셨습니다. 정상적인 알림이나 비밀번호 찾기 기능을 위해 최대한 빨리 이메일 주소를 등록해 주세요.",
     "msgWarning.svr.usageErr"        => "지난 %s분 동안 %s 서버의 사용량이 %s(현재 %s)를 초과했습니다. 시스템의 정상적인 사용에 지장을 주지 않도록 관련 구성을 확인하고 최적화하세요.",
     "msgWarning.svr.diskSizeErr"     => "서버 시스템 디스크의 여유 공간(%s)이 부족합니다. 시스템의 정상적인 작동을 위해 이 문제를 즉시 해결해 주십시오.",
-    "msgWarning.data.dataFileDownErr" => "현재 (%s) 총 %d명의 사용자가 파일을 다운로드했으며, 최대 한도(%d회)에 도달했습니다. 자세한 내용은 백그라운드 작업 로그에서 확인할 수 있습니다."
+    "msgWarning.data.downFileErr"    => "현재 (%s) 총 %d명의 사용자가 파일을 다운로드했으며, 최대 한도(%d회)에 도달했습니다. 자세한 내용은 백그라운드 작업 로그에서 확인할 수 있습니다."
 );

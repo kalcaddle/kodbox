@@ -38,11 +38,13 @@ class KodUser{
 	 * @return void
 	 */
 	public static function parsePass($pass, $salt=0){
+		$pass = trim($pass);
 		if (!$pass) return $pass;
 		// $pass = rawurldecode($pass);	// 后台接受的参数已经过解码，有特殊字符时再次解码会导致错误
 		if (_get($GLOBALS, 'in.salt', 0) != '1' && $salt != '1') return $pass;
-		$key = substr($pass,0,5)."2&$%@(*@(djfhj1923";
-		return Mcrypt::decode(substr($pass,5),$key);
+		$key  = substr($pass,0,5)."2&$%@(*@(djfhj1923";
+		$pass = Mcrypt::decode(substr($pass,5),$key);
+		return trim($pass);
 	}
 
 }

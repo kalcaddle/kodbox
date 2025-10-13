@@ -20,6 +20,7 @@ return array(
     "msgWarning.main.goSet"          => "Yapılandırmaya git",
     "msgWarning.main.appReset"       => "Varsayılanları Geri Yükle",
     "msgWarning.main.ifAppReset"     => "Bu komutu çalıştırdıktan sonra tüm yapılandırmalar (bildirim olayları, bildirim ağ geçidi) sıfırlanacaktır. Devam etmek istiyor musunuz?",
+    "msgWarning.main.invalidUser"    => "Geçersiz gönderme nesnesi",
     "msgWarning.ntc.event"           => "Bildirim Olayları",
     "msgWarning.ntc.target"          => "Bildirim alıcıları",
     "msgWarning.ntc.method"          => "Bildirim yöntemi",
@@ -146,5 +147,5 @@ return array(
     "msgWarning.ops.admEmlErr"       => "E-posta adresinizi henüz bağlamadınız. Normal bildirim veya şifre alma işlevlerini sağlamak için lütfen e-posta adresinizi mümkün olan en kısa sürede bağlayın.",
     "msgWarning.svr.usageErr"        => "Geçtiğimiz %s dakika içinde, %s sunucusunun kullanımı %s değerini aştı (şu anda %s). Sistemin normal kullanımını etkilememek için lütfen ilgili yapılandırmaları kontrol edin ve optimize edin.",
     "msgWarning.svr.diskSizeErr"     => "Sunucu sistem diskinde yeterli boş alan yok (%s). Sistemin normal çalışmasını sağlamak için lütfen bu sorunu derhal giderin.",
-    "msgWarning.data.dataFileDownErr" => "Şu an itibarıyla (%s), toplam %d kullanıcı dosya indirdi ve üst sınıra (%d kez) ulaşıldı. Ayrıntılar arka plan işlem günlüğünde görüntülenebilir."
+    "msgWarning.data.downFileErr"    => "Şu an itibarıyla (%s), toplam %d kullanıcı dosya indirdi ve üst sınıra (%d kez) ulaşıldı. Ayrıntılar arka plan işlem günlüğünde görüntülenebilir."
 );

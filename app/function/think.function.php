@@ -73,7 +73,8 @@ function think_error_parse(&$error,&$desc){
         '_NOT_SUPPORT_'         => LNG('ERROR_DB_NOT_SUPPORT'),
         'Access denied for user'=> LNG('ERROR_DB_XS_DENNIED'),
         'Unknown database'      => LNG('ERROR_DB_NOT_EXIST'),
-        'WRONGPASS'             => 'Redis '.LNG('ERROR_USER_PASSWORD_ERROR')
+        'WRONGPASS'             => 'Redis '.LNG('ERROR_USER_PASSWORD_ERROR'),
+        'NOAUTH'                => 'Redis '.LNG('ERROR_USER_PASSWORD_MISSING'),
     );
     $errMsg = LNG('explorer.systemError');
     // $errMsg = '数据库操作异常，请检查对应服务及相关配置。';
@@ -85,6 +86,7 @@ function think_error_parse(&$error,&$desc){
         $GLOBALS['config']['database']['DB_PORT'],
         $GLOBALS['config']['cache']['redis']['host'],
         $GLOBALS['config']['cache']['redis']['port'],
+        $GLOBALS['config']['cache']['redis']['auth'],
     );
     foreach($errList as $key => $msg) {
         if(stripos($error, $key) !== false) {
@@ -360,29 +362,29 @@ function think_trace($value = '[think]', $label = '', $level = 'DEBUG', $record 
 		return;
 	}
 
-	$logMax 	= 100;//最多纪录前30条sql; 避免额外开销及内存不可控
+	$logMax 	= 30;//最多纪录最后50条sql; 避免额外开销及内存不可控
 	$level  	= strtoupper($level);
 	$keyTrace 	= $level.'-trace';
 	$keyList	= $level.'-list';
-	$keyTime	= $level.'-allTime';
+	$keyInfo	= $level.'-info';
 	if (!isset($_trace[$keyList])) {
 		$_trace[$keyTrace]	= array();
 		$_trace[$keyList]	= array();
-		$_trace[$keyTime]  = 0.0;
+		$_trace[$keyInfo]   = array('timeUse'=>0,'count'=>0);
 	}
 	
 	$useTime = substr($info,strrpos($info,'[ RunTime:')+10,-5);
-	$_trace[$keyTime]  = sprintf('%.5f',$_trace[$keyTime] + $useTime );
+	$_trace[$keyInfo]['timeUse'] = round($_trace[$keyInfo]['timeUse'] + $useTime,5);
+	$_trace[$keyInfo]['count']++;
+	
 	$timeNow  = timeFloat();$timeNowArr = explode('.',$timeNow.'000');
 	$timeShow = date('i:s.',$timeNowArr[0]).substr($timeNowArr[1],0,4);
-	$index = count($_trace[$keyList]) + 1;
-	$index = $index < 10 ? '0'.$index.'' : $index.'';
-	$_trace[$keyList][$index] = $timeShow.'['.$useTime.'s]: '.substr($info,0,-21);
-	if(count($_trace[$keyList]) < $logMax){
-		$trace = array_slice(get_caller_info(),4,-1); // 5ms 每个;
-		$_trace[$keyTrace][$index]= array_merge(array($timeShow.'['.$useTime.'s]: ',$info),$trace);
-	}
-	if ($record){write_log($info,$level);}
+	$index = 'i-'.$_trace[$keyInfo]['count'];
+	$_trace[$keyList][$index]  = $timeShow.'['.$useTime.'s]: '.substr($info,0,-21);
+	$_trace[$keyTrace][$index] = array_slice(get_caller_info(),4,-1); // 5ms 每个;
+	$_trace[$keyTrace] = array_slice($_trace[$keyTrace],-$logMax);
+	$_trace[$keyList]  = array_slice($_trace[$keyList],-$logMax);
+	if($record){write_log($info,$level);}
 }
 function trace_log($value,$key='_log'){  think_trace($value,'_log_',$key);}
 function trace_count($value,$key='_count'){think_trace($value,'_count_',$key);}

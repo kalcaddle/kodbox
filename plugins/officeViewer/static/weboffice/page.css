@@ -85,7 +85,7 @@ body.weboffice-page.loaded .page-box.kod-pptxjs-box #output::after {
     z-index: 9999;
 	font-size:12px;min-width: 350px;
     color: #888;background: #f6f6f6;
-    opacity: 0.9;
+    opacity: 0.9;white-space: nowrap;
 }
 /* body.weboffice-page.loaded .page-box.kod-luckysheet-box #output.tip-hide::after, 
 body.weboffice-page.loaded .page-box.kod-pptxjs-box #output.tip-hide::after {

@@ -20,6 +20,7 @@ return array(
     "msgWarning.main.goSet"          => "Przejdź do konfiguracji",
     "msgWarning.main.appReset"       => "Przywróć ustawienia domyślne",
     "msgWarning.main.ifAppReset"     => "Po wykonaniu tego polecenia wszystkie konfiguracje (zdarzenia powiadomień, bramka powiadomień) zostaną zresetowane. Czy chcesz kontynuować?",
+    "msgWarning.main.invalidUser"    => "Nieprawidłowy obiekt wysyłania",
     "msgWarning.ntc.event"           => "Wydarzenia powiadomień",
     "msgWarning.ntc.target"          => "Odbiorcy powiadomień",
     "msgWarning.ntc.method"          => "Metoda powiadamiania",
@@ -146,5 +147,5 @@ return array(
     "msgWarning.ops.admEmlErr"       => "Nie powiązałeś jeszcze swojego adresu e-mail. Aby zapewnić prawidłowe działanie powiadomień i funkcji odzyskiwania hasła, powiąż swój adres e-mail jak najszybciej.",
     "msgWarning.svr.usageErr"        => "W ciągu ostatnich %s minut użycie serwera %s przekroczyło %s (obecnie %s). Aby uniknąć zakłóceń w normalnym korzystaniu z systemu, sprawdź i zoptymalizuj odpowiednie konfiguracje.",
     "msgWarning.svr.diskSizeErr"     => "Na dysku systemowym serwera brakuje wystarczającej ilości wolnego miejsca (%s). Aby zapewnić prawidłowe działanie systemu, prosimy o niezwłoczne rozwiązanie tego problemu.",
-    "msgWarning.data.dataFileDownErr" => "Do tej pory (%s) łącznie %d użytkowników pobrało pliki, osiągając górny limit (%d razy). Szczegóły można wyświetlić w dzienniku operacji w tle."
+    "msgWarning.data.downFileErr"    => "Do tej pory (%s) łącznie %d użytkowników pobrało pliki, osiągając górny limit (%d razy). Szczegóły można wyświetlić w dzienniku operacji w tle."
 );

@@ -85,7 +85,7 @@ class userSetting extends Controller {
 	public function checkImgCode($code){
 		$checkCode = Session::get('checkCode');
 		Session::remove('checkCode');
-		if (!$checkCode || strtolower($checkCode) !== strtolower($code)) {
+		if (!$checkCode || strtolower($checkCode) !== strtolower(trim($code))) {
 			show_json(LNG('user.codeError'), false, ERROR_IMG_CODE);
 		}
 	}

@@ -41,7 +41,6 @@ class msgWarningSysNotice extends Controller {
 			'method'	=> '',
 			'target'	=> '',
 		);
-		// pr($methods, $target, $message);exit;
 		$this->evntInfo = $evntInfo;
 		foreach ($methods as $method) {
 			switch ($method) {
@@ -92,8 +91,18 @@ class msgWarningSysNotice extends Controller {
 	 * @return void
 	 */
 	public function byThird($user, $content, $logs){
+		// 获取有效发送用户；无效的写失败日志
+		$userDef = $user;
 		$this->filterThirdUsers($user);
+		$userDiff = array_diff($userDef, $user);
+		if (!empty($userDiff)) {
+			$logs['status'] = 0;
+			$logs['desc'] = LNG('msgWarning.main.invalidUser');
+			$this->addUsersLog($userDiff, $logs);
+		}
 		if (empty($user)) return;
+
+		// 发送消息
 		$typeArr = array(
 			'weixin' => 'weChat',
 			'dding'	 => 'dingTalk'
@@ -114,17 +123,11 @@ class msgWarningSysNotice extends Controller {
 		$rest = Action('msgGatewayPlugin')->send($data);
 
 		// 记录日志
-		$data = array(
-			'status' => $rest['code'] ? 1 : 0,
-			'desc'	 => _get($rest, 'data', ''),
-		);
-		$logs = array_merge($logs, $data);
-		foreach ($user as $userID) {
-			$logs['userID'] = $userID;
-			$this->addLog($logs);
-		}
+		$logs['status'] = $rest['code'] ? 1 : 0;
+		$logs['desc'] = _get($rest, 'data', '');
+		$this->addUsersLog($user, $logs);
 	}
-	// 钉钉/企微 过滤非绑定用户
+	// 钉钉/企微 过滤非绑定用户——前面已经筛选过一次，这里没必要关联主表（user）查询
 	private function filterThirdUsers(&$user) {
 		$where = array(
 			'userID' => array('in', $user),
@@ -133,6 +136,12 @@ class msgWarningSysNotice extends Controller {
 		$data = Model('user_meta')->where($where)->field('userID,value')->select();
 		$data = array_to_keyvalue($data, '', 'userID');
 		$user = array_intersect($user, $data);
+	}
+	private function addUsersLog($user, $logs) {
+		foreach ($user as $userID) {
+			$logs['userID'] = $userID;
+			$this->addLog($logs);
+		}
 	}
 
 	/**

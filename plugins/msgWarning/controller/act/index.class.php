@@ -23,6 +23,9 @@ class msgWarningActIndex extends Controller {
 	 * @return void
 	 */
 	public function fileDownload() {
+		// Hook::bind('show_json', array($this, 'showErrJson'));
+
+		if (defined('USER_ID') && USER_ID == '1') return;	// 超管不限
 		$event = 'dataFileDownErr';
 		// 是否开启了通知绑定事件（禁止下载）
 		$list = $this->getAppConfig('ntcEvntList', array());
@@ -40,5 +43,11 @@ class msgWarningActIndex extends Controller {
 		if (in_array(USER_ID, $ids)) {
 			show_json(LNG('msgWarning.evnt.downFileErr'), false);
 		}
+	}
+
+	public function showErrJson($result) {
+		// throw new Exception($result['data']);
+		// exit;
+		// write_log('下载show_json--------'.json_encode($result));
 	}
 }

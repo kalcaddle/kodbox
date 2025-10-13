@@ -51,7 +51,7 @@ class officeViewerPlugin extends PluginBase{
 	// 入口
 	public function index(){
 		// $path   = $this->filePath($this->in['path'],true,true);
-		$path   = $this->filePathGet($this->in['path'],true);	// 加载模板方式也会触发plugin.fileView，故不使用filePath
+		$path   = $this->filePathGet($this->in['path'],true);	// filePath和加载模板方式都会触发plugin.fileView，为免重复，不使用filePath获取
 		if (!empty($this->fileInfo['fileID'])) {
 			$info = Model('File')->fileInfo($this->fileInfo['fileID']);
 			if(!$info || !IO::exist($info['path'])){

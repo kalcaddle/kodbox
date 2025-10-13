@@ -26,7 +26,8 @@ class adminRepair extends Controller {
 	 * 6个小时执行一次;
 	 * 
 	 * 手动执行:
-	 * /?admin/repair/autoReset&done=1/2,done=1为清理数据;done=2为实际删除不存在的文件记录
+	 * http://192.168.1.111/kod/kodbox/?admin/repair/autoReset&done=1
+	 * done=1为清理数据;done=2为实际删除不存在的文件记录
 	 */
 	public function autoReset(){
 		$done = isset($this->in['done']) ? intval($this->in['done']) : 0;
@@ -377,7 +378,7 @@ class adminRepair extends Controller {
 		
 		// 重置父目录大小
 		$list = array_to_keyvalue($list, '', 'parentID');
-		$this->folderSizeReset($list);
+		$this->folderSizeReset($list);	// TODO 不必要每个删除都重置大小，待优化
 		return array('source' => intval($cnt1),'file'=> intval($cnt2));
 	}
 
@@ -1111,6 +1112,266 @@ class adminRepair extends Controller {
 		echoLog('正在删除，请耐心等待...');
 		Model('Source')->removeRelevance($sources,$files);
 		echoLog('删除完成，共删除文件/夹：'.count($sources).'个。');exit;
+	}
+
+	/**
+	 * 获取指定目录（或全部）物理文件不存在的记录
+	 * @return void
+	 */
+	public function listFileNotExists(){
+		$ids = array();
+		if (!empty($this->in['sourceID'])) {
+			$id = $this->in['sourceID'];
+			$info = Model('Source')->where(array('sourceID' => $id))->find();
+			if (!$info) show_json('指定文件夹id不存在',0);
+			$where = array('isFolder' => 0, 'parentLevel' => array('like', $info['parentLevel'].$id.',%'));
+			$list = Model('Source')->where($where)->field('fileID')->select();
+			$ids = array_to_keyvalue($list, '','fileID');
+		}
+		
+		$pageNum = 1000;$page = 1;
+		$model = Model('File');
+		if ($ids) { // 指定sourceID
+			$model->where(array('fileID' => array('in', $ids)));
+		} else if (!empty($this->in['lastFileID'])) {   // 从大于指定fileID开始，不支持同时指定sourceID
+			$model->where(array('fileID' => array('gt', $this->in['lastFileID'])));
+		}
+		$list = $model->selectPage($pageNum,$page);
+		$stores = Model('Storage')->listData();
+		$stores = array_to_keyvalue($stores, '', 'id'); // 有效存储列表
+	
+		$file = __DIR__.'/filepathlist-'.date('His').'.txt';
+		// del_file($file);
+	
+		$i = $cnt = 0;
+		echoLog('不存在或无法访问的物理文件列表：');
+		echoLog('begin------------------------------------------------');
+		while($list && $page <= $list['pageInfo']['pageTotal']){
+			foreach ($list['list'] as $item) {
+				$i++;
+				$ioNone = in_array($item['ioType'], $stores);
+				if($ioNone && IO::exist($item['path']) ){
+					//
+					echoLog($i.'.存在：'.$item['path'],true);
+				}else{
+					$cnt++;
+					// echoLog($i.'. '.$item['path']);
+					file_put_contents($file, $item['path']."\n", FILE_APPEND);
+				}
+			}
+			$page++;
+			if ($ids) {
+				$model->where(array('fileID' => array('in', $ids)));
+			} else if (!empty($this->in['lastFileID'])) {
+				$model->where(array('fileID' => array('gt', $this->in['lastFileID'])));
+			}
+			$list = $model->selectPage($pageNum,$page);
+		}
+		echoLog('end------------------------------------------------');
+		if ($cnt) {
+			echoLog('共有'.$cnt.'条异常记录，具体可查看文件：'.$file);
+		}
+	}
+
+	// ======================================================== 重置层级结构异常文件 ========================================================
+
+	/**
+	 * 检测已删除状态异常文件——上级目录删除，但子文件未删除
+	 * @param [type] $model
+	 * @return void
+	 */
+	public function errData2Recycle($model) {
+		// select * from io_source where parentID = 1739077 —— 层级重复
+		// select isDelete,count(*) from io_source where parentLevel like ',0,1,450518,498485,700552,1351194,1739077,1739276,%' group by isDelete
+		echoLog('检测已删除状态异常文件');
+	    $where = array(
+			'isFolder' => 1,
+			'isDelete' => 1,
+			'parentID' => array('>', 0)
+		);
+		$list = $model->where($where)->field('sourceID,parentLevel')->select();
+		if (!$list) return;
+		$data = array();
+		foreach ($list as $item) {
+			$data[] = $item['parentLevel'].$item['sourceID'].',';
+		}
+		$list = array_unique($data);
+		$list = $this->getBaseLevels($list);
+		echoLog('共有'.count($list).'个已删除目录');
+		if (!$list) return;
+		foreach ($list as $level) {
+			echoLog('开始检测状态异常文件：'.$level);
+			$where = array(
+				'isDelete' 		=> 0,
+				'parentLevel'	=> array('like', $level.'%')
+			);
+			// $res = $model->where($where)->setField('isDelete',1);//所有字内容设置删除标记
+			// echoLog('已处理'.$res.'个状态异常文件');
+			// TODO 
+			$res = $model->where($where)->field('sourceID')->select();
+			if ($res) {
+				$res = array_to_keyvalue($res, '', 'sourceID');
+				$file = TEMP_FILES . 'reset-active.txt';
+				file_put_contents($file, implode(',', $res).',', FILE_APPEND);
+				echoLog('已记录'.count($res).'个状态异常文件');
+			}
+		}
+		echoLog('完成已删除文件检测');
+	}
+	private function getBaseLevels($list) {
+		// 去除空路径并排序（从短到长）
+		$data = array_filter($list, function($path){return !empty(trim($path, ','));});
+		usort($data, function($a, $b){return strlen($a) - strlen($b);});
+		$base = array();
+		foreach ($data as $path) {
+			$isContained = false;
+			$trimmedPath = trim($path, ',');
+			foreach ($base as $basePath) {
+				$trimmedBase = trim($basePath, ',');
+				// 检查当前路径是否被已有基础路径包含
+				if (strpos($trimmedPath, $trimmedBase) !== false) {
+					$isContained = true;
+					break;
+				}
+			}
+			if (!$isContained) {
+				$base[] = $path;
+			}
+		}
+		return $base;
+	}
+
+	/**
+	 * 重置层级结构异常文件
+	 * @param [type] $model
+	 * @return void
+	 */
+	public function resetSourceLevel($model) {
+		// 13093773	—— can't download
+		KodUser::checkRoot();
+		ignore_timeout();
+		// $where = array(
+		// 	'isDelete'		=> 0,
+		// 	'parentID'		=> array('>',0),
+		// 	'parentLevel'	=> array('<>',''),
+		// );
+		// $where = array();	// 1500w条数据，加条件需要30.5s，不加0.67s
+		$total = (int) $model->count();
+		if (!$total) return;
+
+		echoLog('任务已提交，可在任务列表查看进度');
+		http_close();
+
+		$taskId = __FUNCTION__.'-TASK';
+		$task = new Task($taskId,'resetdatatask',$total,'文件层级异常处理');
+
+		$data = $update = $remove = array();
+		$pageNum = 50000;
+		$lastSid = 0;
+		// for ($i=0; $i < $total;$i=$i+$pageNum) {$list = $model->limit($i,$pageNum)->field('sourceID,parentID,parentLevel,isDelete')->select();}
+		do {
+			$list = $model->where(array('sourceID'=>array('>',$lastSid)))->field('sourceID,parentID,parentLevel,isDelete')->order('sourceID asc')->limit($pageNum)->select();
+			if (empty($list)) break;
+			$lastSid = end($list)['sourceID'];
+			foreach ($list as $item) {
+				$task->update(1);
+				if ($item['isDelete'] == '1') continue;
+				if (!$item['parentID'] || !$item['parentLevel']) continue;	// 部门/用户空间parentID=0
+				// parentID!=parentLevel[-2]，说明层级不正常
+				$parentLevel = explode(',', trim($item['parentLevel'], ','));
+				if ($item['parentID'] != $parentLevel[count($parentLevel) - 1]) {
+					$data[$item['sourceID']] = $item['parentID'];
+				}
+			}
+			if (!$data) continue;
+			$idx = 0;
+			$this->resetSourceGet($model,$data,$update,$remove,$idx);
+			$this->resetSourceUpdate($model,$update,$remove);
+			$data = $update = $remove = array();
+		} while (!empty($list));
+		$task->end();
+	}
+	// 获取待更新level的数据
+	private function resetSourceGet($model,$data,&$update,&$remove,$idx) {
+		$idx++;
+		$where = array('sourceID'=>array('in',array_unique(array_values($data))));	// 根据parentID查找io_source记录
+		$list = $model->where($where)->field('sourceID,parentID,parentLevel')->select();
+		$dataTmp = $updateTmp = array();
+		foreach ($list as $item) {
+			if (!$item['parentID'] || !$item['parentLevel']) continue;
+			$parentLevel = explode(',', trim($item['parentLevel'], ','));
+			if ($item['parentID'] == $parentLevel[count($parentLevel) - 1]) {
+				$updateTmp[$item['sourceID']] = $item['parentLevel'];
+				continue;
+			}
+			$dataTmp[$item['sourceID']] = $item['parentID'];
+		}
+		foreach ($data as $sourceID => $parentID) {
+			if (isset($updateTmp[$parentID])) {	// 待更新parentLevel的数据
+				$update[$sourceID] = $updateTmp[$parentID].$parentID.',';
+			} else {
+				$remove[] = $sourceID;	// 根据parentID找不到记录的数据
+			}
+		}
+		// $idx 防止递归死循环
+		if (!empty($dataTmp) && $idx < 100) {
+			$this->resetSourceGet($model,$dataTmp,$update,$remove);
+		}
+	}
+	private function resetSourceUpdate($model,$update,$remove){
+		// TODO test
+		$file1 = TEMP_FILES . 'reset-update.txt';
+		$handle = fopen($file1, 'a+');	// a为追加模式
+		foreach ($update as $sourceID => $parentLevel) {
+		    fwrite($handle, $sourceID.'=>'.$parentLevel . "\n");
+		}
+		fclose($handle);
+		$file2 = TEMP_FILES . 'reset-remove.txt';
+		file_put_contents($file2, implode(',', $remove).',', FILE_APPEND);
+		return;
+
+		// 根据parentID找到记录，更新为parent.parentLevel+parentID
+		$updateTmp = array();
+		foreach ($update as $sourceID => $parentLevel) {
+		    $updateTmp[] = array(
+				'sourceID', $sourceID,
+				'parentLevel', $parentLevel,
+			);
+		}
+		if (!empty($updateTmp)) {
+			$res = $model->saveAll($updateTmp);
+			// $file1 = TEMP_FILES . 'reset-update.txt';
+			// file_put_contents($file1, 'update:'.$res.';ids:'.implode(',',array_keys($update))."\n", FILE_APPEND);
+		}
+		write_log('resetSourceLevel-update:'.count($updateTmp), 'repair');
+		// 找不到记录的，不直接删除，更新回parentID=parentLevel[-2],name=name@time——已存在会重名，所以需要更新name
+		$time = date('YmdHis');
+		foreach (array_chunk($remove, 500) as $ids) {
+			$sql = "UPDATE io_source SET parentID = SUBSTRING_INDEX(SUBSTRING_INDEX(parentLevel, ',', -2), ',', 1), name = CONCAT(name, '@', '{$time}')
+				WHERE sourceID IN (" . implode(',', $ids) . ")";
+			$res = $model->execute($sql);
+			// $file2 = TEMP_FILES . 'reset-update(remove).txt';
+			// file_put_contents($file2, 'update(remove):'.$res.';ids:'.implode(',',$ids)."\n", FILE_APPEND);
+		}
+		write_log('resetSourceLevel-update(mismatch):'.count($remove), 'repair');
+	}
+
+	/**
+	 * 更新异常层级文件
+	 * @return void
+	 */
+	public function updateSourceLevel() {
+		$model = Model('Source');
+
+		echoLog(TEMP_FILES);
+
+		// 1.检测状态异常文件
+		$this->errData2Recycle($model);
+		exit;
+		
+		// 2.更新层级异常文件
+		// update io_source set parentLevel = ',0,13511771,15453311,14511308,' where parentID = 14511308;
+		$this->resetSourceLevel($model);
 	}
 	
 }

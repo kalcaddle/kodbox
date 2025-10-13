@@ -42,8 +42,15 @@ class msgWarningMsgSys extends Controller {
             return $item['sysdata'] == 1;
         });
 		if (!$data) return array();
+		$cnt = count($data);
+		// 写入日志
+		$arr = array();
+		foreach ($data as $item) {
+			$arr[] = $item['name']."({$item['id']})";
+		}
+		write_log('【系统检测】'.$cnt.'个存储连接异常：'.($arr.join('; ')), 'storage');
 
-		$msg = sprintf(LNG('msgWarning.sys.storeErr'), count($data));
+		$msg = sprintf(LNG('msgWarning.sys.storeErr'), $cnt);
 		return array($msg);
 	}
 

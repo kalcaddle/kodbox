@@ -98,7 +98,7 @@ class NtcEvnt {
                     'timeTo'    => '23:59',
                 ),
                 'toAll'     => 1,
-                'taskFreq'  => 5,
+                'taskFreq'  => 10,
             ),
             array(
                 'event'     => self::EVNT_DEV_RAID_ERR,
@@ -119,7 +119,7 @@ class NtcEvnt {
                     'timeTo'    => '23:59',
                 ),
                 'toAll'     => 1,
-                'taskFreq'  => 5,
+                'taskFreq'  => 10,
             ),
             // TODO 暂不支持
             // array(
@@ -161,7 +161,7 @@ class NtcEvnt {
             //         'timeTo'    => '23:59',
             //     ),
             //     'toAll'     => 1,
-            //     'taskFreq'  => 5,
+            //     'taskFreq'  => 10,
             // ),
             array(
                 'event'     => self::EVNT_SVR_DISK_SIZE_ERR,
@@ -409,7 +409,7 @@ class NtcEvnt {
                 'level'     => self::EVNT_LEVEL_2,
                 'class'     => self::EVNT_CLASS_DATA,
                 'desc'      => LNG('NTC_EVNT_DATA_FILE_DOWN_ERR_DESC'),
-                'message'   => LNG('msgWarning.data.dataFileDownErr'),
+                'message'   => LNG('msgWarning.data.downFileErr'),
                 'system'    => 1,
                 'status'    => 0,
                 'policy'    => array(

@@ -612,9 +612,9 @@ class installIndex extends Controller {
                     $conn = $handle->addServer($host, $port);
                     if($conn && !$handle->getStats()) $conn = false;
                 }
-                if(!$conn) return show_json(sprintf(LNG('admin.install.cacheError'),"[{$cacheType}]"), false);
+                if(!$conn) return show_json(sprintf(LNG('admin.install.cacheError'),"[{$type}]"), false);
             }catch(Exception $e){
-                $msg = sprintf(LNG('admin.install.cacheConnectError'),"[{$cacheType}]");
+                $msg = sprintf(LNG('admin.install.cacheConnectError'),"[{$type}]");
                 $msg .= '<br/>'.$e->getMessage();
                 return show_json($msg, false);
             }
@@ -622,11 +622,14 @@ class installIndex extends Controller {
 
         // 1.4 创建数据库
         if($this->dbType == 'mysql'){
-            if(!$dbexist){
-                // host=localhost时，root空密码默认没有权限，会创建失败
-                $db->execute("create database `{$dbName}`");
+            try {
+                // 创建库；host=localhost时，root空密码默认没有权限，会创建失败
+                if(!$dbexist){$db->execute("create database `{$dbName}`");}
+                // 使用库
+                $db->execute("use `{$dbName}`");
+            } catch(Exception $e) {
+                show_json(LNG('explorer.error').$e->getMessage(), false);
             }
-            $db->execute("use `{$dbName}`");
             $tables = $db->getTables($dbName);
             if (!empty($tables)) {
                 if(!isset($this->in['del']) || $this->in['del'] != '1'){
@@ -844,6 +847,7 @@ class installIndex extends Controller {
 
         $userID = 1;
         if(Model('User')->find($userID)) {
+            $this->checkPwd($data['password']);
             if(!Model('User')->userEdit($userID, $data)) {
                 show_json(LNG('user.bindUpdateError'), false);
             }
@@ -883,7 +887,11 @@ class installIndex extends Controller {
         if ($type != 'sqlite') {
             $exist = $db->execute("show databases like '{$dbName}'");
             if (!$exist) show_json(LNG('ERROR_DB_NOT_EXIST'), false);
-            $db->execute("use `{$dbName}`");
+            try {
+                $db->execute("use `{$dbName}`");
+            } catch(Exception $e) {
+                show_json(LNG('explorer.error').$e->getMessage(), false);
+            }
         }
         // sqlite可直接调用该方法，无论库文件是否存在
         $tables = $db->getTables();
@@ -965,10 +973,11 @@ class installIndex extends Controller {
      * 初始化插件列表
      */
     public function initPluginList(){
-        Model('Plugin')->viewList();
-        $list = Model('Plugin')->loadList();
+        $model = Model('Plugin');
+        $list = $model->viewList();
+        // $list = $model->loadList();
         foreach($list as $app => $item) {
-            Model('Plugin')->changeStatus($app, 1);
+            $model->changeStatus($app, 1);
         }
     }
 
@@ -1053,17 +1062,30 @@ class installIndex extends Controller {
     public function addUser(){
         $this->in = array(
             "userID"    => 1,
-			"name" 		=> !empty($this->admin['name']) ? $this->admin['name'] : 'admin',
+			"name" 		=> !empty($this->admin['name']) ? $this->admin['name'] : 'K0d' . rand_string(5),
 			"nickName" 	=> LNG('admin.role.administrator'),
 			"password" 	=> !empty($this->admin['password']) ? $this->admin['password'] : 'admin',
             "roleID"	=> $this->roleID,
             "groupInfo" => json_encode(array('1'=>'1')),
 			"sizeMax" 	=> 0,
         );
+        $this->checkPwd($this->in['password']);
         $res = ActionCallHook('admin.member.add');
         if(!$res) return;
         if(!$res['code']){
             show_json($res['data'], false);
         }
+    }
+    // 检查密码强度
+    private function checkPwd($password) {
+        $options = Action('filter.userCheck')->options;
+        if (!$options) $options = array();
+        if (!$options || !$options['passwordRule']) {
+            $options['passwordRule'] = _get($GLOBALS, 'config.settingSystemDefault.passwordRule', 'none');
+            Action('filter.userCheck')->options = $options;
+        }
+        if( !ActionCall('filter.userCheck.password',$password) ){
+			return ActionCall('filter.userCheck.passwordTips');
+		}
     }
 }

@@ -104,13 +104,14 @@ class explorerAttachment extends Controller{
 
 	
 	// 清除目标对象关联的附件;
-	private function clearTarget($id,$targetType){
+	public function clearTarget($id,$targetType){
 		$metaKey = 'attachment_'.$targetType;
 		$where 	 = array('key'=>$metaKey,'value'=>$id);
 		$sourceArr = Model('io_source_meta')->where($where)->select();
 		$sourceArr = array_to_keyvalue($sourceArr,'','sourceID');
 		if(!$sourceArr) return true;
 		
+		// write_log($sourceArr,'attachment');
 		foreach ($sourceArr as $sourceID){
 			Model('Source')->remove($sourceID,false);
 		}

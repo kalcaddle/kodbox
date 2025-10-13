@@ -46,7 +46,7 @@ define(function(require, exports) {
 					"info":{"none":LNG['admin.setting.disFunNo'],"ssl":"SSL","tls":"TLS"},
 				},
 				"password":{
-					"type":"password",
+					"type":"input","className":"input-password",  //替代; 避免保存密码提示,选择密码框弹出
 					"value":"",	
 					"display":LNG['admin.setting.emailPwd'],
 					"attr": {placeholder: LNG['admin.setting.emailPwdTips']},

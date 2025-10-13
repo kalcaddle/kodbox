@@ -70,14 +70,20 @@ class msgWarningSysStorage extends Controller {
 		$res  = parse_url($url);
 		$port = (empty($res["port"]) || $res["port"] == '80')?'':':'.$res["port"];
 		$path = preg_replace("/\/+/","/",$res["path"]);
+		$opt  = array();
+		// ftp额外处理：name/pass、默认端口
+		if (strtolower($info['driver']) == 'ftp') {
+			if (!$port) $port = ':21';
+			$opt[CURLOPT_USERPWD] = $info['config']['username'].':'.$info['config']['userpass'];
+		}
 		$url  = _get($res,'scheme',http_type())."://".$res["host"].$port.$path;
-		return $this->url_request_check($url, $timeout);
+		return $this->url_request_check($url, $opt, $timeout);
 	}
 	// 检查地址是否可访问
-	private function url_request_check($url, $timeout = 5) {
+	private function url_request_check($url, $opt=false, $timeout = 5) {
 		if (!filter_var($url, FILTER_VALIDATE_URL)) {return false;}
 		$ch = curl_init($url);
-		curl_setopt_array($ch, array(
+		$op = array(
 			CURLOPT_NOBODY 			=> true,	// 不获取响应体
 			CURLOPT_FOLLOWLOCATION 	=> false,	// 不跟随重定向——3xx
 			CURLOPT_TIMEOUT 		=> $timeout,// 超时时间
@@ -86,7 +92,9 @@ class msgWarningSysStorage extends Controller {
 			CURLOPT_SSL_VERIFYPEER 	=> false,	// 忽略 SSL 验证
 			CURLOPT_HEADER 			=> true,	// 返回响应头
 			CURLOPT_USERAGENT 		=> 'URL Accessibility Checker',
-		));
+		);
+		if ($opt) $op = $opt + $op;
+		curl_setopt_array($ch, $op);
 		$response = curl_exec($ch);
 		$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 		// $error = curl_error($ch);

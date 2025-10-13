@@ -28,7 +28,7 @@ define(function(require, exports) {
             "display":LNG['admin.install.userName'],
         },
 		"password":{
-            "type":"password",
+			"type":"input","className":"input-password",  //替代; 避免保存密码提示,选择密码框弹出
             "display":LNG['common.password'],
         },
         
@@ -105,7 +105,7 @@ define(function(require, exports) {
             "display":LNG['admin.install.userName'],
         },
 		"password":{
-            "type":"password",
+			"type":"input","className":"input-password",  //替代; 避免保存密码提示,选择密码框弹出
             "display":LNG['common.password'],
         },
         "basePath":{
@@ -144,7 +144,7 @@ define(function(require, exports) {
             "display":LNG['admin.install.userName'],
         },
 		"password":{
-            "type":"password",
+			"type":"input","className":"input-password",  //替代; 避免保存密码提示,选择密码框弹出
             "display":LNG['common.password'],
         },
 		"serverPath":{

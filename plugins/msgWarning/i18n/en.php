@@ -20,6 +20,7 @@ return array(
     "msgWarning.main.goSet"          => "Go to Configuration",
     "msgWarning.main.appReset"       => "Restore Defaults",
     "msgWarning.main.ifAppReset"     => "After executing this command, all configurations (notification events, notification gateway) will be reset. Do you want to continue?",
+    "msgWarning.main.invalidUser"    => "Invalid send object",
     "msgWarning.ntc.event"           => "Notification Events",
     "msgWarning.ntc.target"          => "Notification recipients",
     "msgWarning.ntc.method"          => "Notification method",
@@ -146,5 +147,5 @@ return array(
     "msgWarning.ops.admEmlErr"       => "You have not yet bound your email address. To ensure normal notification or password retrieval functions, please bind your email address as soon as possible.",
     "msgWarning.svr.usageErr"        => "In the past %s minutes, the usage of server %s has exceeded %s (currently %s). To avoid affecting the normal use of the system, please check and optimize the relevant configurations.",
     "msgWarning.svr.diskSizeErr"     => "The server system disk has insufficient free space (%s). To ensure normal operation of the system, please address this issue promptly.",
-    "msgWarning.data.dataFileDownErr" => "As of now (%s), a total of %d users have downloaded files, reaching the upper limit (%d times). Details can be viewed in the background operation log."
+    "msgWarning.data.downFileErr"    => "As of now (%s), a total of %d users have downloaded files, reaching the upper limit (%d times). Details can be viewed in the background operation log."
 );

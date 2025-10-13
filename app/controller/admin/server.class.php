@@ -362,7 +362,7 @@ class adminServer extends Controller {
 			}
 			if(!$allow) show_json(sprintf(LNG('common.env.invalidExt'), $dbType), false);
 		}
-		$this->checkSetFileWrt();
+		$this->checkSetWrt();
 
 		// 1. 切换了数据库类型，则全新安装，走完整流程
 		if($dbType != $type) {
@@ -561,6 +561,9 @@ class adminServer extends Controller {
 		$manageOld = new DbManage($database);
 		$manageNew = new DbManage($option);
 		$dbNew = $manageNew->db(true);
+		if (!$dbNew) {
+			show_json(LNG('explorer.error').$manageNew->message, false);
+		}
 
 		// 2.指定库存在数据表，提示重新指定；不存在则继续
 		$tableNew = $dbNew->getTables();
@@ -622,29 +625,28 @@ class adminServer extends Controller {
 	}
 
 	/**
-	 * 数据库恢复
+	 * 数据库恢复——可以抽象为独立类，但涉及进度、任务等内容较多，暂不处理
 	 * @return void
 	 */
 	public function recoverySave(){
+		$this->recoveryFileSave();
 		// TODO 待优化问题：
 		// 备份文件先下载至临时目录，如果本就在本地，则没有必要；中途失败，显示提示到弹窗下；中途失败不能继续（包括切换）
 		$this->taskGet('recovery');		// 获取任务状态
 		$this->taskClear('recovery');	// 清除失败的数据
 		$data = Input::getArray(array(
-			'recType'	=> array('check' => 'in', 'param' => array('sqlite', 'mysql'), 'aliasKey' => 'type'),
-			'recPath'	=> array('check' => 'require', 'aliasKey' => 'path'),
+			'dbType'	=> array('check' => 'in', 'param' => array('sqlite', 'mysql'), 'aliasKey' => 'type'),
+			'dbPath'	=> array('check' => 'require', 'aliasKey' => 'path'),
 		));
-		if(!$info = IO::info($data['path'])){
+		$info = IO::info($data['path']);
+		if(!$info || $info['type'] != 'folder'){
 			show_json(LNG('admin.setting.recPathErr'), false);
 		}
-		$this->checkSetFileWrt();
+		$this->checkSetWrt();
 
 		// 1.判断选择的路径是否有效
 		$type = $data['type'];
 		$path = $info['path'];
-		if($info['type'] != 'folder') {
-			show_json(LNG('admin.setting.recSysPathErr'), false);
-		}
 		// 1.1 检查备份列表是否有效——只检查关键的几个表文件
 		$manage = new DbManage();
 		// 获取解密名称列表，兼容旧版（明文）
@@ -660,17 +662,16 @@ class adminServer extends Controller {
 				show_json(LNG('admin.setting.recSysTbErr'), false);
 			}
 		}
-		// 检测结果直接返回
-		if(Input::get('check', null, false)) {
-			if ($type == 'mysql') {
-				// 如果没有权限，这里会直接报错
+		// 1.2 检测是否有建库权限
+		if ($type == 'mysql') {
+			// 没有权限时，create/use/drop database 会直接报错；show databases 不会（返回空）
+			try {
 				$dbname = 'kod_rebuild_test';
 				$res = Model()->db()->execute("create database `{$dbname}`");
-				if ($res) {
-					Model()->db()->execute("drop database if exists `{$dbname}`");
-				}
+				if ($res) {Model()->db()->execute("drop database if exists `{$dbname}`");}
+			} catch(Exception $e) {
+				show_json(LNG('explorer.error').$e->getMessage(), false);
 			}
-			show_json(LNG('admin.setting.checkPassed'));
 		}
 		echo json_encode(array('code'=>true,'data'=>'OK', 'info'=>1));
 		http_close();
@@ -697,7 +698,10 @@ class adminServer extends Controller {
 		// 2.2 新建数据库
 		$database = $this->recDatabase($data);
         $manage = new DbManage($database);
-        $manage->db(true);   // 新建数据库
+        $dbNew = $manage->db(true);   // 新建数据库
+		if (!$dbNew) {
+			show_json(LNG('explorer.error').$manage->message, false);
+		}
 
         // 2.3 新建数据表
 		$taskId	 = 'recovery.db.table.create';
@@ -840,17 +844,55 @@ class adminServer extends Controller {
 			// if($manage) $manage->dropTable();
 			if($manage) {
 				$dbname = $cache['db']['db_name'];
-				model()->db()->execute("drop database if exists `{$dbname}`");
+				try {
+					model()->db()->execute("drop database if exists `{$dbname}`");
+				} catch(Exception $e) {}
 			}
 		}
 		Cache::remove($key);
 	}
 
 	// 检查配置文件（是否可写）
-	private function checkSetFileWrt() {
+	private function checkSetWrt() {
 		$file = BASIC_PATH . 'config/setting_user.php';
 		if (path_writeable($file)) return;
 		show_json(LNG('explorer.wrtSetUserError'), false);
+	}
+
+	/**
+	 * 文件还原
+	 * @return void
+	 */
+	public function recoveryFileSave() {
+		$in = $this->in;
+		if ($in['tab'] != 'recovery' || $in['action'] != 'save' || $in['recType'] != 'file') return;
+		$path = Input::get('filePath', 'require');
+		// 获取进度
+		if ($in['process'] == '1') {
+			$task = Task::get('restore.file');	// 没有任务或已结束时都为false
+			// 可能存在进度请求未发出但任务即已结束的情况，导致任务为false，故存缓存
+			$taskUuid  = _get($in, 'taskUuid', 'recFileTaskUuid');
+			$taskCache = Cache::get($taskUuid);
+			if ($task) {
+				Cache::set($taskUuid, $task);
+			} else {
+				if ($taskCache) {$task['taskPercent'] = 1;}
+			}
+			// 备份结果信息
+			$info = null;
+			if ($task['taskPercent'] == 1) {
+				Cache::remove($taskUuid);
+				$info = Model('SystemOption')->get('fileTaskInfo', 'restore');
+				$info = json_decode($info, true);
+			}
+			show_json($task, true, $info);
+		}
+		// 执行还原
+		$restore = new RestoreFile();
+        $code = $restore->start($path);
+		$data = $restore->message;
+		if ($code && !$data) $data = LNG('explorer.success');
+		show_json($data, $code);
 	}
 
 }

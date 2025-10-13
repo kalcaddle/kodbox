@@ -289,10 +289,10 @@ function check_code($code){
 
 // 立即输出内容到页面; $replace 为true代表替换输出; 支持cli模式及cli下的curl请求;
 function echoLog($log,$replace=false){
+	if($GLOBALS['echoLogDisable']){return;}
 	static $isFirst    = true;
 	static $timeBefore = false;
 	static $logOutBefore  = '';
-	static $logReplaceBefore  = '';
 	static $replaceID  = '';
 	if($isFirst){
 		ignore_timeout();
@@ -303,7 +303,12 @@ function echoLog($log,$replace=false){
 	
 	$timeDelay  = 0.05;// 临时替换的输出内容, 50ms内只输出一次;
 	$timeAt     = timeFloat();
-	if($timeBefore && $replace && ($timeAt - $timeBefore) < $timeDelay){$logReplaceBefore = $log;return;}
+	$replaceIdBefore = $replaceID;
+	if(!$replace){$replaceID = '';}
+	if($replace){
+		$replaceID = $replaceID ? $replaceID:rand_string(10);
+		if($timeBefore && ($timeAt - $timeBefore) < $timeDelay){$logOutBefore = $log;return;}
+	}
 	$timeBefore = $timeAt;
 	$timeFloat 	= explode(".",mtime());
 	$timeNow 	= date("H:i:s.",time()).sprintf("%03d",substr($timeFloat[1],0,3));
@@ -323,16 +328,15 @@ function echoLog($log,$replace=false){
 		return;
 	}
 	
-	$replaceIdBefore = $replaceID;
-	if(!$replace){$replaceID = '';}
-	if($replace){$replaceID = $replaceID ? $replaceID:rand_string(10);}
-	if(!$replace && $replaceIdBefore){
-		if(!$log && $logReplaceBefore){$log = $logReplaceBefore;}
-		if(!$log){return;} // 替换转不替换,log为空则保留前一次替换的内容;
+	// write_log([$replace,$replaceIdBefore,$log,$logOutBefore,get_caller_msg()],'test');
+	if(!$replace && $replaceIdBefore && !$log && $logOutBefore){$log = $logOutBefore;}
+	if(!$log){return;} // 替换转不替换,log为空则保留前一次替换的内容;
+	$logOutBefore = '';
+	// 没有html标签时替换
+	if(!strstr($log,'<') && !strstr($log,'>')){
+		$log = str_replace(array(" "),array("&nbsp;"),$log);
+		$log = str_replace(array('`',"\n"),array('`',"<br/>"),$log);
 	}
-	
-	if(!strstr($log,'<')){$log = str_replace(array(" "),array("&nbsp;"),$log);} // 没有html标签时替换空格
-	$log = str_replace(array('`',"\n"),array('`',"<br/>"),$log);
 	$timeStyle  = '<span style="display:inline-block;width:100px;font-size:12px;color:#888;font-family:monospace;padding-right:10px;">';
 	$textStyle  = '<span style="display:inline-block;font-size:14px;color:#0084fe;font-family:monospace;">';
 	$logNow 	= $timeStyle.$timeNow."</span>".$textStyle.$log.'</span>';
@@ -347,7 +351,10 @@ function echoLog($log,$replace=false){
 		$script = 'var line=document.getElementById("line-'.$replaceIdBefore.'");if(line){line.remove();}';
 		$logOut = $logOut.'<script>{'.$script.'}</script>';
 	}
-	@ob_end_flush();echo $logOut.str_pad('',1024*2);flush();
+	
+	$jsNotify = '<script>{window.top.postMessage("logChange","*");}</script>';
+	if(_get($GLOBALS['in'],'echoLogNotify') == '1'){$logOut .= $jsNotify;}
+	@ob_end_flush();echo $logOut.str_pad('',2000);flush();
 }
 
 
@@ -684,7 +691,7 @@ function array_find_by_field($array,$field,$value){
 }
 
 function array_page_split($array,$page=false,$pageNum=false){
-	$page 		= intval($pageNum ? $pageNum : $GLOBALS['in']['page']);
+	$page 		= intval($page ? $page : $GLOBALS['in']['page']);
 	$page		= $page <= 1 ? 1 : $page;
 	$pageMax    = 5000;
 	$pageNum 	= intval($pageNum ? $pageNum : $GLOBALS['in']['pageNum']);
@@ -960,11 +967,10 @@ function show_tips($message,$url= '', $time = 3,$title = ''){
 	<meta http-equiv='refresh' $goto charset="utf-8">
 
 	<style>
-	body{background: #f6f6f6;padding:0;margin:0; display:flex;align-items: center;justify-content: center;
-		position: absolute;left: 0;right: 0;bottom: 0;top: 0;}
-	#msgbox{box-shadow: 0px 10px 40px rgba(0, 0, 0, 0.1);border-radius: 5px;border-radius: 5px;background: #fff;
+	body{background: #f6f6f6;}
+	#msgbox{box-shadow: 0px 10px 40px rgba(0, 0, 0, 0.1);border-radius: 5px;border-radius: 5px;background:#fff;
     font-family: "Lantinghei SC","Hiragino Sans GB","Microsoft Yahei",Helvetica,arial,sans-serif;line-height: 1.5em;
-	color:888;margin:0 auto;margin-top:10px;margin-bottom:10px;width:500px;font-size:13px;color:#666;word-wrap: break-word;word-break: break-all;max-width: 90%;box-sizing: border-box;max-height: 90%;overflow: auto;padding:30px 30px;}
+	color:888;margin:10% auto;width:500px;font-size:13px;color:#666;word-wrap: break-word;word-break: break-all;max-width: 90%;box-sizing: border-box;max-height:90%;overflow: auto;padding:30px 30px;position: relative;}
 	#msgbox #info{margin-top: 10px;color:#aaa;}
 	#msgbox #title{color: #333;border-bottom: 1px solid #eee;padding: 10px 0;margin:0 0 15px;font-size:22px;font-weight:200;}
 	#msgbox #info a{color: #64b8fb;text-decoration: none;padding: 2px 0px;border-bottom: 1px solid;}
