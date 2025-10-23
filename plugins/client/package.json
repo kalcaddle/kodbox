@@ -2,7 +2,7 @@
 	"id":"client",
 	"name":"{{LNG['client.meta.name']}}",
 	"title":"{{LNG['client.meta.title']}}",
-	"version":"1.37",
+	"version":"1.38",
 	"source":{
 		"icon":"{{pluginHost}}static/images/icon.png"
 	},

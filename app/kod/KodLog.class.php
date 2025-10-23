@@ -20,8 +20,8 @@ class KodLog{
 			return;
 		}
 		write_log($log,'log');
-		check_abort_now();
 		if($disableOut){return;}
+		check_abort_now();
 		echoLog($log,$replace);
 	}
 	

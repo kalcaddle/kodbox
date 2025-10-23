@@ -263,9 +263,7 @@ class explorerUpload extends Controller{
 		$this->serverDownloadHashCheck($url,$header,$savePath,$filename,$uuid);
 		$result = Downloader::start($url,$tempFile);
 		if($result['code']){
-			$outPath = IO::copy($tempFile,$savePath,REPEAT_RENAME);
-			$fileName= IO::fileNameAuto($savePath,$filename,REPEAT_RENAME);
-			$outPath = IO::rename($outPath,$fileName);
+			$outPath = IO::copy($tempFile,$savePath,REPEAT_RENAME,$filename);
 			show_json(LNG('explorer.downloaded'),true,IO::info($outPath));
 		}else{
 			show_json($result['data'],false);

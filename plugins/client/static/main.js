@@ -18,8 +18,8 @@ kodReady.push(function(){
 		menuList.push({
 			title:LNG['client.menu'],
 			icon:"ri-computer-line",
-			link:"admin/storage/client",
-			after:'admin/storage/share',//after/before; 插入菜单所在位置;
+			link:"admin/server/client",
+			after:'admin/server/index',//after/before; 插入菜单所在位置;
 			sort:10,
 			fileSrc:staticPath+'clientOpen.js',
 		});

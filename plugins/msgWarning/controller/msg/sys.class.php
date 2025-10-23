@@ -48,7 +48,7 @@ class msgWarningMsgSys extends Controller {
 		foreach ($data as $item) {
 			$arr[] = $item['name']."({$item['id']})";
 		}
-		write_log('【系统检测】'.$cnt.'个存储连接异常：'.($arr.join('; ')), 'storage');
+		write_log('【系统检测】'.$cnt.'个存储连接异常：'.implode('; ', $arr), 'storage');
 
 		$msg = sprintf(LNG('msgWarning.sys.storeErr'), $cnt);
 		return array($msg);

@@ -121,7 +121,7 @@ class msgWarningSysTask extends Controller {
 				}
 				// 4.1 预警级+ 写入log日志
 				if ($evntInfo['level'] >= 3) {
-					write_log('【系统通知】'.$evntInfo['title'].': '.($message.join('; ')), 'warning');
+					write_log('【系统通知】'.$evntInfo['title'].': '.implode('; ', $message), 'warning');
 				}
 
 				// 4.2 发送通知
