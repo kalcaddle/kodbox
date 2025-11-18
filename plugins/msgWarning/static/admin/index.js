@@ -90,7 +90,9 @@ ClassBase.define({
     // 添加重置按钮
     addResetBtn: function(form){
         var self = this;
-        var html = '<div class="reset-app-btn"><span class="kui-btn btn"><i class="font-icon ri-restart-line"></i> '+LNG['msgWarning.main.appReset']+'</span></div>';
+        var html = '<div class="reset-app-btn">\
+                    <span class="kui-btn btn" title="'+LNG['msgWarning.main.appResetTitle']+'" title-timeout="500"><i class="font-icon ri-restart-line"></i> '+LNG['msgWarning.main.appReset']+'</span>\
+                    </div>';
         form.$('.tab-group[role=tablist]').after(html);
         form.$el.delegate('.reset-app-btn','click',function(){
             var tab = 'ntcEvnt';   // 在事件文件中执行

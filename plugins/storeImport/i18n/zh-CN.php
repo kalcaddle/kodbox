@@ -7,7 +7,7 @@ return array(
 	'storeImport.main.import'		=> "导入",
 	'storeImport.main.dataImport'	=> "存储数据导入",
 	'storeImport.main.ioNotSup'		=> "不支持的存储类型：",
-	'storeImport.main.ioPathErr'=> "原始数据目录错误，必须为存储目录：{io:x}",
+	'storeImport.main.ioPathErr'	=> "原始数据目录错误，必须为存储目录：{io:x}",
 	'storeImport.main.ioStoreErr'	=> "原始数据所在存储无效！",
 	'storeImport.main.ioNotSupErr'	=> "不支持此存储类型导入：",
 	'storeImport.main.ioFromNetErr'	=> "原始数据所在存储无法连接。",
@@ -26,8 +26,8 @@ return array(
 	'storeImport.main.importDesc'	=> "<h5>通过对磁盘或对象存储进行扫描，自动构建索引，实现文件快速导入到网盘。</h5>
 										<div class='mt-10 mb-20'>
 											<li>1. 网盘文件需通过存储路径访问，<u>因此在导入之前，需将待导入的原始数据目录（或父级目录）添加为存储</u>；</li>
-											<li>2. 此操作不会对原始数据做改动，只构建文件索引映射到网盘，<u>在导入之后，不能对原始数据做任何改动，避免索引失效</u>；</li>
-											<li>3. 导入数据与网盘默认存储数据的路径结构不同，建议将导入数据的存储作为附加存储（而非系统默认存储）使用，以维护数据结构统一；</li>
+											<li>2. 此操作不会对原始数据做改动，只构建文件索引写入网盘数据库，<u>在导入之后，不能对原始数据做任何改动，避免索引失效</u>；</li>
+											<li>3. 导入的数据与网盘默认存储数据的路径结构不同，建议将导入数据的存储作为附加存储（而非系统默认存储）使用，以维护数据结构统一；</li>
 											<li>4. 导入之前建议对数据库进行备份，以免出现意外。</li>
 										</div>
 										<div>注意：<u>文件路径长度超过256个字符会被限制导入</u>，相关日志放在网盘存放目录下的“导入失败日志-长度超256字符”文件夹中，可在导入完成后自行查看并处理。</div>",

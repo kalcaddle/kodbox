@@ -339,12 +339,12 @@ function curl_progress_end($curl,&$curlResult=false){
 	if($curlResult && $httpCode < 200 || $httpCode >= 300){
 		$errorMessage = "curl error code=".$httpCode.'; '.curl_error($curl);		
 		$GLOBALS['curl_request_error'] = array('message'=>$errorMessage,'url'=> $curlInfo['url'],'code'=>$httpCode);
-		write_log("[CURL] ".$curlInfo['url'].";$errorMessage;");
+		write_log("[CURL] code=".$httpCode.';'.$curlInfo['url'],'curl');
 	}
 	// write_log("[CURL] ".$curlInfo['url']."; code=$httpCode;".curl_error($curl).";".get_caller_msg(),'test');
 	if(GLOBAL_DEBUG){
 		$response = strlen($curlResult) > 1000 ? substr($curlResult,0,1000).'...':$curlResult;
-		write_log("[CURL] code=".$httpCode.';'.$curlInfo['url'].";$errorMessage \n".$response,'curl');
+		write_log("[CURL] code=".$httpCode.';'.$curlInfo['url'].";$errorMessage",'curl');
 	}
 }
 function curl_progress(){
@@ -398,8 +398,11 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 			}
 			//有update且method为PUT
 			if($method == 'PUT'){
+				$fp = @fopen($path,'r');
+				$error = array('data'=>"path fopen error!",'status'=>false,'code'=>100,'header'=>array());
+				if(!$fp){return $error;}
 				curl_setopt($ch, CURLOPT_PUT,1);
-				curl_setopt($ch, CURLOPT_INFILE,@fopen($path,'r'));
+				curl_setopt($ch, CURLOPT_INFILE,$fp);
 				curl_setopt($ch, CURLOPT_INFILESIZE,@filesize($path));
 				unset($data[$key]); // put通常通过body上传文件;不需要post参数,参数放在url中
 			}
@@ -561,7 +564,6 @@ function url_request_mutil($requests,$timeout=20){
 	$handles = array();
 
 	// 初始化每个请求
-	$hasStart = false;$hasEnd = false;
 	foreach($requests as $index => $request){
 		if(is_string($request)){$request = array('url' => $request,'method'=>'GET');}
 		$ch 	= curl_init();
@@ -597,12 +599,13 @@ function url_request_mutil($requests,$timeout=20){
 		curl_setopt($ch, CURLOPT_TIMEOUT,$timeout);
 		curl_setopt($ch, CURLOPT_REFERER,get_url_link($url));
 		curl_setopt($ch, CURLOPT_USERAGENT,'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36');
+		curl_setopt($ch, CURLOPT_NOPROGRESS, false);
+		curl_setopt($ch, CURLOPT_PROGRESSFUNCTION,'curl_progress');curl_progress_start($ch);
 		curl_multi_add_handle($mh, $ch);
-		if(!$hasStart){$hasStart = true;curl_progress_start($ch);}
 		$handles[$index] = $ch;
 	}
 
-	// 执行所有请求;循环调用-每次调用返回当前状态码;
+	// 执行所有请求;循环调用-每次调用返回当前状态码;	
 	$active = null;
 	do{
 		$mrc = curl_multi_exec($mh, $active);
@@ -625,7 +628,7 @@ function url_request_mutil($requests,$timeout=20){
 			'status'=> $info['http_code'] >= 200 && $info['http_code'] <= 299,
 			'code'	=> $info['http_code'],
 		);
-		if(!$hasEnd){$hasEnd = true;curl_progress_end($ch,$body);}
+		curl_progress_end($ch,$body);
 		curl_multi_remove_handle($mh, $ch);
 		curl_close($ch);
 	}	

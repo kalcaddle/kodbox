@@ -19,6 +19,7 @@ return array(
     "msgWarning.main.openSvr"        => "サービスを開始する",
     "msgWarning.main.goSet"          => "設定へ移動",
     "msgWarning.main.appReset"       => "デフォルトに戻す",
+    "msgWarning.main.appResetTitle"  => "システムのデフォルト設定を復元する",
     "msgWarning.main.ifAppReset"     => "このコマンドを実行すると、すべての設定（通知イベント、通知ゲートウェイ）がリセットされます。続行しますか？",
     "msgWarning.main.invalidUser"    => "送信オブジェクトが無効です",
     "msgWarning.ntc.event"           => "通知イベント",

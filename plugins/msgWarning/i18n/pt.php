@@ -19,6 +19,7 @@ return array(
     "msgWarning.main.openSvr"        => "Iniciar o serviço",
     "msgWarning.main.goSet"          => "Ir para Configuração",
     "msgWarning.main.appReset"       => "Restaurar padrões",
+    "msgWarning.main.appResetTitle"  => "Restaurar configuração padrão do sistema",
     "msgWarning.main.ifAppReset"     => "Após executar este comando, todas as configurações (eventos de notificação, gateway de notificação) serão redefinidas. Deseja continuar?",
     "msgWarning.main.invalidUser"    => "Objeto de envio inválido",
     "msgWarning.ntc.event"           => "Eventos de Notificação",

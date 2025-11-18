@@ -340,7 +340,7 @@ function echoLog($log,$replace=false){
 	$timeStyle  = '<span style="display:inline-block;width:100px;font-size:12px;color:#888;font-family:monospace;padding-right:10px;">';
 	$textStyle  = '<span style="display:inline-block;font-size:14px;color:#0084fe;font-family:monospace;">';
 	$logNow 	= $timeStyle.$timeNow."</span>".$textStyle.$log.'</span>';
-	$logOut		= "<div class='line' ".($replaceID ? 'id="line-'.$replaceID.'"':'').">".$logNow."</div>";
+	$logOut		= "<div style='white-space:nowrap;' class='line' ".($replaceID ? 'id="line-'.$replaceID.'"':'').">".$logNow."</div>";
 
 	// 替换输出: 针对上一次输出行进行替换; 当前不是替换输出且前一次为替换输出则移除前一行;  不干扰其他echo等输出的内容;
 	if($replace){
@@ -1026,6 +1026,10 @@ function get_caller_trace($trace,$needArgs = true) {
 			foreach($temp as $j=>$value){
 				if(!$needArgs && !in_array($method,$keepArgs)){
 					$param = (is_string($value) || is_numeric($value) || !$value) ? $value.'':'[obj]';
+					if(is_array($value)){
+						$param = json_encode($value);
+						if(strlen($param) >= 50){$param = substr($param,0,50)."...";}
+					}
 					if(strlen($param) > $maxLength){$param = mb_substr($param,0,$maxLength).'...';}
 					$args[] = '"'.$param.'"';continue;
 				}

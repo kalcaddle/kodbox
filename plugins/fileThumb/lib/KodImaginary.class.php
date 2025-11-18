@@ -1,7 +1,7 @@
 <?php 
 
 /**
- * 图片处理类-Imaginary服务
+ * 图片处理类-Imaginary 服务
  * https://github.com/h2non/imaginary
  */
 class KodImaginary {

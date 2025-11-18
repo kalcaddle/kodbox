@@ -19,6 +19,7 @@ return array(
     "msgWarning.main.openSvr"        => "서비스를 시작하세요",
     "msgWarning.main.goSet"          => "구성으로 이동",
     "msgWarning.main.appReset"       => "기본값 복원",
+    "msgWarning.main.appResetTitle"  => "시스템 기본 구성 복원",
     "msgWarning.main.ifAppReset"     => "이 명령을 실행하면 모든 구성(알림 이벤트, 알림 게이트웨이)이 재설정됩니다. 계속하시겠습니까?",
     "msgWarning.main.invalidUser"    => "잘못된 전송 객체입니다.",
     "msgWarning.ntc.event"           => "알림 이벤트",

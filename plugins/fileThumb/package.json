@@ -2,7 +2,7 @@
 	"id":"fileThumb",
 	"name":"{{LNG['fileThumb.meta.name']}}",
 	"title":"{{LNG['fileThumb.meta.title']}}",
-	"version":"2.10",
+	"version":"2.14",
 	"category":"file,media",
 	"source":{
 		"icon":"{{pluginHost}}static/icon.png"
@@ -133,13 +133,13 @@
 			"display":"{{LNG['admin.plugin.fileExt']}}",
 			"desc":"{{LNG['admin.plugin.fileExtDesc']}}",
 			//x3f,srw
-			"value":"psd,psb,ps,ps2,ps3,tif,tiff,tga,tst,plt,ai,jpe,dds,crw,3fr,fff,ppm,mef,mos,mdc,iiq,eps,heic,ttf,raw,rw2,dcm,erf,cr2,raf,kdc,dcr,dng,mrw,nrw,nef,orf,pef,x3f,srf,arw,sr2"
+			"value":"psd,psb,ps,ps2,ps3,tif,tiff,tga,tst,plt,ai,jpe,dds,crw,3fr,fff,ppm,mef,mos,mdc,iiq,eps,heic,ttf,raw,rw2,dcm,erf,cr2,raf,kdc,dcr,dng,mrw,nrw,nef,orf,pef,x3f,srf,arw,sr2,avif,webp"
 		},
 		"fileThumb":{
 			"type":"tags",
 			"display":"{{LNG['fileThumb.Config.fileThumbExt']}}",
 			"value":"psd,psb,ps,ps2,ps3,tif,tiff,tga,tst,plt,ai,jpe,dds,crw,3fr,fff,ppm,mef,mos,mdc,iiq,eps,
-			,pdf,xps,heic,ttf,raw,rw2,dcm,erf,cr2,raf,kdc,dcr,dng,mrw,nrw,nef,orf,pef,x3f,srf,arw,sr2,
+			,pdf,xps,heic,avif,webp,ttf,raw,rw2,dcm,erf,cr2,raf,kdc,dcr,dng,mrw,nrw,nef,orf,pef,x3f,srf,arw,sr2,
 			,3gp,avi,mp4,m4v,mov,mpg,mpeg,mpe,mts,m2ts,wmv,ogv,webm,vob,flv,f4v,mkv,rmvb,rm"
 		},
 

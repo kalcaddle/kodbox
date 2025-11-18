@@ -6,7 +6,7 @@ class DPlayerPlugin extends PluginBase{
 	}
 	public function regist(){
 		$this->hookRegist(array(
-			'user.commonJs.insert' => 'DPlayerPlugin.echoJs',
+			// 'user.commonJs.insert' => 'DPlayerPlugin.echoJs',
 		));
 	}
 }

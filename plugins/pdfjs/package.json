@@ -2,7 +2,7 @@
 	"id":"pdfjs",
 	"name":"{{LNG['pdfjs.meta.name']}}",
 	"title":"{{LNG['pdfjs.meta.title']}}",
-	"version":"1.54",
+	"version":"1.55",
 	"source":{
 		"icon":"{{pluginHost}}static/app/images/icon.png",
 		"screenshoot":[

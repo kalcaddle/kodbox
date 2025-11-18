@@ -20,6 +20,7 @@ return array(
 	'msgWarning.main.openSvr'			=> '开启服务',
 	'msgWarning.main.goSet'				=> '前往配置',
 	'msgWarning.main.appReset'			=> '恢复默认',
+	'msgWarning.main.appResetTitle'		=> '恢复系统默认配置',
 	'msgWarning.main.ifAppReset'		=> '执行后将重置所有配置（通知事件、通知网关），是否继续？',
 	'msgWarning.main.invalidUser'		=> '无效的发送对象',
 

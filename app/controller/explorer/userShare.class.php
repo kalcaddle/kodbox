@@ -577,7 +577,7 @@ class explorerUserShare extends Controller{
 		$result = $this->model->shareEdit($data['shareID'],$data);
 		
 		// 编辑后不检测权限(与我协作-管理者,移除或降低自己的权限)
-		if(!$result) show_json(LNG('explorer.error'),false);
+		if(!$result){show_json("[URL] ".LNG('explorer.pathExists'),false);}
 		show_json($this->getShareInfo($data['shareID'],false));
 	}
 	

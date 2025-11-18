@@ -31,7 +31,7 @@ class explorerListSearch extends Controller{
 		}
 		
 		// 搜索内容,强制列表显示;
-		if(in_array('content',$param['option'])){
+		if(in_array('content',$param['option']) && !array_key_exists('listTypeSet',$list)){
 			$list['listTypeSet'] = 'list';
 		}
 		$list['searchParam']  = $paramIn;

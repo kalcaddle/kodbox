@@ -19,6 +19,7 @@ return array(
     "msgWarning.main.openSvr"        => "開啟服務",
     "msgWarning.main.goSet"          => "前往配置",
     "msgWarning.main.appReset"       => "恢復預設",
+    "msgWarning.main.appResetTitle"  => "恢復系統預設配置",
     "msgWarning.main.ifAppReset"     => "執行後將重置所有設定（通知事件、通知網關），是否繼續？",
     "msgWarning.main.invalidUser"    => "無效的傳送對象",
     "msgWarning.ntc.event"           => "通知事件",

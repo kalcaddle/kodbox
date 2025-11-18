@@ -19,6 +19,7 @@ return array(
     "msgWarning.main.openSvr"        => "Hizmeti başlatın",
     "msgWarning.main.goSet"          => "Yapılandırmaya git",
     "msgWarning.main.appReset"       => "Varsayılanları Geri Yükle",
+    "msgWarning.main.appResetTitle"  => "Sistem varsayılan yapılandırmasını geri yükleyin",
     "msgWarning.main.ifAppReset"     => "Bu komutu çalıştırdıktan sonra tüm yapılandırmalar (bildirim olayları, bildirim ağ geçidi) sıfırlanacaktır. Devam etmek istiyor musunuz?",
     "msgWarning.main.invalidUser"    => "Geçersiz gönderme nesnesi",
     "msgWarning.ntc.event"           => "Bildirim Olayları",

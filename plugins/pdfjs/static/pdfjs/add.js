@@ -17,7 +17,7 @@ var pdfLoaded = function(){
 		setTimeout(function(){document.title = fileName;},100);
 		
 		// 自适应界面; bug: 缩放后文字选中异常;
-		if($.isWindowTouch() && $.isWindowSmall() ){
+		if($.isWindowTouch() && $.isWindowSmall() && _.get(PDFViewerApplication, 'pdfViewer._setScale')){
 			PDFViewerApplication.pdfViewer._setScale("page-fit"); // 全屏;
 		}
 	});

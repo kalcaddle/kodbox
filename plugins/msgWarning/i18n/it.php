@@ -19,6 +19,7 @@ return array(
     "msgWarning.main.openSvr"        => "Avvia il servizio",
     "msgWarning.main.goSet"          => "Vai alla configurazione",
     "msgWarning.main.appReset"       => "Ripristina impostazioni predefinite",
+    "msgWarning.main.appResetTitle"  => "Ripristina la configurazione predefinita del sistema",
     "msgWarning.main.ifAppReset"     => "Dopo aver eseguito questo comando, tutte le configurazioni (eventi di notifica, gateway di notifica) verranno ripristinate. Vuoi continuare?",
     "msgWarning.main.invalidUser"    => "Oggetto di invio non valido",
     "msgWarning.ntc.event"           => "Eventi di notifica",

@@ -37,7 +37,7 @@
 		<?php $this->link('static/pdfjs/style.css');?>
 		<?php $this->link('app/dist/sdk.js','static');?>
 		<?php $this->link('static/pdfjs/build/pdf.js');?>
-		<?php $this->link('static/pdfjs/build/pdf.worker.js');?>
+		<?php // $this->link('static/pdfjs/build/pdf.worker.js');?>
 		<?php $this->link('static/pdfjs/web/viewer.js');?>
 		<?php $this->link('static/pdfjs/add.js');?>
 		<script>

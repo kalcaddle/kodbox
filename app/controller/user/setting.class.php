@@ -13,7 +13,6 @@ class userSetting extends Controller {
 		parent::__construct();
 		$this->user = Session::get('kodUser');
 		$this->model = Model('User');
-		$this->imageExt = array('png','jpg','jpeg','gif','webp','bmp','ico');
 	}
 
 	/**
@@ -214,12 +213,12 @@ class userSetting extends Controller {
 	 */
 	public function uploadHeadImage(){
 		$ext = get_path_ext(Uploader::fileName());
-		if(!in_array($ext,$this->imageExt)){
+		if(!in_array($ext,array('png','jpg','jpeg','gif','webp','bmp','ico'))){
 			show_json("only support image",false);
 		}
 
 		$path = KodIO::systemFolder('avataImage');
-		$image = 'avata-'.USER_ID.'.jpg';
+		$image = 'avata-'.USER_ID.'.'.$ext;	// jpg
 		$pathInfo 	= IO::infoFullSimple($path.'/'.$image);
 		if($pathInfo){
 			IO::remove($pathInfo['path'], false);

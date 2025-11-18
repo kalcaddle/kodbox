@@ -6,8 +6,8 @@ class fileThumbPlugin extends PluginBase{
 	private $ioFileInfo;
 	function __construct(){
 		parent::__construct();
-		$this->imgExts = array('gif','png','bmp','jpe','jpeg','jpg','webp','heic','heif');
-		$this->webExts = array('png','jpg','jpeg','bmp','webp','gif');
+		$this->imgExts = array('gif','png','bmp','jpe','jpeg','jpg','webp','heic','heif','avif');
+		$this->webExts = array('png','jpg','jpeg','bmp','webp','gif','avif');
 	}
 	public function regist(){
 		$this->hookRegist(array(
@@ -47,7 +47,7 @@ class fileThumbPlugin extends PluginBase{
 			if(!in_array($file['ext'],$supportThumb)){continue;}
 			if(!kodIO::allowCover($file)){continue;}
 			if(timeFloat() - $timeStart >= 10){break;} // 内容太多,超出时间则不再处理;
-			if(in_array($file['ext'],$supportWeb) && $file['size'] <= 1024*50){continue;}
+			// if(in_array($file['ext'],$supportWeb) && $file['size'] <= 1024*50){continue;}
 			if(!$cachePath){$cachePath = $this->pluginCachePath();}
 			
 			$fileHash = KodIO::hashPath($file);$path = $file['path'];
@@ -140,8 +140,8 @@ class fileThumbPlugin extends PluginBase{
 		$sourceID = IO::fileNameExist($this->cachePath,$coverName);
 		// pr(IO::Info(kodIO::make($sourceID)));exit;
 		if($sourceID){IO::fileOut(kodIO::make($sourceID));exit;}
-		// 1200预览输出原图
-		if($width == 1200 && in_array($file['ext'], $this->webExts)) {
+		// 1200预览输出原图; 生成失败,浏览器支持预览的直接输出;
+		if(in_array($file['ext'], $this->webExts)) {
 			IO::fileOut($path);exit;
 		}
 		echo $result;
@@ -561,13 +561,10 @@ class fileThumbPlugin extends PluginBase{
 		}
 		// 2.按像素计算大小限制
 		$memNeed = $this->sysMemoryNeed($file);
-		if ($memNeed) {
-			$memFree = $this->sysMemoryFree();
-			// 系统可用内存不一定能获取到，没获取到也执行
-			if (!$memFree || ($memNeed < $memFree)) {
-				return true;
-			}
-		}
+		if(!$memNeed){return true;}
+		
+		$memFree = $this->sysMemoryFree();
+		if(!$memFree || ($memNeed < $memFree)){return true;}
 		$this->log('cover=makeError:'.$file.'; need memory too large: '.$size);
 		return false;
 	}

@@ -7,7 +7,7 @@ class KodImagick {
 
     // 支持的图像格式
     private const IMAGE_FORMATS = array(
-        'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tif', 'jpe', 'heic'
+        'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tif', 'jpe', 'heic','avif'
     );
     // 支持的文档格式
     private const DOCUMENT_FORMATS = array(

@@ -287,7 +287,7 @@ class NtcEvnt {
                     'timeTo'    => '23:59',
                 ),
                 'toAll'     => 1,
-                'taskFreq'  => 5,
+                'taskFreq'  => 10,
             ),
             array(
                 'event'     => self::EVNT_SYS_STORE_BAK_ERR,
@@ -307,7 +307,7 @@ class NtcEvnt {
                     'timeFrom'  => '00:00',
                     'timeTo'    => '23:59',
                 ),
-                'taskFreq'  => 5,
+                'taskFreq'  => 10,
             ),
             array(
                 'event'     => self::EVNT_SYS_STORE_SIZE_ERR,
@@ -400,7 +400,7 @@ class NtcEvnt {
                     'timeFrom'  => '00:00',
                     'timeTo'    => '23:59',
                 ),
-                'taskFreq'  => 5,
+                'taskFreq'  => 10,
             ),
 
             array(

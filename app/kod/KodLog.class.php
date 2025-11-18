@@ -4,6 +4,7 @@
  * 用户相关信息处理
  */
 class KodLog{
+	public static $logLast = array();
 	public static function replace($staus=true){self::log('',$staus ? 'replace':'reset');}
 	public static function enable ($staus=true){self::log('',$staus ? 'enable':'disable');}
 	public static function log($log,$replaceType=''){
@@ -19,8 +20,10 @@ class KodLog{
 			if($hasChange){echoLog('',$replace);}
 			return;
 		}
-		write_log($log,'log');
+		write_log(str_replace('&nbsp;',' ',$log),'log');
 		if($disableOut){return;}
+		
+		self::$logLast = array('log'=>$log,'replace'=>$replace,'time'=>time());
 		check_abort_now();
 		echoLog($log,$replace);
 	}

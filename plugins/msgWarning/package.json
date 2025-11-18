@@ -2,7 +2,7 @@
 	"id":"msgWarning",
 	"name":"{{LNG['msgWarning.meta.name']}}",
 	"title":"{{LNG['msgWarning.meta.title']}}",
-	"version":"1.21",
+	"version":"1.22",
 	"category":"tools",
 	"hidden":1,
 	"source":{

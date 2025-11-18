@@ -4,7 +4,6 @@
  * 图片处理类-ImageMagick命令行
  */
 class KodImageMagick {
-
 	private $plugin;
     private $command;
     public function __construct($plugin) {
@@ -37,6 +36,13 @@ class KodImageMagick {
         $command = $this->getCommand();
         if (!$command) return false;
 
+		// 生成缩略图,不能比原来大;
+		$sizeInfo = $this->getImgSize($file,$ext);
+		if($sizeInfo && is_array($sizeInfo)){
+			$sizeMin = min($sizeInfo[0],$sizeInfo[1]);
+			$maxSize = $sizeMin ? min($sizeMin,$maxSize): 250;
+		}
+				
 		$size  = $maxSize.'x'.$maxSize;
 		$param = "-auto-orient -alpha off -quality 90 -size ".$size;
 		$tempName = rand_string(15).'.png';
@@ -79,12 +85,13 @@ class KodImageMagick {
 			case 'jpe':
 			case 'jpg':
 			case 'jpeg':
+			case 'avif':
 			case 'heic':$param = "-resize {$size} -auto-orient";break;
 			
 			default:
 				$dng = 'dng,cr2,erf,raf,kdc,dcr,mrw,nrw,nef,orf,pef,x3f,srf,arw,sr2';
-				$dng = $dng.',3fr,crw,dcm,fff,iiq,mdc,mef,mos,plt,ppm,raw,rw2,srw,tst';
-				if(in_array($ext,explode(',',$dng))){
+				$imageExt = $dng.',3fr,crw,dcm,fff,iiq,mdc,mef,mos,plt,ppm,raw,rw2,srw,tst';
+				if(in_array($ext,explode(',',$imageExt))){
 					$param = "-resize {$size}";
 					//$file = 'rgb:'.$file.'[0]';
 				}

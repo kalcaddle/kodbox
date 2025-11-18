@@ -58,7 +58,7 @@ class msgWarningSysStorage extends Controller {
     }
 
 	// 检查（网络）存储是否可访问
-	public function checkStoreUrl($info, $timeout = 5) {
+	public function checkStoreUrl($info, $timeout = 10) {
 		$url = _get($info, 'config.domain', '');	// 对象存储
 		if (empty($url)) {
 			$url = _get($info, 'config.server', '');// ftp
@@ -80,7 +80,7 @@ class msgWarningSysStorage extends Controller {
 		return $this->url_request_check($url, $opt, $timeout);
 	}
 	// 检查地址是否可访问
-	private function url_request_check($url, $opt=false, $timeout = 5) {
+	private function url_request_check($url, $opt=false, $timeout = 10) {
 		if (!filter_var($url, FILTER_VALIDATE_URL)) {return false;}
 		$ch = curl_init($url);
 		$op = array(

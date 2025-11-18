@@ -19,6 +19,7 @@ return array(
     "msgWarning.main.openSvr"        => "Запустить службу",
     "msgWarning.main.goSet"          => "Перейти к конфигурации",
     "msgWarning.main.appReset"       => "Восстановить настройки по умолчанию",
+    "msgWarning.main.appResetTitle"  => "Восстановить конфигурацию системы по умолчанию",
     "msgWarning.main.ifAppReset"     => "После выполнения этой команды все настройки (события уведомлений, шлюз уведомлений) будут сброшены. Хотите продолжить?",
     "msgWarning.main.invalidUser"    => "Неверный объект отправки",
     "msgWarning.ntc.event"           => "События уведомлений",

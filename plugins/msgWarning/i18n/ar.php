@@ -19,6 +19,7 @@ return array(
     "msgWarning.main.openSvr"        => "ابدأ الخدمة",
     "msgWarning.main.goSet"          => "انتقل إلى التكوين",
     "msgWarning.main.appReset"       => "استعادة الإعدادات الافتراضية",
+    "msgWarning.main.appResetTitle"  => "استعادة تكوين النظام الافتراضي",
     "msgWarning.main.ifAppReset"     => "بعد تنفيذ هذا الأمر، سيتم إعادة ضبط جميع الإعدادات (أحداث الإشعارات، بوابة الإشعارات). هل ترغب في المتابعة؟",
     "msgWarning.main.invalidUser"    => "كائن إرسال غير صالح",
     "msgWarning.ntc.event"           => "أحداث الإشعار",
