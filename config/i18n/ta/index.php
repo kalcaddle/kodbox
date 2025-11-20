@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "நிர்வாக உரிமைகள்",
     "admin.auth.rootAction"          => "உறுப்பினர் அனுமதிகள் / கருத்து மேலாண்மை / வரலாறு பதிப்பு மேலாண்மை ஆகியவற்றை அமைக்கவும்",
     "admin.auth.delErrTips"          => "இந்த அனுமதி பயன்படுத்தப்படுகிறது மற்றும் நீக்க முடியாது!",
+    "admin.plugin"                   => "செருகுநிரல்",
     "admin.plugin.center"            => "செருகுநிரல் மையம்",
     "admin.plugin.installed"         => "நிறுவப்பட்டுள்ளது",
     "admin.plugin.type"              => "வகைப்பாடு",

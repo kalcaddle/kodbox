@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "행정권",
     "admin.auth.rootAction"          => "회원 권한 설정 / 댓글 관리 / 이력 버전 관리",
     "admin.auth.delErrTips"          => "이 권한은 사용 중이며 삭제할 수 없습니다!",
+    "admin.plugin"                   => "플러그인",
     "admin.plugin.center"            => "플러그인 센터",
     "admin.plugin.installed"         => "설치",
     "admin.plugin.type"              => "카테고리",

@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "Droits administratifs",
     "admin.auth.rootAction"          => "Définir les autorisations des membres / la gestion des commentaires / la gestion des versions de l'historique",
     "admin.auth.delErrTips"          => "Cette autorisation est utilisée et ne peut pas être supprimée!",
+    "admin.plugin"                   => "Plugin",
     "admin.plugin.center"            => "Centre de plugins",
     "admin.plugin.installed"         => "Installé",
     "admin.plugin.type"              => "Catégorie",

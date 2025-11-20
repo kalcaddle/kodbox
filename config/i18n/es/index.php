@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "Derechos administrativos",
     "admin.auth.rootAction"          => "Establecer permisos de miembros / gestión de comentarios / gestión de versiones de historial",
     "admin.auth.delErrTips"          => "¡Este permiso se está utilizando y no se puede eliminar!",
+    "admin.plugin"                   => "Complemento",
     "admin.plugin.center"            => "Centro de complementos",
     "admin.plugin.installed"         => "Instalado",
     "admin.plugin.type"              => "Categoría",

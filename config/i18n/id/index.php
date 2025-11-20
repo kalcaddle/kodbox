@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "Hak administratif",
     "admin.auth.rootAction"          => "Tetapkan izin anggota / manajemen komentar / manajemen versi sejarah",
     "admin.auth.delErrTips"          => "Izin ini sedang digunakan dan tidak dapat dihapus!",
+    "admin.plugin"                   => "Plugin",
     "admin.plugin.center"            => "Pusat Plugin",
     "admin.plugin.installed"         => "Diinstal",
     "admin.plugin.type"              => "Kategori",

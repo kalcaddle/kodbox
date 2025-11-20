@@ -110,7 +110,13 @@ class Hook{
 			if($_logHook){write_log($event.'==>start: '.$action['action'],'hook-trigger');}
 
 			self::$events[$event][$i]['times'] = $action['times'] + 1;
-			$res = ActionApply($action['action'],$args);
+			try{
+				$res = ActionApply($action['action'],$args);
+			}catch(Exception $e){
+				$error = '['.$action['action'].']: '.$e->getMessage();
+				$res = self::trigger('eventRun.error',$error);
+				if(!$res){throw new Exception($error);}
+			}
 			if(is_string($action['action'])){Hook::trigger($action['action']);}
 			
 			if($_logHook){

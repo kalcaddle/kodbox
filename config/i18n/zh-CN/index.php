@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "管理权限",
     "admin.auth.rootAction"          => "设置成员权限/评论管理/历史版本管理",
     "admin.auth.delErrTips"          => "该权限正在被使用，无法删除！",
+    "admin.plugin"                   => "插件",
     "admin.plugin.center"            => "插件中心",
     "admin.plugin.installed"         => "已安装",
     "admin.plugin.type"              => "分类",

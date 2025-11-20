@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "Administratorrechte",
     "admin.auth.rootAction"          => "Festlegen der Mitgliedsberechtigungen / Kommentarmanagement / Versionsverwaltung des Verlaufs",
     "admin.auth.delErrTips"          => "Diese Berechtigung wird verwendet und kann nicht gelöscht werden!",
+    "admin.plugin"                   => "Plugin",
     "admin.plugin.center"            => "Plugin Center",
     "admin.plugin.installed"         => "Installiert",
     "admin.plugin.type"              => "Kategorie",

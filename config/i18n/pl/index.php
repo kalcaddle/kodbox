@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "Prawa administracyjne",
     "admin.auth.rootAction"          => "Ustaw uprawnienia członka / zarządzanie komentarzami / zarządzanie wersją historii",
     "admin.auth.delErrTips"          => "To uprawnienie jest używane i nie można go usunąć!",
+    "admin.plugin"                   => "Wtyczka",
     "admin.plugin.center"            => "Centrum wtyczek",
     "admin.plugin.installed"         => "Zainstalowano",
     "admin.plugin.type"              => "Kategoria",

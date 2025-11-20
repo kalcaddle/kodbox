@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "Quyền hành chính",
     "admin.auth.rootAction"          => "Đặt quyền thành viên / quản lý bình luận / quản lý phiên bản lịch sử",
     "admin.auth.delErrTips"          => "Quyền này đang được sử dụng và không thể bị xóa!",
+    "admin.plugin"                   => "Plugin",
     "admin.plugin.center"            => "Trung tâm Plugin",
     "admin.plugin.installed"         => "Đã cài đặt",
     "admin.plugin.type"              => "Phân loại",

@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "管理権",
     "admin.auth.rootAction"          => "メンバー権限の設定/コメント管理/履歴バージョン管理",
     "admin.auth.delErrTips"          => "この権限は使用中のため削除できません！",
+    "admin.plugin"                   => "プラグイン",
     "admin.plugin.center"            => "プラグインセンター",
     "admin.plugin.installed"         => "インストール済み",
     "admin.plugin.type"              => "カテゴリー",

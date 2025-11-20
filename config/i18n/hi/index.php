@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "प्रशासनिक अधिकार",
     "admin.auth.rootAction"          => "सदस्य अनुमतियाँ / टिप्पणी प्रबंधन / इतिहास संस्करण प्रबंधन सेट करें",
     "admin.auth.delErrTips"          => "इस अनुमति का उपयोग किया जा रहा है और इसे हटाया नहीं जा सकता है!",
+    "admin.plugin"                   => "लगाना",
     "admin.plugin.center"            => "प्लगइन केंद्र",
     "admin.plugin.installed"         => "स्थापित किया गया है",
     "admin.plugin.type"              => "वर्गीकरण",

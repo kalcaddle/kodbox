@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "Administration",
     "admin.auth.rootAction"          => "Set member permissions / comment / history version management",
     "admin.auth.delErrTips"          => "This permission is being used and cannot be deleted!",
+    "admin.plugin"                   => "Plugin",
     "admin.plugin.center"            => "Plugin Center",
     "admin.plugin.installed"         => "Installed",
     "admin.plugin.type"              => "Type",

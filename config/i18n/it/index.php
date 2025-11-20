@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "Autorizzazioni amministrative",
     "admin.auth.rootAction"          => "Assegna autorizzazioni utente / Gestione commenti / Gestione versioni cronologia",
     "admin.auth.delErrTips"          => "Questa autorizzazione è in uso e non può essere cancellata!",
+    "admin.plugin"                   => "Collegare",
     "admin.plugin.center"            => "Centro plugin",
     "admin.plugin.installed"         => "Installato",
     "admin.plugin.type"              => "classificazione",

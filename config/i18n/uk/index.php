@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "Адміністративні права",
     "admin.auth.rootAction"          => "Встановіть дозволи користувачів / управління коментарями / управління версіями історії",
     "admin.auth.delErrTips"          => "Цей дозвіл використовується і його неможливо видалити!",
+    "admin.plugin"                   => "Плагін",
     "admin.plugin.center"            => "Центр плагінів",
     "admin.plugin.installed"         => "Встановлено",
     "admin.plugin.type"              => "Категорія",

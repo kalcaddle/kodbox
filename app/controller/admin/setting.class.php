@@ -49,6 +49,7 @@ class adminSetting extends Controller {
 				":$sizeTips,<br/>".LNG('admin.setting.transferChunkSizeDescError2'),false);
 			}
 		}
+		// $data['menu'] = $this->config['settingSystemDefault']['menu']; // 重置菜单;
 		Model('SystemOption')->set($data);
 		show_json(LNG('explorer.success'));
 	}
@@ -106,18 +107,6 @@ class adminSetting extends Controller {
 	 * 动态添加菜单;
 	 */
 	public function addMenu($options,$menu=array()){
-		$menus = &$options['system']['options']['menu'];
-		$menusKeys = array_to_keyvalue($menus,'name');
-		if( isset($menusKeys[$menu['name']]) ) return $options;
-
-		$menus[] = $menu;$menuNum = 0;
-		foreach ($menus as &$theMenu) {
-			if(!isset($theMenu['subMenu']) || $theMenu['subMenu'] == '0'){
-				$menuNum += 1;
-			}
-			// 一级目录最多5个;超出自动添加到子目录; 前端自适应处理
-			// if($menuNum >= 5){$theMenu['subMenu'] = 1;}
-		};unset($theMenu);
 		return $options;
 	}
 

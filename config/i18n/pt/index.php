@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "Direitos administrativos",
     "admin.auth.rootAction"          => "Definir permissões de membro / gerenciamento de comentários / gerenciamento de versão do histórico",
     "admin.auth.delErrTips"          => "Esta permissão está sendo usada e não pode ser excluída!",
+    "admin.plugin"                   => "Plugin",
     "admin.plugin.center"            => "Centro de plug-ins",
     "admin.plugin.installed"         => "Instalado",
     "admin.plugin.type"              => "Categoria",

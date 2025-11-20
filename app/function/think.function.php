@@ -49,8 +49,8 @@ function think_exception($msg) {
 	}
 	$trace = get_caller_trace($trace,false);
 	write_log($error."\n".get_caller_msg_parse($trace)."\n".json_encode($GLOBALS['in']),'error');
-	if($GLOBALS['SHOW_PLUGIN_JS']){ // 输出插件js过程中,报错处理;
-		echo ";{console.error('Server Error',".json_encode($trace).");};";exit;
+	if(isset($GLOBALS['SHOW_OUT_EXCEPTION']) && $GLOBALS['SHOW_OUT_EXCEPTION']){
+		throw new Exception($error);
 	}
     if(defined('GLOBAL_DEBUG') && GLOBAL_DEBUG ){$trace[] = $error;pr($trace);exit;}
     

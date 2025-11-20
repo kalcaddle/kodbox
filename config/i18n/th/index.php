@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "สิทธิ์ในการดูแลระบบ",
     "admin.auth.rootAction"          => "ตั้งค่าการอนุญาตสำหรับสมาชิก / การจัดการความคิดเห็น / การจัดการเวอร์ชันประวัติ",
     "admin.auth.delErrTips"          => "กำลังใช้สิทธิ์นี้และไม่สามารถลบได้!",
+    "admin.plugin"                   => "ปลั๊กอิน",
     "admin.plugin.center"            => "ศูนย์ปลั๊กอิน",
     "admin.plugin.installed"         => "ได้รับการติดตั้ง",
     "admin.plugin.type"              => "การจัดหมวดหมู่",

@@ -142,7 +142,9 @@ class userView extends Controller{
 	}
 	
 	public function plugins(){
-		$GLOBALS['SHOW_PLUGIN_JS'] = true;
+		$GLOBALS['SHOW_OUT_EXCEPTION'] = true;// 拦截show_out/show_tips; 转为抛出异常;
+		hook::bind('eventRun.error',array($this,'pluginsError'));
+		
 		ob_get_clean();
 		header("Content-Type: application/javascript; charset=utf-8");
 		echo 'var kodReady=[];';
@@ -150,6 +152,13 @@ class userView extends Controller{
 		$useTime = sprintf('%.4f',mtime() - TIME_FLOAT);
 		echo "\n/* time={$useTime} */\n";
 	}
+	//  输出插件js过程中,报错处理;
+	public function pluginsError($error=''){
+		// $error = $error."\n;call:".get_caller_msg();
+		echo ';{console.error(decodeURIComponent("'.rawurlencode($error).'"));};';
+		return true;
+	}
+	
 	
 	// 计划任务触发;
 	public function call(){

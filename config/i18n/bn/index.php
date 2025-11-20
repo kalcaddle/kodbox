@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "প্রশাসনিক অধিকার",
     "admin.auth.rootAction"          => "সদস্যের অনুমতি / মন্তব্য পরিচালনা / ইতিহাস সংস্করণ পরিচালনা সেট করুন",
     "admin.auth.delErrTips"          => "এই অনুমতি ব্যবহার করা হচ্ছে এবং মুছে ফেলা যাবে না!",
+    "admin.plugin"                   => "প্লাগইন",
     "admin.plugin.center"            => "প্লাগিন কেন্দ্র",
     "admin.plugin.installed"         => "ইনস্টল করা হয়েছে",
     "admin.plugin.type"              => "শ্রেণীবিন্যাস",

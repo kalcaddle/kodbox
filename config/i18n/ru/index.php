@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "Административные права",
     "admin.auth.rootAction"          => "Установить права доступа для участников / управление комментариями / управление историей версий",
     "admin.auth.delErrTips"          => "Это разрешение используется и не может быть удалено!",
+    "admin.plugin"                   => "Плагин",
     "admin.plugin.center"            => "Плагин Центр",
     "admin.plugin.installed"         => "Был установлен",
     "admin.plugin.type"              => "классификация",

@@ -32,7 +32,7 @@ kodReady.push(function(){
 					var dialog  = core.openDialog('',core.icon('html'),name,uuid,{iframeAttr:htmlSafe.iframeAttr()});
 					if(!dialog || !dialog.$main){return;}
 					
-					var $iframe = dialog.$main.find('.aui-content iframe');
+					var $iframe = dialog.$main.find('iframe');
 					dialog.$main.find('.iframe-mask').remove();
 					dialog.refreshSupport = true;
 					dialog.refresh = function(){htmlSafe.loadContent($iframe,filePath,pathModel,false,args);return dialog;};

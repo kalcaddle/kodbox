@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "管理權限",
     "admin.auth.rootAction"          => "設定成員權限/評論管理/歷史版本管理",
     "admin.auth.delErrTips"          => "該權限正在被使用，無法刪除！",
+    "admin.plugin"                   => "外掛",
     "admin.plugin.center"            => "外掛中心",
     "admin.plugin.installed"         => "已安裝",
     "admin.plugin.type"              => "分類",

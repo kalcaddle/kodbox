@@ -28,7 +28,7 @@ kodReady.push(function(){
 	// web端已登录,App登录界面,可以通过扫码登录App(web端个人中心-二维码)
 	requireAsync(staticPath+'style.css');
 	ClassBase.extendHook({
-		hookMatch:'menuItemMaxNumber,initMenuList,changeLanguage',	
+		hookMatch:'menuSubmenuAuto,initMenuList,changeLanguage',
 		bindDarkMode:function(){
 			this.__bindDarkMode.apply(this,arguments);
 			if(G.clientOption.appLoginApp == '0') return;

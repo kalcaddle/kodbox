@@ -929,12 +929,16 @@ function fatalErrorHandler(){
 
 function show_tips($message,$url= '', $time = 3,$title = ''){
 	$res = Hook::trigger("show_tips",$message,$url,$time,$title);
-	if (!empty($res) && is_array($res)) {
+	if(!empty($res) && is_array($res)) {
 		$vars = array('message', 'url', 'time', 'title');
 		foreach ($vars as $key) {
 			if (isset($res[$key])) $$key = $res[$key];
 		}
     }
+	if($title == ''){$title = "出错了! (warning!)";}
+	if(isset($GLOBALS['SHOW_OUT_EXCEPTION']) && $GLOBALS['SHOW_OUT_EXCEPTION']){
+		throw new Exception($title.': '.$message);
+	}
 	ob_get_clean();
 	header('Content-Type: text/html; charset=utf-8');
 	$goto = "content='$time;url=$url'";
@@ -942,7 +946,6 @@ function show_tips($message,$url= '', $time = 3,$title = ''){
 	if ($url == "") {//是否自动跳转
 		$goto = "";$info = "";
 	}
-	if($title == ''){$title = "出错了! (warning!)";}
 	//移动端；报错输出
 	if(isset($_REQUEST['HTTP_X_PLATFORM'])){
 		show_json($message,false);
@@ -1199,6 +1202,10 @@ function show_json($data=false,$code = true,$info='',$infoMore=''){
 		'timeNow'	=> sprintf('%.4f',mtime()),
 		'data'	 	=> $data
 	);
+	if(isset($GLOBALS['SHOW_OUT_EXCEPTION']) && $GLOBALS['SHOW_OUT_EXCEPTION']){
+		throw new Exception(json_encode_force($result));
+	}
+	
 	if($info !== ''){$result['info'] = $info;}
 	if($infoMore !== ''){$result['infoMore'] = $infoMore;}
 	// 有值且为true则返回，清空输出并返回数据结果

@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "الحقوق الإدارية",
     "admin.auth.rootAction"          => "تعيين أذونات الأعضاء / إدارة التعليق / إدارة إصدار السجل",
     "admin.auth.delErrTips"          => "يتم استخدام هذا الإذن ولا يمكن حذفه!",
+    "admin.plugin"                   => "المكون الإضافي",
     "admin.plugin.center"            => "مركز المساعد",
     "admin.plugin.installed"         => "تم تثبيت",
     "admin.plugin.type"              => "تصنيف",

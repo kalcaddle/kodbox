@@ -577,6 +577,7 @@ return array(
     "admin.auth.root"                => "İdari haklar",
     "admin.auth.rootAction"          => "Üye izinlerini ayarla / yorum yönetimi / tarihçe sürüm yönetimi",
     "admin.auth.delErrTips"          => "Bu izin kullanılıyor ve silinemez!",
+    "admin.plugin"                   => "Eklenti",
     "admin.plugin.center"            => "Eklenti Merkezi",
     "admin.plugin.installed"         => "kurulduktan",
     "admin.plugin.type"              => "sınıflandırma",

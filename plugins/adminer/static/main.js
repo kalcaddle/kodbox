@@ -3,8 +3,9 @@ kodReady.push(function(){
 		listData['{{package.id}}'] = {
 			name:'{{package.name}}',
 			url:'{{pluginHost}}adminer/',
-			subMenu:'{{config.menuSubMenu}}',
 			target:'{{config.openWith}}',
+			subMenu:'{{config.menuSubMenu}}',
+			menuAdd:'{{config.menuAdd}}',
 			icon:'ri-database-fill-2 bg-blue-7'
 		}
 	});
