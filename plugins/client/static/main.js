@@ -330,7 +330,7 @@ kodReady.push(function(){
 			"value":_.get(G,'system.options.tfaType') || "",
 			"display":LNG['client.tfa.tfaType'],
 			"desc":LNG['client.tfa.tfaTypeDesc'],
-			"info":{"email":LNG['client.tfa.email'],"phone":LNG['common.phoneNumber']}
+			"info":{"email":LNG['client.tfa.email'],"phone":LNG['common.phoneNumber'],"google":LNG['client.tfa.google']}
 		};
 	});
 	// 移动追加项位置
@@ -367,6 +367,17 @@ kodReady.push(function(){
 	});
 	Events.bind('RequestBefore[login]',function(param){
 		param.withTfa = false;
+	});
+
+	// 个人中心二次验证设置
+	Events.bind('user.account.initViewAfter', function(self){
+		if(G.system.options.tfaOpen != '1') return;
+		var tfaType = G.system.options.tfaType || '';
+		if(!_.includes(tfaType.split(','), 'google')) return;
+		
+		requireAsync(staticPath + 'tfa/user.js' + version, function(UserTfa){
+			new UserTfa({parent: self});
+		});
 	});
 
 	if($.hasKey('plugin.client.event')) return;

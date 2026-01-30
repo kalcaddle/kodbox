@@ -61,4 +61,10 @@ return array(
 	// 'client.tfa.userMtErr' 				=> 'User information does not match! ',
 	'client.tfa.sendEmpty' 				=> 'The binding sending method is abnormal! ',
 	'client.tfa.sendInvalid' 			=> 'The format of the sending method is wrong! ',
+	'client.tfa.google'					=> 'Google Authenticator',
+	'client.tfa.googleDesc'				=> 'Use Google Authenticator or other TOTP app to scan QR code',
+	'client.tfa.bind'					=> 'Bind',
+	'client.tfa.unbind'					=> 'Unbind',
+	'client.tfa.bindSuccess'			=> 'Binding succeeded',
+	'client.tfa.scanCode'				=> 'Please use Google Authenticator to scan the QR code',
 );
