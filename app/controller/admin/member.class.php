@@ -457,41 +457,34 @@ class adminMember extends Controller{
 		show_json($data, $code, $info);
 	}
 
-	// 获取csv分隔符——编辑后的csv文件不一定是默认的','
-	private function getCsvSep($line) {
-		if (empty($line)) return ',';
-		$data = array();
-		$separators = array(',', ';', ':', "\t", '|');
-		foreach ($separators as $separator) {  
-			$fields = explode($separator, $line);
-			$fields = array_filter($fields, 'trim');
-			$data[$separator] = count($fields);
-		}  
-		// 找到字段数量最多的分隔符
-		$maxCnt = max($data);  
-		return array_search($maxCnt, $data);  
-	}
-
 	/**
 	 * 获取导入文件数据
 	 * @param [type] $file
 	 * @return void
 	 */
 	private function getImport($file){
-		if (!$handle = fopen($file, 'r')) {
+		// 1.检查并读取文件内容
+		$sep = ',';	// 分隔符
+		if (!$this->isLikelyCsv($file, $sep)) {
 			del_file($file);
-			show_json('read file error.', false);
+			show_json('无效的CSV文件', false);
 		}
-		$line = fgets($handle);	// 获取分隔符
-		$separator = $this->getCsvSep(trim($line));
-		// rewind($handle);	// 重置指针——fgets会移动指针，但第一行本就需要排除（标题），去掉后续的unset即可
 		$dataList = array();
-		while (($data = fgetcsv($handle,0,$separator)) !== false) {
+		$charset = get_file_charset($file);
+    	$needConvert = !in_array($charset, array('utf-8','ascii'));
+		$handle = fopen($file, 'r');
+		while (($data = fgetcsv($handle,0,$sep)) !== false) {
+			if ($needConvert) {
+				foreach ($data as $i => $val) {
+					$data[$i] = iconv_to($val, $charset, 'utf-8');
+				}
+			}
             $dataList[] = $data;
 		}
         fclose($handle);
+        unset($dataList[0]);	// 去掉标题行
+
         // 2.获取列表数据
-        // unset($dataList[0]);
 		$dataList = array_filter($dataList);
         $list = array();
         $keys = array('name'=>'','nickName'=>'','password'=>'','sex'=>1,'phone'=>'','email'=>'');
@@ -505,10 +498,6 @@ class adminMember extends Controller{
 				if($key == 'password' && empty($val)) break;
 				if (is_null($val)) $val = '';
                 switch($key) {
-					case 'name':
-					case 'nickName':
-						$val = $this->iconvValue($val);
-						break;
 					case 'sex':
 						$val = $val != '0' ? 1 : 0;
                         break;
@@ -521,7 +510,7 @@ class adminMember extends Controller{
                 }
                 $tmp[$key] = $val;
 			}
-			if(empty($tmp) || empty($tmp['name']) || empty($tmp['password'])) continue;
+			if(empty($tmp['name']) || empty($tmp['password'])) continue;
 			if(isset($list[$tmp['name']])) continue;
             $list[$tmp['name']] = array_merge($keys,$tmp);
         }
@@ -530,15 +519,47 @@ class adminMember extends Controller{
 			'total' => count($list), 
 		);
 	}
-	// 部分文件转换无效
-	private function iconvValue($value){
-		// $encoding = array('GB2312', 'GBK', 'GB18030', 'UTF-8', 'ASCII', 'BIG5');
-		// $charset = mb_detect_encoding($value,$encoding);
-		// $value = iconv_to($value,$charset,'utf-8');
-		$charset = get_charset($value);
-		if(!in_array($charset,array('utf-8','ascii'))){
-			$value = iconv_to($value, $charset, 'utf-8');
+	// 检查是否为有效csv文件
+	private function isLikelyCsv($file, &$sep=','){
+		if(!is_file($file)){return false;}
+		$size = filesize($file);
+		if($size === false || $size < 1){return false;}
+		$fh = @fopen($file,'rb');
+		if(!$fh){return false;}
+		$head = @fread($fh, 8);
+		@fclose($fh);
+		if($head === false){return false;}
+		if(substr($head,0,2) === "PK"){return false;}
+		if($head === "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1"){return false;}
+		$finfo = function_exists('finfo_open') ? @finfo_open(FILEINFO_MIME_TYPE) : false;
+		if($finfo){
+			$mime = @finfo_file($finfo,$file);
+			@finfo_close($finfo);
+			if($mime && !in_array($mime,array('text/plain','text/csv','application/vnd.ms-excel'))){
+				return false;
+			}
 		}
-		return $value;
+		$fh = @fopen($file,'r');
+		if(!$fh){return false;}
+		$line = @fgets($fh);
+		@fclose($fh);
+		if($line === false){return false;}
+		$sep = $this->getCsvSep(trim(preg_replace('/^\xEF\xBB\xBF/','',$line)));
+		$fields = array_filter(explode($sep, $line), 'strlen');
+		return count($fields) > 1;
+	}
+	// 获取csv分隔符——编辑后的csv文件不一定是默认的','
+	private function getCsvSep($line) {
+		if (empty($line)) return ',';
+		$data = array();
+		$separators = array(',', ';', ':', "\t", '|');
+		foreach ($separators as $separator) {  
+			$fields = explode($separator, $line);
+			$fields = array_filter($fields, 'trim');
+			$data[$separator] = count($fields);
+		}  
+		// 找到字段数量最多的分隔符
+		$maxCnt = max($data);  
+		return array_search($maxCnt, $data);  
 	}
 }

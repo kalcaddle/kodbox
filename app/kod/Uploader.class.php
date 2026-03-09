@@ -18,7 +18,9 @@ class Uploader{
 			$files  = $_FILES['file'];
 			$this->uploadFile = $files["tmp_name"];
 			if(!$this->uploadFile && $files['error']> 0){
-				show_json($this->errorInfo($files['error']),false);
+				$msg = $this->errorInfo($files['error']);
+				$this->writeLog($msg);
+				show_json($msg,false);
 			}
 		}else if (isset($in["name"])) {
 			$this->uploadFile = "php://input";
@@ -51,6 +53,7 @@ class Uploader{
 		$size   = isset($this->in["size"]) ? intval($this->in["size"]) : 0;
 		$chunkSize  = isset($this->in["chunkSize"]) ? intval($this->in["chunkSize"]) : 0;
 		if(	$chunks > 1 && $chunkSize <= 0 ){
+			$this->writeLog('分片大小异常');
 			show_json('chunkSize error!',false);
 		}
 		
@@ -125,10 +128,13 @@ class Uploader{
 		$size = isset($this->in["size"]) ? intval($this->in["size"]) : 0;
 		$hash = isset($this->in["checkHashSimple"]) ? $this->in["checkHashSimple"] : '';
 		if(!file_exists($file)){
+			$this->writeLog('临时文件不存在：'.$file);
 			show_json(LNG('explorer.upload.error').' [temp not exist!]',false);
 		}
-		if($size && $size != filesize($file)){
+		$tmpSize = filesize($file);
+		if($size && $size != $tmpSize){
 			@unlink($file);
+			$this->writeLog('临时文件大小异常：'.$file."；{$size} <> {$tmpSize}");
 			show_json(LNG('explorer.upload.error').'[temp size error]',false);
 		}
 		return $file;
@@ -136,11 +142,13 @@ class Uploader{
 	
 	private function checkSize(){
 		if(phpBuild64() || $this->in['size'] < PHP_INT_MAX) return;
+		$this->writeLog(LNG('explorer.uploadSizeError'));
 		show_json(LNG('explorer.uploadSizeError'),false);
 	}
 	private function showJson($data,$code){
 		CacheLock::unlock($this->tempFile);
 		if(!$code){$this->clearData();}
+		if (!$code) $this->writeLog($data);
 		show_json($data,$code);
 	}
 	
@@ -160,7 +168,11 @@ class Uploader{
 		if($driverInfo && $driverInfo['type'] == 'local'){
 			$truePath = rtrim($driverInfo['path'],'/').'/';
 			$isSame = KodIO::isSameDisk($truePath,TEMP_FILES);
-			if(!$isSame && file_exists($truePath)){$tempPath = $truePath;}
+			if(!$isSame && file_exists($truePath)){
+				$truePath .= 'temp/';
+				mk_dir($truePath);
+				if (file_exists($truePath)) $tempPath = $truePath;
+			}
 		}
 		
 		if(!file_exists($tempPath)){
@@ -313,5 +325,10 @@ class Uploader{
 			'UPLOAD_ERR_CANT_WRITE',//7 文件写入失败。php 5.1.0 引进。
 		);
 		return $error.':'.$status[$error];
+	}
+
+	private function writeLog($msg) {
+		if (is_array($msg)) $msg = json_encode($msg);
+		write_log("[{$this->in['path']}] {$msg}", 'upload');
 	}
 }

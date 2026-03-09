@@ -78,8 +78,6 @@ class msgWarningSysTask extends Controller {
 		// 通知消息缓存，用于前端获取
 		$wbcache = array();
 
-		// TODO 前端提醒好像有点问题，存储异常3分钟提醒一次
-		
 		// 获取通知消息
 		foreach ($evntData as $clsKey => $evntList) {
 		    $msgAct = $plugin->apiAct('msg', $clsKey);	// 获取通知（内容）类
@@ -95,12 +93,26 @@ class msgWarningSysTask extends Controller {
 				
 				// 2.获取通知消息
 				$message = $msgAct->index($evntInfo);
-				$tempMsg = Hook::trigger('msgWarning.msg.'.$event, $evntInfo);	// 附加通知；eg: msgWarning.msg.sysStoreDefErr
-				if($tempMsg && is_array($tempMsg)){
-					$message = $tempMsg; 
+				// 返回结果：单条（默认）：[...,...]；多条：{svc:[{message:...,target:...},...], web:{message:[...],target:[...]}}
+				// 前端对同一事件仅支持一条消息内容，因此，多条时前后端要做分别处理：前端统一为一条消息（模糊细节），目标为全部用户
+				$tmpMsgs = Hook::trigger('msgWarning.msg.'.$event, $evntInfo);	// 附加通知；eg: msgWarning.msg.sysStoreDefErr
+				if($tmpMsgs && is_array($tmpMsgs)){
+					$message = $tmpMsgs; 
 				}
 				if (!$message) continue;
 				$evntInfo['message'] = $message;
+
+				// 适配多个不同消息
+				// 前端消息
+				if (isset($tmpMsgs['web'])) {
+					$evntInfo = array_merge($evntInfo, $tmpMsgs['web']);
+				}
+				// 后端消息
+				$svcMsgs = array();
+				if (isset($tmpMsgs['svc'])) {
+					$svcMsgs = is_array($tmpMsgs['svc']) ? $tmpMsgs['svc'] : array();
+				}
+				if (!$svcMsgs) $svcMsgs = array(array());	// 默认一个空值（用于遍历发送消息——覆盖evntInfo）
 
 				// 检查通知频率，判断是否需要通知
 				$timeFreq = intval(_get($evntInfo, 'notice.timeFreq', 0));
@@ -124,12 +136,20 @@ class msgWarningSysTask extends Controller {
 					write_log('【系统通知】'.$evntInfo['title'].': '.implode('; ', $message), 'warning');
 				}
 
-				// 4.2 发送通知
-				$ntcApi->send($evntInfo);
+				// 4.2 发送通知——支持发送多条不同消息
+				foreach ($svcMsgs as $msg) {
+					if (!is_array($msg)) continue;
+					$evntInfo = array_merge($evntInfo, $msg);
+					$ntcApi->send($evntInfo);
+				}
+				// $ntcApi->send($evntInfo);
 			}
 		}
-		// 存前端缓存——未被覆盖的继续保留，用户23点登录系统接收到的可能是8点的通知
+		if (!$wbcache) return true;
+
+		// 存前端缓存——未被覆盖的继续保留，用户23点登录系统接收到的可能是8点的通知；临界点打开时与下一次间隔较小，忽略处理
 		$cckey = $this->pluginName.'.webNtcList.'.date('Ymd');
+		Cache::removeMemory($cckey);	// 重要，否则计划任务（同一进程）始终读取的是内存缓存
 		$cache = Cache::get($cckey);
 		if (!is_array($cache)) $cache = array();
 		$cache = array_merge($cache, $wbcache);

@@ -22,6 +22,7 @@ return array(
     "msgWarning.main.appResetTitle"  => "استعادة تكوين النظام الافتراضي",
     "msgWarning.main.ifAppReset"     => "بعد تنفيذ هذا الأمر، سيتم إعادة ضبط جميع الإعدادات (أحداث الإشعارات، بوابة الإشعارات). هل ترغب في المتابعة؟",
     "msgWarning.main.invalidUser"    => "كائن إرسال غير صالح",
+    "msgWarning.main.taskClosed"     => "لم يتم تفعيل ميزة الإشعارات. هل ترغب بتفعيلها الآن؟",
     "msgWarning.ntc.event"           => "أحداث الإشعار",
     "msgWarning.ntc.target"          => "مستلمو الإشعارات",
     "msgWarning.ntc.method"          => "طريقة الإخطار",

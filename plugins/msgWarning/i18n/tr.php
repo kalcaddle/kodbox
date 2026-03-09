@@ -22,6 +22,7 @@ return array(
     "msgWarning.main.appResetTitle"  => "Sistem varsayılan yapılandırmasını geri yükleyin",
     "msgWarning.main.ifAppReset"     => "Bu komutu çalıştırdıktan sonra tüm yapılandırmalar (bildirim olayları, bildirim ağ geçidi) sıfırlanacaktır. Devam etmek istiyor musunuz?",
     "msgWarning.main.invalidUser"    => "Geçersiz gönderme nesnesi",
+    "msgWarning.main.taskClosed"     => "Bildirim görevi etkinleştirilmemiş. Şimdi etkinleştirmek ister misiniz?",
     "msgWarning.ntc.event"           => "Bildirim Olayları",
     "msgWarning.ntc.target"          => "Bildirim alıcıları",
     "msgWarning.ntc.method"          => "Bildirim yöntemi",

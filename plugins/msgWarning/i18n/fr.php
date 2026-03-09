@@ -22,6 +22,7 @@ return array(
     "msgWarning.main.appResetTitle"  => "Restaurer la configuration par défaut du système",
     "msgWarning.main.ifAppReset"     => "Après avoir exécuté cette commande, toutes les configurations (événements de notification, passerelle de notification) seront réinitialisées. Voulez-vous continuer ?",
     "msgWarning.main.invalidUser"    => "Objet d'envoi non valide",
+    "msgWarning.main.taskClosed"     => "La tâche de notification n'est pas activée. Voulez-vous l'activer maintenant ?",
     "msgWarning.ntc.event"           => "Événements de notification",
     "msgWarning.ntc.target"          => "Destinataires des notifications",
     "msgWarning.ntc.method"          => "Méthode de notification",

@@ -226,8 +226,6 @@ class explorerIndex extends Controller{
 			foreach ($thumbList as $width){
 				$coverName = "cover_{$fileHash}_{$width}.png";
 				$coverList[] = $coverName;
-				// $coverName = "cover_{$fileHash}_{$width}.jpg";	// 缩略图格式改为jpg，暂不处理
-				// $coverList[] = $coverName;
 			}
 			$parentID = KodIO::sourceID($fileThumbInfo['path']);
 			$where = array(

@@ -110,4 +110,13 @@ class msgWarningPlugin extends PluginBase{
 		if (!$api) {show_json(LNG('common.illegalRequest'), false);}
 		$api->action($this->in);
     }
+
+	/**
+	 * 获取计划任务状态
+	 * @return void
+	 */
+	public function taskInfo(){
+		$info = Model('SystemTask')->findByKey('event', $this->pluginName.'Plugin.autoTask');
+		show_json($info);
+	}
 }

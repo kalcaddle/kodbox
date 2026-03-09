@@ -1,6 +1,7 @@
 ClassBase.define({
 	init: function(param){
 		this.initParentView(param);
+        this.checkTask();
         // 主页tab
 		var package = this.formData();
 		var form = this.initFormView(package); // parent: form.parent;
@@ -9,6 +10,20 @@ ClassBase.define({
         // 主页表格
         this.initTable(form); // 初始化表格
 	},
+
+    // 检查计划任务状态
+    checkTask: function(){
+        kodApi.requestSend('plugin/msgWarning/taskInfo', false, function(result){
+			if (!result || !result.code) return;
+            if (_.get(result, 'data.enable', false)) return;
+	        $.dialog.confirm(LNG['msgWarning.main.taskClosed'],function(){
+                var data = {id: _.get(result, 'data.id', 0), enable: 1};
+                kodApi.requestSend('admin/autoTask/enable', data, function(result){
+                    Tips.close(result);
+                });
+            });
+		});
+    },
 
 	formData:function(){
 		return {

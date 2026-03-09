@@ -83,7 +83,7 @@ function createWriter(underlyingSource) {
 
             if (fileLike.directory && !name.endsWith('/')) name += '/'
             if (files[name]) throw new Error('File already exists.')
-            filesSize += fileLike.size
+            filesSize += (fileLike.size || 0)
             zip64 = (filesSize >= 0xffffffff)
 
             const nameBuf = encoder.encode(name)
@@ -125,38 +125,64 @@ function createWriter(underlyingSource) {
                 },
 
                 writeFooter() {
-                    if (zipObject.compressedLength && zipObject.compressedLength >= 0xffffffff) {
-                        zipObject.header.view.setUint16(0, 45)
-                        zip64 = true
+                    const needZip64Sizes = (zipObject.compressedLength >= 0xffffffff) || (zipObject.uncompressedLength >= 0xffffffff)
+                    if (needZip64Sizes) {
+                        zipObject.header.view.setUint16(0, 45, true) // Zip64 min version
+                        zip64 = true // central directory will need Zip64
                     }
 
-                    var footer = getDataHelper(zip64 ? 24 : 16)
-                    footer.view.setUint32(0, 0x504b0708)
+                    const footer = getDataHelper(needZip64Sizes ? 24 : 16)
+                    footer.view.setUint32(0, 0x504b0708) // data descriptor signature
 
                     if (zipObject.crc) {
                         zipObject.header.view.setUint32(10, zipObject.crc.get(), true)
                         footer.view.setUint32(4, zipObject.crc.get(), true)
                     }
 
-                    if (zip64) {
-                        let zip64Extra = getDataHelper(28)
+                    // header sizes (for central directory copying) + data descriptor sizes
+                    if (needZip64Sizes) {
+                        // local header keeps 0xffffffff placeholders; real sizes in Zip64 extra & descriptor
                         zipObject.header.view.setUint32(14, 0xffffffff, true)
                         zipObject.header.view.setUint32(18, 0xffffffff, true)
                         footer.view.setBigUint64(8, BigInt(zipObject.compressedLength), true)
-                        footer.view.setBigInt64(16, BigInt(zipObject.uncompressedLength), true)
-                        zip64Extra.view.setUint16(0, 0x0001, true)
-                        zip64Extra.view.setUint16(2, 24, true)
-                        zip64Extra.view.setBigUint64(4, BigInt(zipObject.uncompressedLength), true)
-                        zip64Extra.view.setBigUint64(12, BigInt(zipObject.compressedLength), true)
-                        zip64Extra.view.setBigUint64(20, BigInt(files[name].offset), true)
-                        zipObject.extraArray = zip64Extra.array
+                        footer.view.setBigUint64(16, BigInt(zipObject.uncompressedLength), true)
                     } else {
                         zipObject.header.view.setUint32(14, zipObject.compressedLength, true)
                         zipObject.header.view.setUint32(18, zipObject.uncompressedLength, true)
-                        
                         footer.view.setUint32(8, zipObject.compressedLength, true)
                         footer.view.setUint32(12, zipObject.uncompressedLength, true)
+                    }
 
+                    // Build Zip64 extra selectively per spec
+                    let extraFieldsCount = 0
+                    const includeUncomp = (zipObject.uncompressedLength >= 0xffffffff)
+                    const includeComp = (zipObject.compressedLength >= 0xffffffff)
+                    const includeOffset = (files[name].offset >= 0xffffffff)
+                    extraFieldsCount += includeUncomp ? 1 : 0
+                    extraFieldsCount += includeComp ? 1 : 0
+                    extraFieldsCount += includeOffset ? 1 : 0
+
+                    if (extraFieldsCount > 0) {
+                        const zip64ExtraSize = 8 * extraFieldsCount
+                        const zip64Extra = getDataHelper(4 + zip64ExtraSize)
+                        zip64Extra.view.setUint16(0, 0x0001, true) // Zip64 extra ID
+                        zip64Extra.view.setUint16(2, zip64ExtraSize, true)
+                        let pos = 4
+                        if (includeUncomp) {
+                            zip64Extra.view.setBigUint64(pos, BigInt(zipObject.uncompressedLength), true)
+                            pos += 8
+                        }
+                        if (includeComp) {
+                            zip64Extra.view.setBigUint64(pos, BigInt(zipObject.compressedLength), true)
+                            pos += 8
+                        }
+                        if (includeOffset) {
+                            zip64Extra.view.setBigUint64(pos, BigInt(files[name].offset), true)
+                            pos += 8
+                        }
+                        zipObject.extraArray = zip64Extra.array
+                    } else {
+                        zipObject.extraArray = null
                     }
 
                     ctrl.enqueue(footer.array)

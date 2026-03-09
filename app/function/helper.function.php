@@ -66,6 +66,7 @@ function appHostGet(){
 		if(trim($data) == '[ok]') {$split = '?';}
 		@file_put_contents($resultFile,$split);
 	}
+	if (!$split) $split = '?';	// 可能出现空内容
 	$host = $appHost.$split;
 	return $host;
 }
@@ -225,6 +226,16 @@ function get_charset(&$str) {
 	}
 	// pr(charset_check($str,'utf-8'),charset_check($str,'iso-8859-1'),$charset,$charsetGet);exit;
 	return $charset;
+}
+
+// 获取文件内容编码（抽样）
+function get_file_charset($file){
+    $h = @fopen($file,'r');
+    if(!$h){return 'utf-8';}
+    $buf = @fread($h, 8192);
+    @fclose($h);
+    if($buf === false){return 'utf-8';}
+    return get_charset($buf);
 }
 
 // 无法区分编码时,检测内容处理(iso-8859-1/iso-8859-5/gbk; 编码区域重合情况; 常用字500)

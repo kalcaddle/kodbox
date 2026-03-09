@@ -251,7 +251,7 @@ $config['settingSystemDefault'] = array(
 	'dateFormat'		=> 'Y-m-d',		// 默认 Y-m-d:YYYY-MM-DD; d/m/Y:DD/MM/YYYY; m/d/Y:MM/DD/YYYY; 
 										// https://en.wikipedia.org/wiki/Date_format_by_country
 
-	'fileEncryption'	=> 'keepName',	// all-全加密;keepExt-加密文件名保留扩展名;keepName-不加密;
+	'fileEncryption'	=> 'all',		// all-全加密;keepExt-加密文件名保留扩展名;keepName-不加密;
 	'passwordErrorLock'	=> '1',			// 密码连续错误锁定账号开关; 某账号连续输入5次后锁定30s后才能登录;
 	'passwordLockNumber'=> '5',			// 密码连续错误允许次数;
 	'passwordLockTime'	=> '60',		// 密码连续错误锁定时间;

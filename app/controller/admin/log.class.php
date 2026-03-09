@@ -118,6 +118,7 @@ class adminLog extends Controller{
             'timeTo'    => array('check' => 'require'),
             'userID'    => array('default' => ''),
             'type'      => array('default' => ''),
+            'path'      => array('default' => null),
             'ip'        => array('default' => null),
         ));
 		

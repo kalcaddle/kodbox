@@ -29,6 +29,9 @@ ClassBase.define({
 			case 'edit':
 				this.evntEdit($dom);
 				break;
+			case 'remove':
+				this.evntRemove($dom);
+				break;
 			case 'reset':
 				this.resetConfig();
 				break;
@@ -52,6 +55,7 @@ ClassBase.define({
 
 		var formData = _.cloneDeep(this.dgFormData);
 		this.parseFormData(formData, evntInfo);
+		Events.trigger('msgWarning.evnt.formdata.before', formData, evntInfo);
 		this[event+'Form'] = new kodApi.formMaker({parent:this,formData:formData});
 		this[event+'Form'].renderDialog({
 			id: 'ntc-evnt-set-dg',
@@ -182,6 +186,11 @@ ClassBase.define({
         return '<span class="label label-'+info.color+'-normal">'+info.text+'</span>';
     },
 
+	// 删除通知事件
+	evntRemove: function($dom){
+		Tips.tips('暂不支持此操作！', 'warning');
+	},
+
 	// 生成通知示例
 	makeTypeMsg: function (item, evntInfo, type) {
 		var name = _.get(G, 'system.options.systemName', 'kodbox');	// 系统名称
@@ -255,7 +264,6 @@ ClassBase.define({
 			self.request({app: 'msgWarning', value: 'reset'}, function(result){
 				Tips.close(result);
 				if (!result || !result.code) return;
-				kodApi.requestSend('admin/autoTask/taskRestart');
 				Router.refresh();
 			}, 'admin/plugin/setConfig');
 		});
@@ -279,6 +287,10 @@ ClassBase.define({
 		var tips = Tips.loadingMask();
 	    kodApi.requestSend(uri, data, function(result){
 			tips.close();
+			// 重启计划任务
+			if (data.action != 'getRawData' && _.get(result,'code')) {
+				kodApi.requestSend('admin/autoTask/taskRestart');
+			}
 	        callback && callback(result);
 		});
 	}

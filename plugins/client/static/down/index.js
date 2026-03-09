@@ -73,6 +73,8 @@ ClassBase.define({
 
     clientLink: function ($dialog) {
         var setLink = function (result) {
+            if (!result) result = {code:false};
+            if (!result.data) result.data = {};
             Events.trigger('client.down.dialog.loaded',$dialog,result);
             if (!result.code || !result.data) {
                 var html = '<div class="info-alert info-alert-yellow mt-50 size14">'+LNG['client.down.apiErr']+'</div>';
@@ -101,13 +103,22 @@ ClassBase.define({
         if (result && result.time && result.time > time()) {
             return setLink(result);
         }
+        if (!navigator.onLine) {
+            return setLink({code: false});
+        }
         $.ajax({
             url: 'https://api.kodcloud.com/?app/version',
+            timeout: 5000,
             dataType:'jsonp',
             success:function(result){
                 var tmpTime = 3600*2;
-                if(!result || !result.data) tmpTime = 60*5;
-                result.time = time()+tmpTime;  // 过期时间：正常2小时，失败5分钟
+                if(!result || !result.data) tmpTime = 60*10;
+                result.time = time()+tmpTime;  // 过期时间：正常2小时，失败10分钟
+                LocalData.set(key, jsonEncode(result));
+                setLink(result);
+            },
+            error: function () {
+                var result = {code: false, time: time()+60*10};
                 LocalData.set(key, jsonEncode(result));
                 setLink(result);
             }

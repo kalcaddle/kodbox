@@ -12,7 +12,7 @@ return array(
 									<span class='api-title'>KodCloud：</span><span class='blue-6'>https://api.kodcloud.com</span>",
 	
 	'oauth.config.type'			=> 'Verification method',
-	'oauth.config.fqDesc'		=> 'The following methods require the client to be able to access its corresponding website',
+	'oauth.config.fqDesc'		=> 'The following methods require that the client can access the corresponding website.',
 
 	'oauth.main.loginWith'		=> 'Login with [0] account',
 	'oauth.main.backHome'		=> 'Home page',

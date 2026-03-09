@@ -19,6 +19,24 @@ https://raw.github.com/vrana/adminer/master/designs/ng9/adminer.css
     background-clip:padding-box;border:1px solid rgba(180,180,180,0.4);min-height: 28px;}
 ::-webkit-scrollbar-thumb:hover{background-color:rgba(180,180,180,0.4);border:1px solid rgba(180,180,180,0.7);}
 
+body #menu #dbs{padding: 10px 0px 10px 10px;}
+body #menu #dbs select{position: relative;max-width: 190px;left: 0;}
+body #menu #tables{margin: 0 0 !important;padding: 5px 0;left: 10px;right: 10px;top: 150px;}
+body #menu #tables a{padding: 5px 10px;line-height: 16px;}
+
+body.js.menu-hide #menu{display: none;}
+body .toggle-menu{left:300px;}
+body.js.menu-hide .toggle-menu{left:0;}
+@media (max-width: 800px){
+	body #menu .links{width:279px;}
+	body #breadcrumb{left: 0px !important;}
+	body.js .foot{display: block;}
+	body.js.menu-hide .logout{display:none;}
+	body.js .logout{
+		top: inherit;right: 0;bottom: 0;margin: 0;background: #fafafa;
+		width: 100%;padding: 10px;box-sizing: border-box;text-align: right;
+	}
+}
 
 * {margin:0px;padding:0px;}
 body{
@@ -487,14 +505,16 @@ p#dbs {padding-left: 21px;}
     color: #3c5165;
 }
 #menu #dbs span{display:none;}
+#menu #dbs input[type=submit] {display: none;}
 #menu select{
     background-color: #456079;
     border: none;
     color: #fff;
     border-radius: 4px;
-    width: 227px;
+    /* width: 227px; */
     position: absolute;
-    left: 21px;
+    /* left: 21px; */
+    left: 5px;
     height: 23px;
     line-height: 23px;
 }

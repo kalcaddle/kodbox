@@ -133,6 +133,9 @@ class fileThumbPlugin extends PluginBase{
 		$width = ($width && $width > 1000) ? 1200:250;
 		
 		$file = IO::info($path);
+		if (!$file || !$file['path'] || $file['isFolder']) {
+			echo 'Invalid file path: '.$path;exit;
+		}
 		$fileHash  = KodIO::hashPath($file);
 		$coverName = "cover_".$fileHash."_{$width}.png";
 		$result = $this->coverMake($this->cachePath,$file['path'],"cover_".$fileHash."_{$width}.png",$width);
@@ -227,6 +230,9 @@ class fileThumbPlugin extends PluginBase{
 		}
 
 		$info = IO::info($path);$ext = $info['ext'];
+		if (!$info || !$info['path'] || $info['isFolder']) {
+			return 'file info error: '.$path;
+		}
 		if ($ext == 'gif' && $size != 250) return;	// gif大图不转换，预览输出原图
 		$thumbFile = TEMP_FILES . $coverName;		
 		$localFile = $this->localFile($path);
@@ -396,7 +402,7 @@ class fileThumbPlugin extends PluginBase{
 		$api = $this->getImgickApi($ext);
 		if ($api) return $api->createThumb($file,$cacheFile,$maxSize,$ext);
 		// 3.使用ImageMagick
-		$api = $this->getImgmgkApi();
+		$api = $this->getImgmgkApi('convert',$ext);
 		if ($api) $api->createThumb($file,$cacheFile,$maxSize,$ext);
 		if ($isImg) return;
 		// 生成的封面图，再用gd生成缩略图
@@ -634,11 +640,12 @@ class fileThumbPlugin extends PluginBase{
 		$apiMethods = array(
 			array('method' => 'getImgnryApi', 'param' => $ext),
 			array('method' => 'getImgickApi', 'param' => $ext),
-			array('method' => 'getImgmgkApi', 'param' => 'convert')
+			array('method' => 'getImgmgkApi', 'param' => 'convert,'.$ext)
 		);
 		foreach ($apiMethods as $apiMethod) {
 			$func = $apiMethod['method'];
-			$api = $this->$func($apiMethod['param']);
+			$args = explode(',',$apiMethod['param']);
+			$api = $this->$func(...$args);
 			if ($api && $imageInfo = $api->getImgSize($image)) {
 				return $imageInfo;
 			}
@@ -702,8 +709,9 @@ class fileThumbPlugin extends PluginBase{
 		return (!$api || !$api->isSupport($ext)) ? false : $api;
 	}
 	// 获取ImageMagick对象
-	public function getImgmgkApi($type='convert') {
+	public function getImgmgkApi($type='convert',$ext='') {
 		if (!$this->getCommand($type)) return false;
-		return $this->getThumbApi('imgmgk');
+		$api = $this->getThumbApi('imgmgk');
+		return (!$api || !$api->isSupport($ext,$type)) ? false : $api;
 	}
 }

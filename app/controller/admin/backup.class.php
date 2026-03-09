@@ -249,7 +249,13 @@ class adminBackup extends Controller{
 			echo json_encode(array('code'=>true,'data'=>'OK'));
 			http_close();
 		}
-		return $this->model->start($type);
+		try {
+			return $this->model->start($type);
+		} catch(Exception $e) {
+			Backup::set(array('status' => 1, 'timeTo' => time()));	// 强制结束任务
+			Backup::log('数据库备份失败，任务异常中止：' . $e->getMessage());
+			return false;
+		}
     }
 	// 检查存储是否有效
 	private function checkStore($io){

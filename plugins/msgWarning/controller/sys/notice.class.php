@@ -153,6 +153,9 @@ class msgWarningSysNotice extends Controller {
 	public function byEmail($user, $content, $logs){
 		$title = $logs['title'];
 		$content = array_merge(array($title), $content);
+		foreach ($content as &$line) {
+			$line = $this->parseLink($line, true);
+		};unset($line);
         $systemName = Model('SystemOption')->get('systemName');
 		$data = array(
 			'type'			=> 'email',
@@ -178,6 +181,13 @@ class msgWarningSysNotice extends Controller {
 		return $this->addTaskQueue($user, $data, $logs);
     }
 
+	// 消息内容生成链接，默认为md格式：[链接](http://kodbox.com)，故企微/钉钉无需替换
+	private function parseLink($content, $email=true){
+		$pattern = '/\[(.+?)\]\s*\((https?:\/\/[^\s)]+)\)/s';;
+		$replacement = $email ? '<a href="$2" target="_blank">$1</a>' : '$1 ($2)';
+		return preg_replace($pattern, $replacement, $text);
+	}
+
 	/**
 	 * 通过短信发送通知——暂不支持
 	 * @param [type] $user
@@ -201,7 +211,6 @@ class msgWarningSysNotice extends Controller {
 		);
 		return $this->addTaskQueue($user, $data, $logs);
     }
-
 
 	/**
 	 * 旧消息发送添加到任务队列

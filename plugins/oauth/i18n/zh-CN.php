@@ -12,7 +12,7 @@ return array(
 									<span class='api-title'>可道云：</span><span class='blue-6'>https://api.kodcloud.com</span>",
 
 	'oauth.config.type'			=> '认证方式',
-	'oauth.config.fqDesc'		=> '以下方式要求从客户端需能访问其对应网站',
+	'oauth.config.fqDesc'		=> '以下方式要求从客户端能访问到对应网站',
 
 	'oauth.main.loginWith'		=> '使用[0]账号登录',
 	'oauth.main.backHome'		=> '返回主页',

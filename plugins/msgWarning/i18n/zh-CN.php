@@ -23,6 +23,7 @@ return array(
 	'msgWarning.main.appResetTitle'		=> '恢复系统默认配置',
 	'msgWarning.main.ifAppReset'		=> '执行后将重置所有配置（通知事件、通知网关），是否继续？',
 	'msgWarning.main.invalidUser'		=> '无效的发送对象',
+	'msgWarning.main.taskClosed'		=> '通知任务未启用，是否立即启用？',
 
 	'msgWarning.ntc.event'				=> '通知事件',
 	'msgWarning.ntc.target'				=> '通知对象',

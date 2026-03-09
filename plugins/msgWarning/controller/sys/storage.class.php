@@ -127,7 +127,7 @@ class msgWarningSysStorage extends Controller {
     public function listAfter($list) {
         // if (!isset($this->in['usage'])) return;  // 因为缓存的关系，并非每次都有该请求
         $cache = Cache::get($this->stCacheKey);
-        if (!$cache) return;	// TODO 没有的时候也许应该重新获取——但是注意耗时问题
+        if (!$cache) return;	// TODO 没有的时候也许应该重新获取——但需注意耗时问题
         foreach ($list as &$item) {
             if (isset($cache[$item['id']])) {
                 $item['status'] = 0;

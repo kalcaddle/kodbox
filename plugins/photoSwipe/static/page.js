@@ -66,12 +66,12 @@ define(function(require, exports) {
 			},
 			getThumbBoundsFn: function(index) {
 				var item = imageList.items[index];
+				var rectCenter = {x:$(window).width()/2,y:$(window).height()/2,w:1,h:1};
 				if(!item || !item.$dom || item.$dom.length == 0){//目录切换后没有原图
-					return {x:$(window).width()/2,y:$(window).height()/2,w:1,h:1};
+					return rectCenter;
 				}
 				var pageYScroll = window.pageYOffset || document.documentElement.scrollTop; 
 				var rect = $(item.$dom).get(0).getBoundingClientRect();
-				rect = {width:rect.width,height:rect.height,left:rect.left,top:rect.top};
 				
 				// 图片没有完全显示时(相册模式,高宽固定,定宽定高,超出从中间截取)
 				if(rect.width == rect.height){
@@ -86,6 +86,11 @@ define(function(require, exports) {
 						rect.left  = rect.left - (rect.width - boxSize) / 2; //图片取中间后左侧偏移;
 					}
 				}
+				// 全未获取到情况,从中间打开(隐藏等情况)
+				if(!rect.left && !rect.top && !rect.width && !rect.height){
+					return rectCenter;
+				}
+				
 				// console.log(102,__json(rect),index,item);
 				return {
 					x:rect.left || 0,

@@ -44,10 +44,10 @@ class evntApi {
 				'policy' => $policy,		// 通知策略
 				'notice' => $item['notice'],// 通知设置
 				'result' => array(
-					'cntToday' => 0,
-					'cntTotal' => 0,
-					'ntcTime' => 0, 
-					'tskTime' => 0, 
+					'cntToday'	=> 0,
+					'cntTotal'	=> 0,
+					'ntcTime'	=> 0, 
+					'tskTime'	=> 0, 
 				), // 通知结果
 			);
 		}
@@ -112,8 +112,8 @@ class evntApi {
 				$item['notice'][$key] = $value;
 			}
 			$item['result'] = array(
-				'cntToday' 		=> intval(_get($dbopt, 'result.cntToday', 0)),
-				'cntTotal' 		=> intval(_get($dbopt, 'result.cntTotal', 0)),
+				'cntToday'	=> intval(_get($dbopt, 'result.cntToday', 0)),
+				'cntTotal'	=> intval(_get($dbopt, 'result.cntTotal', 0)),
 				'ntcTime'	=> intval(_get($dbopt, 'result.ntcTime', 0)),
 				'tskTime'	=> intval(_get($dbopt, 'result.tskTime', 0)),
 			);

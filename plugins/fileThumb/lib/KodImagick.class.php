@@ -63,7 +63,9 @@ class KodImagick {
 
     // 格式是否支持
     public function isSupport($ext) {
-        return in_array(strtolower($ext), $this->allFormats);
+        // return in_array(strtolower($ext), $this->allFormats);
+        $imagick = new Imagick();
+        return in_array(strtoupper($ext), $imagick->queryFormats());
     }
 
     /**

@@ -22,6 +22,7 @@ return array(
     "msgWarning.main.appResetTitle"  => "Restore system default configuration",
     "msgWarning.main.ifAppReset"     => "After executing this command, all configurations (notification events, notification gateway) will be reset. Do you want to continue?",
     "msgWarning.main.invalidUser"    => "Invalid send object",
+    "msgWarning.main.taskClosed"     => "The notification task is not enabled. Do you want to enable it now?",
     "msgWarning.ntc.event"           => "Notification Events",
     "msgWarning.ntc.target"          => "Notification recipients",
     "msgWarning.ntc.method"          => "Notification method",

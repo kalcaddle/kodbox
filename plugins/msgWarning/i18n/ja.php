@@ -22,6 +22,7 @@ return array(
     "msgWarning.main.appResetTitle"  => "システムのデフォルト設定を復元する",
     "msgWarning.main.ifAppReset"     => "このコマンドを実行すると、すべての設定（通知イベント、通知ゲートウェイ）がリセットされます。続行しますか？",
     "msgWarning.main.invalidUser"    => "送信オブジェクトが無効です",
+    "msgWarning.main.taskClosed"     => "通知タスクが有効になっていません。今すぐ有効にしますか?",
     "msgWarning.ntc.event"           => "通知イベント",
     "msgWarning.ntc.target"          => "通知の受信者",
     "msgWarning.ntc.method"          => "通知方法",

@@ -22,6 +22,7 @@ return array(
     "msgWarning.main.appResetTitle"  => "시스템 기본 구성 복원",
     "msgWarning.main.ifAppReset"     => "이 명령을 실행하면 모든 구성(알림 이벤트, 알림 게이트웨이)이 재설정됩니다. 계속하시겠습니까?",
     "msgWarning.main.invalidUser"    => "잘못된 전송 객체입니다.",
+    "msgWarning.main.taskClosed"     => "알림 작업이 활성화되어 있지 않습니다. 지금 활성화하시겠습니까?",
     "msgWarning.ntc.event"           => "알림 이벤트",
     "msgWarning.ntc.target"          => "알림 수신자",
     "msgWarning.ntc.method"          => "알림 방법",

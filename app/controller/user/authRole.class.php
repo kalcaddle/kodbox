@@ -178,7 +178,7 @@ class userAuthRole extends Controller {
 	 */
 	private function authShareLinkUpdate(){
 		$model = Model("SystemOption");
-		$key   = 'explorerShareUpate';$type = 'system';
+		$key   = 'explorerShareUpdate';$type = 'system';
 		if($model->get($key,$type) == '1.01') return;
 		$model->remove($key,$type);$model->set($key,'1.01',$type);
 		

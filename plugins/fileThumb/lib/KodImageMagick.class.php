@@ -11,8 +11,54 @@ class KodImageMagick {
     }
 
     // 格式是否支持
-    public function isSupport($ext) {
-        return true;
+    public function isSupport($ext, $type='convert') {
+        if ($type != 'convert') return true;	// ffmpeg不检查
+
+		$cckey = 'ImageMagick_support_formats';
+		$cache = Cache::get($cckey);
+		if (!$cache) {
+			$cache = $this->getImgFormats();
+			if (!$cache) return false;
+			$cache = Cache::set($cckey, $cache, 3600);
+		}
+		if (!is_array($cache)) return false;
+		return in_array(strtoupper($ext), $cache);
+    }
+
+	// 获取imagemagick支持的格式（r）
+	public function getImgFormats() {
+        $command = $this->getCommand();
+		if (!$command) return false;
+		$output = shell_exec($command.' -list format 2>&1');	// linux和macos下格式不同
+        if (!$output) false;	// []
+
+        $formats = array();
+        $lines = explode("\n", trim($output));
+        foreach ($lines as $line) {
+            $line = trim($line);
+            // 跳过非数据行
+            if (empty($line) || 
+                strpos($line, 'Format') === 0 || 
+                strpos($line, '---') === 0 ||
+                strpos($line, '* native blob support') === 0) {
+                continue;
+            }
+
+            // 使用正则表达式匹配格式和模式
+            // 匹配模式: 格式名(可能带*号) 然后是任意字符 然后是3字符模式
+            if (preg_match('/^(\S+?)(\*?)(?:\s+\S+)*\s+([r\-][w\-][\+\-])/', $line, $matches)) {
+                $format = $matches[1];
+                $mode = $matches[3];
+                // 检查是否支持读取
+                if ($mode[0] === 'r') {
+                    $formats[] = rtrim($format, '*');
+                }
+            }
+        }
+        $formats = array_unique(array_filter($formats));
+        // sort($formats);
+
+        return $formats;
     }
 
     // 获取命令
@@ -110,7 +156,9 @@ class KodImageMagick {
 		$script = "export MAGICK_THREAD_LIMIT=2; {$script}";	// 限制进程数
 		$out = shell_exec($script);
 
-		if(!file_exists($tempPath)) return $this->log('image thumb error:'.$out.';cmd='.$script);
+		if(!file_exists($tempPath)) {
+			return $this->log('image thumb error:'.$out.';cmd='.$script);
+		}
 		move_path($tempPath,$cacheFile);
 		return true;
     }

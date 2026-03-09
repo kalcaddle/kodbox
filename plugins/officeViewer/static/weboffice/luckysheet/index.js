@@ -38,10 +38,26 @@ $(function(){
             // functionButton: '<button id="" class="btn btn-primary" style="padding:3px 6px;font-size: 12px;margin-right: 10px;">下载</button>',  // 需要显示信息栏
             hook: {
                 cellRenderBefore: function (cell, position, sheetFile, ctx) {
+                    if (!cell) return;
+                    // 数字格式处理
                     var fmt = _.get(cell, 'ct.fa', '');
                     if (fmt && utils.xlsxCellFormat(cell)) {
                         var val = utils.xlsxNumFormat(cell.v, fmt);
                         if (val) cell.m = val;
+                    }
+                    // 换行符处理
+                    if (cell.m) {
+                        var mVal = cell.m.replace(/&#x?0?A;|&#10;/g, "\n"); // &#xA;/&#x0A;/&#10;
+                        if (mVal != cell.m && !_.get(cell,'ct.s','')) {
+                            cell.ct.fa = 'General';
+                            cell.ct.t = 'inlineStr';    // 关键
+                            cell.ct.s = [{
+                                fc: cell.fc,
+                                ff: cell.ff,
+                                fs: cell.fs,
+                                v: mVal
+                            }];
+                        }
                     }
                 },
                 // cellRenderAfter: function (cell, position, sheetFile, ctx) {

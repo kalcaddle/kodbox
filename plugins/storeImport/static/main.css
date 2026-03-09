@@ -1,0 +1,13 @@
+#app .admin-main .storage-page .store-list-box .toolbar{display: flex;}
+#app .admin-main .storage-page .store-list-box .toolbar>div{flex: 1;}
+#app .admin-main .storage-page .store-list-box .toolbar>div.right{text-align: right;}
+
+.artDialog.store-import-dg .form-table.item-logList button.row-add, 
+.artDialog.store-import-dg .form-table.item-logList .row-action-view {
+    display: none !important;
+}
+
+.dark-mode .artDialog.store-import-dg .form-box .form-row code {
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.1);
+}

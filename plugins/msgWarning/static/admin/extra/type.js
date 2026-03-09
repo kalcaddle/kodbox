@@ -163,6 +163,10 @@ ClassBase.define({
 		var tips = Tips.loadingMask();
 	    kodApi.requestSend('plugin/msgWarning/action', data, function(result){
 			tips.close();
+			// 重启计划任务
+			if (data.action == 'setConfig' && _.get(result,'code')) {
+				kodApi.requestSend('admin/autoTask/taskRestart');
+			}
 	        callback && callback(result);
 		});
 	}

@@ -22,6 +22,7 @@ return array(
     "msgWarning.main.appResetTitle"  => "Przywróć domyślną konfigurację systemu",
     "msgWarning.main.ifAppReset"     => "Po wykonaniu tego polecenia wszystkie konfiguracje (zdarzenia powiadomień, bramka powiadomień) zostaną zresetowane. Czy chcesz kontynuować?",
     "msgWarning.main.invalidUser"    => "Nieprawidłowy obiekt wysyłania",
+    "msgWarning.main.taskClosed"     => "Zadanie powiadomień nie jest włączone. Czy chcesz je teraz włączyć?",
     "msgWarning.ntc.event"           => "Wydarzenia powiadomień",
     "msgWarning.ntc.target"          => "Odbiorcy powiadomień",
     "msgWarning.ntc.method"          => "Metoda powiadamiania",

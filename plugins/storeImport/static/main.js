@@ -11,11 +11,8 @@ kodReady.push(function(){
 			impPage = new ImpPage({parent:self});
 			impPage.initView();
 		});
+		// kodApi.requestSend('plugin/storeImport/fileHashSet',false,function(result){});
 	});
 	if($.hasKey('plugin.{{package.id}}.style')) return;
-	var style = "\
-		.storage-page .store-list-box .toolbar{display: flex;}\
-		.storage-page .store-list-box .toolbar>div{flex: 1;}\
-		.storage-page .store-list-box .toolbar>div.right{text-align: right;}";
-	$.addStyle(style);
+	requireAsync("{{pluginHost}}static/main.css");
 });

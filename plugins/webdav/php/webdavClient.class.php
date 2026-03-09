@@ -145,10 +145,11 @@ class webdavClient {
 	// 缓存连续请求内容一致的内容;PROPFIND
 	public function send($method,$requestUrl,$body=false,$putFileInfo=false,$getFileInfo=false,$timeout=3600){
 		$lastRequest = $method.';'.$requestUrl;
-		if($method == 'PROPFIND' && $this->lastRequest == $lastRequest){
-			$this->header = array();
-			return $this->lastRequestData;
-		}
+		// 为系统默认存储（source）时上传文件结果失败：可能为PUT覆盖时机问题导致读取了缓存数据（404）
+		// if($method == 'PROPFIND' && $this->lastRequest == $lastRequest){
+		// 	$this->header = array();
+		// 	return $this->lastRequestData;
+		// }
 
 		$this->lastRequest = $lastRequest;
 		$result = $this->_send($method,$requestUrl,$body,$putFileInfo,$getFileInfo,$timeout);

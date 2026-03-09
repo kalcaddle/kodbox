@@ -22,6 +22,7 @@ return array(
     "msgWarning.main.appResetTitle"  => "Восстановить конфигурацию системы по умолчанию",
     "msgWarning.main.ifAppReset"     => "После выполнения этой команды все настройки (события уведомлений, шлюз уведомлений) будут сброшены. Хотите продолжить?",
     "msgWarning.main.invalidUser"    => "Неверный объект отправки",
+    "msgWarning.main.taskClosed"     => "Задача уведомления не включена. Хотите включить её сейчас?",
     "msgWarning.ntc.event"           => "События уведомлений",
     "msgWarning.ntc.target"          => "Получатели уведомлений",
     "msgWarning.ntc.method"          => "Метод уведомления",

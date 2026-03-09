@@ -274,6 +274,12 @@ class filterUserCheck extends Controller {
 	 * 连续错误5次; 则锁定30秒; [1分钟内最多校验10次,600次/h/账号]
 	 */
 	private function userLoginLockCheck($name,$user){
+		// webdav存储定期检测、网络请求认证不计入统计
+		if (defined('KOD_FROM_WEBDAV')) {
+			if (in_array($_SERVER['HTTP_USER_AGENT'], array('URL Accessibility Checker','webdav/kodbox 1.0'))) {
+				return $user;
+			}
+		}
 		if($this->options['passwordErrorLock'] =='0') return $user;
 		$findUser = Model("User")->userLoginFind($name);
 		if(!$findUser) return $user;

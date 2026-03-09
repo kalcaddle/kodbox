@@ -1219,7 +1219,7 @@ function show_json($data=false,$code = true,$info='',$infoMore=''){
 	}
 
 	// 处理输出数据调用;
-	if($GLOBALS['SHOW_JSON_RESULT_PARSE']){
+	if(isset($GLOBALS['SHOW_JSON_RESULT_PARSE']) && $GLOBALS['SHOW_JSON_RESULT_PARSE']){
 		$resultNew = $GLOBALS['SHOW_JSON_RESULT_PARSE']($result);
 		$result = is_array($resultNew) ? $resultNew:$result;
 		$GLOBALS['SHOW_JSON_RESULT_PARSE'] = false;
@@ -1683,4 +1683,10 @@ function check_lang($word){
 		$language = 'en';
 	}
 	return $language;
+}
+
+// 检测是否为有效日期
+function is_valid_date($dateString, $format = 'Y-m-d') {
+    $d = DateTime::createFromFormat($format, $dateString);
+    return $d && $d->format($format) === $dateString;
 }

@@ -22,6 +22,7 @@ return array(
     "msgWarning.main.appResetTitle"  => "Ripristina la configurazione predefinita del sistema",
     "msgWarning.main.ifAppReset"     => "Dopo aver eseguito questo comando, tutte le configurazioni (eventi di notifica, gateway di notifica) verranno ripristinate. Vuoi continuare?",
     "msgWarning.main.invalidUser"    => "Oggetto di invio non valido",
+    "msgWarning.main.taskClosed"     => "L'attività di notifica non è abilitata. Vuoi abilitarla ora?",
     "msgWarning.ntc.event"           => "Eventi di notifica",
     "msgWarning.ntc.target"          => "Destinatari della notifica",
     "msgWarning.ntc.method"          => "Metodo di notifica",
