@@ -1,54 +1,73 @@
 <?php
 return array(
-    "officeViewer.meta.name"         => "Офисный читатель",
-    "officeViewer.meta.title"        => "Предварительный просмотр Office Online",
-    "officeViewer.meta.desc"         => "Онлайн-просмотр файлов Office. Это приложение объединяет WebOffice, LibreOffice, officeLive, Yongzhong Office и другие платформы для удовлетворения основных потребностей в онлайн-просмотре офисных файлов.",
-    "officeViewer.meta.netwrokDesc"  => "<h4>проиллюстрировать:</h4> Это приложение может использовать внешние сетевые запросы во время работы. WebOffice и LibreOffice, в частности, не требуют внешних сетевых запросов. Другие внешние сетевые интерфейсы, которые могут быть задействованы, перечислены ниже:<br/> \nofficeLive：<br/> \n <span class='blue-6'>https://owa-box.vips100.com</span><br/> \n <span class='blue-6'>https://docview.mingdao.com</span><br/> \n <span class='blue-6'>https://preview.tita.com</span><br/> \n <span class='blue-6'>https://view.officeapps.live.com</span><br/> \n Офис Юнчжун:<br/> \n <span class='blue-6'>http://dcs.yozosoft.com</span>",
-    "officeViewer.meta.netwrokUrl"   => "Адрес интерфейса",
-    "officeViewer.meta.service"      => "Настройки сервиса",
-    "officeViewer.meta.openType"     => "Метод анализа",
+    "officeViewer.meta.name"         => "Средство просмотра Office",
+    "officeViewer.meta.title"        => "Просмотр Office онлайн",
+    "officeViewer.meta.desc"         => "Просматривайте файлы Office прямо в браузере. Приложение объединяет возможности WebOffice, LibreOffice, Office Live, Yongzhong Office и других служб для корректного отображения ваших документов.",
+    "officeViewer.meta.netwrokDesc"  => "<h4>Примечание:</h4> Для работы некоторых функций требуется подключение к сторонним сервисам. WebOffice и LibreOffice работают локально без внешних запросов. Остальные службы используют следующие API:<br/>
+                                         Office Live:<br/>
+                                         <span class='blue-6'>https://owa-box.vips100.com</span><br/>
+                                         <span class='blue-6'>https://docview.mingdao.com</span><br/>
+                                         <span class='blue-6'>https://preview.tita.com</span><br/>
+                                         <span class='blue-6'>https://view.officeapps.live.com</span><br/>
+                                         Yozo Office:<br/>
+                                         <span class='blue-6'>http://dcs.yozosoft.com</span>",
+    "officeViewer.meta.netwrokUrl"   => "URL интерфейса",
+    "officeViewer.meta.service"      => "Настройки служб",
+    "officeViewer.meta.openType"     => "Способ открытия",
     "officeViewer.meta.instruction"  => "Инструкции",
     "officeViewer.meta.svcOpen"      => "Включить службы",
-    "officeViewer.main.error"        => "Операция провалилась!",
-    "officeViewer.main.invalidType"  => "Неверный способ открытия, обратитесь к администратору!",
-    "officeViewer.main.invalidUrl"   => "Неверный адрес запроса, обратитесь к администратору!",
-    "officeViewer.main.notNetwork"   => "Запрос не удался. Проверьте, может ли сервер подключиться к сети.",
-    "officeViewer.main.needNetwork"  => "Сервер должен находиться во внешней сети.",
-    "officeViewer.main.needDomain"   => ", и доступ к нему осуществляется по доменному имени.",
-    "officeViewer.main.tryAgain"     => ", пожалуйста, попробуйте еще раз!",
-    "officeViewer.main.invalidExt"   => "Неподдерживаемый формат файла",
-    "officeViewer.webOffice.name"    => "Автоматический парсинг",
-    "officeViewer.webOffice.desc"    => "При выборе [Автоматический парсинг] первым будет использоваться метод<code style='color:#c7254e'>前端解析</code>(кроме doc и ppt). Если он не поддерживается, автоматически будет выбран следующий метод;<br> Скорость анализа на стороне интерфейса высокая и не требует использования внешних сетей или других служб, но часть контента может отображаться не полностью или ненормально.<br><br> Если вы хотите отобразить единый стиль или поддерживать больше форматов, вы можете выбрать другие методы.",
-    "officeViewer.webOffice.parsing" => "Разбор",
-    "officeViewer.webOffice.reqErrPath" => "Запрос не удался, проверьте, нормальный ли файл!",
-    "officeViewer.webOffice.reqErrNet" => "Загрузка идет слишком долго, проверьте качество сети!",
-    "officeViewer.webOffice.reqErrUrl" => "Запрос файла не удался, проверьте правильность адреса!",
-    "officeViewer.webOffice.noEditTips" => "Редактирование контента не поддерживается, пожалуйста, выберите другие методы!",
-    "officeViewer.webOffice.warning" => "⚠️ В текущем режиме формулы, диаграммы и другой контент могут быть неполными или некорректными. Пожалуйста, используйте другие способы просмотра полного контента.",
-    "officeViewer.libreOffice.desc"  => "<div style='margin-top:3px;'>Используйте LibreOffice на сервере для преобразования файла в формат PDF и предварительного просмотра файла.</div>",
-    "officeViewer.libreOffice.checkError" => "Вызов LibreOffice не удался. Проверьте, установлено ли программное обеспечение и есть ли у него разрешения на запуск.",
-    "officeViewer.libreOffice.sofficeError" => "Служба LibreOffice работает ненормально. Проверьте и повторите попытку.",
-    "officeViewer.libreOffice.convertError" => "Ошибка преобразования. Проверьте, нормально ли работает файловая служба или служба Office.",
-    "officeViewer.libreOffice.execDisabled" => "Функция [shell_exec] отключена, пожалуйста, включите ее и повторите попытку.",
+
+    "officeViewer.main.error"        => "Ошибка выполнения операции.",
+    "officeViewer.main.invalidType"  => "Недопустимый способ открытия. Свяжитесь с администратором.",
+    "officeViewer.main.invalidUrl"   => "Недопустимый адрес запроса. Свяжитесь с администратором.",
+    "officeViewer.main.notNetwork"   => "Ошибка подключения. Проверьте настройки сети на сервере.",
+    "officeViewer.main.needNetwork"  => "Сервер должен иметь доступ к интернету",
+    "officeViewer.main.needDomain"   => " и быть доступен по доменному имени.",
+    "officeViewer.main.tryAgain"     => " Попробуйте еще раз.",
+    "officeViewer.main.invalidExt"   => "Формат файла не поддерживается.",
+
+    "officeViewer.webOffice.name"    => "Автоматический выбор",
+    "officeViewer.webOffice.desc"    => "При выборе [Автоматический выбор] система сначала попытается использовать <code style='color:#c7254e'>локальный парсинг</code> (кроме doc и ppt). Если формат не поддерживается, будет выбран другой метод.<br>Локальный парсинг работает быстрее и не требует внешних подключений, однако некоторые элементы могут отображаться некорректно.<br><br>Если вам важно точное отображение форматирования, выберите другой метод.",
+    "officeViewer.webOffice.parsing" => "Идет обработка...",
+    "officeViewer.webOffice.reqErrPath" => "Ошибка запроса. Проверьте целостность файла.",
+    "officeViewer.webOffice.reqErrNet" => "Время ожидания истекло. Проверьте соединение с интернетом.",
+    "officeViewer.webOffice.reqErrUrl" => "Ошибка доступа к файлу. Проверьте корректность адреса.",
+    "officeViewer.webOffice.noEditTips" => "Редактирование в этом режиме недоступно. Пожалуйста, выберите другой способ.",
+    "officeViewer.webOffice.warning" => "⚠️ В этом режиме формулы, графики и сложное форматирование могут отображаться некорректно. Используйте другие методы для просмотра полной версии документа.",
+
+    "officeViewer.libreOffice.desc"  => "<div style='margin-top:3px;'>Использует установленный на сервере LibreOffice для конвертации файлов в PDF.</div>",
+    "officeViewer.libreOffice.checkError" => "Не удалось запустить LibreOffice. Убедитесь, что программа установлена и у сервера есть права на выполнение.",
+    "officeViewer.libreOffice.sofficeError" => "Ошибка службы LibreOffice. Проверьте настройки и попробуйте снова.",
+    "officeViewer.libreOffice.convertError" => "Ошибка конвертации. Проверьте доступность файла и работу службы Office.",
+    "officeViewer.libreOffice.execDisabled" => "Функция [shell_exec] отключена в PHP. Включите её для работы этого модуля.",
     "officeViewer.libreOffice.path"  => "Путь к LibreOffice",
-    "officeViewer.libreOffice.pathDesc" => "<br/>\n <span style='margin: 5px 0px;margin-bottom:10px;display: inline-block;'>Путь к LibreOffice — это путь к офису в каталоге установки. Заполните его в соответствии с инсталляцией.</span><br/> \n <button class='btn btn-success check-libreoffice' style='padding: 5px 12px;border-radius: 3px;font-size: 13px;'>Тест подключения</button> \n <a style='padding: 6px 12px; vertical-align: middle;' target='_blank' href='https://zh-cn.libreoffice.org/get-help/install-howto/'>Руководство по установке</a>",
-    "officeViewer.libreOffice.check" => "Обнаружение сервера",
-    "officeViewer.libreOffice.checkTitle" => "Обнаружение среды LibreOffice",
-    "officeViewer.libreOffice.checkIng" => "Испытания на воздействие окружающей среды...",
-    "officeViewer.libreOffice.checkDesc" => "Проверьте информацию о сервере и повторите попытку после правильной настройки!",
-    "officeViewer.libreOffice.checkOk" => "Поздравляю, все хорошо.",
-    "officeViewer.libreOffice.checkErr" => "Ненормальная рабочая среда",
-    "officeViewer.officeLive.desc"   => "<div style='margin-top:3px;'>Анализ файлов с помощью служб Microsoft Office (анализ внешних ссылок на файлы) для предварительного просмотра файлов.<br/><code style='color:#c7254e'>服务器需在外网，且为域名访问</code><br>Пользователи интрасети могут создать его самостоятельно; <a href='https://kodcloud.com/help/show-5.html' target='_blank'>узнайте больше</a></div>",
-    "officeViewer.officeLive.apiServer" => "Интерфейс сервера",
-    "officeViewer.officeLive.apiServerDesc" => "<div class='can-select'>Официальная служба Microsoft и интерфейс стороннего сервиса, выберите один и заполните:<br/> [бр]<div class='mt-5'> https://view.officeapps.live.com/op/embed.aspx?src=</div> [бр]<div class='grey-8'> https://owa-box.vips100.com/op/view.aspx?src=</div> [бр]<div class='grey-8'> https://docview.mingdao.com/op/view.aspx?src=</div> [бр]<div class='grey-8'> https://preview.tita.com/op/view.aspx?src=</div> [бр]<div class='grey-8'> https://view.officeapps.live.com/op/view.aspx?src=</div></div>",
-    "officeViewer.yzOffice.name"     => "Офис Юнчжун",
-    "officeViewer.yzOffice.desc"     => "<div style='margin-top:3px;'>Проанализируйте файл через сервис Yongzhong Office (файл будет загружен на его сервер) для осуществления предварительного просмотра файла.<br><code style='color:#c7254e'>服务器需能访问外网</code></div>",
-    "officeViewer.yzOffice.transfer" => "1. Данные передаются, пожалуйста подождите...",
-    "officeViewer.yzOffice.converting" => "2. Файл конвертируется, пожалуйста, подождите...",
-    "officeViewer.yzOffice.uploadError" => "Загрузка не удалась, проверьте время ожидания выполнения PHP!",
-    "officeViewer.yzOffice.convert"  => "Конвертация, пожалуйста, подождите...",
-    "officeViewer.yzOffice.transferAgain" => "Реконверсия",
-    "officeViewer.yzOffice.linkExpired" => "Ссылка не работает",
-    "officeViewer.main.fileSizeErr"  => "Файл поврежден (размер=0) и не может быть просмотрен!",
-    "officeViewer.main.typeErr"      => "Нет допустимого способа редактирования файла"
+    "officeViewer.libreOffice.pathDesc" => "<br/>
+        <span style='margin: 5px 0px;margin-bottom:10px;display: inline-block;'>Укажите путь к исполняемому файлу soffice в директории установки LibreOffice.</span> <br/>
+        <button class='btn btn-success check-libreoffice' style='padding: 5px 12px;border-radius: 3px;font-size: 13px;'>Проверить путь</button>
+        <a style='padding: 6px 12px; vertical-align: middle;' target='_blank' href='https://zh-cn.libreoffice.org/get-help/install-howto/'>Руководство по установке</a>",
+    "officeViewer.libreOffice.check" => "Проверка сервера",
+    "officeViewer.libreOffice.checkTitle" => "Диагностика LibreOffice",
+    "officeViewer.libreOffice.checkIng" => "Выполняется проверка...",
+    "officeViewer.libreOffice.checkDesc" => "Проверьте конфигурацию сервера и повторите попытку.",
+    "officeViewer.libreOffice.checkOk" => "Все системы работают нормально.",
+    "officeViewer.libreOffice.checkErr" => "Ошибка окружения.",
+
+    "officeViewer.officeLive.desc"   => "<div style='margin-top:3px;'>Использует службы Microsoft Office для онлайн-просмотра.<br/><code style='color:#c7254e'>Сервер должен иметь доступ к интернету и доменное имя.</code><br>Пользователи локальной сети могут развернуть свой сервер; <a href='https://kodcloud.com/help/show-5.html' target='_blank'>подробнее</a></div>",
+    "officeViewer.officeLive.apiServer" => "Сервер API",
+    "officeViewer.officeLive.apiServerDesc" => "<div class='can-select'>Выберите один из официальных или сторонних сервисов:<br/>
+                                               <div class='mt-5'> https://view.officeapps.live.com/op/embed.aspx?src=</div>
+                                               <div class='grey-8'>https://owa-box.vips100.com/op/view.aspx?src=</div>
+                                               <div class='grey-8'>https://docview.mingdao.com/op/view.aspx?src=</div>
+                                               <div class='grey-8'>https://preview.tita.com/op/view.aspx?src=</div>
+                                               <div class='grey-8'>https://view.officeapps.live.com/op/view.aspx?src=</div></div>",
+    "officeViewer.yzOffice.name"     => "Yozo Office",
+    "officeViewer.yzOffice.desc"     => "<div style='margin-top:3px;'>Использует службы Yozo Office для просмотра (файл временно загружается на их сервер).<br><code style='color:#c7254e'>Сервер должен иметь доступ к интернету.</code></div>",
+    "officeViewer.yzOffice.transfer" => "1. Передача данных...",
+    "officeViewer.yzOffice.converting" => "2. Конвертация файла, подождите...",
+    "officeViewer.yzOffice.uploadError" => "Ошибка загрузки. Проверьте лимит времени исполнения PHP (max_execution_time).",
+    "officeViewer.yzOffice.convert"  => "Преобразование...",
+    "officeViewer.yzOffice.transferAgain" => "Повторить",
+    "officeViewer.yzOffice.linkExpired" => "Срок действия ссылки истек.",
+    "officeViewer.main.fileSizeErr"  => "Файл поврежден (размер 0) или недоступен.",
+    "officeViewer.main.typeErr"      => "Нет доступных способов для просмотра данного файла."
 );
