@@ -206,10 +206,10 @@ kodReady.push(function(){
 			var _this = this;
 			var _args = arguments;
 			// 判断是否需要二次验证，不需要则继续提交
-			if (this.withTfa || !_.has(tfaIn,'withTfa') || !_this.tfaPage) {
+			if (this.withTfa || !tfaInfo || !_this.tfaPage) {
 				return _this.__loginSuccess.apply(_this,_args);
 			}
-			_this.tfaPage.needTfa(tfaIn,tfaInfo);
+			_this.tfaPage.tfaShow(tfaInfo);
 		}
 	});
 		
@@ -353,20 +353,14 @@ kodReady.push(function(){
 			callback && callback();
 		});
 	}
-	var tfaIn = null;
 	var tfaInfo = null;
 	Events.bind('RequestAfter[login]',function(result,param){
 		if (!result || !result.code) return;
-		// if (!_.has(result,'data.tfaOpen') && _.get(result,'info')) {
 		if (!_.get(result,'data.tfaOpen')) {
-			tfaIn = null; tfaInfo = null;
+			tfaInfo = null;
 			return;
 		}
-		tfaIn = param;
 		tfaInfo = result.data;
-	});
-	Events.bind('RequestBefore[login]',function(param){
-		param.withTfa = false;
 	});
 
 	if($.hasKey('plugin.client.event')) return;

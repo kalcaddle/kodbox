@@ -1,6 +1,7 @@
 ## 1.65 版本更新 
 > **主要新增**: 细节优化 ...  
-> **1.65 发布于: 2026.3.9**  
+> **1.65.02 发布于: 2026.3.13**  
+> **1.65.01 发布于: 2026.3.09**  
 
 - 文件管理
 	- 所有文件树目录, 增加自定义排序功能(右键设置排序模式,配置本地保存, 每个文件夹独立配置);
@@ -9,17 +10,20 @@
 	- 外链分享图片,关闭下载时,屏蔽长按保存图片,屏蔽图片右键;
 - 插件优化
 	- onlyoffice服务社区版检测及提示内容优化;地址配置优化调整,增加按配置自适应内外网请求;
+	- drawio 组件库升级 (UI优化;pos图形等打开支持; 性能优化,侧边栏图形选择延迟加载,只在有编辑权限时加载);
 	- excalidraw白板插件优化: 图片展示优化;插入图片报错优化;页面重置情况处理; 文件编辑状态保持(缩放,滚动位置等,按文件级别隔离);
 	- markdown 绘制优化: 渲染流程图/mermaid等展示组件优化; 加入工具栏(预览-代码切换;复制/下载/全屏);下载处理;
 	- mermaid 流程图库版本更新; markdown中绘制流程图,自适应深色模式(自动响应变化,重绘处理); 其他svg绘制图形同理兼容;
 	- office阅读器xlsx单元格换行兼容调整;
 	- 百度盘/onedrive 存储挂载插件优化: 增加存储状态检测;
 	- 内网穿透: 刷新ip调整为去掉计划任务,改为启动服务时检测更新; frpc版本更新; 并发数限制调整 max_pool_count,每个域名并发调整支持到100;
+	- frp内网穿透插件, kod-frp.inc中 kod_office 端口调整为可设置选项(默认8001);
 	- samba插件错误日志及提示优化,根部门同步异常修复;
 	- 文档审批增加消息提醒;
 	- 钉钉内链接含#跳转异常调整;钉钉app内自动登录异常调整;
 	- AI助手插件优化: 代码结构优化(对话通用事件服用提取); 对话引用,文件缩略图处理优化(调用列表parse); 外链分享移除文件外链及缩略图; rag文件打开报错处理等等...;
 	- 其他优化: 全文检索插件自启动调整;pdfjs翻页异常调整;nfs编辑调整; 内网客户端下载无网络异常调整;统一身份认证-浙政钉增加应用埋点功能;
+	- 其他优化: autoViewer 插件3d预览控制器点击优化; epubReader 移动端进度条显示优化,iOS移动端切换翻页为滚动模式字体大小优化(避免字体自适应);
 - 新增CAD/3D预览插件 - autoViewer
 	- 完整自主实现诸多3d,cad文件超强高还原度的解析渲染支持 (不再依赖autoDesk插件, 需要上传到cad官方进行转换);
 	- 格式支持: 3dm,3ds,3mf,amf,bvh,dae,drc,fbx,gcode,mpt,mpf,nc,glb,gltf,vrm,kmz,lwo,md2,mdd,mpd,nrrd,obj,pcd,pdb,ply,stl,stla,stlb,usdz,usda,usdc,usd,vox,vrml,wrl,vtk,vtp,xyz,assimp,awd,babylon,bim,brd,csg,scad,ctm,ifc,off,plt,pmd,pmx,prwm,tilt,vff,x3d,x_t,x_b,stp,step,stpz,stepz,brp,brep,igs,iges,fcstd,  ac,acc,ase,b3d,blend,cob,csm,hmp,iqm,lws,md5mesh,mdc,mdl,ms3d,nff,ogex,q3o,q3s,sib,smd,xgl,zg, low,lxo,x,assim,glb,gltf,vr,irr,irrmesh,raw,ter,m3d,a3,  dxf,dxfb,dwg
@@ -176,6 +180,7 @@
 	- highlight.js语法高亮加入mermaid高亮支持(markdown 渲染,代码查看);
 	- 文件夹权限设置大数据量时权限异常调整;
 	- 文件变更通知优化,支持文件变更通知(接收到消息匹配当前列表文件,包含则刷新 Events.trigger('path.pathChange',filePath));
+	- 安全优化: 包含密码的文件夹,协作分享文件访问时增加校验(构造子文件路径);禁用文件扩展名检查加入phar;
 	- 客户端下载接口调整：增加更多mac和linux客户端;
 	
 ##### bug fixed

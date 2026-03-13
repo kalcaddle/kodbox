@@ -169,6 +169,7 @@
 			// 回调请求
 			$.ajax({
 				url: BASE_URL_API + 'bind&method=bindApi',
+				type: 'POST',
 				data: getUrlParams(),
 				dataType: 'json',
 				success: function (result) {

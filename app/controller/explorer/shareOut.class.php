@@ -135,7 +135,7 @@ class explorerShareOut extends Controller{
 		$config 	= Model('SystemOption')->get();
 		$checkKey 	= Mcrypt::decode($this->in['apiKey'],'kodShareOut');
 		if($config['shareOutAllowRecive'] != '1'){show_json(LNG('explorer.shareOut.errorDisableReceive'),false);}
-		if($config['shareOutSiteApiKey']  != $checkKey){show_json(LNG('explorer.shareOut.errorApiKey'),false);}
+		if(!$config['shareOutSiteApiKey'] || $config['shareOutSiteApiKey']  != $checkKey){show_json(LNG('explorer.shareOut.errorApiKey'),false);}
 		show_json("ok:check",true);
 	}
 	// 授信目标站点组织架构获取;分享时前端发起获取;
@@ -143,7 +143,7 @@ class explorerShareOut extends Controller{
 		$config 	= Model('SystemOption')->get();		
 		$checkKey 	= Mcrypt::decode($this->in['sk'],$config['shareOutSiteApiKey']);
 		if($config['shareOutAllowRecive'] != '1'){show_json(LNG('explorer.shareOut.errorDisableReceive'),false);}
-		if($checkKey != 'kodShareOutGroup'){show_json(LNG('explorer.shareOut.errorApiKey').'(timeout)',false);}
+		if(!$config['shareOutSiteApiKey'] || $checkKey != 'kodShareOutGroup'){show_json(LNG('explorer.shareOut.errorApiKey').'(timeout)',false);}
 		
 		$GLOBALS['isRoot'] = true;
 		$methodMap = array(

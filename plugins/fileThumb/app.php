@@ -452,17 +452,14 @@ class fileThumbPlugin extends PluginBase{
 	}
 	public function getFFmpegFind(){
 		$check  = 'options';
-		$config = $this->getConfig();
-		if( $this->checkBin($config['ffmpegBin'],$check) ){
-			return $config['ffmpegBin'];
-		}
-		$result = $this->guessBinPath('ffmpeg',$check);
+		$result = $this->checkConfigBin('ffmpegBin',$check);
 		if($result){return $result;}
 		$findMore = array(
-			'/imagemagick/ffmpeg',
-			'/imagemagick/bin/ffmpeg',
-			'/ImageMagick/ffmpeg.exe',
-			'/ImageMagick-7.0.7-Q8/ffmpeg.exe',
+			'ffmpeg',
+			'imagemagick/ffmpeg',
+			'imagemagick/bin/ffmpeg',
+			'ImageMagick/ffmpeg.exe',
+			'ImageMagick-7.0.7-Q8/ffmpeg.exe',
 		);
 		foreach ($findMore as $value) {
 			$result = $this->guessBinPath($value,$check);
@@ -472,21 +469,29 @@ class fileThumbPlugin extends PluginBase{
 	}
 	public function getConvertNow(){
 		$check  = 'options';
-		$config = $this->getConfig();
-		if( $this->checkBin($config['imagickBin'],$check) ){
-			return $config['imagickBin'];
-		}
-		$result = $this->guessBinPath('convert',$check);
+		$result = $this->checkConfigBin('imagickBin',$check);
 		if($result){return $result;}
+		
 		$findMore = array(
-			'/imagemagick/convert',
-			'/imagemagick/bin/convert',
-			'/ImageMagick/convert.exe',
-			'/ImageMagick-7.0.7-Q8/convert.exe',
+			'convert',
+			'imagemagick/convert',
+			'imagemagick/bin/convert',
+			'ImageMagick/convert.exe',
+			'ImageMagick-7.0.7-Q8/convert.exe',
 		);
 		foreach ($findMore as $value) {
 			$result = $this->guessBinPath($value,$check);
 			if($result){return $result;}
+		}
+		return false;
+	}
+	
+	// 自定义命令配置检测(安全优化,必须是固定存在的路径);
+	private function checkConfigBin($bin,$check){
+		$config  = $this->getConfig();
+		$binFile = $config[$bin];
+		if($binFile && file_exists($binFile) && $this->checkBin($binFile,$check)){
+			return $binFile;
 		}
 		return false;
 	}
@@ -511,25 +516,21 @@ class fileThumbPlugin extends PluginBase{
 			"C:/",
 		);
 		$findArray = array();
-		foreach ($array as $value) {
-			if(file_exists($value.$bin)){
-				$file = $value.$bin;
-				if(strstr($file,' ')){
-					$file = '"'.$file.'"';
-				}
-				$findArray[] = $file;
-			}
+		foreach ($array as $value){
+			if(!file_exists($value.$bin)){continue;}
+			$file = $value.$bin;
+			if(strstr($file,' ')){$file = '"'.$file.'"';}
+			$findArray[] = $file;
 		}
 		if(!strstr($bin,'/')){
 			$findArray[] = $bin;
 		}
-		if(count($findArray) > 0){
-			foreach ($findArray as $file) {
-				if( $this->checkBin($file,$check) ){
-					//var_dump($file,$findArray,$check,shell_exec($file.' --help'));exit;
-					return $file;
-				}
-			}
+		if(count($findArray) == 0){return false;}
+
+		foreach($findArray as $file){
+			if(!$this->checkBin($file,$check)){continue;}
+			// var_dump($file,$findArray,$check,shell_exec($file.' --help'));exit;
+			return $file;
 		}
 		return false;
 	}

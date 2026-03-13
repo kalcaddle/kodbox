@@ -34,7 +34,6 @@ return array(
     "officeViewer.webOffice.reqErrUrl" => "Ошибка доступа к файлу. Проверьте корректность адреса.",
     "officeViewer.webOffice.noEditTips" => "Редактирование в этом режиме недоступно. Пожалуйста, выберите другой способ.",
     "officeViewer.webOffice.warning" => "⚠️ В этом режиме формулы, графики и сложное форматирование могут отображаться некорректно. Используйте другие методы для просмотра полной версии документа.",
-
     "officeViewer.libreOffice.desc"  => "<div style='margin-top:3px;'>Использует установленный на сервере LibreOffice для конвертации файлов в PDF.</div>",
     "officeViewer.libreOffice.checkError" => "Не удалось запустить LibreOffice. Убедитесь, что программа установлена и у сервера есть права на выполнение.",
     "officeViewer.libreOffice.sofficeError" => "Ошибка службы LibreOffice. Проверьте настройки и попробуйте снова.",

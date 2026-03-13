@@ -299,11 +299,6 @@ class explorerAuth extends Controller {
 			return $this->errorMsg(LNG('explorer.pathNotSupport'),1002);
 		}
 
-		//分享内容;分享子文档所属分享判别，操作分享权限判别；
-		if( $ioType == KodIO::KOD_SHARE_ITEM){
-			return $this->checkShare($parse['id'],trim($parse['param'],'/'),$action);
-		}
-
 		$pathInfo = IO::infoAuth($parse['pathBase']);
 		Hook::trigger("explorer.auth.can",$pathInfo,$action);
 		// 个人私密空间是否登录检测;
@@ -316,6 +311,11 @@ class explorerAuth extends Controller {
 		if($pathInfo && isset($pathInfo['sourceID'])){
 			$errorMsg = Action('explorer.listPassword')->authCheck($pathInfo,$action);
 			if($errorMsg){return $this->errorMsg($errorMsg,1102);}
+		}
+		
+		//分享内容;分享子文档所属分享判别，操作分享权限判别；
+		if( $ioType == KodIO::KOD_SHARE_ITEM){
+			return $this->checkShare($parse['id'],trim($parse['param'],'/'),$action);
 		}
 		
 		// source 类型; 新建文件夹 {source:10}/新建文件夹; 去除

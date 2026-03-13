@@ -21,7 +21,7 @@ ClassBase.define({
                 Tips.tips(result.data, false,5000);
                 return false;
             }
-            self.bindSubmit(type, result.data, result.info);
+            self.bindSubmit(type, base64Decode(result.data), result.info);
         });
     },
     // 解绑

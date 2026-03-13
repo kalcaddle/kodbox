@@ -20,14 +20,11 @@ function allowCROS(){
 //扩展名权限判断 有权限则返回1 不是true
 function checkExt($file){return checkExtSafe($file);}
 function checkExtSafe($file){
-	if($file == '.htaccess' || $file == '.user.ini') return false;
+	if($file == '.htaccess' || $file == '.user.ini' || !$file) return false;
 	if(strstr($file,'<') || strstr($file,'>') || $file=='') return false;
-	$disable  = 'php|phtml|phtm|pwml|asp|aspx|ascx|jsp|pl|html|htm|svg|shtml|shtm';
-	$extArr = explode('|',$disable);
-	foreach ($extArr as $ext) {
-		if ($ext && stristr($file,'.'.$ext)) return false;
-	}
-	return true;
+	$extArr = explode('|','php|phar|php3|php4|php5|php6|php7|php8|phps|cgi|phtml|phtm|pwml|asp|aspx|ascx|jsp|pl|html|htm|svg|shtml|shtm');
+	$ext = strtolower(substr($file,strrpos($file,'.')+1));
+	return in_array($ext,$extArr) ? false : true;
 }
 
 function linkHref($src,$dev=false){

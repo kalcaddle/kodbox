@@ -77,20 +77,27 @@ class oauthPlugin extends PluginBase{
 	 * 绑定相关操作请求
 	 * @return void
 	 */
-	public function bind() {
-		$method = Input::get('method', 'require');
+	public function bind($web=true) {
+		$this->checkRequest('POST');
+		$method = Input::get('method', 'require');	// oauth/bind/unbind/bindInfo/bindApi
 		$action = $this->action();
-		if (!method_exists($action, $method)) {
+		if (!method_exists($action, $method) || ($web && $method == 'bind')) {
 			show_json(LNG('common.invalidParam').'[method]', false);
 		}
-		return $action->$method();
+		if ($method == 'bindInfo') {
+			$type = '';
+		} else {
+			$type = Input::get('type','require');
+		}
+		return $action->$method($type);
 	}
 	/**
 	 * 兼容app相关调用
 	 * @param array $data
 	 * @return void
 	 */
-	public function bindHook($data=array()){
+	public function bindHook($data){
+		$this->checkRequest();
 		$act = strtolower(ACT);
 		$actions = array(
 			'bind' 			=> 'bind',
@@ -99,7 +106,7 @@ class oauthPlugin extends PluginBase{
 		);
 		if (isset($actions[$act])) {
 			$this->in['method'] = $actions[$act];
-			return $this->bind();
+			return $this->bind(false);
 		}
 		// app绑定第三方账号
 		if (isset($this->in['third']) && !empty($data)) {
@@ -125,5 +132,17 @@ class oauthPlugin extends PluginBase{
 	}
 	public function logList($data = array()){
 		return $this->action('log')->logList($data);
+	}
+
+	// 限定post请求
+	private function checkRequest($type='POST') {
+		if ($_SERVER['REQUEST_METHOD'] != 'POST') {
+			show_json(LNG('common.illegalRequest'), false);
+		}
+		if ($type == 'POST') return;
+		$device = Action('filter.userCheck')->getDevice();
+		if (!$device || $device['type'] != 'app') {
+			show_json(LNG('common.illegalRequest'), false);
+		}
 	}
 }

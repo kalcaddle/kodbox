@@ -18,14 +18,18 @@ class clientTfaIndex extends Controller {
     public function loginAfter($user) {
         // 避免死循环
         $userInfo = Session::get('kodUser');
-        if($userInfo && isset($userInfo['userID']) && $userInfo['userID'] == $user['userID']) return;
-        if(!isset($this->in['withTfa']) || $this->in['withTfa']) return;
+        if (_get($userInfo, 'userID') == $user['userID']) return;
+        if ($user['tfaVerified']) {
+            unset($user['tfaVerified']);
+            return;
+        }
 
 		$tfaInfo = $this->getTfaInfo($user);
         if (!$tfaInfo['tfaOpen']) return;
 
-        $key = md5($this->in['name'].$this->in['password'].'_'.$user['userID']);
-        Cache::set($key, $user);
+        $tfaKey = md5('tfa-'.$user['userID'].time().rand_string(6));
+        Cache::set($tfaKey, $user, 600);
+        $tfaInfo['sign'] = $tfaKey;
         show_json($tfaInfo);
     }
 
@@ -34,9 +38,8 @@ class clientTfaIndex extends Controller {
         $check  = array('tfaCode','tfaVerify');
         $func   = Input::get('action','in',null,$check);
 
-        $tfaIn  = Input::get('tfaIn','json');
-        $key    = md5($tfaIn['name'].$tfaIn['password'].'_'.$this->in['userID']);
-        $user   = Cache::get($key);
+        $tfaKey = Input::get('sign','require');
+        $user   = Cache::get($tfaKey);
         if (!$user) show_json(LNG('client.tfa.userLgErr'), false, 10011);
         if ($func == 'tfaCode') {
             $this->tfaCode($user);
@@ -52,7 +55,7 @@ class clientTfaIndex extends Controller {
         $tfaOpen = Model('SystemOption')->get('tfaOpen');
         $tfaType = Model('SystemOption')->get('tfaType');
         $data = array(
-            'userID'    => $user['userID'],
+            // 'userID'    => $user['userID'],
             'tfaOpen'   => intval($tfaOpen),
         );
         if (!$data['tfaOpen'] || !$tfaType) {
@@ -107,16 +110,15 @@ class clientTfaIndex extends Controller {
 
     private function checkCode($user) {
         $data = Input::getArray(array(
-            'userID'	=> array('check' => 'int'),
+            // 'userID'	=> array('check' => 'int'),
 			'type'	    => array('check' => 'require'),
 			'input'	    => array('check' => 'require'),
-			'default'   => array('default' => 0),
         ));
 		$type   = $data['type'];
         $input	= $data['input'];
-        if($data['userID'] != $user['userID']) {
-            show_json(LNG('client.tfa.userLgErr'), false);
-        }
+        // if($data['userID'] != $user['userID']) {
+        //     show_json(LNG('client.tfa.userLgErr'), false);
+        // }
 		if($user[$type]){$input = $user[$type];}
         if(!Input::check($input,$type)) {
             show_json(LNG('client.tfa.sendInvalid'), false);
@@ -204,23 +206,20 @@ class clientTfaIndex extends Controller {
      */
     public function tfaVerify($user) {
         // 验证码验证
-        if (!Input::get('wiotTfa',null,0)) {
-            $data = $this->checkCode($user);
-            $code = Input::get('code', 'require');
-            $this->checkMsgCode($code, $data);
-            // 绑定联系方式
-            if($user[$data['type']] != $data['input']) {
-                $update = array($data['type'] => $data['input']);
-                $res = Model('User')->userEdit($user['userID'], $update);
-                $user[$data['type']] = $data['input'];
-            }
+        $data = $this->checkCode($user);
+        $code = Input::get('code', 'require');
+        $this->checkMsgCode($code, $data);
+        // 绑定联系方式
+        if($user[$data['type']] != $data['input']) {
+            $update = array($data['type'] => $data['input']);
+            $res = Model('User')->userEdit($user['userID'], $update);
+            $user[$data['type']] = $data['input'];
         }
         // 删除用户缓存
-        $this->in = Input::get('tfaIn','json');
-        $key = md5($this->in['name'].$this->in['password'].'_'.$user['userID']);
-        Cache::remove($key);
+        $tfaKey = Input::get('sign');
+        if ($tfaKey) Cache::remove($tfaKey);
         // 更新登录状态
-        $this->in['withTfa'] = true;
+        $user['tfaVerified'] = true;
         Action("user.index")->loginSuccessUpdate($user);
         show_json(LNG('common.loginSuccess'));
     }

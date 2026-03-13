@@ -721,8 +721,13 @@ function request_url_safe($url){
 	if(!$hasAllow) return false;
 	if(!$info['scheme'] || !$info['host'] || !in_array($info['scheme'],$allow)) return false;
 	if(@file_exists($url) ) return false;
-	//if($info['host'] == 'localhost' || $info['host'] == '127.0.0.1' || strstr($info['host'],'192.168.')) return false;
 	
+	// 自定义校验函数; 可在插件中或 config/setting_user.php 中实现;
+	if(function_exists('request_url_safe_self')){
+		return request_url_safe_self($url,$info['host']);
+	}
+	
+	//if($info['host'] == 'localhost' || $info['host'] == '127.0.0.1' || strstr($info['host'],'192.168.')) return false;
 	return true;
 }
 

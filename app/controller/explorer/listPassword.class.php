@@ -17,6 +17,10 @@ class explorerListPassword extends Controller{
 	}
 	// 权限检测
 	public function authCheck($pathInfo,$action){
+		if($pathInfo['shareID'] && $pathInfo['sourceID']){
+			$pathInfo = Model("Source")->pathInfo($pathInfo['sourceID']);
+		}	
+	
 		if(!$this->checkAuthNeed($pathInfo)){return;} // 拥有编辑以上权限则忽略;
 		$passInfo = $this->checkAllowPassword($pathInfo);
 		if($passInfo){// 当前文件,或上层需要密码;
@@ -25,7 +29,8 @@ class explorerListPassword extends Controller{
 		}
 		
 		// 查询子目录是否包含需要设置密码的文件夹;
-		if($pathInfo['type'] == 'folder' && $action == 'download'){
+		$checkAction = array('view','download'); // ,'upload','edit'
+		if($pathInfo['type'] == 'folder' && in_array($action,$checkAction)){
 			$where = array(
 				"source.parentLevel"=> array("like",$pathInfo['parentLevel'].$pathInfo['sourceID'].',%'),
 				"source.isDelete"	=> 0,

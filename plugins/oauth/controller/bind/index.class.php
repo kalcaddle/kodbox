@@ -4,8 +4,8 @@
  */
 class oauthBindIndex extends Controller {
 
-	const BIND_META_INFO = 'Info';
-	const BIND_META_UNIONID = 'Unionid';
+	private $metaKeyInfo = 'Info';
+	private $metaKeyUnionid = 'Unionid';
 	public function __construct() {
 		parent::__construct();
 		$this->pluginName = 'oauthPlugin';
@@ -42,7 +42,7 @@ class oauthBindIndex extends Controller {
 	 * data string {type;openid;unionid;nickName;sex;avatar}
 	 * type string qq|weixin|github
 	 */
-	public function bindApi() {
+	public function bindApi($type) {
 		// api固定参数:type、sign、kodid、timestamp、data
 		$input = Input::getArray(array(
 			'type'		 => array('check' => 'require'),
@@ -123,7 +123,7 @@ class oauthBindIndex extends Controller {
 	 */
 	private function isBind($key, $unionid, $client = 1) {
 		// 根据metadata.unionid获取用户信息
-		$user = Model('User')->getInfoByMeta($key . self::BIND_META_UNIONID, $unionid);
+		$user = Model('User')->getInfoByMeta($key . $this->metaKeyUnionid, $unionid);
 		if (empty($user)) return false;
 		// 后端，要判断是否已经绑定了其他账号
 		// 通过绑定信息获取到的用户，不是当前登录用户，说明已绑定其他账号
@@ -303,8 +303,8 @@ class oauthBindIndex extends Controller {
 		if(!$userID) show_json(LNG('oauth.main.notLogin'),false);
 		// 更新meta信息
 		$metadata = array(
-			$data['type'] . self::BIND_META_UNIONID	 => $data['unionid'],
-			$data['type'] . self::BIND_META_INFO	 => json_encode($data)
+			$data['type'] . $this->metaKeyUnionid	 => $data['unionid'],
+			$data['type'] . $this->metaKeyInfo	 => json_encode($data)
 		);
 		$ret = Model('User')->metaSet($userID, $metadata);
 		if ($ret && !$data['client']) {
@@ -317,7 +317,7 @@ class oauthBindIndex extends Controller {
 	/**
 	 * 请求kodapi url参数处理——前端第三方登录、后端绑定
 	 */
-	public function oauth() {
+	public function oauth($type) {
 		$data = Input::getArray(array(
 			'type'	 	=> array('check'   => 'require'),
 			'action' 	=> array('check'   => 'require'),
@@ -354,13 +354,13 @@ class oauthBindIndex extends Controller {
 			}
 			$appId = $res['data'];
 		}
-		show_json(http_build_query($post), true, $appId);
+		show_json(base64_encode(http_build_query($post)), true, $appId);
 	}
 
 	/**
 	 * app端后台绑定
 	 */
-	public function bind(){
+	public function bind($type){
 		$data = Input::getArray(array(
 			'type'		=> array('check' => 'in', 'param' => array_keys($this->typeList)),
 			'openid' 	=> array('check' => 'require'),
@@ -446,19 +446,21 @@ class oauthBindIndex extends Controller {
 	/**
 	 * 第三方账号解绑-后端
 	 */
-	public function unbind() {
+	public function unbind($type) {
 		$type = Input::get('type','require', '');
 		if(!isset($this->typeList[$type])){
 			show_json(LNG('user.bindTypeError'), false);
 		}
-		$info = Session::get('kodUser');
-		if($this->isEmptyPwd($info['userID'])) show_json(LNG('user.unbindWarning'), false);
+		// 密码为空时需先设置
+		if($this->isEmptyPwd(USER_ID)) {
+			show_json(LNG('user.unbindWarning'), false);
+		}
 
 		$model = Model('User');
 		$model->startTrans();
 		try {
-			$del1 = $model->metaSet($info['userID'], $type . self::BIND_META_INFO, null);
-			$del2 = $model->metaSet($info['userID'], $type . self::BIND_META_UNIONID, null);
+			$del1 = $model->metaSet(USER_ID, $type . $this->metaKeyInfo, null);
+			$del2 = $model->metaSet(USER_ID, $type . $this->metaKeyUnionid, null);
 			if ($del1 === false || $del2 === false) {
 				$model->rollback();
 				show_json(LNG('explorer.error'), false);
@@ -468,7 +470,7 @@ class oauthBindIndex extends Controller {
 			$model->rollback();
 			show_json(LNG('explorer.error'), false);
 		}
-		$this->updateUserInfo($info['userID']);
+		$this->updateUserInfo(USER_ID);
 		Hook::trigger('user.bind.log', 'unbind', array('type' => $type));
 		show_json(LNG('explorer.success'), true);
 	}
@@ -498,9 +500,9 @@ class oauthBindIndex extends Controller {
 	}
 
 	/**
-	 * 用户绑定信息
+	 * 获取用户全部绑定信息
 	 */
-	public function bindInfo(){
+	public function bindInfo($type){
 		$userInfo = Session::get('kodUser');
 		$metaInfo = $userInfo['metaInfo'];
 		$bindInfo = array();
