@@ -1,4 +1,5 @@
 <?php 
+include_once(dirname(dirname(dirname(__FILE__))).'/lib/GoogleAuthenticator.class.php');
 class clientTfaIndex extends Controller {
 	public function __construct() {
 		parent::__construct();
@@ -31,8 +32,19 @@ class clientTfaIndex extends Controller {
 
     // 入口方法
     public function index(){
-        $check  = array('tfaCode','tfaVerify');
+        $check  = array('tfaCode','tfaVerify', 'initGoogle', 'bindGoogle', 'getBindInfo', 'unbindGoogle');
         $func   = Input::get('action','in',null,$check);
+
+        // Setup flow (Logged in user)
+        if (in_array($func, array('initGoogle', 'bindGoogle', 'getBindInfo', 'unbindGoogle'))) {
+            $user = Session::get('kodUser');
+            if (!$user) show_json(LNG('user.loginFirst'), false);
+            if ($func == 'initGoogle') $this->initGoogle($user);
+            if ($func == 'bindGoogle') $this->bindGoogle($user);
+            if ($func == 'getBindInfo') $this->getBindInfo($user);
+            if ($func == 'unbindGoogle') $this->unbindGoogle($user);
+            return;
+        }
 
         $tfaIn  = Input::get('tfaIn','json');
         $key    = md5($tfaIn['name'].$tfaIn['password'].'_'.$this->in['userID']);
@@ -43,6 +55,52 @@ class clientTfaIndex extends Controller {
         } else {
             $this->tfaVerify($user);
         }
+    }
+
+    /**
+     * Initialize Google Authenticator Setup
+     */
+    public function initGoogle($user) {
+        $tfaType = Model('SystemOption')->get('tfaType');
+        if (!in_array('google', explode(',', $tfaType))) {
+            show_json(LNG('common.invalidRequest'), false);
+        }
+
+        $ga = new GoogleAuthenticator();
+        $secret = $ga->createSecret();
+        $name = $user['name'] . '@' . strip_tags(Model('SystemOption')->get('systemName'));
+        
+        $issuer = strip_tags(Model('SystemOption')->get('systemName'));
+        $otpauth = 'otpauth://totp/' . $name . '?secret=' . $secret . '&issuer=' . urlencode($issuer);
+        $qrCodeUrl = APP_HOST . 'index.php?user/view/qrcode&url=' . urlencode($otpauth);
+        show_json(array('secret' => $secret, 'qrCode' => $qrCodeUrl));
+    }
+
+    /**
+     * Bind Google Authenticator
+     */
+    public function bindGoogle($user) {
+        $secret = Input::get('secret', 'require');
+        $code = Input::get('code', 'require');
+        
+        $ga = new GoogleAuthenticator();
+        if ($ga->verifyCode($secret, $code, 1)) {
+             Model('User')->metaSet($user['userID'], 'tfa_google_secret', $secret);
+             Action('user.index')->refreshUser($user['userID']);
+             show_json(LNG('client.tfa.bindSuccess'));
+        }
+        show_json(LNG('user.codeError'), false);
+    }
+
+    public function getBindInfo($user) {
+        $secret = Model('User')->metaGet($user['userID'], 'tfa_google_secret');
+        show_json(array('isBind' => $secret ? 1 : 0));
+    }
+
+    public function unbindGoogle($user) {
+        Model('User')->metaSet($user['userID'], 'tfa_google_secret', null);
+        Action('user.index')->refreshUser($user['userID']);
+        show_json(LNG('user.unbindSuccess'));
     }
 
     /**
@@ -59,21 +117,40 @@ class clientTfaIndex extends Controller {
             $data['tfaOpen'] = 0;
             return $data;
         }
-        // 发送类型，优先使用手机
-		$type = $input = '';
-		$typeArr = explode(',',$tfaType);
-        $typeArr = array_intersect(array('phone','email'), $typeArr);
-		foreach ($typeArr as $tType) {
-            $value = _get($user, $tType, '');
-            if (!$value) continue;
-			if (Input::check($value, $tType)) {
-				$type   = $tType;
-				$input  = $value;
-				break;
-			}
-		}
+        
+        $systemTypes = explode(',',$tfaType);
+        $userTypes = array();
+        
+        // Check Phone
+        if(in_array('phone', $systemTypes) && !empty($user['phone'])){
+            $userTypes[] = 'phone';
+        }
+        // Check Email
+        if(in_array('email', $systemTypes) && !empty($user['email'])){
+            $userTypes[] = 'email';
+        }
+        // Check Google
+        $googleSecret = Model('User')->metaGet($user['userID'], 'tfa_google_secret');
+        if(in_array('google', $systemTypes) && $googleSecret){
+            $userTypes[] = 'google';
+        }
+
+        if(empty($userTypes)){
+             $data['tfaOpen'] = 0;
+             return $data;
+        }
+
+        // Default type logic
+        $type = $userTypes[0];
+        // Prefer Google if available
+        if(in_array('google', $userTypes)) $type = 'google';
+
+        $input = '';
+        if($type == 'phone') $input = $user['phone'];
+        if($type == 'email') $input = $user['email'];
+
         $tfaInfo = array(
-            'tfaType'   => implode(',',$typeArr),
+            'tfaType'   => implode(',',$userTypes),
             'type'      => $type,
             'input'     => $this->getMscValue($input,$type)
         );
@@ -82,6 +159,7 @@ class clientTfaIndex extends Controller {
 
     // 获取手机/邮箱（加*）
     private function getMscValue($value, $type){
+        if ($type == 'google') return 'Google Authenticator';
         if (!$value) return $value;
         $slen = 3; $elen = 2;
         if ($type == 'email') {
@@ -101,6 +179,10 @@ class clientTfaIndex extends Controller {
      * 发送验证码
      */
     public function tfaCode($user) {
+        $type = Input::get('type');
+        if ($type == 'google') {
+            show_json(LNG('client.tfa.scanCode'), true);
+        }
         $data = $this->checkCode($user);
         $this->sendCode($data);
     }
@@ -205,14 +287,26 @@ class clientTfaIndex extends Controller {
     public function tfaVerify($user) {
         // 验证码验证
         if (!Input::get('wiotTfa',null,0)) {
-            $data = $this->checkCode($user);
-            $code = Input::get('code', 'require');
-            $this->checkMsgCode($code, $data);
-            // 绑定联系方式
-            if($user[$data['type']] != $data['input']) {
-                $update = array($data['type'] => $data['input']);
-                $res = Model('User')->userEdit($user['userID'], $update);
-                $user[$data['type']] = $data['input'];
+            $type = Input::get('type');
+            if ($type == 'google') {
+                $code = Input::get('code', 'require');
+                $secret = Model('User')->metaGet($user['userID'], 'tfa_google_secret');
+                if (!$secret) show_json(LNG('common.error'), false);
+                
+                $ga = new GoogleAuthenticator();
+                if (!$ga->verifyCode($secret, $code, 1)) {
+                    show_json(LNG('user.codeError'), false);
+                }
+            } else {
+                $data = $this->checkCode($user);
+                $code = Input::get('code', 'require');
+                $this->checkMsgCode($code, $data);
+                // 绑定联系方式
+                if($user[$data['type']] != $data['input']) {
+                    $update = array($data['type'] => $data['input']);
+                    $res = Model('User')->userEdit($user['userID'], $update);
+                    $user[$data['type']] = $data['input'];
+                }
             }
         }
         // 删除用户缓存

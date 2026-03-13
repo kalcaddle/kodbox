@@ -60,4 +60,10 @@ return array(
 	// 'client.tfa.userMtErr'				=> '用户信息不匹配！',
 	'client.tfa.sendEmpty'				=> '绑定的发送方式异常！',
 	'client.tfa.sendInvalid'			=> '发送方式格式错误！',
+	'client.tfa.google'					=> '谷歌验证器',
+	'client.tfa.googleDesc'				=> '使用谷歌验证器（Google Authenticator）或其他TOTP应用扫描二维码',
+	'client.tfa.bind'					=> '绑定',
+	'client.tfa.unbind'					=> '解绑',
+	'client.tfa.bindSuccess'			=> '绑定成功',
+	'client.tfa.scanCode'				=> '请使用谷歌验证器扫描二维码',
 );

@@ -32,10 +32,16 @@ ClassBase.define({
         }
         var text = _.isArray(type) ? LNG['common.input']+LNG['client.tfa.phoneNumEmail'] : LNG['user.input'+_.upperFirst(type)];
         var name = _.isArray(type) ? LNG['client.tfa.phoneEmail'] : LNG['common.'+type];
+        var isGoogle = type == 'google';
+        if(isGoogle){
+            name = LNG['client.tfa.google'];
+            tfaInfo.input = LNG['client.tfa.googleDesc'];
+        }
+
         var html = '<div class="inputs">\
                         <div class="input-item def">\
                             <p class="title">'+name+LNG['client.tfa.verify']+'</p>\
-                            <p name="">'+LNG['client.tfa.sendTo']+' '+tfaInfo.input+'</p>\
+                            <p name="">'+(isGoogle ? '' : LNG['client.tfa.sendTo']+' ')+tfaInfo.input+'</p>\
                         </div>\
                         <div class="input-item">\
                             <input name="input" type="text" placeholder="'+text+'">\
@@ -76,8 +82,21 @@ ClassBase.define({
         } else {
             $dialog.find('.input-item.def p[name]').hide();
         }
+        
+        // Find submit button more robustly
         var $submit = $dialog.find('button.aui-state-highlight');
-        $submit.prop("disabled", true);
+        if(!$submit.length && self.dialog.dom && self.dialog.dom.wrap) {
+            $submit = $(self.dialog.dom.wrap).find('button.aui-state-highlight');
+        }
+        
+        if (isGoogle) {
+            $dialog.find('.input-item.def').hide();
+            $dialog.find('.check-code button').remove();
+            $dialog.find('.check-code input').css({width:'221px',borderRadius:'3px'});
+            $submit.prop("disabled", false).removeClass('disabled');
+        } else {
+            $submit.prop("disabled", true);
+        }
 
         // 获取验证码
         $dialog.delegate('.check-code button', 'click', function(){
