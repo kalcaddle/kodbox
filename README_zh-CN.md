@@ -1,4 +1,4 @@
-######  [English](https://github.com/kalcaddle/kodbox/blob/master/README.md) | [中文文档](https://github.com/kalcaddle/kodbox/blob/master/README_zh-CN.md)
+######  [English](https://github.com/kalcaddle/kodbox/blob/main/README.md) | [中文文档](https://github.com/kalcaddle/kodbox/blob/main/README_zh-CN.md)
 
 <h2 align="center">
   <a href="http://kodcloud.com/" alt="logo" target="_blank"><img src="https://raw.githubusercontent.com/kalcaddle/static/master/images/kodbox/icon_512.png" width="120"/></a>
