@@ -8,13 +8,13 @@ kodReady.push(function(){
         "weixin":   LNG['common.wechat'],
         "github":   "GitHub",
         "google":   "Google",
-        "facebook": "Facebook"
+        // "facebook": "Facebook"   // 应用失效，暂不显示
     };
     // 获取第三方登录项
     var getLoginWith = function(){
-        if (!_.isUndefined(G.system.options.loginWith)) {
-            return G.system.options.loginWith;
-        }
+        // if (!_.isUndefined(G.system.options.loginWith)) {
+        //     return G.system.options.loginWith;
+        // }
         return _.join((_.get(G, 'system.options.loginConfig.loginWith') || []), ',');
     }
 
@@ -34,6 +34,7 @@ kodReady.push(function(){
 
     // 2.插件设置
     Events.bind("plugin.config.formBefore", function(formData, options, self){
+        return; // 统一从后台设置进行
         if (_.get(options, 'id') != 'app-config-{{pluginName}}') return;
         var list = [];
         var loginWith = getLoginWith();
@@ -58,6 +59,7 @@ kodReady.push(function(){
         formData.loginWith.value = loginWith;
     });
     Events.bind("plugin.config.formAfter", function(_this){
+        return;
         var form = _this['form{{pluginName}}'];
 		if (!form || !form.$el) return;
 

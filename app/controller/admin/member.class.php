@@ -392,6 +392,7 @@ class adminMember extends Controller{
 	 */
 	private function import(){
 		if(!isset($this->in['isImport'])) return;
+		set_timeout();
 		// 1.上传
 		if(empty($this->in['filePath'])) {
 			// 1.1 上传文件——返回前端：>100kb上传分多次请求，无法直接获取结果

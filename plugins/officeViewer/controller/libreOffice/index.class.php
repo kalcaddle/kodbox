@@ -155,19 +155,27 @@ class officeViewerlibreOfficeIndex extends Controller {
 	}
 
 	// 获取soffice路径
-    public function getSoffice(){
-        $check = 'LibreOffice';
-		$data = Action($this->pluginName)->_appConfig('lb');
-        $bin = !empty($data['soffice']) ? $data['soffice'] : '/usr/local/bin/soffice';	// 默认路径为cockpit中添加
-		$bin = escapeShell(iconv_system($bin));	// win路径空格处理
-        $result = $this->checkBin($bin,$check);
-        return $result ? $bin : false;
-    }
+	public function getSoffice(){
+	    $check = 'LibreOffice';
+	    // 1.先检查（kpt）默认地址
+	    $bin = '/usr/local/bin/soffice';
+	    if ($this->checkBin($bin,$check)) return $bin;
+	    // 2.检查插件配置地址
+	    $data = Action($this->pluginName)->_appConfig('lb');
+	    $bin = _get($data, 'soffice', '');
+	    if ($bin) {
+	        $bin = escapeShell(iconv_system($bin));	// win路径空格处理
+	        if ($this->checkBin($bin,$check)) return $bin;
+	    }
+	    return false;
+	}
     private function checkBin($bin,$check){
 		$code = Cache::get($bin);
 		if ($code) return $code;
-		$result = shell_exec($bin.' --help');	// ' 2>&1'
-		$code = strstr($result,$check) ? true : false;
+		if (is_executable($bin)) {
+			$result = shell_exec($bin.' --help');	// ' 2>&1'
+			$code = strstr($result,$check) ? true : false;
+		}
 		Cache::set($bin, $code);
 		return $code;
 	}

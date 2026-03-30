@@ -26,6 +26,12 @@ class explorerList extends Controller{
 	}
 	public function path($thePath = false){
 		$path     = $thePath ? $thePath : $this->in['path'];
+		$cacheKey = 'explorerList-'.USER_ID.'-'.$path;$cacheTime = 0;// 0不缓存;缓存时间
+		$cacheData = $cacheTime > 0 ? Cache::get($cacheKey) : false;
+		if($cacheData && is_array($cacheData)){
+			return $thePath ? $cacheData : show_json($cacheData);
+		}
+		
 		$path     = $path != '/' ? rtrim($path,'/') : '/';//路径保持统一;
 		$path	  = $path == '{io:systemRecycle}' ? IO_PATH_SYSTEM_RECYCLE:$path;
 		$path 	  = $this->checkDesktop($path);
@@ -54,14 +60,13 @@ class explorerList extends Controller{
 			default:$data = IO::listPath($path);break;
 		}
 		if($data === false){ // 获取失败情况处理;
-			if($thePath){return false;}
-			return show_json(IO::getLastError(LNG('explorer.error')),false);
+			return $thePath ? false:show_json(IO::getLastError(LNG('explorer.error')),false);
 		}
 		$this->parseData($data,$path,$pathParse,$current);
 		Action('explorer.listView')->listDataSet($data);
-
-		if($thePath) return $data;
-		show_json($data);
+		if($cacheTime > 0){Cache::set($cacheKey,$data,$cacheTime);}
+		
+		return $thePath ? $data : show_json($data);
 	}
 	public function parseData(&$data,$path,$pathParse){
 		$this->parseAuth($data,$path,$pathParse);
@@ -329,7 +334,6 @@ class explorerList extends Controller{
 			$explorerTag 		= Action('explorer.tag');
 			$explorerShare 		= Action('explorer.userShare');
 			$explorerTagGroup 	= Action('explorer.tagGroup');
-			$explorerDriver 	= Action('explorer.listDriver');
 			$explorerDriver 	= Action('explorer.listDriver');
 			$modelAuth 			= Model('Auth');
 			$showMd5 			= Model('SystemOption')->get('showFileMd5') != '0';

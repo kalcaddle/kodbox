@@ -57,12 +57,12 @@ ClassBase.define({
             var target = $(e.currentTarget);
             var type = target.parents(".acc-row").attr("id");
             if (target.attr("class") == 'bind') {
-                return self.Bind.bind(type, 'bind', 0);
+                return self.Bind.bindAcc(type, 'bind', 0);
             }
             if(self.emptyPwd == '1') {
                 return Tips.tips(LNG['user.unbindWarning'],'warning',3000);
             }
-            self.Bind.unbind(type, self);
+            self.Bind.unbindAcc(type, self);
         });
     }
 

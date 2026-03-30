@@ -2,7 +2,7 @@
 	"id":"oauth",
 	"name":"{{LNG['oauth.meta.name']}}",
 	"title":"{{LNG['oauth.meta.title']}}",
-	"version":"1.14",
+	"version":"1.15",
 	"category":"tools,others",
 	"hidden":1,
 	"source":{
@@ -31,12 +31,12 @@
 			"value":"{{LNG['oauth.meta.desc']}}",
 			"display":"{{LNG['admin.setting.recDesc']}}"
 		},
-		"sep001":"<hr>",
-		"list":{
-			"type":"html",
-			"value":"",
-			"display":"{{LNG['oauth.config.type']}}"
-		},
+		// "sep001":"<hr>",
+		// "list":{
+		// 	"type":"html",
+		// 	"value":"",
+		// 	"display":"{{LNG['oauth.config.type']}}"
+		// },
 		"loginWith":{
 			"type": "input",
 			"className": "hidden",

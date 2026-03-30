@@ -659,7 +659,7 @@ class adminServer extends Controller {
 			$name = $table . '.sql';
 			$name = _get($mxList, $name, $name);	// 没有解密名则取原名（兼容旧版）
 			if (!in_array($name, $list)) {
-				show_json(LNG('admin.setting.recSysTbErr'), false);
+				show_json(LNG('admin.setting.recSysTbErr')." [{$name}]", false);
 			}
 		}
 		// 1.2 检测是否有建库权限

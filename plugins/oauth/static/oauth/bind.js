@@ -3,7 +3,7 @@ ClassBase.define({
         this.request = new kodApi.request({parent: this});
     },
     // 绑定
-    bind:function(type,action,client){
+    bindAcc:function(type,action,client){
 		action = action == undefined ? 'login' : action;
 		client = client == undefined ? 1 : client;
         if (this.notifyTips) {
@@ -25,7 +25,7 @@ ClassBase.define({
         });
     },
     // 解绑
-    unbind: function (type, parent) {
+    unbindAcc: function (type, parent) {
         var self = this;
         $.dialog({
             id: 'dialog-unbind-confirm',
@@ -67,8 +67,30 @@ ClassBase.define({
             default: break;
         }
     },
+    wxMsgHandler: function(event){
+        var parse = $.parseUrl(event.origin);
+        if (!parse || parse.host != 'api.kodcloud.com') return;
+        var $iframe = this.wxQrdialog.$main.find('#wxqrcode>iframe');
+        if (!$iframe || !$iframe.length) return;
+        // 回复——兼容旧版
+        $iframe[0].contentWindow.postMessage({from:'kodbox',event:'weixin'}, '*');
+        // 跳转
+        var data = _.get(event, 'data', {});
+        if (data.from == 'kodapi' && data.url) {
+            $iframe.attr('src', data.url);
+        }
+        window.removeEventListener('message', this.wxMsgHandler);   // 移除监听
+    },
     weixinBind: function (url, appid) {  // 微信绑定
+        // 接收api回调信息并跳转
+        var self = this;
+        window.addEventListener('message', function(event){self.wxMsgHandler(event);});
+        this.bind('onRemove',function(){
+            window.removeEventListener('message', self.wxMsgHandler);   // 移除监听
+        });
+
         // 微信内打开，使用公众号接口授权登录
+        // https://developers.weixin.qq.com/doc/service/guide/h5/auth.html
         if(this.platform == 'mp') {
             var param = [
                 'appid='+appid,
@@ -81,8 +103,9 @@ ClassBase.define({
             return false;
         }
         // 微信外，使用开放平台接口授权
+        // https://developers.weixin.qq.com/doc/oplatform/Website_App/WeChat_Login/Wechat_Login.html
         var connect = _.startsWith(G.lang, 'zh') ? '' : ' ';
-        $.dialog({
+        this.wxQrdialog = $.dialog({
             id: 'bindlogin',
             title: LNG['user.bind'] + connect + LNG['common.wechat'],
             ico: '',

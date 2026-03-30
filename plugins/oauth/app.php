@@ -30,27 +30,22 @@ class oauthPlugin extends PluginBase{
 	 * @return void
 	 */
 	public function updateOption($options) {
-		$regist = Model('SystemOption')->get('regist');
-	    if (isset($regist['loginWith'])) {	// 只有定制插件默认安装时后台存在该参数（空），不存在时从插件配置中获取（安装时自动保存默认配置）
-	        $loginWith = _get($regist,'loginWith',array());
-	    } else {
-	        $config = $this->getConfig();
-	        $loginWith = explode(',', _get($config, 'loginWith', ''));
-	    }
-		// $config = $this->getConfig();
-		// // 插件配置中该参数是在后台保存时添加，如果不存在，从后台原数据中获取
-		// if (!isset($config['loginWith'])) {
-		// 	$regist = Model('SystemOption')->get('regist');
-		// 	if (!isset($regist['loginWith'])) {
-		// 		$loginWith = array('qq', 'weixin');	// 全新安装不含此参数，则赋默认值
-		// 	} else {
-		// 		$loginWith = _get($regist,'loginWith',array());
-		// 	}
-		// 	$this->setConfig(array('loginWith' => implode(',', $loginWith)));
-		// } else {
-		// 	$loginWith = explode(',', _get($config, 'loginWith', ''));
-		// }
-		$options['system']['options']['loginConfig']['loginWith'] = array_filter($loginWith);
+		// 只有（渠道）定制插件存在该值（安装时自动保存配置，一般默认为空），其他的从插件配置中获取
+		if (defined('INSTALL_CHANNEL') && INSTALL_CHANNEL) {
+			$regist	= Model('SystemOption')->get('regist');
+			$loginWith = _get($regist, 'loginWith', '');
+		} else {
+			$config = $this->getConfig();
+			if (isset($config['loginWith'])) {
+				$loginWith = _get($config, 'loginWith', '');
+			} else {
+				$loginWith = 'qq,weixin';	// 默认
+			}
+		}
+		$loginWith = explode(',', $loginWith);
+		$loginWith = array_filter($loginWith);
+		// $options['system']['options']['loginWith'] = $loginWith;	// admin/set/get均已删除
+		$options['system']['options']['loginConfig']['loginWith'] = $loginWith;
 		return $options;
 	}
 

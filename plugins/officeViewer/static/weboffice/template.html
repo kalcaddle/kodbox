@@ -35,7 +35,6 @@
 		<div id="output"></div>
 	</div>
     <div id="msgbox" class="hidden">
-		<!-- <div id="title">打开失败！</div> -->
 		<div id="title">
 			<span style="font-size:20px;">Office阅读器</span>
 			<span style="font-size:14px;margin-left:5px;"> - WebOffice</span>
@@ -113,7 +112,7 @@
 				try {_$ = window.parent.$;}catch(error){return;}
 				var $dialog = _$(window.frameElement).parents('.aui-content');
 				var data = base64Encode(jsonEncode({path:FILE_INFO.path, name:FILE_INFO.name, ext:FILE_INFO.ext}));
-				var $button = _$('<div class="officeViewer-edit-btn">\
+				var $button = _$('<div id="officeViewer-edit-btn">\
 					<button data="'+data+'"><i class="font-icon ri-edit-line-2"></i>'+kodSdkConfig.LNG['common.edit']+'</button></div>').appendTo($dialog);
 				$button.find('button').trigger('click');
 			}
@@ -151,7 +150,7 @@
 				console.warn(err);
 				if (window.frameElement) {
 					var $dialog = $(window.frameElement).parents('.aui-dialog');
-					var $button = $dialog.find('.aui-content .officeViewer-edit-btn button');
+					var $button = $dialog.find('#officeViewer-edit-btn button');
 				} else {
 					var $button = $('body.weboffice-page>.edit-btn button');
 				}

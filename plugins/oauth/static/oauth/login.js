@@ -36,7 +36,7 @@ ClassBase.define({
                 return location.href = './';
             }
 			var type = $(e.currentTarget).attr("data-type");
-			self.Bind.bind(type);
+			self.Bind.bindAcc(type);
 		});
     }
 

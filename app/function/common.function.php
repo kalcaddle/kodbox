@@ -1121,13 +1121,13 @@ function json_space_clear($str){
 	$str = str_replace(array('\"',"\r"),array("\\\0","\n"),$str);
 	for ($i=0; $i < strlen($str); $i++) {
 		$char = $str[$i];
-		//忽略不在字符串中的空格 tab 和换行
-		if( $quoteCount % 2 == 0 &&
-			($char == ' ' || $char == '	' || $char == "\n") ){
+		// 忽略不在字符串中的空格 tab 和换行
+		// opcache-bug ($quoteCount % 2 === 0) 奇数也进入了判断
+		if( ($quoteCount % 2 !== 1) && ($char === ' ' || $char === "\t" || $char === "\n") ){
 			continue;
 		}
-		if($char == '"'){
-			$quoteCount ++;
+		if($char === '"' && $str[$i-1] !== '\\' ){
+			$quoteCount++;
 		}
 		$result .= $char;
 	}

@@ -3,7 +3,7 @@ return array(
 	"officeViewer.meta.name"					=> "Office阅读器",
 	"officeViewer.meta.title"					=> "Office在线预览",
 	"officeViewer.meta.desc"					=> "Office文件在线预览。本应用整合了WebOffice、LibreOffice、officeLive、永中office等方式，实现office文件基本的在线预览需求。",
-	'officeViewer.meta.netwrokDesc'				=> "<h4>说明 :</h4>本应用在运行过程中，可能涉及外网请求。其中，WebOffice和LibreOffice无需请求外网，其他可能涉及的外网接口分别如下： <br/>
+	'officeViewer.meta.netwrokDesc'				=> "<h4>说明 :</h4>本应用在运行过程中，如果启用了officeLive和永中Office服务，可能涉及外网请求，接口分别如下： <br/>
 													officeLive：<br/>
 													<span class='blue-6'>https://owa-box.vips100.com</span><br/>
 													<span class='blue-6'>https://docview.mingdao.com</span><br/>
@@ -27,7 +27,7 @@ return array(
 	"officeViewer.main.invalidExt"				=> "不支持的文件格式",
 
 	"officeViewer.webOffice.name"				=> "自动解析",
-	"officeViewer.webOffice.desc"				=> "选择【自动解析】时，会首先使用<code style='color:#c7254e'>前端解析</code>方式（doc、ppt除外），如果不支持，将自动切换为下一种；<br>前端解析速度快、无需借助外网和其他服务，但部分内容可能显示不全或异常。<br><br>如果希望显示风格统一，或支持更多格式，可选择其他方式。",
+	"officeViewer.webOffice.desc"				=> "选择【自动解析】时，会优先使用<code style='color:#c7254e'>前端解析</code>方式（doc、ppt除外），如果不支持，将自动切换为下一种；<br>前端解析无需借助外网和其他服务，加载速度快，但排版与原文件有一定差异，部分内容可能显示不全或异常。<br><br>如果希望显示风格统一，或支持更多格式，可指定其他解析方式。",
 	"officeViewer.webOffice.parsing"			=> "正在解析",
 	"officeViewer.webOffice.reqErrPath"			=> "请求失败，检查文件是否正常！",
 	"officeViewer.webOffice.reqErrNet"			=> "加载时间过长，检查网络是否正常！",

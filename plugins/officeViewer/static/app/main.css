@@ -1,0 +1,20 @@
+/* 编辑按钮 */
+#officeViewer-edit-btn{
+    position:absolute;
+    z-index:999;
+    bottom:60px;right:40px;
+    visibility:hidden;
+}
+#officeViewer-edit-btn button{
+    font-size:12px;color:#666;cursor:pointer;background-color:#fff;width:55px;height:55px;
+    border-radius:100%;border:none;box-shadow:0 5px 20px rgba(0,0,0,0.15);padding:0px;
+}
+#officeViewer-edit-btn button:hover{background-color:#f5f5f5;}
+#officeViewer-edit-btn .font-icon{font-size:12px;vertical-align:text-top;}
+
+/* 插件列表 */
+.admin-page .plugin-page .app-list .app-li[data-app=yzOffice], 
+.admin-page .plugin-page .app-list .app-li[data-app=officeLive], 
+.admin-page .plugin-page .app-list .app-li[data-app=googleDocs] {
+    display: none;
+}

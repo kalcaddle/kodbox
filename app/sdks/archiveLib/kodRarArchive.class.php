@@ -35,29 +35,40 @@ class kodRarArchive {
 		}else if(strstr($os,'win') ){
 			$file .= '.exe';	// win
 		}else if(strstr($os,'linux') ){
-			$name = get_path_this($file);	// 优先调用系统服务（部分服务器无法运行kod中的执行文件）
+			// 优先调用系统服务（部分服务器无法运行kod中的执行文件）
+			$name = get_path_this($file);
+			$path = get_path_father($file);
 			$srvList = array(
 				'7z'	=> array('7z','7zr','7zz'),	// p7zip
 				'rar'	=> array('unrar'),
 			);
 			$tmpArr = isset($srvList[$name]) ? $srvList[$name] : array($name);
-			foreach ($tmpArr as $name) {
-				if(is_executable('/usr/bin/'.$name)) {
-					$tmpFile = '/usr/bin/'.$name;
+			foreach ($tmpArr as $val) {
+				if(is_executable('/usr/bin/'.$val)) {
+					$tmpFile = '/usr/bin/'.$val;
 					break;
-				}else if(is_executable('/usr/local/bin/'.$name)) {
-					$tmpFile = '/usr/local/bin/'.$name;
+				}else if(is_executable('/usr/local/bin/'.$val)) {
+					$tmpFile = '/usr/local/bin/'.$val;
 					break;
 				}
 			}
-			if (isset($tmpFile)) {$file = $tmpFile;} else {
+			if (isset($tmpFile)) {
+				$file = $tmpFile;
+			} else {
 				$result = shell_exec('apk --version');
 				if(strpos($result,'apk') !== false){	// alpine
 					$file = '/usr/bin/'.$name;	// win
 				}
 			}
+			// 系统服务不存在，调用当前软件
+			if (!file_exists($file) && isset($srvList[$name])) {
+			    $srvArr = array(
+			        '7z'	=> '7z',
+			        'rar'	=> 'rar_linux'
+			    );
+			    $file = $path . $srvArr[$name];
+			}
 		}
-		
 		
 		if(!file_exists($file)){
 			show_json('bin file not exists!',false);
