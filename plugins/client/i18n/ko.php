@@ -4,7 +4,7 @@ return array(
     "client.meta.title"              => "시스템 기능 구성 향상",
     "client.meta.desc"               => "PC 클라이언트 설정; 기타 확장 설정 향상.",
     "client.menu"                    => "클라이언트 및 앱",
-    "client.meta.setting"            => "<a target='self' link-href='./#admin/storage/client' class='kui-btn mt-10 kui-btn-blue'>구성으로 이동</a>",
+    "client.meta.setting"            => "<a target='self' link-href='./#admin/server/client' class='kui-btn mt-10 kui-btn-blue'>구성으로 이동</a>",
     "client.option.openTips"         => "현재 파일에 대한 다운로드 권한이 없으므로 로컬에서 열 수 없습니다!",
     "client.option.backupOpen"       => "동기화 켜기",
     "client.option.backupOpenDesc"   => "닫은 후에는 클라이언트가 더 이상 서버와 동기화되지 않습니다!",

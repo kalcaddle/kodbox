@@ -23,7 +23,12 @@ class impDriver {
         } else if (in_array($type, $this->ioList['s3'])) {
             include_once(__DIR__.'/DriverS3.class.php');
             $class = 'impDrvS3';
-        } 
+        } else {
+            // // 不追加此else项则调用了父类存储：PathDriverXXX
+            // include_once(__DIR__.'/DriverOTS.class.php');
+            // $class = 'impDrvOTS';
+            $class = $sfxType;
+        }
         if( !class_exists($class) ){
             throw new Exception(LNG('storeImport.main.ioNotSup').$class);
         }

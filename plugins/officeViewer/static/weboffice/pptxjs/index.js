@@ -36,25 +36,23 @@ $(function(){
         var tipsLoading = Tips.loadingMask(false,kodSdkConfig.LNG['explorer.wordLoading'],0.5);
         $('.page-box').addClass(isWap() ? 'is-in-wap' : 'not-in-wap');
         $('.page-box.not-in-wap #output').html('</div><div id="left_slides_bar"></div>');
-        $.ajax({
-            url: FILE_INFO.link,
-            type: 'head',
-            success: function(res){
-                pptxToHtml(FILE_INFO.link);
-            },
-            error: function(err){
-                if(tipsLoading){tipsLoading.close();tipsLoading = false;}
-                page.showTips(kodSdkConfig.LNG['officeViewer.webOffice.reqErrUrl']);
-            }
-        });
-        window.onerror = function (message, url, line, column, error) {
-            // if(tipsLoading){tipsLoading.close();tipsLoading = false;}
-            webOfficeAutoChange(error);
-            console.warn(message, url, line, column, error);
-        }
+        // 重写console.error方法，捕获内部异常
+        var originalConsoleError = console.error;
+        console.error = function(...args) {
+            // var error = args.join(' ');  // file url error
+            if(tipsLoading){tipsLoading.close();tipsLoading = false;}
+            page.showTips(kodSdkConfig.LNG['officeViewer.webOffice.reqErrUrl']);
+            // webOfficeAutoChange(error);
+            // 调用原始 console.error 输出
+            originalConsoleError.apply(console, args);
+        };
+        pptxToHtml(FILE_INFO.link);
+        _.delay(function(){
+            console.error = originalConsoleError;
+        },3000);
     }catch(err){
         // if(tipsLoading){tipsLoading.close();tipsLoading = false;}
-        webOfficeAutoChange(err);
+        typeof webOfficeAutoChange === 'function' && webOfficeAutoChange(err);
     }
 
     // 页面缩放比例，(当前宽/高) / (原始宽/高)，原始宽高比通常为960/720、1280/720

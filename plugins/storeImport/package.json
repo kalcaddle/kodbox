@@ -2,11 +2,11 @@
 	"id":"storeImport",
 	"name":"{{LNG['storeImport.meta.name']}}",
 	"title":"{{LNG['storeImport.meta.title']}}",
-	"version":"1.13",
+	"version":"1.14",
 	"category":"tools",
 	"hidden":1,
 	"source":{
-		"className":"font-icon ri-folder-transfer-line bg-blue-6"
+		"className":"font-icon ri-folder-received-line bg-blue-6"
 	},
 	"description":"{{LNG['storeImport.meta.desc']}}",
 	"auther":{

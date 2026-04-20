@@ -4,7 +4,7 @@ return array(
     "client.meta.title"              => "システム機能構成の強化",
     "client.meta.desc"               => "PC クライアント設定、その他の拡張設定の機能強化。",
     "client.menu"                    => "クライアントとアプリ",
-    "client.meta.setting"            => "<a target='self' link-href='./#admin/storage/client' class='kui-btn mt-10 kui-btn-blue'>設定へ移動</a>",
+    "client.meta.setting"            => "<a target='self' link-href='./#admin/server/client' class='kui-btn mt-10 kui-btn-blue'>設定へ移動</a>",
     "client.option.openTips"         => "現在のファイルに対するダウンロード権限がないため、ローカルで開くことはできません。",
     "client.option.backupOpen"       => "同期をオンにする",
     "client.option.backupOpenDesc"   => "終了後は、クライアントはサーバーとの同期をサポートされなくなります。",

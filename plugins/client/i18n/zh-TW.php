@@ -4,7 +4,7 @@ return array(
     "client.meta.title"              => "系統功能配置增強",
     "client.meta.desc"               => "PC客戶端設定; 其他擴充設定增強.",
     "client.menu"                    => "客戶及App",
-    "client.meta.setting"            => "<a target='self' link-href='./#admin/storage/client' class='kui-btn mt-10 kui-btn-blue'>去配置</a>",
+    "client.meta.setting"            => "<a target='self' link-href='./#admin/server/client' class='kui-btn mt-10 kui-btn-blue'>去配置</a>",
     "client.option.openTips"         => "目前檔案您沒有下載權限,不支援本機開啟!",
     "client.option.backupOpen"       => "開啟同步功能",
     "client.option.backupOpenDesc"   => "關閉後,不再支援客戶端同步到伺服器!",

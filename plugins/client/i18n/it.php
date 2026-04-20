@@ -4,7 +4,7 @@ return array(
     "client.meta.title"              => "Miglioramento della configurazione delle funzioni di sistema",
     "client.meta.desc"               => "Impostazioni client PC; altri miglioramenti delle impostazioni estese.",
     "client.menu"                    => "Cliente e app",
-    "client.meta.setting"            => "<a target='self' link-href='./#admin/storage/client' class='kui-btn mt-10 kui-btn-blue'>Vai alla configurazione</a>",
+    "client.meta.setting"            => "<a target='self' link-href='./#admin/server/client' class='kui-btn mt-10 kui-btn-blue'>Vai alla configurazione</a>",
     "client.option.openTips"         => "Non hai l'autorizzazione al download per il file corrente, quindi non può essere aperto localmente!",
     "client.option.backupOpen"       => "Attiva la sincronizzazione",
     "client.option.backupOpenDesc"   => "Dopo la chiusura, il client non sarà più supportato per la sincronizzazione con il server!",

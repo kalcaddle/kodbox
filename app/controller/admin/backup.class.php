@@ -12,6 +12,7 @@ class adminBackup extends Controller{
 	 * @return void
 	 */
 	public function taskInit($config=false){
+		if (MOD.'.'.ST != 'admin.backup') return;	// 仅手动操作请求可修改任务（计划任务获取的状态值可能滞后）
 		$optModel = Model('systemOption');
 		$tskModel = Model('SystemTask');
 		// 获取配置
@@ -33,9 +34,7 @@ class adminBackup extends Controller{
 		if ($config['enable'] != '1') {
 			foreach ($isTaskInit as $initKey => $initVal) {
 				if($initVal != 'ok') continue;
-				$task = $tskModel->findByKey('event', $taskEvent[$initKey]);
-				if ($task) $tskModel->remove($task['id'],true);
-				$optModel->set($initKey, '', 'backup');
+				$this->taskRemove($tskModel,$optModel,$initKey);
 			}
 			return;
 		}
@@ -58,12 +57,27 @@ class adminBackup extends Controller{
 		// 3.添加任务
 		// 授权失效后已存在的文件备份任务应该删除，考虑到内容已切换，可以不处理
 		foreach ($isTaskInit as $initKey => $initVal) {
+			// 仅sql备份时，不添加/删除文件备份任务
+			if ($initKey == $fileTaskKey && $config['content'] != 'all') {
+				if ($initVal == 'ok') {
+					$this->taskRemove($tskModel,$optModel,$initKey);
+				}
+				continue;
+			}
 			if ($initVal == 'ok') continue;
-			if ($initKey == $fileTaskKey && $config['content'] != 'all') continue;
 			$data = $this->taskInitData($initKey);
 			if(!$tskModel->add($data)) return;
 			$optModel->set($initKey,'ok','backup');
 		}
+	}
+	private function taskRemove($tskModel,$optModel,$initKey) {
+		$taskEvent = array(
+			'autoTaskInit' => 'admin.backup.autoTask',
+			'fileTaskInit' => 'admin.backup.fileTask',
+		);
+		$task = $tskModel->findByKey('event', $taskEvent[$initKey]);
+		if ($task) $tskModel->remove($task['id'],true);
+		$optModel->set($initKey, '', 'backup');
 	}
 	private function taskInitData($taskKey) {
 		$data = array(
@@ -71,7 +85,7 @@ class adminBackup extends Controller{
 				'name'	=> LNG('admin.task.backup'),
 				'type'	=> 'method',
 				'event' => 'admin.backup.autoTask',
-				'time'	=> '{"type":"day","month":"1","week":"1","day":"02:00","minute":"10"}',
+				'time'	=> '{"type":"day","day":"02:00"}',
 				'desc'	=> LNG('admin.backup.taskDbDesc'),
 				'enable' => 1,
 				'system' => 1,
@@ -80,7 +94,7 @@ class adminBackup extends Controller{
 				'name'	=> LNG('admin.task.backup').' ('.LNG('common.file').')',
 				'type'	=> 'method',
 				'event' => 'admin.backup.fileTask',
-				'time'	=> '{"type":"minute","minute":"60"}',
+				'time'	=> '{"type":"minute","minute":1}',
 				'desc'	=> LNG('admin.backup.taskFileDesc'),
 				'enable' => 1,
 				'system' => 1,

@@ -55,7 +55,7 @@ class impDrvLocal extends PathDriverLocal {
      */
 	public function listPath($path, $batchSize=100000) {
 		$path = rtrim($path, '/') . '/';
-		if (!is_dir($path)) array();
+		if (!is_dir($path)) return array();
 
 		// 使用栈手动遍历，避免递归迭代器的内存开销
 		$stack = array($path);

@@ -2,7 +2,7 @@
 	"id":"oauth",
 	"name":"{{LNG['oauth.meta.name']}}",
 	"title":"{{LNG['oauth.meta.title']}}",
-	"version":"1.15",
+	"version":"1.16",
 	"category":"tools,others",
 	"hidden":1,
 	"source":{

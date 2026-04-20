@@ -24,6 +24,27 @@ class impDrvS3 {
         }
     }
 
+    // 使用反射获取protected属性/方法
+    private function getProtMember($name) {
+        $reflectionClass = new ReflectionClass($this->instance);
+        // 先尝试获取属性
+        if ($reflectionClass->hasProperty($name)) {
+            $property = $reflectionClass->getProperty($name);
+            $property->setAccessible(true);
+            return $property->getValue($this->instance);
+        }
+        // 如果属性不存在，尝试调用方法
+        if ($reflectionClass->hasMethod($name)) {
+            $args = func_get_args(); // 获取所有传入的参数
+            array_shift($args);
+            $method = $reflectionClass->getMethod($name);
+            $method->setAccessible(true);
+            // $method->invoke($this->instance, $param);
+            return call_user_func_array([$method, 'invoke'], array_merge([$this->instance], $args));
+        }
+        throw new Exception("Property or method $name not found in " . get_class($this->instance));
+    }
+
     /**
 	 * 获取指定目录下所有列表，返回生成器
 	 * @param [type] $path
@@ -73,27 +94,6 @@ class impDrvS3 {
             }
 			if ($nextMarker === null) { break; }
 		}
-    }
-
-    // 使用反射获取protected属性/方法
-    private function getProtMember($name) {
-        $reflectionClass = new ReflectionClass($this->instance);
-        // 先尝试获取属性
-        if ($reflectionClass->hasProperty($name)) {
-            $property = $reflectionClass->getProperty($name);
-            $property->setAccessible(true);
-            return $property->getValue($this->instance);
-        }
-        // 如果属性不存在，尝试调用方法
-        if ($reflectionClass->hasMethod($name)) {
-            $args = func_get_args(); // 获取所有传入的参数
-            array_shift($args);
-            $method = $reflectionClass->getMethod($name);
-            $method->setAccessible(true);
-            // $method->invoke($this->instance, $param);
-            return call_user_func_array([$method, 'invoke'], array_merge([$this->instance], $args));
-        }
-        throw new Exception("Property or method $name not found in " . get_class($this->instance));
     }
 
     /**

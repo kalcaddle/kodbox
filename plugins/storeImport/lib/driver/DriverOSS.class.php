@@ -84,8 +84,10 @@ class impDrvOSS extends PathDriverOSS {
 				}
 				break;
 			}
-			$nextMarker = $listObjectInfo->getNextMarker() ?? '';
-			$listObject = $listObjectInfo->getObjectList() ?? array();
+			$nextMarker = $listObjectInfo->getNextMarker();
+			if (!$nextMarker) $nextMarker = '';
+			$listObject = $listObjectInfo->getObjectList();
+			if (!$listObject) $listObject = array();
 
 			// 如果列表为空且没有下一页，结束循环
 			if (empty($listObject) && $nextMarker === '') {

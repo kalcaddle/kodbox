@@ -103,7 +103,7 @@ class explorerTagGroup extends Controller{
 		$groupTagInfo = $this->groupTagGet($groupID);
 		
 		// 是否为部门管理员,继承当前文档权限( 下层权限小于上层权限, 使用下层权限)
-		if(is_array($pathInfo['auth']) && !AuthModel::authCheckRoot($pathInfo['auth']['auth'])){
+		if(is_array($pathInfo['auth']) && !AuthModel::authCheckRoot($pathInfo['auth']['authValue'])){
 			$groupTagInfo['isGroupRoot'] = false;
 		}
 		$pathInfo['sourceInfo']['isGroupRoot']   = $groupTagInfo['isGroupRoot'];	// 是否为该部门管理员

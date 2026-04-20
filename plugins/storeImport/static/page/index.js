@@ -16,7 +16,7 @@ ClassBase.define({
     showDialog: function() {
         var option = {
             id: 'store-import-dg',
-            ico: '<i class="font-icon ri-folder-transfer-line"></i>',
+            ico: '<i class="font-icon ri-folder-received-line"></i>',
             title: LNG['storeImport.meta.name'],
             width:840,height:600,
             okVal: LNG['common.ok'],

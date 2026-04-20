@@ -14,8 +14,40 @@ class clientTfaIndex extends Controller {
 		return $options;
 	}
 
+    // 是否为第三方认证登录
+    public function isSsoAuth() {
+        $cckey = 'tfa.ssologin.check';
+        $cache = Cache::get($cckey);
+        if ($cache !== false) return $cache;
+        // user.index.loginsubmit.before
+        $appList = array(
+			'ldapAccess'	=> 'action',
+			'oemBjtbc'		=> 'action',
+			'oemCasicloud'	=> 'action',
+			'oemXiaoKu'		=> 'login',
+			'tongdaOa'		=> 'action',
+		);
+		$issso = 0;
+		$model = Model('Plugin');
+		foreach ($appList as $app => $act) {
+			if (Action($app.'Plugin') && method_exists(Action($app.'Plugin'),$act)) {
+				$plugin = $model->loadList($app);
+				if ($plugin && $plugin['status'] == '1') {
+					$issso = 1; break;
+				}
+			}
+		}
+        Cache::set($cckey, $issso);
+        return $issso;
+    }
+
     // 登录成功后（尚未更新登录状态）
     public function loginAfter($user) {
+        $tfaOpen = Model('SystemOption')->get('tfaOpen');
+        if ($tfaOpen != '1') return;
+        // 仅限kod账号密码登录
+        if (ACTION != 'user.index.loginSubmit') return;
+        if ($this->isSsoAuth()) return;
         // 避免死循环
         $userInfo = Session::get('kodUser');
         if (_get($userInfo, 'userID') == $user['userID']) return;

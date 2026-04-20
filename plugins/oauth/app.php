@@ -42,7 +42,7 @@ class oauthPlugin extends PluginBase{
 				$loginWith = 'qq,weixin';	// 默认
 			}
 		}
-		$loginWith = explode(',', $loginWith);
+		$loginWith = is_array($loginWith) ? $loginWith : explode(',', $loginWith.'');
 		$loginWith = array_filter($loginWith);
 		// $options['system']['options']['loginWith'] = $loginWith;	// admin/set/get均已删除
 		$options['system']['options']['loginConfig']['loginWith'] = $loginWith;

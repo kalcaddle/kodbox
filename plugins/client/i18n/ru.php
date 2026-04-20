@@ -4,7 +4,7 @@ return array(
 	"client.meta.title"                 => "Дополнительные возможности",
 	"client.meta.desc"                  => "Настройки ПК-клиента; дополнительные расширенные настройки.",
 	"client.menu"                       => "Клиент и приложение",
-	"client.meta.setting"               => "<a target='self' link-href='./#admin/storage/client' class='kui-btn mt-10 kui-btn-blue'>Перейти к настройкам</a>",
+	"client.meta.setting"               => "<a target='self' link-href='./#admin/server/client' class='kui-btn mt-10 kui-btn-blue'>Перейти к настройкам</a>",
 	"client.option.openTips"            => "У вас нет прав на скачивание этого файла, локальное открытие недоступно!",
 	"client.option.backupOpen"          => "Включить синхронизацию",
 	"client.option.backupOpenDesc"      => "После отключения синхронизация клиента с сервером будет недоступна!",

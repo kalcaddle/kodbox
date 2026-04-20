@@ -352,7 +352,7 @@ class batchImport {
                 $parts  = explode('/', $relPath);
                 $name   = array_pop($parts);
                 $parentRel = implode('/', $parts);
-                $parentID = $parentRel === '' ? $targetID : ($this->folderMap[$parentRel] ?? null);
+                $parentID = $parentRel === '' ? $targetID : _get($this->folderMap,$parentRel,null);
                 if (!$parentID) {
                     $parentID = $this->findOrCreateParentWithCache($parentRel, $targetID);
                     if (!$parentID) continue;
@@ -584,7 +584,7 @@ class batchImport {
 
             $dir = dirname($rel);
             $dir = ($dir === '.' || $dir === '') ? '' : $dir;
-            $parentID = $this->folderMap[$dir] ?? null;
+            $parentID = _get($this->folderMap,$dir,null);
             // 如果父目录不存在，可能是没有显式的文件夹记录，尝试使用根目录
             if (!$parentID) {
                 $parentID = $this->folderMap[''];
@@ -663,7 +663,7 @@ class batchImport {
             $this->errPathFiles = array();
             return false;
         }
-        $content = IO::getContent($path) ?? '';
+        $content = IO::getContent($path);
         IO::setContent($path, $content . implode(PHP_EOL, $this->errPathFiles).PHP_EOL);
         $this->errPathFiles = array();
         return false;
@@ -758,7 +758,7 @@ class batchImport {
             // 处理新文件
             if (isset($existFiles[$pathKey])) {
                 $fileID = $existFiles[$pathKey];
-                $linkInc[$fileID] = ($linkInc[$fileID] ?? 0) + 1;
+                $linkInc[$fileID] = _get($linkInc,$fileID,0) + 1;
             } else {
                 $ioFileInsert[] = array(
                     'name'       => $item['name'],
@@ -925,12 +925,12 @@ class batchImport {
         $existingFile = $this->parentFileCache[$parentID][$name];
         // 旧文件引用-1
         if ($existingFile['fileID'] > 0) {
-            $linkDec[$existingFile['fileID']] = ($linkDec[$existingFile['fileID']] ?? 0) + 1;
+            $linkDec[$existingFile['fileID']] = _get($linkDec,$existingFile['fileID'],0) + 1;
         }
         // 新文件处理
         if (isset($existFiles[$pathKey])) {
             $newFileID = $existFiles[$pathKey];
-            $linkInc[$newFileID] = ($linkInc[$newFileID] ?? 0) + 1;
+            $linkInc[$newFileID] = _get($linkInc,$newFileID,0) + 1;
         } else {
             // 将在后面统一处理
             $newFileID = 'PENDING_REPLACE:' . $pathKey;
@@ -1156,7 +1156,7 @@ class batchImport {
             if (strpos($s['fileID'], 'PENDING:') === 0) {
                 $idx = intval(substr($s['fileID'], 8));
                 $path = $ioFileInsert[$idx]['path'];
-                $s['fileID'] = $pathToNewId[$path] ?? 0;
+                $s['fileID'] = _get($pathToNewId,$path,0);
             }
         }
     }
@@ -1168,7 +1168,7 @@ class batchImport {
         foreach ($forceFileID as &$fid) {
             if (is_string($fid) && strpos($fid, 'PENDING_REPLACE:') === 0) {
                 $path = substr($fid, 16);
-                $fid = $pathToNewId[$path] ?? 0;
+                $fid = _get($pathToNewId,$path,0);
             }
         }
     }

@@ -4,7 +4,7 @@ return array(
     "client.meta.title"              => "Sistem fonksiyon yapılandırma geliştirmesi",
     "client.meta.desc"               => "PC istemci ayarları; diğer genişletilmiş ayar geliştirmeleri.",
     "client.menu"                    => "İstemci ve Uygulama",
-    "client.meta.setting"            => "<a target='self' link-href='./#admin/storage/client' class='kui-btn mt-10 kui-btn-blue'>Yapılandırmaya git</a>",
+    "client.meta.setting"            => "<a target='self' link-href='./#admin/server/client' class='kui-btn mt-10 kui-btn-blue'>Yapılandırmaya git</a>",
     "client.option.openTips"         => "Mevcut dosya için indirme izniniz yok, bu nedenle yerel olarak açılamaz!",
     "client.option.backupOpen"       => "Senkronizasyonu aç",
     "client.option.backupOpenDesc"   => "Kapatıldıktan sonra istemcinin sunucuyla senkronizasyonu artık desteklenmeyecektir!",

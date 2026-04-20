@@ -82,7 +82,7 @@
             pageStyle(!!result.value);
         }).catch(function(err){
             // if(tipsLoading){tipsLoading.close();tipsLoading = false;}
-            webOfficeAutoChange(err);
+            typeof webOfficeAutoChange === 'function' && webOfficeAutoChange(err);
         }).done();
     });
 })();

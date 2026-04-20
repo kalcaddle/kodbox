@@ -386,11 +386,11 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 			$upload = true;
 			$path = ltrim($value,'@');
 			$filename = iconv_app(get_path_this($path));
-			$mime = get_file_mime(get_path_ext($filename));
 			if(isset($data['curlUploadName'])){//自定义上传文件名;临时参数
 				$filename = $data['curlUploadName'];
 				unset($data['curlUploadName']);
 			}
+			$mime = get_file_mime(get_path_ext($filename));
 			if (class_exists('\CURLFile')){
 				$data[$key] = new CURLFile(realpath($path),$mime,$filename);
 			}else{
@@ -570,8 +570,26 @@ function url_request_mutil($requests,$timeout=20){
 		$url 	= $request['url'];
 		$data 	= is_array($request['data']) ? http_build_query($request['data']) : $request['data'].'';
 		if(isset($request['method']) && strtoupper($request['method']) === 'POST') {
+			$bodyData = $request['data'];
+			if($bodyData && is_array($bodyData)){
+				foreach($bodyData as $key => $value){
+					if(!is_string($value) || substr($value,0,1) !== "@"){continue;}
+					$path = ltrim($value,'@');
+					$filename = iconv_app(get_path_this($path));
+					if(isset($bodyData['curlUploadName'])){//自定义上传文件名;临时参数
+						$filename = $bodyData['curlUploadName'];
+						unset($bodyData['curlUploadName']);
+					}
+					$mime = get_file_mime(get_path_ext($filename));
+					if(class_exists('\CURLFile')){
+						$bodyData[$key] = new CURLFile(realpath($path),$mime,$filename);
+					}else{
+						$bodyData[$key] = "@".realpath($path).";type=".$mime.";filename=".$filename;
+					}
+				}
+			}
 			curl_setopt($ch, CURLOPT_POST,1);
-			if($data){curl_setopt($ch, CURLOPT_POSTFIELDS,$data);}
+			if($bodyData){curl_setopt($ch, CURLOPT_POSTFIELDS,$bodyData);}
 		}else{
 			curl_setopt($ch,CURLOPT_HTTPGET,1);
 			if($data &&  strstr($url,'?')){$url = $url.'&'.$data;}

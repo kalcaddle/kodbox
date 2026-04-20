@@ -4,7 +4,7 @@ return array(
     "client.meta.title"              => "تحسين تكوين وظيفة النظام",
     "client.meta.desc"               => "إعدادات عميل الكمبيوتر الشخصي؛ تحسينات الإعدادات الموسعة الأخرى.",
     "client.menu"                    => "العميل والتطبيق",
-    "client.meta.setting"            => "<a target='self' link-href='./#admin/storage/client' class='kui-btn mt-10 kui-btn-blue'>انتقل إلى التكوين</a>",
+    "client.meta.setting"            => "<a target='self' link-href='./#admin/server/client' class='kui-btn mt-10 kui-btn-blue'>انتقل إلى التكوين</a>",
     "client.option.openTips"         => "ليس لديك إذن تنزيل للملف الحالي، لذلك لا يمكن فتحه محليًا!",
     "client.option.backupOpen"       => "تشغيل المزامنة",
     "client.option.backupOpenDesc"   => "بعد الإغلاق، لن يتم دعم العميل للمزامنة مع الخادم بعد الآن!",

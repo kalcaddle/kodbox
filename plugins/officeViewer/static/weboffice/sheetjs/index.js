@@ -36,7 +36,7 @@
             setTbHead();
             // $('body').addClass('page-loaded');
         }catch(err){
-            webOfficeAutoChange(err);
+            typeof webOfficeAutoChange === 'function' && webOfficeAutoChange(err);
         }
     });
 })();

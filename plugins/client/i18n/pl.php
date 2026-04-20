@@ -4,7 +4,7 @@ return array(
     "client.meta.title"              => "Ulepszenie konfiguracji funkcji systemu",
     "client.meta.desc"               => "Ustawienia klienta PC i inne rozszerzone udoskonalenia ustawień.",
     "client.menu"                    => "Klient i aplikacja",
-    "client.meta.setting"            => "<a target='self' link-href='./#admin/storage/client' class='kui-btn mt-10 kui-btn-blue'>Przejdź do konfiguracji</a>",
+    "client.meta.setting"            => "<a target='self' link-href='./#admin/server/client' class='kui-btn mt-10 kui-btn-blue'>Przejdź do konfiguracji</a>",
     "client.option.openTips"         => "Nie masz uprawnień do pobierania bieżącego pliku, dlatego nie można go otworzyć lokalnie!",
     "client.option.backupOpen"       => "Włącz synchronizację",
     "client.option.backupOpenDesc"   => "Po zamknięciu klient nie będzie już mógł synchronizować się z serwerem!",

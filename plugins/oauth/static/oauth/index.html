@@ -95,14 +95,15 @@
 					return {
 						title:	'An error occurred',
 						avatar:	BASE_URL + 'images/error.png',
-						msg:	result.data,
+						msg:	_.get(result, 'data', 'Unknown error.'),
 						desc:	'',
 					}
 				}
-				if (!result.data.success) {
+				if (!_.get(result,'data.success',false)) {
 					result.data.avatar = BASE_URL + 'images/error.png';
 				}
-				var msgArr = result.data.msg.split(";");
+				if (!result.data) result.data = {};
+				var msgArr = _.split(_.get(result,'data.msg','Unknown error.'),';');
 				result.data.msg = msgArr[0];
 				result.data.desc = msgArr[1] || '';
 				return result.data;

@@ -130,7 +130,7 @@ $(function(){
         try{
             callback(data);
         }catch(err){
-            webOfficeAutoChange(err);
+            typeof webOfficeAutoChange === 'function' && webOfficeAutoChange(err);
         }
     }
 });
