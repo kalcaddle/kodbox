@@ -374,7 +374,7 @@ function think_trace($value = '[think]', $label = '', $level = 'DEBUG', $record 
 	}
 	
 	$useTime = substr($info,strrpos($info,'[ RunTime:')+10,-5);
-	$_trace[$keyInfo]['timeUse'] = round($_trace[$keyInfo]['timeUse'] + $useTime,5);
+	$_trace[$keyInfo]['timeUse'] = round($_trace[$keyInfo]['timeUse'] + floatval($useTime),5);
 	$_trace[$keyInfo]['count']++;
 	
 	$timeNow  = timeFloat();$timeNowArr = explode('.',$timeNow.'000');

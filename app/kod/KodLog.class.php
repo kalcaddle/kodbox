@@ -27,7 +27,12 @@ class KodLog{
 		check_abort_now();
 		echoLog($log,$replace);
 	}
-	
+	public static function logKeep($timeout=5){
+		if(!self::$logLast){return;}
+		if(time() - self::$logLast['time'] < $timeout){return;}
+		self::log(self::$logLast['log']);
+	}
+		
 	public static function logTimeShow($timeStart,$index,$total,$logPre='',$logAfter=''){
 		$logPre   = $logPre   ? $logPre.' ':'';
 		$logAfter = $logAfter ? ';'.$logAfter:'';

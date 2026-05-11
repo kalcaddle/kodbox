@@ -32,6 +32,10 @@ class storeImportPlugin extends PluginBase{
 	// 数据导入
 	public function start(){
 		KodUser::checkRoot();
+		// 0.任务进度
+		$this->getProcess();
+
+		// 1.导入检查
 		$pathFrom = Input::get('pathFrom','require');
 		$pathTo	  = Input::get('pathTo','require');
 		$pathFrom = trim($pathFrom, '/');
@@ -41,9 +45,6 @@ class storeImportPlugin extends PluginBase{
 		if (Model('SystemOption')->get('versionType') == 'A') {
 			show_json(LNG('admin.restore.needVipTips'), false);
 		}
-
-		// 0.任务进度
-		$this->getProcess($pathFrom, $pathTo);
 
 		// 1.1 检查原始目录
 		$parse = KodIO::parse($pathFrom);
@@ -57,7 +58,7 @@ class storeImportPlugin extends PluginBase{
 		$type = strtolower($info['driver']);
 		$ioList = $this->api($pathFrom)->ioList;
 		if (!in_array($type, $ioList['sg']) && !in_array($type, $ioList['s3'])) {
-			show_json(LNG('storeImport.main.ioNotSupErr').$store['driver'], false);
+			show_json(LNG('storeImport.main.ioNotSupErr').$info['driver'], false);
 		}
 		$chks = Model('Storage')->checkConfig($info, true);
 		if ($chks !== true) {
@@ -78,11 +79,13 @@ class storeImportPlugin extends PluginBase{
 	}
 
 	// 导入进度
-	private function getProcess($pathFrom, $pathTo){
+	private function getProcess(){
 		$taskId = Input::get('taskId', 'require');
 		$task = Task::get($taskId);	// TODO task存在时为false，不存在为null，待确认
 		if (!isset($this->in['process'])) {
-			if ($task) show_json(LNG('storeImport.task.rptErr'), false);
+			if ($task) {
+				show_json(LNG('storeImport.task.rptErr'), false);
+			}
 			Cache::remove($taskId);
 			return;
 		}

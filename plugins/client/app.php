@@ -6,6 +6,7 @@ class clientPlugin extends PluginBase{
 	}
 	public function regist(){
 		$this->hookRegist(array(
+			'globalRequest'				=> 'clientPlugin.autoRun',
 			'user.commonJs.insert'		=> 'clientPlugin.echoJs',
 			'user.view.options.after'	=> 'clientPlugin.tfa.index.options',
 			'user.index.loginAfter'		=> 'clientPlugin.tfa.index.loginAfter',
@@ -14,6 +15,11 @@ class clientPlugin extends PluginBase{
 
 	public function echoJs(){
 		$this->echoFile('static/main.js');
+	}
+
+	public function autoRun(){
+		// 轻应用限制
+		Action($this->pluginName . "Plugin.tools.lightApp")->index();
 	}
 
 	// tfa相关功能

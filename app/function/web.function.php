@@ -313,6 +313,11 @@ function curl_progress_start($curl){
 	$GLOBALS['curlKodLast'] = $curl;
 	Hook::trigger('curl.progressStart',$curl);
 	think_status('curlTimeStart');
+	
+	if(GLOBAL_DEBUG){
+		$curlInfo = curl_getinfo($curl);
+		write_log("[CURL] start=".$curlInfo['url'],'curl');
+	}
 
 	// 内存缓存;
 	// $curlInfo = curl_getinfo($curl);
@@ -330,21 +335,21 @@ function curl_progress_end($curl,&$curlResult=false){
 	// 网络请求记录;
 	$curlInfo = curl_getinfo($curl);
 	think_status('curlTimeEnd');
-	$runTime = '[ RunTime:'.think_status('curlTimeStart','curlTimeEnd',6).'s ]';
-	$runInfo = "sizeUp={$curlInfo['size_upload']};sizeDown={$curlInfo['download_content_length']};";//json_encode($curlInfo)
-	think_trace(" ".$curlInfo['url'].";".$runInfo.$runTime,'','CURL');
+	$runTime = '[RunTime:'.think_status('curlTimeStart','curlTimeEnd',5).'s];';
+	$runInfo = "size={$curlInfo['size_upload']}/{$curlInfo['download_content_length']};";//json_encode($curlInfo)
+	think_trace(" ".$curlInfo['url'].";".$runTime.$runInfo,'','CURL');
 	
 	$httpCode = $curlInfo['http_code'];
 	$errorMessage = '';
-	if($curlResult && $httpCode < 200 || $httpCode >= 300){
+	if($curlResult && ($httpCode < 200 || $httpCode >= 300)){
 		$errorMessage = "curl error code=".$httpCode.'; '.curl_error($curl);		
 		$GLOBALS['curl_request_error'] = array('message'=>$errorMessage,'url'=> $curlInfo['url'],'code'=>$httpCode);
-		write_log("[CURL] code=".$httpCode.';'.$curlInfo['url'],'curl');
+		write_log("[CURL]     code=".$httpCode.";".$runTime.$runInfo.$curlInfo['url'],'curl');
 	}
 	// write_log("[CURL] ".$curlInfo['url']."; code=$httpCode;".curl_error($curl).";".get_caller_msg(),'test');
 	if(GLOBAL_DEBUG){
-		$response = strlen($curlResult) > 1000 ? substr($curlResult,0,1000).'...':$curlResult;
-		write_log("[CURL] code=".$httpCode.';'.$curlInfo['url'].";$errorMessage",'curl');
+		// $response = strlen($curlResult) > 1000 ? substr($curlResult,0,1000).'...':$curlResult;
+		write_log("[CURL]     code=".$httpCode.";".$runTime.$runInfo.$curlInfo['url'].";$errorMessage",'curl');
 	}
 }
 function curl_progress(){

@@ -610,11 +610,11 @@ return array(
     "admin.plugin.updateSelf"        => "手动更新",
     "admin.plugin.updateAll"         => "更新所有",
     "admin.plugin.installSelfDesc"   => "<h5>适用情况:</h5>
-			<li>1. 服务器不支持连接外网.</li>
-			<li>2. 虚拟主机商禁用了相关功能时(网络请求,https验证).</li>
-			<hr/>
-			<li>安装: 下载后上传解压到plugins目录(需要保留插件名的文件夹,不能修改插件名);插件中心启用即可</li>
-			<li>更新: 下载后上传解压覆盖到到对应插件名文件夹;</li>",
+<li>1. 服务器不支持连接外网.</li>
+<li>2. 虚拟主机商禁用了相关功能时(网络请求,https验证).</li>
+<hr/>
+<li>安装: 下载后上传解压到plugins目录(需要保留插件名的文件夹,不能修改插件名);插件中心启用即可</li>
+<li>更新: 下载后上传解压覆盖到到对应插件名文件夹;</li>",
     "admin.plugin.installNetworkError" => "网络错误，请检查服务器能否访问外网。",
     "admin.plugin.auth"              => "使用权限",
     "admin.plugin.authDesc"          => "设置所有人可用，或者指定用户、用户组、权限组可以使用",
@@ -670,14 +670,14 @@ return array(
     "admin.storage.moveData"         => "迁移数据",
     "admin.storage.delStore"         => "卸载存储",
     "admin.storage.ifMove"           => "该存储中包含[1]个系统存储文件，将被迁移至当前默认存储，是否继续？",
-    "admin.storage.ifDel"            => "确定要卸载当前存储吗？",
+    "admin.storage.ifDel"            => "确定要删除当前存储吗？",
     "admin.storage.ifDelWithFile"    => "该存储中包含[1]个网盘文件，删除时将被迁移至当前默认存储，是否继续？",
     "admin.storage.delErrTips"       => "成功:%s; 失败:%s，请重试或手动迁移",
     "admin.storage.delLocTips"       => "请至少保留一个本地存储",
     "admin.storage.delStoreTips"     => "该存储中包含备份数据，请处理后再进行操作！",
-    "admin.storage.ifRmBakNow"       => "该存储中包含备份数据，是否直接卸载？",
+    "admin.storage.ifRmBakNow"       => "该存储中包含备份数据，是否直接删除？",
     "admin.storage.moveErr"          => "该存储无法连接，无法完成数据迁移。",
-    "admin.storage.ifRmErrNow"       => "该存储无法连接，无法完成数据迁移。是否直接卸载？",
+    "admin.storage.ifRmErrNow"       => "该存储无法连接，无法完成数据迁移。是否直接删除？",
     "admin.storage.errNoCnt"         => "%s个物理文件不存在或无法访问",
     "admin.storage.errMoveCnt"       => "%s个文件移动失败",
     "admin.storage.errViewLog"       => "共有%s。详情请查看日志：",
@@ -685,7 +685,7 @@ return array(
     "admin.storage.tryOrRmNow"       => "您可以取消重试，或直接卸载（文件将被删除，请谨慎操作！）。",
     "admin.storage.add"              => "新增存储",
     "admin.storage.modify"           => "修改存储",
-    "admin.storage.remove"           => "卸载存储",
+    "admin.storage.remove"           => "删除存储",
     "admin.storage.move"             => "迁移存储",
     "admin.storage.name"             => "存储名称",
     "admin.storage.nameDesc"         => "存储名称，用于区分不同存储",

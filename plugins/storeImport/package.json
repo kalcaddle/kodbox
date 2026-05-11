@@ -2,7 +2,7 @@
 	"id":"storeImport",
 	"name":"{{LNG['storeImport.meta.name']}}",
 	"title":"{{LNG['storeImport.meta.title']}}",
-	"version":"1.14",
+	"version":"1.15",
 	"category":"tools",
 	"hidden":1,
 	"source":{

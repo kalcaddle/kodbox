@@ -270,7 +270,11 @@ class adminMember extends Controller{
 
 		$dataSave = array();$groupSave = false; // 仅处理变化的内容;
 		foreach($data as $key => $value) {
-			if($key == 'ioDriver'){$dataSave[$key] = $value;}
+			if($key == 'ioDriver'){
+				if (_get($userInfo,'metaInfo.ioDriver','') != $value) {
+					$dataSave[$key] = $value;
+				}
+			}
 			if($key == 'userID') continue;
 			if($value == $userInfo[$key]) continue;
 			$dataSave[$key] = $value;

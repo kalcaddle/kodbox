@@ -298,6 +298,7 @@ function echoLog($log,$replace=false){
 		ignore_timeout();
 		@ob_end_clean();
 		@header('X-Accel-Buffering: no');
+		@header('Cache-Control: no-cache');
 		$isFirst = false;
 	}
 	

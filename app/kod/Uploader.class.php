@@ -162,16 +162,18 @@ class Uploader{
 	// 上传临时目录; 优化: 默认存储io为本地时,临时目录切换到对应目录的temp/下;(减少从头temp读取->写入到存储i)
 	private function tempPathGet(){
 		// return '/mnt/usb/tmp/';
-		$tempPath = TEMP_FILES;
-		$path = isset($GLOBALS['in']['path']) ? $GLOBALS['in']['path']:'';
-		$driverInfo = KodIO::pathDriverType($path);
+		$tempPath   = TEMP_FILES;
+		$driverInfo = KodIO::pathDriverType(_get($GLOBALS['in'],'path',''));
 		if($driverInfo && $driverInfo['type'] == 'local'){
 			$truePath = rtrim($driverInfo['path'],'/').'/';
 			$isSame = KodIO::isSameDisk($truePath,TEMP_FILES);
 			if(!$isSame && file_exists($truePath)){
-				$truePath .= 'temp/';
-				mk_dir($truePath);
-				if (file_exists($truePath)) $tempPath = $truePath;
+				$pathRoot = $this->getPathMountRoot($truePath);
+				if($pathRoot){
+					$tempUpload = rtrim($pathRoot,'/').'/tmp/.kod_upload_temp/';
+					mk_dir($tempUpload);
+					if(file_exists($tempUpload)){$tempPath = $tempUpload;}
+				}
 			}
 		}
 		
@@ -180,6 +182,23 @@ class Uploader{
 			touch($tempPath.'index.html');
 		}
 		return $tempPath;
+	}
+	private function getPathMountRoot($path){
+		$path = realpath($path);
+    	if(!$path){return false;}
+		if($GLOBALS['config']['systemOS'] == 'windows'){
+			$match = preg_match('/^([A-Z]:)/i',$path, $m);
+			return $match ? $m[1] : false;
+		}else{
+			$stat = @stat($path);
+			while(($parent = dirname($path)) !== $path){
+				if(@stat($parent)['dev'] !== $stat['dev']){return $path;}
+				if($parent == '/'){return $parent;}
+				if(!$parent){break;}
+				$path = $parent;
+			}
+		}
+		return false;
 	}
 	
 	// 临时文件;

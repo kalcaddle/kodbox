@@ -204,6 +204,9 @@ ClassBase.define({
         // 2.5 完成
         if (_.get(result,'info') == '1') { // percent=1
             var msg     = _.get(result, 'data.desc') || '';
+            if (!msg && _.get(result, 'data.timeNeed')) {
+                msg = timeShow(_.get(result, 'data.timeNeed')); // 耗时
+            }
             if(msg) msg = '<span class="fl-right">'+msg+'</span>';
             var icon    = 'success';
             var title   = LNG['storeImport.task.importEnd'];
