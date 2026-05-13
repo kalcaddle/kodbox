@@ -62,7 +62,7 @@ class explorerList extends Controller{
 		if($data === false){ // 获取失败情况处理;
 			return $thePath ? false:show_json(IO::getLastError(LNG('explorer.error')),false);
 		}
-		$this->parseData($data,$path,$pathParse,$current);
+		$this->parseData($data,$path,$pathParse);
 		Action('explorer.listView')->listDataSet($data);
 		if($cacheTime > 0){Cache::set($cacheKey,$data,$cacheTime);}
 		

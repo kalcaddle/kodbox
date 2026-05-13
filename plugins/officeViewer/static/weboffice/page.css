@@ -65,32 +65,46 @@ body.weboffice-page.ol.loaded .page-box.pptx #output::before {
     width: 100px;
     z-index: 9;
 }
-body.weboffice-page.loaded .page-box.kod-luckysheet-box #output::after, 
-body.weboffice-page.loaded .page-box.kod-pptxjs-box #output::after {
-    /* content: 'xxx'; */
-    content: attr(data-content);
-    position: absolute;
-    bottom: 5px;
-    font-size: 0.85em;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 3px;
-    /* color: #f77714;
-    background: #fff3cf;
-    color: #c17500; */
-    padding: 3px 10px;
+body.weboffice-page.loaded .wb-alert {
+    /* font-size: 0.85em; */
+    left: 50%; transform: translateX(-50%);
+    bottom: 2px;
+    padding: 4px 12px;
     border-radius: 4px;
-    /* width: max-content; */
     text-align: center;
     z-index: 9999;
-	font-size:12px;min-width: 350px;
-    color: #888;background: #f6f6f6;
-    opacity: 0.9;white-space: nowrap;
+	font-size:12px;
+    min-width: 350px;
+    position: fixed;
+    background: #fffbe6;
+    border-color: #f5edc3;
+    color: #96883c;
 }
-/* body.weboffice-page.loaded .page-box.kod-luckysheet-box #output.tip-hide::after, 
-body.weboffice-page.loaded .page-box.kod-pptxjs-box #output.tip-hide::after {
-    opacity: 0;
-} */
+body.weboffice-page.loaded .wb-alert:hover span {
+    display: block;
+}
+body.weboffice-page.loaded .wb-alert span {
+    /* content: '✕'; */
+    color: #fff;
+    position: absolute;
+    background: green;
+    border-radius: 50%;
+    cursor: pointer;
+    /* top: -5px;right: -5px;
+    width: 14px;height: 14px;line-height: 14px;
+    font-size: 0.7em;
+    background: #f5edc3;
+    color: #96883c;
+    border: 1px solid #ffa500;
+    color: #ffa500;
+    font-weight: 600; */
+    top: -3px;right: -3px;
+    width: 12px;height: 12px;line-height: 12px;
+    font-size: 0.8em;
+    background: #ffa500db;
+    color: #fff;
+    display: none;
+}
 
 .weboffice-page .hidden {display: none;}
 .weboffice-page .loading-msg .loading-msg-content .loading-msg-title{font-size: 14px;}

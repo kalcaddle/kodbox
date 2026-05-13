@@ -47,12 +47,9 @@ var page = {
         var $dom = $('body.weboffice-page.loaded');
         if (!arguments[0]) $dom = $dom.find('#output');
         if (!$dom.length) return;
-        $dom.attr("data-content", kodSdkConfig.LNG['officeViewer.webOffice.warning']);
-        // // 10s关闭提示
-        // _.delay(function(){
-        //     // $dom.attr("data-content", '');
-        //     // $dom.removeClass('active');
-        //     $dom.addClass('tip-hide');
-        // }, 10000);
+        $dom.append('<div class="wb-alert">'+kodSdkConfig.LNG['officeViewer.webOffice.warning']+'<span class="font-icon ri-close-line"></span></div>');
+        $dom.on('click','.wb-alert>span', function(){
+            $(this).parent().remove();
+        });
     }
 }

@@ -107,29 +107,3 @@ body .page-box.fit-content #output{
     content: counter(li)'、';
     counter-increment: li;
 }
-
-body.weboffice-page.loaded::after {
-    /* content: 'xxx'; */
-    content: attr(data-content);
-    /* position: absolute; */
-    position: fixed;
-    bottom: 5px;
-    font-size: 0.85em;
-    left: 50%;
-    transform: translateX(-50%);
-    bottom: 3px;
-    /* color: #f77714;
-    background: #fff3cf;
-    color: #c17500; */
-    padding: 3px 10px;
-    border-radius: 4px;
-    /* width: max-content; */
-    text-align: center;
-    z-index: 9999;
-	font-size:12px;min-width: 350px;
-    color: #888;background: #f6f6f6;
-    opacity: 0.9;
-}
-/* body.weboffice-page.loaded.tip-hide::after {
-    opacity: 0;
-} */

@@ -83,7 +83,10 @@ class I18n{
 		self::setLanguage($lang);
 	}
 
-	private static function setLanguage($lang){
+	public static function setLanguageAllow(){
+		return true;
+	}
+	public static function setLanguage($lang){
 		if(!preg_match('/^[0-9a-zA-z_\-]+$/', $lang)){
 			$lang = 'zh-CN';
 		}

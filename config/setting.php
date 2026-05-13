@@ -338,6 +338,7 @@ $config['settingDefault'] = array(
 	'theme'				=> "auto",		// 'light','dark-mode','auto'
 	'themeImage' 		=> "",			// url/wallpage/css
 	'wall'				=> "4",			// wall picture
+	'language'			=> "zh-CN",		// zh-CN,en...
 	'listTypeKeep'		=> '1',			// 1|0, 为每个文件夹选择视图模式，或对所有文件夹使用相同的视图模式
 	'listSortKeep'		=> '1',			// 1|0, 为每个文件夹配置列排序顺序，或对所有文件夹使用相同的顺序
 	'menuBarAutoHide'	=> '0',			// 1|0, 左侧菜单栏自动显示和隐藏

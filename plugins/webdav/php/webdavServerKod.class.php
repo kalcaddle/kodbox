@@ -92,6 +92,13 @@ class webdavServerKod extends webdavServer {
 				ActionCall('admin.log.loginLog');
 			}
 	    }
+		
+		// 自适应多语言;
+		$lang = Model('UserOption')->get('language');
+		if($lang && method_exists('I18n','setLanguageAllow') && $lang != I18n::getType()){
+			I18n::setLanguage($lang);
+		}
+		
 		if(!$this->plugin->authCheck()){
 			$this->checkErrorHead();
 			$this->lastError = LNG('common.noPermission');
