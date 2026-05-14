@@ -83,12 +83,12 @@ chmod -Rf 777 ./*
 
 ### nginx rewrite
 ```
-# Installed in the Root Directory
+# 根目录部署
 location / {
     try_files $uri $uri/ /index.php?$query_string;
 }
 
-# Installed in a Subdirectory (e.g., /kodbox/)
+# 若为子目录部署（例如 /kodb/）
 location /kodbox/ {
     try_files $uri $uri/ /kodbox/index.php?$query_string;
 }
