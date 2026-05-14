@@ -83,10 +83,14 @@ chmod -Rf 777 ./*
 
 ### nginx rewrite
 ```
+# Installed in the Root Directory
 location / {
-  if ( !-e $request_filename){
-      rewrite ^[^index\.php](.*)$ /index.php?$1 last;
-  }
+    try_files $uri $uri/ /index.php?$query_string;
+}
+
+# Installed in a Subdirectory (e.g., /kodbox/)
+location /kodbox/ {
+    try_files $uri $uri/ /kodbox/index.php?$query_string;
 }
 ```
 
