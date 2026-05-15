@@ -83,10 +83,14 @@ chmod -Rf 777 ./*
 
 ### nginx rewrite
 ```
+# 根目录部署
 location / {
-  if ( !-e $request_filename){
-      rewrite ^[^index\.php](.*)$ /index.php?$1 last;
-  }
+    try_files $uri $uri/ /index.php?$query_string;
+}
+
+# 若为子目录部署（例如 /kodb/）
+location /kodbox/ {
+    try_files $uri $uri/ /kodbox/index.php?$query_string;
 }
 ```
 
