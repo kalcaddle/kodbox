@@ -254,7 +254,7 @@ class adminMember extends Controller{
 			}
 		}
 		// 不支持修改自己的权限角色;避免误操作;
-		if($data['userID'] == USER_ID && isset($data['roleID'])){
+		if($data['userID'] == KodUser::id() && isset($data['roleID'])){
 			$user = Session::get('kodUser');
 			if($user['roleID'] != $data['roleID']){
 				return show_json(LNG('admin.member.errEditSelfRole'),false);
@@ -262,7 +262,7 @@ class adminMember extends Controller{
 		}
 		// 禁止修改超管角色
 		$userInfo = $this->model->getInfo($data['userID']);
-		if ($data['userID'] == '1' && $data['userID'] != USER_ID) {
+		if ($data['userID'] == '1' && $data['userID'] != KodUser::id()) {
 			if(isset($data['roleID']) && $data['roleID'] != $userInfo['roleID']){
 				return show_json(LNG('admin.member.errEditSelfRole'),false);
 			}
@@ -391,93 +391,629 @@ class adminMember extends Controller{
 	}
 
 	/**
+	 * 获取用户meta信息
+	 * @return void
+	 */
+	public function metaInfo() {
+		$data = Input::getArray(array(
+			'userID'	=> array('check' => 'bigger'),
+			'metaKey'	=> array('default' => '')
+		));
+		if (empty($data['metaKey'])) {
+			show_json(array());
+		}
+		$list = $this->model->getMetaInfo($data['userID']);
+		$metaKey = explode(',', $data['metaKey']);
+		$data = array();
+		foreach ($metaKey as $key) {
+			$data[$key] = _get($list, $key, '');
+		}
+		show_json($data);
+	}
+
+	// ------------------------------------------------------------ 用户导入 start ------------------------------------------------------------
+
+	/**
 	 * 批量导入用户
 	 * @return void
 	 */
 	private function import(){
 		if(!isset($this->in['isImport'])) return;
 		set_timeout();
-		// 1.上传
-		if(empty($this->in['filePath'])) {
-			// 1.1 上传文件——返回前端：>100kb上传分多次请求，无法直接获取结果
-			if (empty($this->in['path'])) {
-				$path = IO::mkdir(TEMP_FILES . 'import_' . time());
-				$this->in['path'] = $path;
-				Action('explorer.upload')->fileUpload();
-			}
-			// 1.2 获取上传文件内容
-			$file = $this->in['path'];
-			$data = $this->getImport($file);
-			del_file($file);
-			if(empty($data['list'])) show_json(LNG('admin.member.uploadInvalid'), false);
 
-			$filename = get_path_this($file);
-			Cache::set(md5('memberImport'.$filename), $data);
-			show_json('success', true, $filename);
-		}
-		$filename = Input::get('filePath','require');
-		// 获取新增用户进度
-		$taskId = md5('import-user-'.$filename);
-		if (isset($this->in['process'])) {
-			$cache = Cache::get($taskId);
-			if ($cache) {
-				Cache::remove($taskId);
-				show_json($cache,true,1);
-			}
-			$data = Task::get($taskId);
-			show_json($data);
-		}
-		Cache::remove($taskId);
-		// 2.读取数据并新增
-		$fileData = Cache::get(md5('memberImport'.$filename));
-		Cache::remove(md5('memberImport'.$filename));
-		if(!$fileData || empty($fileData['list'])) show_json(LNG('admin.member.uploadDataInvalid'), false);
+		// 导入提交
+		$cckey = Input::get('taskID', 'require');
+		$this->importAction($cckey);
 
+		// 导入提交（首次）-检查并获取数据
+		// 1.检查参数
 		$data = Input::getArray(array(
-			'sizeMax'	=> array('check' => 'require'),
-			'roleID'	=> array('check' => 'require'),
-			'groupInfo' => array('check' => 'require'),
+			'sizeMax'		=> array('check'=>'float'),
+			"roleID"		=> array("check"=>"int"),
+			'filePath'		=> array('check'=>'require', 'aliasKey'=>'path'),
+			'importType'	=> array('default'=>'0'),
+			'metaMore'		=> array('default'=>'0'),
+			'bindField'		=> array('default'=>''),
 		));
-		$total	 = (int) $fileData['total'];
-		$task	 = new Task($taskId,'importUser',$total,LNG('admin.member.userImport'));
-		$error	 = array();
-		foreach($fileData['list'] as $value) {
-			$task->update(1);
-			if(!is_array($value)) continue;
-			$this->in = array_merge($value, $data);
-			$res = ActionCallHook('admin.member.add');
-			if (!$res['code']) $error[$this->in['name']] = $res['data'];
+		// 检查所在部门，导入设置时要求必须含要有部门/权限字段
+		$groupType = $this->in['groupType'] == 'more' ? 'more' : 'base';
+		if ($groupType != 'more') {
+			$data['groupInfo'] = Input::get('groupInfo','require');
 		}
-		$task->task['error'] = $error;
-		Cache::set($taskId, $task->task);
-		$task->end();
-		$success = $total - count($error);
-		$info = array(
-			'total'		=> $total,
-			'success'	=> $success,
-			'error'		=> $error,
-		);
-		$code  = (boolean) $success;
-		$data  = $code ? LNG('admin.member.importSuccess') : LNG('admin.member.importFail');
-		show_json($data, $code, $info);
+		// 导入方式
+		if ($data['importType'] == '1') {
+			$data['typeValue'] = Input::get('typeValue','require');
+			if ($data['typeValue'] == 'change') {
+				$data['groupChange'] = Input::get('groupChange','require');
+			}
+		}
+		// 更多字段
+		$metaKeys = array();
+		if ($data['metaMore'] == '1') {
+			$metaFields = json_decode($this->in['metaField'], true);
+			if (!is_array($metaFields)) $metaFields = array();
+			foreach ($metaFields as $item) {
+				if ($item['status'] != '1') continue;
+				if (!$item['metaKey']) continue;
+				$metaKeys[] = $item['metaKey'];
+			}
+			$metaKeys = array_unique($metaKeys);	// 过滤重名
+		}
+		// 身份匹配
+		if (!empty($data['bindField'])) {
+			$bindField = explode(',',$data['bindField']);
+			$data['bindField'] = array_intersect($bindField, $metaKeys);
+		}
+		$data['metaKeys'] = array_diff($metaKeys,array('phone','email'));	// 排除系统字段
+
+		// 2.检查文件，并下载到本地
+		$fileInfo = IO::info($data['path']);
+		if (!$fileInfo) {show_json(LNG('common.pathNotExists'), false);}
+		if (intval($fileInfo['size']) > 1024 * 1024 * 50) {
+			show_json(str_replace('[1]', '50MB', LNG('admin.member.importSizeLimit')), false);
+		}
+		mk_dir(TEMP_FILES);
+		$filename = 'import_' . USER_ID . '_' . time().'.csv';
+		$path = IO::copy($data['path'], TEMP_FILES, REPEAT_RENAME,$filename);
+		if (!$path || !file_exists($path)) {
+			show_json(LNG('admin.member.importDownErr'), false);
+		}
+
+		// 3.获取文件内容（账号列表）
+		$dataList = $this->getCsvData($path);
+		del_file($path);	// 读取完成，删除临时文件
+		if (empty($dataList)) {
+			show_json(LNG('admin.member.importEmpty'), false);
+		}
+		$userList = $this->getUserData($data, $dataList);
+		unset($dataList);
+
+		// 4.账号列表存缓存并返回提示
+		$total = count($userList);
+		$error = count(array_filter($userList, function($item) {
+			return !empty($item['error']);
+		}));
+		// 有正确项才写入缓存
+		$data = LNG('admin.member.importAllErr');
+		if ($total != $error) {
+			Cache::set($cckey, $userList);
+			$data = LNG('admin.member.importPartErr');
+			if (!$error) {
+				$data = LNG('admin.member.importStart');
+				$userList = 'total:'.$total.'; ok:'.$total;
+			}
+		}
+		show_json($data, true, $userList);
+	}
+	private function getUserData($data, $dataList) {
+		$list = array();
+		$userKeys = array('name','nickName','password','sex','phone','email','disable');
+		// 所在部门为导入设置——要求必须存在（不取默认值），否则报错
+		if (!isset($data['groupInfo'])) {
+			$userKeys[] = 'group';
+			$userKeys[] = 'groupAuth';
+		}
+		$userKeys = array_merge($userKeys, $data['metaKeys']);
+		foreach ($dataList as $lineNum => $line) {
+			// 跳过空行（行号仍与CSV文件对应）
+			$isEmpty = true;
+			foreach ($line as $val) {
+				if (trim($val) !== '') {$isEmpty = false; break;}
+			}
+			if ($isEmpty) continue;
+
+			$info = array();
+			$info['num'] = $lineNum+1;	// 行号
+			foreach ($userKeys as $idx => $key) {
+				$info[$key] = trim($line[$idx]);
+			}
+			// 检查用户信息是否有效
+			$error = $this->checkUserInfo($info);
+			// meta字段拆分
+			$info['meta'] = array();
+			foreach ($data['metaKeys'] as $key) {
+				if (!empty($info[$key])) {
+					$info['meta'][$key] = $info[$key];
+				}
+				unset($info[$key]);
+			}
+			unset($info['group'],$info['groupAuth']);
+			// groupInfo
+			if (!isset($info['groupInfo'])) {
+				$info['groupInfo'] = _get($data, 'groupInfo', '');
+			}
+			// 要求所在部门不能为空，避免导入时复杂处理（读取默认数据覆盖）
+			if (empty($error)) {
+				$groupInfo = json_decode($info['groupInfo'], true);
+				if (empty($groupInfo)) $error = LNG('admin.member.importGroupErr');
+			}
+			$info['error'] = trim($error);
+			$list[] = $info;
+		}
+		return $list;
+	}
+	private function checkUserInfo(&$info) {
+		// 临时存放手机号、邮箱，用于检测重复
+		static $tmpTypeList = null;
+		if (is_null($tmpTypeList)) {
+			$tmpTypeList = array('phone'=>array(), 'email'=>array());
+		}
+		// 账号
+		if (empty($info['name'])) return LNG('admin.member.importNameErr');
+		// 密码——身份匹配成功的账号更新时不覆盖密码，但要求密码必须填写
+		if (empty($info['password'])) return LNG('admin.member.importPwdErr');
+		// 性别
+		$info['sex'] = $info['sex'] != '0' ? 1 : 0;
+		// 手机/邮箱
+		foreach (array('phone','email') as $type) {
+			if (empty($info[$type])) continue;
+			$value = $info[$type];
+			// $info[$type] = $value = preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $value]);	// TODO 删除不可见的特殊字符，如null
+			if (isset($tmpTypeList[$type][$value])) {
+				return implode(' ', array($type,LNG('user.repeat').':',$value));
+			}
+			if (!Input::check($value, $type)) {
+				$info[$type] = '';
+			} else {
+				$tmpTypeList[$type][$value] = 1;
+			}
+		}
+		// 状态
+		$info['status'] = $info['disable'] == '1' ? 0 : 1;
+		// 所在部门和权限
+		if (isset($info['group'])) {
+			if (empty($info['group'])) return LNG('admin.member.importGroupErr');
+			if (empty($info['groupAuth'])) return LNG('admin.member.importGroupAuthErr');
+			// 根据部门路径+权限获取所在部门信息（groupInfo）
+			$groupArr = array_filter(explode(';', $info['group']));
+			$groupAuthArr = array_filter(explode(';', $info['groupAuth']));
+			if (count($groupArr) != count($groupAuthArr)) return LNG('admin.member.importGroupAuthCntErr');
+			$groupInfo = array();
+			foreach ($groupArr as $i => $groupLevel) {
+				$groupID = $this->getGroupByPath($groupLevel);
+				if (!is_numeric($groupID)) return $groupID;
+				$authID = $this->getAuthByName($groupAuthArr[$i]);
+				if (!is_numeric($authID)) return $authID;
+				$groupInfo[$groupID] = $authID;
+			}
+			$info['groupInfo'] = json_encode($groupInfo);
+		}
+		return '';
 	}
 
-	/**
-	 * 获取导入文件数据
-	 * @param [type] $file
-	 * @return void
-	 */
-	private function getImport($file){
+	// 根据部门路径获取对应id
+	private function getGroupByPath($groupLevel,$return=false) {
+		static $levelList = null;
+		if (is_null($levelList)) {
+			// 查出所有列表，拼接为完整部门路径列表=>id
+			$model = Model('Group');
+			$data = $levels = array();
+			$list = $model->field('groupID,name,parentLevel')->select();
+			foreach ($list as $item) {
+				$data[$item['groupID']] = $item['name'];
+				$tmpLevel = $model->parentLevelArray($item['parentLevel']);
+				$tmpLevel[] = $item['groupID'];
+				$levels[] = $tmpLevel;
+			}
+			$levelList = array();
+			foreach ($levels as $item) {
+				$level = array();
+				foreach ($item as $groupID) {
+					$level[] = $data[$groupID];
+				}
+				// $levelList[implode('/',$level)] = implode('/',$item);	// 同一层级下可能存在同名，属于脏数据，忽略
+				$levelList[implode('/',$level)] = end($item);
+			}
+			unset($list,$data,$levels);
+		}
+		if ($return) return $levelList;
+		$tmpLevel = implode('/',array_map('trim', explode('/',$groupLevel)));	// 重新过滤拼接
+		return _get($levelList, $tmpLevel, LNG('admin.member.importGroupPathErr').': '.$groupLevel);
+	}
+	// 根据权限名称获取id
+	private function getAuthByName($auth,$return=false) {
+		static $authList = null;
+		if (is_null($authList)) {
+			$authList = Model('Auth')->listData();
+			$authList = array_to_keyvalue($authList, 'name', 'id');
+		}
+		if ($return) return $authList;
+		return _get($authList, trim($auth), LNG('admin.member.importAuthErr').': '.$auth);
+	}
+
+	// 导入提交
+	private function importAction($cckey) {
+		$actKey = _get($this->in, 'actKey', false);
+		if (!$actKey) return;
+
+		// 1. 获取模板文件数据
+		if ($actKey == 'getTpl') {
+			$this->importTplData();
+		}
+		// 2. 获取部门level列表
+		if ($actKey == 'getGroupLevel') {
+			$groupList = $this->getGroupByPath('',true);
+			$groupList = array_flip($groupList);
+			show_json($groupList);
+		}
+
+		// 3. 清除缓存
+		if ($actKey == 'clear') {
+			Cache::remove($cckey);
+			show_json(LNG('explorer.success'));
+		}
+		// 4. 获取进度
+		$taskKey = 'task_'.$cckey;
+		if ($actKey == 'getProgress') {
+			$cache = Cache::get($taskKey);
+			if ($cache) {
+				Cache::remove($taskKey);
+				show_json($cache,true,1);
+			}
+			$data = Task::get($taskKey);
+			show_json($data);
+		}
+		if ($actKey != 'done') return;
+
+		// 5. 导入提交
+		$userList = Cache::get($cckey);
+		Cache::remove($taskKey);	// 清除任务
+		Cache::remove($cckey);		// 清除导入数据
+		if(empty($userList)) {
+			show_json(LNG('admin.member.uploadDataInvalid'), false);
+		}
+		// 开始导入
+		$data = Input::getArray(array(
+			"sizeMax" 	=> array("check"=>"float","default"=>1024*1024*100),	// 默认值
+			"roleID"	=> array("check"=>"int"),	// 默认值
+		));
+		$total	 = count($userList);
+		$task	 = new Task($taskKey,'importUser',$total,LNG('admin.member.userImport'));
+
+		$inOld = $this->in;
+		$userIds = array();
+		$list = array();
+		foreach($userList as $user) {
+			$task->update(1);
+			$tmpInfo = array(
+				'num'	=> $user['num'],
+				'name'	=> $user['name'],
+				'error'	=> ''
+			);
+			if (!empty($user['error'])) {
+				$tmpInfo['error'] = $user['error'];
+				$list[] = $tmpInfo;
+				continue;
+			}
+			// 逐条捕获异常，防止单条失败中断整个导入
+			try {
+				// 重置输入状态，避免上一条异常残留影响当前迭代
+				$this->in = $inOld;
+				$user = array_merge($data, $user);
+				// 新增 or 编辑
+				$findInfo = $this->findUserByField($user, $inOld);
+				if ($findInfo) {
+					// 不更新账户名
+					$keys = array('nickName','email','phone','sex','groupInfo','status');
+					$this->in = array_intersect_key($user, array_flip($keys));
+					$this->in['userID'] = $findInfo['userID'];
+					if ($this->in['userID'] == '1') {
+						$this->in['status'] = 1;
+					}
+					$this->in = array_filter($this->in, function($v){
+						if (!is_null($v) && $v !== '') return true;
+					});
+					// TODO 检查用户信息是否有变化，没有变化不更新：$this->hasUserChange();
+					$res = ActionCallHook('admin.member.edit');
+				} else {
+					$keys = array('name','nickName','password','roleID','email','phone','sex','groupInfo','sizeMax','status');
+					$this->in = array_intersect_key($user, array_flip($keys));
+					$res = ActionCallHook('admin.member.add');
+				}
+				
+				// 收集userID
+				$userID = 0;
+				if ($this->in['userID']) {
+					$userID = $this->in['userID'];
+				} else {
+					if ($res['code'] && $res['info']) {
+						$userID = $res['info'];
+					}
+				}
+				if ($userID) {$userIds[] = $userID;}
+
+				// 执行失败
+				if (!$res['code']) {
+					$tmpInfo['error'] = $res['data'];
+					$list[] = $tmpInfo;
+					continue;
+				}
+				// meta单独处理，也可以先判断是否需要更新
+				if (!empty($user['meta'])) {
+					foreach ($user['meta'] as $key => $value) {
+						$this->model->metaSet($userID, $key, $value);
+					}
+				}
+			} catch (\Exception $e) {
+				$tmpInfo['error'] = LNG('admin.member.importSysErr') . ': ' . $e->getMessage();
+			}
+			$list[] = $tmpInfo;
+		}
+		$this->in = $inOld;
+		$task->task['info'] = $list;
+		Cache::set($taskKey, $task->task);
+		$task->end();
+
+		// 全量导入，失效账号处理
+		$this->importAfter($userIds);
+
+		// 统计执行成功失败数量
+		$error = count(array_filter($list, function($item) {
+			return !empty($item['error']);
+		}));
+		$code = false;
+		$data = LNG('admin.member.importFail');
+		if ($total != $error) {
+			$code = true;
+			$data = LNG('admin.member.importSuccess');
+			// // 没有失败项，不返回数组——保持数组，用于前端显示
+			// if (!$error) {$list = $total;}
+		}
+		show_json($data, $code, $list);
+	}
+
+	// 全量导入后续处理
+	private function importAfter($userIds) {
+		$typeValue = $this->in['typeValue'];
+		if ($this->in['importType'] != '1' || !in_array($typeValue, array('disable','change'))) return;
+
+		// 获取需要处理的用户id；排除超管和当前用户，防止误禁用/迁移
+		$ignoreIds = array('1', strval(USER_ID));
+		$ignoreIds = array_unique($ignoreIds);
+		$excludeIds = $userIds;
+		if (!empty($excludeIds)) {
+			$excludeIds = array_merge($excludeIds, $ignoreIds);
+		} else {
+			$excludeIds = $ignoreIds;
+		}
+		// 获取列表
+		$where = array();
+		$where['userID'] = array('not in', $excludeIds);
+		if ($typeValue == 'disable') {
+			$where['status'] = 1;
+		}
+		$list = $this->model->where($where)->field('userID')->select();
+		$list = array_to_keyvalue($list, '', 'userID');
+		if (empty($list)) return;
+
+		// 1.禁用
+		$where = array('userID' => array('in', $list));
+		if ($typeValue == 'disable') {
+			return $this->model->where($where)->save(array('status' => 0));
+		}
+		// 2.迁移部门
+		$groupChange = _get($this->in, 'groupChange');	// 目标部门
+		$groupChange = json_decode($groupChange, true);
+		// 2.1 删除指定用户所在部门
+		Model('user_group')->where($where)->delete();
+		// 2.2 批量写入部门
+		$data = array();
+		foreach ($list as $userID) {
+			foreach ($groupChange as $groupID => $authID) {
+				$data[] = array(
+					'userID'	=> $userID,
+					'groupID'	=> $groupID,
+					'authID'	=> $authID,
+					'sort'		=> 0,
+				);
+			}
+		}
+		if (!empty($data)) Model('user_group')->addAll($data, array(), true);
+	}
+
+	// 根据指定字段检查用户是否存在，返回
+	private function findUserByField($user, $in){
+		// 仅全量导入时允许身份匹配查询
+		if ($this->in['importType'] != '1') return false;
+
+		// if (empty($in['bindField'])) return false;	// 没有选择绑定字段，当做不存在新增
+		$bindFields = explode(',', $in['bindField']);
+		$bindFields[] = 'name';	// 账号名兜底
+
+		$model = Model('user_meta');
+		foreach ($bindFields as $key) {
+			$key = trim($key);
+			if (!$key) continue;
+			// meta字段
+			if (!in_array($key, array('phone','email','name'))) {
+				$value = _get($user, 'meta.'.$key, false);
+				if ($value) {
+					// $findInfo = $this->model->getInfoByMeta($key, $value);
+					$info = $model->where(array('key'=>$key,'value'=>$value))->find();
+					if ($info) return $info;
+				}
+			} else { // 系统字段
+				$value = _get($user, $key, false);
+				if ($value) {
+					$info = $this->model->where(array($key => $value))->find();
+					// $findInfo = $this->model->getInfo($info['userID']);
+					if ($info) return $info;
+				}
+			}
+		}
+		return false;
+	}
+
+	// 获取导入模板数据
+	private function importTplData(){
+		// 获取字段列表
+		$data = array(
+			'name'		=> LNG('admin.member.importName'),
+			'nickName'	=> LNG('admin.member.importNickName'),
+			'password'	=> LNG('admin.member.importPwd'),
+			'sex' 		=> LNG('admin.member.importSex'),	// 1-男,0-女
+			'phone'		=> LNG('admin.member.importPhone'),
+			'email'		=> LNG('admin.member.importEmail'),
+			'disable'	=> LNG('admin.member.importDisable'),
+		);
+		if ($this->in['groupType'] == 'more') {
+			$data['group'] = LNG('admin.member.group');
+			$data['groupAuth'] = LNG('admin.authFrom.groupAt');
+		}
+		$metaKeys = array();
+		$metaIgnore = array('phone','email');
+		if ($this->in['metaMore'] == '1') {
+			$metaFields = json_decode($this->in['metaField'], true);
+			if (!is_array($metaFields)) $metaFields = array();
+			foreach ($metaFields as $item) {
+				if ($item['status'] != '1') continue;
+				if (!$item['metaKey'] || in_array($item['metaKey'], $metaIgnore)) continue;
+				$data[$item['metaKey']] = $item['title'];
+				$metaKeys[] = $item['metaKey'];
+			}
+		}
+
+		// 获取数据
+		$groupAuthList = $metaList = array();
+		if ($this->in['actValue'] == 'data') {
+			// 获取用户列表
+			$list = $this->model->field('userID,name,nickName,sex,phone,email,status')->select();
+			// 获取部门/权限列表
+			$userIds = array_to_keyvalue($list, '', 'userID');
+			$where	 = array('userID'=>array('in',$userIds));
+			$tmpList = Model('user_group')->where($where)->field('userID,groupID,authID')->select();
+			$groupList = $authList = array();
+			if (!empty($tmpList)) {
+				$groupList = $this->getGroupByPath('',true);
+				$groupList = array_flip($groupList);
+				$authList = $this->getAuthByName('',true);
+				$authList = array_flip($authList);
+			}
+			foreach ($tmpList as $item) {
+				$userID = $item['userID'];
+				if (!isset($groupAuthList[$userID])) {
+					$groupAuthList[$userID] = array();
+				}
+				$groupLevel = _get($groupList, $item['groupID'], '');
+				$authName = _get($authList, $item['authID'], '');
+				if ($groupLevel && $authName) {
+					$groupAuthList[$userID][] = array($groupLevel, $authName);
+				}
+			}
+			unset($groupList,$authList);
+	
+			// 获取meta列表
+			if (!empty($metaKeys)) {
+				$where['key'] = array('in', $metaKeys);
+				$metaList = Model('user_meta')->where($where)->field('userID,key,value')->select();
+				$tmpArr = array();
+				foreach ($metaList as $item) {
+					$userID = $item['userID'];
+					if (!isset($tmpArr[$userID])) $tmpArr[$userID] = array();
+					$tmpArr[$userID][$item['key']] = $item['value'];
+				}
+				$metaList = $tmpArr;
+				unset($tmpArr);
+			}
+		} else {
+			// 模板示例
+			$list = array(array(
+				'userID'	=> '0',
+				'name'		=> 'lilei',
+				'nickName'	=> 'Lei',
+				'password'	=> 'Li@123456',
+				'sex'		=> '1',
+				'phone'		=> '13500000000',
+				'email'		=> 'lilei@mail.com',
+				'status'	=> '1',
+			));
+			$groupAuthList = array('0' => array(
+				array(LNG('admin.member.importGroup1'), LNG('admin.auth.editor')),
+				array(LNG('admin.member.importGroup2'), LNG('admin.auth.viewer')),
+			));
+			$metaList = array('0' => array());
+			foreach ($metaKeys as $key) {
+				$metaList['0'][$data[$key]] = '';
+			}
+		}
+
+		// 生成数据
+		$userList = array(array_values($data));
+		foreach ($list as $item) {
+			$userID = $item['userID'];
+			$userInfo = array();
+			foreach ($data as $key => $value) {
+				if (empty($userInfo[$key])) { // groupAuth提前赋值，避免被覆盖
+					$userInfo[$key] = _get($item, $key, '');
+				}
+				if ($key == 'password') {
+					if (empty($userInfo['password'])) {
+						$userInfo['password'] = '******';	// 占位
+					}
+				} else if ($key == 'disable') {
+					$userInfo['disable'] = $item['status'] == '1' ? 0 : 1;
+				} else if ($key == 'group') {
+					$userInfo['group'] = $userInfo['groupAuth'] = array();
+					$groupAuth = _get($groupAuthList, $userID, array());
+					foreach ($groupAuth as $val) {
+						$userInfo['group'][] = $val[0];
+						$userInfo['groupAuth'][] = $val[1];
+					}
+					$userInfo['group'] = implode(';', $userInfo['group']);
+					$userInfo['groupAuth'] = implode(';', $userInfo['groupAuth']);
+				} else if (in_array($key, $metaKeys)) {
+					$userInfo[$key] = _get($metaList, $userID.'.'.$key, '');
+				}
+			}
+			$userList[] = array_values($userInfo);
+		}
+		foreach ($userList as &$user) {
+			// CSV注入防护：对以公式触发字符开头的单元格加单引号前缀——实际没有必要
+			foreach ($user as &$cell) {
+				$cell = filter_csv_cell($cell);
+			};unset($cell);
+			$user = "\"".implode("\",\"", $user)."\"";
+		};unset($user);
+
+		show_json($userList);
+	}
+
+	// 获取csv文件内容，去掉标题行
+	private function getCsvData($file){
 		// 1.检查并读取文件内容
-		$sep = ',';	// 分隔符
-		if (!$this->isLikelyCsv($file, $sep)) {
+		if (!is_csv_file($file)) {
 			del_file($file);
 			show_json('无效的CSV文件', false);
 		}
+		// 2.获取内容列表
 		$dataList = array();
 		$charset = get_file_charset($file);
     	$needConvert = !in_array($charset, array('utf-8','ascii'));
 		$handle = fopen($file, 'r');
+		if (!$handle) return array();
+		// 读取第一行用于获取分隔符
+		$line = fgets($handle);
+		$sep = get_csv_sep($line);
 		while (($data = fgetcsv($handle,0,$sep)) !== false) {
 			if ($needConvert) {
 				foreach ($data as $i => $val) {
@@ -487,84 +1023,10 @@ class adminMember extends Controller{
             $dataList[] = $data;
 		}
         fclose($handle);
-        unset($dataList[0]);	// 去掉标题行
+        // unset($dataList[0]);	// 去掉标题行 —— fgets已跳过首行，无需重复处理
+		return $dataList;
+	}
 
-        // 2.获取列表数据
-		$dataList = array_filter($dataList);
-        $list = array();
-        $keys = array('name'=>'','nickName'=>'','password'=>'','sex'=>1,'phone'=>'','email'=>'');
-        foreach($dataList as $value) {
-            $tmp = array();
-			$i = 0;
-            foreach($keys as $key => $val) {
-				$val = trim($value[$i]);
-				$i++;
-				if($key == 'name' && empty($val)) break;
-				if($key == 'password' && empty($val)) break;
-				if (is_null($val)) $val = '';
-                switch($key) {
-					case 'sex':
-						$val = $val != '0' ? 1 : 0;
-                        break;
-                    case 'phone':
-                    case 'email':
-						$val = preg_replace('/[\x00-\x1F\x7F-\xFF]/', '', $val);	// 删除不可见的特殊字符，如null
-						if(!Input::check($val, $key)) $val = '';
-                        break;
-                    default: break;
-                }
-                $tmp[$key] = $val;
-			}
-			if(empty($tmp['name']) || empty($tmp['password'])) continue;
-			if(isset($list[$tmp['name']])) continue;
-            $list[$tmp['name']] = array_merge($keys,$tmp);
-        }
-        return array(
-			'list'	=> array_values($list), 
-			'total' => count($list), 
-		);
-	}
-	// 检查是否为有效csv文件
-	private function isLikelyCsv($file, &$sep=','){
-		if(!is_file($file)){return false;}
-		$size = filesize($file);
-		if($size === false || $size < 1){return false;}
-		$fh = @fopen($file,'rb');
-		if(!$fh){return false;}
-		$head = @fread($fh, 8);
-		@fclose($fh);
-		if($head === false){return false;}
-		if(substr($head,0,2) === "PK"){return false;}
-		if($head === "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1"){return false;}
-		$finfo = function_exists('finfo_open') ? @finfo_open(FILEINFO_MIME_TYPE) : false;
-		if($finfo){
-			$mime = @finfo_file($finfo,$file);
-			@finfo_close($finfo);
-			if($mime && !in_array($mime,array('text/plain','text/csv','application/vnd.ms-excel'))){
-				return false;
-			}
-		}
-		$fh = @fopen($file,'r');
-		if(!$fh){return false;}
-		$line = @fgets($fh);
-		@fclose($fh);
-		if($line === false){return false;}
-		$sep = $this->getCsvSep(trim(preg_replace('/^\xEF\xBB\xBF/','',$line)));
-		$fields = array_filter(explode($sep, $line), 'strlen');
-		return count($fields) > 1;
-	}
-	// 获取csv分隔符——编辑后的csv文件不一定是默认的','
-	private function getCsvSep($line) {
-		if (empty($line)) return ',';
-		$data = array();
-		$separators = array(',', ';', ':', "\t", '|');
-		foreach ($separators as $separator) {  
-			$fields = explode($separator, $line);
-			$fields = array_filter($fields, 'trim');
-			$data[$separator] = count($fields);
-		}  
-		// 找到字段数量最多的分隔符
-		$maxCnt = max($data);  
-		return array_search($maxCnt, $data);  
-	}
+	// ------------------------------------------------------------ 用户导入 end ------------------------------------------------------------
+
 }

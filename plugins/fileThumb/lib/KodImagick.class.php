@@ -63,17 +63,21 @@ class KodImagick {
 
     // 格式是否支持
     public function isSupport($ext) {
-        // return in_array(strtolower($ext), $this->allFormats);
-        $imagick = new Imagick();
-        return in_array(strtoupper($ext), $imagick->queryFormats());
+        static $formats = null;
+        if ($formats === null) {
+            $imagick = new Imagick();
+            $formats = $imagick->queryFormats();
+            $imagick->destroy();
+        }
+        return in_array(strtoupper($ext), $formats);
     }
 
     /**
      * 图片生成缩略图
-     * @param [type] $file
-     * @param [type] $cacheFile
-     * @param [type] $maxSize
-     * @param [type] $ext
+     * @param string $file
+     * @param string $cacheFile
+     * @param int    $maxSize
+     * @param string $ext
      * @return void
      */
     public function createThumb($file, $cacheFile, $maxSize, $ext) {

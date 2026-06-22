@@ -47,10 +47,10 @@ class explorerListSafe extends Controller{
 		$pathInfo = $data['current'];
 		if(!$pathInfo || intval($this->in['page']) > 1)  return false;
 		if(!isset($pathInfo['targetType']) || !isset($pathInfo['targetID']) || !isset($pathInfo['parentID'])){return;}
-		if($pathInfo['parentID'] != 0 || $pathInfo['targetType'] != 'user' || $pathInfo['targetID'] != USER_ID) return;
+		if($pathInfo['parentID'] != 0 || $pathInfo['targetType'] != 'user' || $pathInfo['targetID'] != KodUser::id()) return;
 		if(defined('KOD_FROM_WEBDAV')){return;}
 		
-		$userInfo = Model("User")->getInfoFull(USER_ID);
+		$userInfo = Model("User")->getInfoFull(KodUser::id());
 		if(_get($data,'current.sourceID') == _get($userInfo,'metaInfo.pathSafeFolder')) return;
 		if(_get($data,'current.sourceID') != _get($userInfo,'sourceInfo.sourceID')) return;	// 仅个人空间根目录下显示
 		if(Model("UserOption")->get('pathSafeSpaceShow') != '1'){return;} // 个人设置已隐藏;
@@ -103,7 +103,7 @@ class explorerListSafe extends Controller{
 		$pathInfo = $data['current'];
 		if(!KodUser::isRoot() || !$pathInfo || !$pathInfo['sourceID']){return;}
 		if($pathInfo['parentID'] != 0 || $pathInfo['targetType'] != 'user') return;
-		if($pathInfo['targetID'] == USER_ID) return;//自己的根目录;
+		if($pathInfo['targetID'] == KodUser::id()) return;//自己的根目录;
 		$userInfo = $userInfo = Model("User")->getInfoFull($pathInfo['targetID']);
 		$userSafeSpace = _get($userInfo,'metaInfo.pathSafeFolder');
 		if(!$userSafeSpace){return;}
@@ -197,7 +197,7 @@ class explorerListSafe extends Controller{
 			return show_json($spaceInfo['listEmpty'],true);
 		}
 		
-		$userInfo = Model("User")->getInfoFull(USER_ID);
+		$userInfo = Model("User")->getInfoFull(KodUser::id());
 		$userID   = $userInfo['userID'];
 		switch ($this->in['type']){
 			case 'open':

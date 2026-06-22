@@ -331,7 +331,7 @@ class explorerAuth extends Controller {
 		}
 		
 		//个人文档；不属于自己
-		if( $targetType == 'user' && $pathInfo['targetID'] != USER_ID ){
+		if( $targetType == 'user' && $pathInfo['targetID'] != KodUser::id() ){
 			return $this->errorMsg(LNG('explorer.noPermissionAction'),1004);
 		}
 
@@ -423,6 +423,7 @@ class explorerAuth extends Controller {
 	public function checkShare($shareID,$sourceID,$method){
 		$shareInfo = Model('Share')->getInfoAuth($shareID);
 		$sharePath = $shareInfo['sourceID'].'';
+		$userID    = KodUser::id();
 		if(!$shareInfo || !$shareInfo['sourceInfo'] ){
 			return $this->errorMsg(LNG('explorer.share.notExist'));
 		}
@@ -431,9 +432,9 @@ class explorerAuth extends Controller {
 		}
 		
 		// 自己协作分享的内容; 权限同自己拥有的权限;
-		if($shareInfo['userID'] == USER_ID){
+		if($shareInfo['userID'] == $userID){
 			$sourceInfo = $shareInfo['sourceInfo'];
-			if( $sourceInfo['targetType'] == 'user' && $sourceInfo['targetID'] == USER_ID ){
+			if( $sourceInfo['targetType'] == 'user' && $sourceInfo['targetID'] == $userID ){
 				return Action('user.authRole')->canCheckRole($method);
 			}
 			if(!$shareInfo['sourceInfo']['auth']){ // 自己内部协作分享 io路径(拥有后台存储管理权限的角色)
@@ -478,7 +479,7 @@ class explorerAuth extends Controller {
 		}
 		// 自己的分享，不判断权限；协作中添加了自己或自己所在的部门；
 		if( $sourceInfo['targetType'] == SourceModel::TYPE_USER && 
-			$sourceInfo['targetID'] == USER_ID ){
+			$sourceInfo['targetID'] == $userID ){
 			return true;
 		}
 		return $this->checkAuthMethod($shareInfo['auth']['authValue'],$method);

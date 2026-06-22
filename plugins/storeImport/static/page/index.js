@@ -54,7 +54,11 @@ ClassBase.define({
                     pathTree:'{block:driver}/',
 				},
 				attr: {"placeholder":LNG['admin.storage.localStore']},
-                desc: LNG['storeImport.main.ioFromPathDesc'],
+                desc: '<div>\
+                        <span style="display: inline-block; vertical-align: top; margin-top: 10px;">'+LNG['storeImport.main.ioFromPathDesc']+'</span>\
+                        <span class="kui-btn ml-5 mt-5 mr-5 check-cnt">'+LNG['storeImport.main.checkCnt']+'</span >\
+                        <span style="display: inline-block; vertical-align: top; margin-top: 10px; color:#555;" class="value-cnt"></span>\
+                        </div>',
                 require:1
 			},
 			pathTo: {
@@ -99,6 +103,37 @@ ClassBase.define({
         // this.bind('onRemove',function(){
         //     self.formMaker && self.formMaker.objectRemove();
 		// });
+
+        // 检查原始目录数据量
+        this.formMaker.$('.item-pathFrom .check-cnt').click(function(){
+            var pathFrom = self.formMaker.getValue('pathFrom');
+            if (!pathFrom) return Tips.tips(LNG['storeImport.main.selectFromPath'], 'warning');
+
+            var $btn = $(this);
+            $btn.addClass('disable-event');
+            var tips = Tips.loadingMask(false, LNG['storeImport.main.checkCnt']+'...');
+            kodApi.requestSend('plugin/storeImport/check',{pathFrom: pathFrom},function(result) {    // &hash='+hash
+                tips && tips.close();
+                $btn.removeClass('disable-event');
+                if (!result || !result.code) return Tips.close(result);
+
+                var folders = _.get(result, 'data.folder', 0);
+                var files = _.get(result, 'data.file', 0);
+                var total = folders + files;
+
+                var html = _.replace(_.replace(LNG['storeImport.main.allCnt'],'[0]',folders),'[1]',files)
+                if (total > 4000000) {
+                    html += '<span class="red-6 ml-10">'+LNG['storeImport.main.errCnt']+'</span>';
+                } else if (total > 2000000) {
+                    html += '<span class="orange-5 ml-10">'+LNG['storeImport.main.warnCnt']+'</span>';
+                }
+                $btn.next().html(html);
+            });
+        });
+        this.formMaker.bind('onChange',function(key,value,$row){
+			if (key != 'pathFrom') return true;
+            $row.find('.desc .value-cnt').html('');
+		});
     },
     onRemove: function () {
         // TODO 触发不了，原因未知

@@ -1,4 +1,36 @@
 (function(){
+
+    // 初始化多语言
+    var initLanguge = function(){
+        var langList = _.get(G,'_lang.langList',{});
+        if (_.isEmpty(langList)) return;
+
+		var small = _.map(langList).length < 8 ? 'lang-small' : '';
+		var html = '';
+		_.each(langList,function(item, key){
+		    var langIcon = item[3] || key;
+		    var theClass = G.lang == key ? 'this' : '';
+            html += '<li>\
+                <a href="javascript:void(0);" class="'+theClass+'" data-lang="'+key+'" title="'+htmlEncode(key+'/'+item[1]+'/'+item[2])+'" >\
+                <i class="lang-flag flag-'+langIcon+'"></i>'+item[0]+'</a>\
+            </li>';
+        });
+        $('.header .language-list ul').html(html);
+        $('.header .language-list').removeClass('hidden');
+        // 多语言切换
+        $('.header .language-list').delegate('li a', 'click', function(){
+    		$(this).parents('ul').find('li a').removeClass('this');
+    		$(this).addClass('this');
+    		var lang = $(this).attr('data-lang');
+    		Cookie.set('kodUserLanguage',lang);
+    		var tips = Tips.loadingMask();
+    		kodApi.requestSend('user/view/lang&v='+time(),{},function(result){
+    		    tips.close();
+    		    window.location.reload();
+    		});
+        });
+    }
+
     // 比较版本号：7.1.19 >= 5.3
     var compareVers = function (ver1, ver2) {
         ver1 = ver1.toString();
@@ -301,6 +333,7 @@
     var tips = window.Tips ? window.Tips.loadingMask() : null;
     Events.bind('windowReady',function(){
         try {
+            initLanguge();
             // 检测是否为一键安装，一键安装直接展示账号界面
             var fast = parseInt($('.install-box .install-fast').attr('fast'));
             if(!fast) {

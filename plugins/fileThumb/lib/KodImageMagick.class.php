@@ -5,7 +5,6 @@
  */
 class KodImageMagick {
 	private $plugin;
-    private $command;
     public function __construct($plugin) {
         $this->plugin = $plugin;
     }
@@ -30,7 +29,7 @@ class KodImageMagick {
         $command = $this->getCommand();
 		if (!$command) return false;
 		$output = shell_exec($command.' -list format 2>&1');	// linux和macos下格式不同
-        if (!$output) false;	// []
+        if (!$output) return false;	// []
 
         $formats = array();
         $lines = explode("\n", trim($output));
@@ -68,10 +67,10 @@ class KodImageMagick {
 
     /**
      * 图片生成缩略图
-     * @param [type] $file
-     * @param [type] $cacheFile
-     * @param [type] $maxSize
-     * @param [type] $ext
+     * @param string $file
+     * @param string $cacheFile
+     * @param int 	 $maxSize
+     * @param string $ext
      * @return void
      */
 	// imagemagick  -density 100 //耗时间,暂时去除
@@ -151,6 +150,7 @@ class KodImageMagick {
 
         $tempPath = $this->getTmpPath($cacheFile, $tempName);
 		$this->setLctype($file,$tempPath);
+		$this->setTmpDir();
 
 		$script = $command.' '.$param.' '.escapeShell($file).' '.escapeShell($tempPath).' 2>&1';
 		$script = "export MAGICK_THREAD_LIMIT=2; {$script}";	// 限制进程数
@@ -165,9 +165,9 @@ class KodImageMagick {
 
     /**
      * 使用ffmpeg生成视频封面
-     * @param [type] $file
-     * @param [type] $cacheFile
-     * @param [type] $videoThumbTime
+     * @param string $file
+     * @param string $cacheFile
+     * @param string $videoThumbTime
      * @return void
      */
     public function createThumbVideo($file,$cacheFile,$videoThumbTime){
@@ -229,6 +229,14 @@ class KodImageMagick {
 			}
 		}
         return $tempPath;
+    }
+
+	// 设置Imagick临时目录
+    private function setTmpDir() {
+        if(!is_dir(TEMP_FILES)){mk_dir(TEMP_FILES);}
+        $path = TEMP_FILES . '/imagemagick'; mk_dir($path);
+        putenv('MAGICK_TEMPORARY_PATH='.$path);
+        putenv('MAGICK_TMPDIR='.$path);
     }
 
     // 记录日志

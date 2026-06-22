@@ -290,49 +290,49 @@ function check_code($code){
 // 立即输出内容到页面; $replace 为true代表替换输出; 支持cli模式及cli下的curl请求;
 function echoLog($log,$replace=false){
 	if($GLOBALS['echoLogDisable']){return;}
-	static $isFirst    = true;
-	static $timeBefore = false;
-	static $logOutBefore  = '';
-	static $replaceID  = '';
-	if($isFirst){
+	static $_initFirst 		= false;
+	static $_timeBefore 	= false;
+	static $_logOutBefore  	= '';
+	static $_replaceID  	= '';
+	if(!$_initFirst){
 		ignore_timeout();
 		@ob_end_clean();
 		@header('X-Accel-Buffering: no');
 		@header('Cache-Control: no-cache');
-		$isFirst = false;
+		$_initFirst = true;
 	}
 	
+	$logBefore 	= $log;
 	$timeDelay  = 0.05;// 临时替换的输出内容, 50ms内只输出一次;
-	$timeAt     = timeFloat();
-	$replaceIdBefore = $replaceID;
-	if(!$replace){$replaceID = '';}
-	if($replace){
-		$replaceID = $replaceID ? $replaceID:rand_string(10);
-		if($timeBefore && ($timeAt - $timeBefore) < $timeDelay){$logOutBefore = $log;return;}
+	$timeNow    = timeFloat();
+	$replaceIdBefore = $_replaceID;
+	$_replaceID = $replace ? ($_replaceID ? $_replaceID : rand_string(10)) : '';
+	if($replace && $_timeBefore && ($timeNow - $_timeBefore) < $timeDelay){
+		$_logOutBefore = $log;return;
 	}
-	$timeBefore = $timeAt;
+	$_timeBefore = $replace ? $timeNow:0;
 	$timeFloat 	= explode(".",mtime());
-	$timeNow 	= date("H:i:s.",time()).sprintf("%03d",substr($timeFloat[1],0,3));
+	$timeShow 	= date("H:i:s.",time()).sprintf("%03d",substr($timeFloat[1],0,3));
 	if(is_cli()){
 		// \b输出光标回退一个字符(并不清空,需要自行覆盖);\r输出光标回到行首; "\r\033[k";
 		$chrPad = "\x01";$chrBack = "\x08";//$chrPad = "\x01" "\x06" "\x1b","\x18",""
-		$padLen = $logOutBefore ? strlen(trim($logOutBefore,$chrPad)) : 0;
+		$padLen = $_logOutBefore ? strlen(trim($_logOutBefore,$chrPad)) : 0;
 		$charReplace = array('<br/>'=>"\n",'&nbsp;'=>' ',"&quot;"=>'"');$append = "\n";
 		if($replace){$charReplace = array('<br/>'=>"_|",'&nbsp;'=>' ',"&quot;"=>'"');$append = str_repeat($chrPad,2000);}
 		
-		$output = $timeNow.": ".str_replace(array_keys($charReplace),array_values($charReplace),$log);
+		$output = $timeShow.": ".str_replace(array_keys($charReplace),array_values($charReplace),$log);
 		$padLenBefore = $padLen - strlen($output);// 填充到前一次长度,清除所有显示字符(比前一行短,前一行超出部分会出现残留)	
 		$output = $output.str_pad("",$padLenBefore <= 0 ? 0 : $padLenBefore);
-		$logOutBefore = $replace ? $output:'';
+		$_logOutBefore = $replace ? $output:'';
 		// 最前面追加\r 兼容部分终端没有回退的情况;
 		@ob_end_flush();echo "\r".str_repeat($chrBack,$padLen).$output.$append;@flush();
 		return;
 	}
 	
-	// write_log([$replace,$replaceIdBefore,$log,$logOutBefore,get_caller_msg()],'test');
-	if(!$replace && $replaceIdBefore && !$log && $logOutBefore){$log = $logOutBefore;}
+	if(!$replace && $replaceIdBefore && !$log && $_logOutBefore){$log = $_logOutBefore;}
+	// write_log(json_encode(compact('replace','replaceIdBefore','_replaceID','logBefore','log','_logOutBefore')),'log');
 	if(!$log){return;} // 替换转不替换,log为空则保留前一次替换的内容;
-	$logOutBefore = '';
+	$_logOutBefore = '';
 	// 没有html标签时替换
 	if(!strstr($log,'<') && !strstr($log,'>')){
 		$log = str_replace(array(" "),array("&nbsp;"),$log);
@@ -340,12 +340,12 @@ function echoLog($log,$replace=false){
 	}
 	$timeStyle  = '<span style="display:inline-block;width:100px;font-size:12px;color:#888;font-family:monospace;padding-right:10px;">';
 	$textStyle  = '<span style="display:inline-block;font-size:14px;color:#0084fe;font-family:monospace;">';
-	$logNow 	= $timeStyle.$timeNow."</span>".$textStyle.$log.'</span>';
-	$logOut		= "<div style='white-space:nowrap;' class='line' ".($replaceID ? 'id="line-'.$replaceID.'"':'').">".$logNow."</div>";
+	$logNow 	= $timeStyle.$timeShow."</span>".$textStyle.$log.'</span>';
+	$logOut		= "<div style='white-space:nowrap;' class='line' ".($_replaceID ? 'id="line-'.$_replaceID.'"':'').">".$logNow."</div>";
 
 	// 替换输出: 针对上一次输出行进行替换; 当前不是替换输出且前一次为替换输出则移除前一行;  不干扰其他echo等输出的内容;
 	if($replace){
-		$script = 'var line=document.getElementById("line-'.$replaceID.'");';
+		$script = 'var line=document.getElementById("line-'.$_replaceID.'");';
 		$script = $script.'if(!line){document.write(`'.$logOut.'`);}else{line.innerHTML=`'.$logNow.'`;}';
 		$logOut = '<script>{'.$script.'}</script>';
 	}else if(!$replace && $replaceIdBefore){
@@ -355,6 +355,8 @@ function echoLog($log,$replace=false){
 	
 	$jsNotify = '<script>{window.top.postMessage("logChange","*");}</script>';
 	if(_get($GLOBALS['in'],'echoLogNotify') == '1'){$logOut .= $jsNotify;}
+	if($logBefore && !trim($logBefore)){$logOut = $logBefore;}
+	// write_log($logBefore,'log');
 	@ob_end_flush();echo $logOut.str_pad('',2000);flush();
 }
 
@@ -492,33 +494,94 @@ function array_set_value(&$array,$key,$value){
 	return false;
 }
 
-function _get($array,$key,$default=null){
-	return array_get_value($array,$key,$default);
+/**
+ * 数组key连接的值获取; 
+ * 支持||条件检测,返回第一个不为空的值; 支持[]数组获取;eg:  (2层数组情况: 100w次/s)
+ * _get($arr,'data.list.order') ==> $arr['data']['list']['order']
+ * _get($arr,'data.list.order||data.list.orderBy') ==> $arr['data']['list']['order'] || $arr['data']['list']['orderBy']
+ * 
+ * _get($arr,'res.pages.[].info.rows')    ==> 多个pages下的rows数组; [pages.0.rows, pages.1.rows...]
+ * _get($arr,'res.pages.[].info.rows.[]') ==> 多个pages下的rows条目合并;[pages.0.rows.0,pages.0.rows.1, pages.1.rows.0...]
+ * _get($arr,'res.pages.[].info.rows.[].text') ==> text数组;
+ */
+function _get($arr,$key,$default=null){
+	$level = array();
+	return _getWithLevel($arr,$key,$default,$level);
+}
+function _getWithLevel($arr,$key,$default=null,&$level){
+	if(!is_array($arr)) return $default;
+	if(!is_string($key) || (!$key && $key !== '0')) return $arr;
+	if(array_key_exists($key,$arr)) return $arr[$key];
+	
+	if(strpos($key,'||') !== false){
+		$keyNow   = '';
+		$keyCheckArr = explode('||',$key);
+		foreach($keyCheckArr as $keyCheck){
+			$value = array_get_value($arr,str_replace('[]','0',$keyCheck));
+			if(!is_null($value)){$keyNow = $keyCheck;break;}
+		}
+		if(!$keyNow){return $default;}
+		$key = $keyNow;
+	}
+	if(strpos($key,'[]') === false){
+		return array_get_value($arr,$key,$default);
+	}
+
+	$keys  = explode('.', $key);
+	$nodes = array($arr);
+	// 记录展开后每个条目,所在层级的索引;  同时记录初始数据的位置, 以及合并后的条目所在合并层级的位置; eg: 3层,每层五个元素, 125元素; 'output.[].layouts.[].blocks.[]'
+	// eg: {0:2,1:1,2:3,  'index0':2,'index1':11,'index2':57}; // 第一层[]为2 index0=1,第二层[]为1 index1=11;第三层[]为3 index2=57;
+	$level = array(array());$countAll = 0;$deep = 0;
+	foreach($keys as $keyItem){
+		$next = array();$nextLevel = array();
+		foreach($nodes as $nodeIndex => $node) {
+			if(!is_array($node)){continue;}
+			if($keyItem === '[]'){
+				$values = array_values($node);
+				foreach($values as $index => $value){
+					$next[] = $value;
+					$levelNew = array($deep=>$index,'index'.$deep=>$countAll++);
+					$nextLevel[] = array_merge($level[$nodeIndex],$levelNew);
+				}
+				
+			}else if(array_key_exists($keyItem,$node)){
+				$next[] = $node[$keyItem];
+				$nextLevel[] = $level[$nodeIndex];
+			}
+		}
+		if($keyItem === '[]'){$countAll = 0;$deep++;}
+		$nodes = $next;$level = $nextLevel;
+		if(empty($nodes)){return array();}
+	}
+	return $nodes;
+}
+
+function startWith($str,$check){
+	if(!is_string($str) || !is_string($check)) return false;
+	return substr($str,0,strlen($check)) === $check;
+}
+function endWith($str,$check){
+	if(!is_string($str) || !is_string($check)) return false;
+	return substr($str,-strlen($check)) === $check;
 }
 
 /**
  * 数组key连接的值获取
- * $arr  data.list.order  <==> $arr['data']['list']['order']
+ * $arr  data.list.order  <==> $arr?['data']?['list']?['order']
  */
-function array_get_value(&$array,$key,$default=null){
-	if(!is_array($array)) return $default;
-	if(isset($array[$key])) return $array[$key];
-	if(strpos($key,'.') === false){
-		return isset($array[$key]) ? $array[$key] : $default;
-	}
+function array_get_value($arr,$key,$default=null){
+	if(!is_array($arr)) return $default;
+	if(!is_string($key) || (!$key && $key !== '0')) return $arr;
+	if(array_key_exists($key,$arr)) return $arr[$key];
+	if(strpos($key,'.') === false){return isset($arr[$key]) ? $arr[$key] : $default;}
 	
-	$keyArr  = explode(".",$key);
-	$tempArr = $array;
-	$total   = count($keyArr);
-	for ($i=0; $i < $total; $i++) {
-		$k = $keyArr[$i];
-		if(!isset($tempArr[$k])) return $default;
-		if( $i+1 == $total ){
-			return $tempArr[$k];
-		}
-		$tempArr = $tempArr[$k];
-	}
-	return $default; 
+	$keys = explode('.', $key);
+	$res  = $arr;
+    foreach($keys as $keyItem){
+        if(!is_array($res) || !array_key_exists($keyItem,$res)){return $default;}
+        $res = $res[$keyItem];
+    }
+    return $res;
 }
 
 // 数组按照keyArr保持顺序;
@@ -1690,4 +1753,74 @@ function check_lang($word){
 function is_valid_date($dateString, $format = 'Y-m-d') {
     $d = DateTime::createFromFormat($format, $dateString);
     return $d && $d->format($format) === $dateString;
+}
+
+// 判断是否为有效的csv文件（非空、可读）
+function is_csv_file($file) {
+    // 1. 文件基础检查（存在、非空文件）
+    if (!is_file($file) || filesize($file) < 1) {
+        return false;
+    }
+
+    // 2. 读取前 8 字节，排除明显的二进制魔术头
+    $fh = @fopen($file, 'rb');
+    if (!$fh) return false;
+    $head = @fread($fh, 8);
+    @fclose($fh);
+    if ($head === false) return false;
+
+    if (substr($head, 0, 2) === "PK") return false;          // ZIP
+    if ($head === "\xD0\xCF\x11\xE0\xA1\xB1\x1A\xE1") return false; // OLE
+
+    // 3. $mime不可靠，可以不检查或或拦截明确的非文本格式
+    if (function_exists('finfo_open')) {
+        $finfo = @finfo_open(FILEINFO_MIME_TYPE);
+        if ($finfo) {
+            $mime = @finfo_file($finfo, $file);
+            @finfo_close($finfo);
+            $denyMimes = ['application/zip', 'application/x-zip', 'application/x-rar', 'application/pdf'];
+            if ($mime && in_array($mime, $denyMimes)) {
+                return false;
+            }
+        }
+    }
+
+    // 4. 尝试读取第一行，确保文件至少有一行可读文本（非空）
+    $fh = @fopen($file, 'r');
+    if (!$fh) return false;
+    $line = @fgets($fh);
+    @fclose($fh);
+    if ($line === false) return false;
+
+    // 去除 BOM 和首尾空白，检查是否为空行
+    $line = preg_replace('/^\xEF\xBB\xBF/', '', $line);
+    $line = trim($line);
+    return $line !== '';   // 此处保留非空检查，若想放宽可改为 return true;
+}
+// 根据csv行内容获取分隔符
+function get_csv_sep($line, $default = ',') {
+    // 先去除 BOM 和首尾空白
+    $line = preg_replace('/^\xEF\xBB\xBF/', '', $line);
+    $line = trim($line);
+    if ($line === '') {
+        return $default;
+    }
+    $separators = array(',', ';', ':', "\t", '|');
+    $counts = array();
+    foreach ($separators as $sep) {
+        $fields = str_getcsv($line, $sep);
+        $counts[$sep] = count($fields);
+    }
+    $max = max($counts);
+    $best = array_keys($counts, $max);
+    return $best[0] ?? $default;
+}
+// csv单元格注入防护：防止Excel等打开时执行恶意公式
+function filter_csv_cell($value){
+	if (!is_string($value) || $value === '') return $value;
+	$first = $value[0];
+	if (in_array($first, array('=', '@', '+', '-'))) {
+		$value = "'" . $value;
+	}
+	return $value;
 }

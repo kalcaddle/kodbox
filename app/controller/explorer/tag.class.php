@@ -112,7 +112,7 @@ class explorerTag extends Controller{
 		static $listPathMap = false;
 		static $tagInfoArr  = false;
 		if($listPathMap === false){ // 缓存处理;
-			$this->modelSource->cacheFunctionClear('listData',USER_ID);
+			$this->modelSource->cacheFunctionClear('listData',KodUser::id());
 			$listPathMap = $this->modelSource->listData(); // model查询缓存;			
 			$listPathMap = array_to_keyvalue_group($listPathMap,'path','tagID');
 			$tagInfoArr  = $this->model->listData();

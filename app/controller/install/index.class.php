@@ -76,8 +76,9 @@ class installIndex extends Controller {
             );
 			if($this->in['full'] == '1'){
 				$options['_lang'] = array(
-					"list"	=> I18n::getAll(),
-					"lang"	=> I18n::getType(),
+					"list"	    => I18n::getAll(),
+					"lang"	    => I18n::getType(),
+                    "langList"  => $this->config['settingAll']['language']
 				);
 			}
             show_json($options);
@@ -542,8 +543,10 @@ class installIndex extends Controller {
         $pathWrt = true;
 		$pathList = array(BASIC_PATH, DATA_PATH, DATA_PATH.'system');
         foreach ($pathList as $value) {
-            if(!path_writeable($value)) $pathWrt = false;
-            break;
+            if(!path_writeable($value)) {
+                $pathWrt = $value;  // 显示具体的无权限目录
+                break;
+            }
         }
         $env['path_writable'] = $pathWrt ? $pathWrt : rtrim(BASIC_PATH, '/');
         show_json($env);
@@ -908,7 +911,7 @@ class installIndex extends Controller {
      * 初始化数据
      */
     public function sysInit(){
-        define('USER_ID',1);
+		KodUser::init(1);
         Cache::deleteAll();
         $this->systemDefault();
 		$this->storageDefault();

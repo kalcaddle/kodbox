@@ -900,11 +900,11 @@ class adminRepair extends Controller {
 			// 1.将标记为删除的数据写入回收站
 			$recModel = Model('SourceRecycle');
 			$sql = "insert into io_source_recycle (targetType, targetID, sourceID, userID, parentLevel, createTime) 
-					(select targetType, targetID, sourceID, ".USER_ID.", parentLevel, UNIX_TIMESTAMP()
+					(select targetType, targetID, sourceID, ".KodUser::id().", parentLevel, UNIX_TIMESTAMP()
 					from io_source where sourceID in (".implode(',', $ids)."))";
 			$recModel->execute($sql);
 			// 2.获取写入回收站的parentLevel
-			$where = array('userID'=>USER_ID, 'sourceID'=>array('in',$ids));
+			$where = array('userID'=>KodUser::id(), 'sourceID'=>array('in',$ids));
 			$list = $recModel->where($where)->field('parentLevel')->select();
 			$list = array_unique(array_to_keyvalue($list, '', 'parentLevel'));
 			// 3.根据parentLevel获取sourceID，重置对应目录大小
@@ -952,7 +952,7 @@ class adminRepair extends Controller {
 		$maxId = $model->max('id');
 
 		$sql = "insert into io_source_recycle (targetType, targetID, sourceID, userID, parentLevel, createTime) 
-				(select s.targetType, s.targetID, s.sourceID, ".USER_ID.", s.parentLevel, UNIX_TIMESTAMP()
+				(select s.targetType, s.targetID, s.sourceID, ".KodUser::id().", s.parentLevel, UNIX_TIMESTAMP()
 				from io_source as s 
 				left join io_source_recycle as r on s.sourceID = r.sourceID 
 				where s.isDelete = 1 and r.sourceID is null)";
@@ -961,7 +961,7 @@ class adminRepair extends Controller {
 		    echoLog('目录数据正常，无需处理。');exit;
 		}
 		// $maxId = 1014;
-		$where = array('userID'=>USER_ID, 'id'=>array('>',$maxId));
+		$where = array('userID'=>KodUser::id(), 'id'=>array('>',$maxId));
 		$list = $model->where($where)->field('parentLevel')->select();
 		$list = array_unique(array_to_keyvalue($list, '', 'parentLevel'));
 
@@ -1012,7 +1012,7 @@ class adminRepair extends Controller {
         }
 		// 1.任务
 		$recycleModel = Model('SourceRecycle');
-		$where = array("userID"=>USER_ID);
+		$where = array("userID"=>KodUser::id());
 		$total = $recycleModel->where($where)->count();
 		if (!$total) {
 		    echoLog('当前回收站为空，无需处理。'); exit;
@@ -1059,18 +1059,18 @@ class adminRepair extends Controller {
 
 		// 3.清空回收站时,重新计算大小; 一小时内不再处理;
 		echoLog('开始更新个人空间占用...');
-		Model('Source')->targetSpaceUpdate(SourceModel::TYPE_USER,USER_ID);
-		$cacheKey = 'autoReset_'.USER_ID;
+		Model('Source')->targetSpaceUpdate(SourceModel::TYPE_USER,KodUser::id());
+		$cacheKey = 'autoReset_'.KodUser::id();
 		Cache::set($cacheKey,time());
 		$USER_HOME = KodIO::sourceID(MY_HOME);
 		Model('Source')->folderSizeResetChildren($USER_HOME);
-		Model('Source')->userSpaceReset(USER_ID);
+		Model('Source')->userSpaceReset(KodUser::id());
 		echoLog('执行完成！');
 	}
 	// 文件移动; 耗时任务;
 	private function taskCopyCheck($list){
 		$list = is_array($list) ? $list : array();
-		$taskID = 'copyMove-'.USER_ID.'-'.rand_string(8);
+		$taskID = 'copyMove-'.KodUser::id().'-'.rand_string(8);
 		
 		$task = new TaskFileTransfer($taskID,'copyMove');
 		$task->update(0,true);//立即保存, 兼容文件夹子内容过多,扫描太久的问题;
@@ -1097,7 +1097,7 @@ class adminRepair extends Controller {
 		// 查询回收站文件列表
 		$list = Model('SourceRecycle')->alias('r')->field('r.sourceID,s.fileID')
 				->join("INNER JOIN io_source AS s ON r.sourceID = s.sourceID")
-				->where(array("r.userID"=>USER_ID))
+				->where(array("r.userID"=>KodUser::id()))
 				->select();
 		if (empty($list)) {
 			echoLog('当前回收站为空，无需处理。'); exit;

@@ -316,7 +316,7 @@ function curl_progress_start($curl){
 	
 	if(GLOBAL_DEBUG){
 		$curlInfo = curl_getinfo($curl);
-		write_log("[CURL] start=".$curlInfo['url'],'curl');
+		write_log("[".$curlInfo['effective_method']."] ".$curlInfo['url'],'curl');
 	}
 
 	// 内存缓存;
@@ -327,7 +327,7 @@ function curl_progress_start($curl){
 	// 	return $GLOBALS['curlCacheResult'][$curlInfo['url']];
 	// }
 }
-function curl_progress_end($curl,&$curlResult=false){
+function curl_progress_end($curl,&$body=false){
 	$GLOBALS['curlKodLastTime'] = 0;
 	$GLOBALS['curlKodLast'] = false;
 	Hook::trigger('curl.progressEnd',$curl);
@@ -335,21 +335,23 @@ function curl_progress_end($curl,&$curlResult=false){
 	// 网络请求记录;
 	$curlInfo = curl_getinfo($curl);
 	think_status('curlTimeEnd');
-	$runTime = '[RunTime:'.think_status('curlTimeStart','curlTimeEnd',5).'s];';
+	$runTime = '[ RunTime:'.think_status('curlTimeStart','curlTimeEnd',5).'s];';
 	$runInfo = "size={$curlInfo['size_upload']}/{$curlInfo['download_content_length']};";//json_encode($curlInfo)
-	think_trace(" ".$curlInfo['url'].";".$runTime.$runInfo,'','CURL');
+	think_trace(" ".$curlInfo['url'].";".$runInfo.$runTime,'','CURL');
 	
 	$httpCode = $curlInfo['http_code'];
 	$errorMessage = '';
-	if($curlResult && ($httpCode < 200 || $httpCode >= 300)){
+	if($body && ($httpCode < 200 || $httpCode >= 300)){
 		$errorMessage = "curl error code=".$httpCode.'; '.curl_error($curl);		
 		$GLOBALS['curl_request_error'] = array('message'=>$errorMessage,'url'=> $curlInfo['url'],'code'=>$httpCode);
 		write_log("[CURL]     code=".$httpCode.";".$runTime.$runInfo.$curlInfo['url'],'curl');
 	}
 	// write_log("[CURL] ".$curlInfo['url']."; code=$httpCode;".curl_error($curl).";".get_caller_msg(),'test');
 	if(GLOBAL_DEBUG){
-		// $response = strlen($curlResult) > 1000 ? substr($curlResult,0,1000).'...':$curlResult;
-		write_log("[CURL]     code=".$httpCode.";".$runTime.$runInfo.$curlInfo['url'].";$errorMessage",'curl');
+		$response = is_string($body) ? substr($body,0,300).'...': '';
+		$response = preg_replace("/\s+/"," ",$response);
+		$response = str_replace(array(', "',': "',' { ','{ "'),array(',"',':"','{','{"'),$response);
+		write_log("[CURL]     code=".$httpCode.";".$runTime.$runInfo." out=".$response,'curl');
 	}
 }
 function curl_progress(){
@@ -496,12 +498,12 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 	if(is_array($options)){
 		curl_setopt_array($ch, $options);
 	}
-	$response = curl_exec($ch);curl_progress_end($ch,$response);
+	$response = curl_exec($ch);
 	$header_size = curl_getinfo($ch,CURLINFO_HEADER_SIZE);
 	$response_info = curl_getinfo($ch);
 	$http_body   = substr($response, $header_size);
 	$http_header = substr($response, 0, $header_size);
-	$http_header = parse_headers($http_header);
+	$http_header = parse_headers($http_header);curl_progress_end($ch,$http_body);
 	if(is_array($http_header)){
 		$http_header['kod_add_request_url'] = $url;
 	}
@@ -613,6 +615,7 @@ function url_request_mutil($requests,$timeout=20){
 		}
 		
 		curl_setopt($ch, CURLOPT_URL,$url);
+		curl_setopt($ch, CURLOPT_HEADER, 1);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER,true);
 		curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
 		curl_setopt($ch, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
@@ -644,12 +647,15 @@ function url_request_mutil($requests,$timeout=20){
 	$results = array();
 	foreach($handles as $index => $ch){
 		$info = curl_getinfo($ch);
-		$body = curl_multi_getcontent($ch);
+		$response = curl_multi_getcontent($ch);
+		$headerSize = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
+		$body 		= substr($response, $headerSize);
 		$results[$index] = array(
 			'data' 	=> $body,
-			'info' 	=> $info,
 			'status'=> $info['http_code'] >= 200 && $info['http_code'] <= 299,
 			'code'	=> $info['http_code'],
+			'header'=> parse_headers(substr($response,0,$headerSize)),
+			'info'	=> $info,
 		);
 		curl_progress_end($ch,$body);
 		curl_multi_remove_handle($mh, $ch);

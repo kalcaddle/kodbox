@@ -110,7 +110,7 @@
 			var editBtnDialog = function(){
 				var _$ = false;
 				try {_$ = window.parent.$;}catch(error){return;}
-				var $dialog = _$(window.frameElement).parents('.aui-content');
+				var $dialog = _$(window.frameElement).parents('.aui-content-iframe');
 				var data = base64Encode(jsonEncode({path:FILE_INFO.path, name:FILE_INFO.name, ext:FILE_INFO.ext}));
 				var $button = _$('<div id="officeViewer-edit-btn">\
 					<button data="'+data+'"><i class="font-icon ri-edit-line-2"></i>'+kodSdkConfig.LNG['common.edit']+'</button></div>').appendTo($dialog);

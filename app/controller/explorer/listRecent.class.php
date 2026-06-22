@@ -87,7 +87,7 @@ class explorerListRecent extends Controller{
 		return $result;
 	}
 	private function listRecentWith($timeType,&$result){
-		$userID = USER_ID;
+		$userID = KodUser::id();
 		$userInfo = Model('User')->getInfo($userID);
 		$where  = array(
 			'targetType'	=> SourceModel::TYPE_USER,

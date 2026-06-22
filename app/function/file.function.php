@@ -642,7 +642,9 @@ function move_path($source,$dest,$repeat_add='',$repeat_type='replace'){
  */
 function mk_dir($dir, $mode = 0755){
 	if (!$dir) return false;
-	if (is_dir($dir) || @mkdir($dir, $mode)){
+	if (is_dir($dir) ) return true;
+	if (@mkdir($dir, $mode)){
+		@chmod($dir,$mode);
 		return true;
 	}
 	$pdir = dirname($dir);	// 避免根目录死循环
@@ -651,7 +653,9 @@ function mk_dir($dir, $mode = 0755){
 			return false;
 		}
 	}
-	return @mkdir($dir, $mode);
+	$res = @mkdir($dir, $mode);
+	@chmod($dir,$mode);
+	return $res;
 }
 
 /*
@@ -1042,7 +1046,7 @@ function write_log($log, $type = 'default', $level = 'log'){
 	list($usec, $sec) = explode(' ', microtime());
 	$now_time = date('[H:i:s.').substr($usec,2,3).' id-'.REQUEST_ID.']';
 	$target   = LOG_PATH . strtolower($type) . '/';
-	mk_dir($target);
+	mk_dir($target,_get($GLOBALS,'config.DEFAULT_PERRMISSIONS',0777));
 	if (!path_writeable($target)){
 		return;// 日志写入失败不处理;
 		exit('path can not write! ['.$target.']');

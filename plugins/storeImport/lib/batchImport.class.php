@@ -8,6 +8,8 @@ class batchImport {
     private $sModel;
     private $fModel;
 
+    private $impTask;
+
     private $targetType;
     private $targetID;
     private $targetLevel;
@@ -839,7 +841,7 @@ class batchImport {
 
     // 更新任务进度
     private function updateTaskCnt($cnt) {
-        $cnt = floor($cnt / 4);    // 4处调用，所以每次仅更新1/4
+        $cnt = floor($cnt / 3);    // 4处调用，所以每次仅更新1/4 —— 更新为3，取消preloadFilesForParents下的调用
         $this->tmpFileCnt += $cnt;
         $this->impTask->update($cnt, true);
     }
@@ -957,20 +959,27 @@ class batchImport {
         $ext = pathinfo($baseName, PATHINFO_EXTENSION);
         $ext = $ext ? ".$ext" : '';
 
+        // 保留已有的缓存名称，避免覆盖丢失
+        $cached = isset($this->renameCache[$cacheKey]) ? $this->renameCache[$cacheKey] : array();
+        $needed = $count - count($cached);
+
         $names = array();
-        $i = 1;
-        $maxTries = 1000; // 防止无限循环
-        while (count($names) < $count && $i <= $maxTries) {
-            $newName = "{$base} ({$i}){$ext}";
-            if (!isset($this->parentFileNames[$parentID][$newName])) {
-                $names[] = $newName;
+        if ($needed > 0) {
+            $i = 1;
+            $maxTries = 1000; // 防止无限循环
+            while (count($names) < $needed && $i <= $maxTries) {
+                $newName = "{$base} ({$i}){$ext}";
+                if (!isset($this->parentFileNames[$parentID][$newName])) {
+                    $names[] = $newName;
+                }
+                $i++;
             }
-            $i++;
         }
 
-        // 缓存剩余的名称（不清除）
-        $this->renameCache[$cacheKey] = $names;
-        return $names;
+        // 合并已有缓存和新生成的名称，缓存本次未使用的剩余名称
+        $merged = array_merge($cached, $names);
+        $this->renameCache[$cacheKey] = array_slice($merged, $count);
+        return array_slice($merged, 0, $count);
     }
 
     /**
@@ -1007,7 +1016,7 @@ class batchImport {
             );
             $list = $this->sModel->where($where)->field('sourceID,fileID,name,parentID')->select();
             if (!$list) $list = array();
-            $this->updateTaskCnt(count($batch));
+            // $this->updateTaskCnt(count($batch));
 
             // 构建缓存
             foreach ($list as $file) {
@@ -1285,7 +1294,7 @@ class batchImport {
 
             $beforeMemory = memory_get_usage();
 
-            // 1. 清理路径缓存
+            // 1. 清理路径缓存（各批次文件路径一般不重复，FIFO截断安全，最坏情况仅多一次DB查询）
             if (count($this->pathCache) > 100000) {
                 $this->writeLog("清理pathCache，从 " . count($this->pathCache) . " 条清理到 50000 条");
                 $this->pathCache = array_slice($this->pathCache, -50000, null, true);

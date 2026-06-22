@@ -37,10 +37,7 @@ class userIndex extends Controller {
 		$this->loginCheck();
 		Model('Plugin')->init();
 		Action('filter.index')->trigger();
-		if(!defined("USER_ID")){
-			$userID = Session::get("kodUser.userID");$userID = 0;
-			define("USER_ID",$userID ? $userID:0);
-		}
+		KodUser::init(0);
 	}
 	public function shutdownEvent(){
 		$GLOBALS['requestShutdownGlobal'] = true;// 请求结束后状态标记;
@@ -180,13 +177,13 @@ class userIndex extends Controller {
 		
 		// 计划任务处理; 目录读写所有者为系统;
 		if( strtolower(ACTION) == 'user.view.call'){
-			define('USER_ID',0);
+			KodUser::init(0);
 			define('MY_HOME','');
 			define('MY_DESKTOP','');
 			return;
 		}
 				
-		define('USER_ID',$this->user['userID']);
+		KodUser::init($this->user['userID']);
 		define('MY_HOME',KodIO::make($this->user['sourceInfo']['sourceID']));
 		define('MY_DESKTOP',KodIO::make($this->user['sourceInfo']['desktop']));
 	}
@@ -425,7 +422,7 @@ class userIndex extends Controller {
 	 */
 	public function apiSignMake($action,$args,$timeout=false,$appKey='',$uriIndex=false){
 		$appSecret = $this->appKeySecret($appKey);
-		if(!$appSecret || !USER_ID){ // 外链分享等情况
+		if(!$appSecret || !KodUser::id()){ // 外链分享等情况
 			return APP_HOST.'index.php?'.$action.'&'.http_build_query($args);
 		}
 		
@@ -441,7 +438,7 @@ class userIndex extends Controller {
 		}
 		$signToken = md5(implode(';',$signArr));//解密时获取
 		$acionKey  = hash_encode(implode(';',$keyList));
-		$actionToken = Mcrypt::encode(USER_ID,$signToken,0,md5($appSecret)); // 避免url变化,无法缓存问题;
+		$actionToken = Mcrypt::encode(KodUser::id(),$signToken,0,md5($appSecret)); // 避免url变化,无法缓存问题;
 		$param .= 'actionToken='.$actionToken.'&actionKey='.$acionKey;
 		// 包含index.php; (跨域时浏览器请求options, 避免被nginx拦截提前处理)
 		if($uriIndex){return APP_HOST.'index.php?'.$action.'&'.$param;}

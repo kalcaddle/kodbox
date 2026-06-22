@@ -218,7 +218,7 @@ class userSetting extends Controller {
 		}
 
 		$path = KodIO::systemFolder('avataImage');
-		$image = 'avata-'.USER_ID.'.'.$ext;	// jpg
+		$image = 'avata-'.KodUser::id().'.'.$ext;	// jpg
 		$pathInfo 	= IO::infoFullSimple($path.'/'.$image);
 		if($pathInfo){
 			IO::remove($pathInfo['path'], false);
@@ -238,7 +238,7 @@ class userSetting extends Controller {
 		if(strpos($link, APP_HOST) !== 0) {
 			show_json(LNG('common.illegalRequest'), false);
 		}
-		$userID = USER_ID;
+		$userID = KodUser::id();
 		$link = str_replace(APP_HOST, './', $link);
 		if(!$this->model->userEdit($userID, array("avatar" => $link))) {
 			show_json(LNG('explorer.upload.error'), false);
@@ -356,14 +356,14 @@ class userSetting extends Controller {
 	// 个人登录设备
 	public function userDevice(){
 		$fromTime = time() - 3600 * 24 * 30 * 3;//最近3个月;
-		$res = Model('SystemLog')->deviceList(USER_ID,$fromTime);
+		$res = Model('SystemLog')->deviceList(KodUser::id(),$fromTime);
 		show_json($res);
 	}
 	
 	// 当前账号在线设备列表;
 	public function userLoginList(){
 		$sign = Session::sign();
-		$arr  = Action("filter.userLoginState")->userListLoad(USER_ID);
+		$arr  = Action("filter.userLoginState")->userListLoad(KodUser::id());
 		$arr[$sign]['isSelf'] = true;
 		foreach ($arr as $key => $item) {
 			$arr[$key]['address'] = IpLocation::get($item['ip']);
@@ -373,16 +373,16 @@ class userSetting extends Controller {
 	// 踢下线某个登录设备;
 	public function userLogoutSet(){
 		$sign = Input::get('sign', null, null);
-		Action("filter.userLoginState")->userLogoutTrigger(USER_ID,$sign);
+		Action("filter.userLoginState")->userLogoutTrigger(KodUser::id(),$sign);
 		show_json(LNG('explorer.success'));
 	}
 
-	public function taskList(){ActionCall('admin.task.taskList',USER_ID);}
-	public function taskKillAll(){ActionCall('admin.task.taskKillAll',USER_ID);}
+	public function taskList(){ActionCall('admin.task.taskList',KodUser::id());}
+	public function taskKillAll(){ActionCall('admin.task.taskKillAll',KodUser::id());}
 	public function taskAction(){
 		$result = ActionCall('admin.task.taskActionRun',false);
 		if( !is_array($result['taskInfo'])){show_json(LNG('common.notExists'),false,'taskEmpty');}
-		if( $result['taskInfo']['userID'] != USER_ID){show_json('User error',false);}
+		if( $result['taskInfo']['userID'] != KodUser::id()){show_json('User error',false);}
 		show_json($result['result'],true);
 	}
 	public function notice(){

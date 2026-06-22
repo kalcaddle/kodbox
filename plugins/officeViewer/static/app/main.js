@@ -40,7 +40,10 @@ kodReady.push(function(){
 			_.each(appList, function(item){
 				if(_.includes(appSupport, item.name)){appType = item.name;}
 			});
-			if(appType){$(this).parent().css('visibility','visible');}
+			if(appType){
+				$box = $(this).parent();
+				_.delay(function(){$box.css('visibility','visible');}, 3000);
+			}
 			$(this).attr('apptype',appType || '');
 			return;
 		}

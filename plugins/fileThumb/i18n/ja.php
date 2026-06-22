@@ -9,7 +9,7 @@ return array(
     "fileThumb.config.file"          => "ファイルの関連付け設定",
     "fileThumb.config.use"           => "ファイルのサムネイル生成など",
     "fileThumb.config.test"          => "接続テスト",
-    "fileThumb.config.help"          => "サービス展開マニュアル",
+    "fileThumb.config.help"          => "利用説明",
     "fileThumb.config.convertTips"   => "ビデオ再生時に自動的にトランスコードする",
     "fileThumb.config.videoOpen"     => "ビデオトランスコーディングを有効にする",
     "fileThumb.config.videoOpenDesc" => "電源をオンにすると、ビデオを再生するときに自動的にトランスコードされます",

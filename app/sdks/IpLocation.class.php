@@ -5,7 +5,7 @@
  * 数据更新:https://gitee.com/lionsoul/ip2region
  */
 class IpLocation {
-	public static function get($ip){
+	public static function get($ip, $raw=false){
 		if(!$ip) return LNG('common.unknow');
 		static $obj;
 		if(!$obj){
@@ -15,6 +15,7 @@ class IpLocation {
 		}
 		if(count(explode(':',$ip)) > 2) return 'IPV6';
 		$address = $obj->memorySearch($ip);// memorySearch/btreeSearch
+		if ($raw) return _get($address, 'region', LNG('common.unknow'));	// 返回原始数据
 		return self::parseAddress($address['region']);
 	}
 	

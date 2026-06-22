@@ -408,7 +408,7 @@ class adminLog extends Controller{
 			"sourceTarget"  => $sourceID,
 			'pathName'		=> $sourceInfo['name'],
 			'pathDisplay'	=> !empty($sourceInfo['pathDisplay']) ? $sourceInfo['pathDisplay'] : '',
-			"userID" 		=> USER_ID,
+			"userID" 		=> KodUser::id(),
 			"type" 			=> 'view',
 			"desc"		    => $this->filterIn(),
 		);

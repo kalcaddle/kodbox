@@ -9,7 +9,7 @@ class impDrvLocal extends PathDriverLocal {
 
 	/**
 	 * 获取指定目录下所有列表，返回生成器
-	 * @param [type] $path
+	 * @param string $path
 	 * @return void
 	 */
 	public function listAll($path, &$result = array()) {
@@ -49,7 +49,7 @@ class impDrvLocal extends PathDriverLocal {
 
 	/**
      * 按批次获取文件列表（生成器）
-     * @param [type] $path
+     * @param string $path
      * @param integer $batchSize
      * @return void
      */

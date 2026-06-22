@@ -148,7 +148,7 @@ class explorerIndex extends Controller{
 			
 			// 设置文件夹密码,自动设置密码用户为当前用户;
 			if(isset($metaArr['folderPassword'])){
-				$metaArr['folderPasswordUser'] = $metaArr['folderPassword'] ? USER_ID:null;
+				$metaArr['folderPasswordUser'] = $metaArr['folderPassword'] ? KodUser::id():null;
 			}
 			$this->model->metaSet($info['sourceID'],$metaArr);
 			show_json(IO::info($data['path']),true);
@@ -190,12 +190,12 @@ class explorerIndex extends Controller{
 		if($pathInfo['targetType'] != 'group') return;
 		if($systemOption['sourceSecret'] != '1') return;
 		$allowUser  = explode(',',$systemOption['sourceSecretSetUser']);
-		if(!KodUser::isRoot() && !in_array(USER_ID,$allowUser)) return;
+		if(!KodUser::isRoot() && !in_array(KodUser::id(),$allowUser)) return;
 		
 		$sourceID = $pathInfo['sourceID'];
 		$model = Model('SourceSecret');
 		$find  = $model->findByKey('sourceID',$sourceID);
-		$data  = array('sourceID'=>$sourceID,'typeID'=>$sourceSecret,'createUser'=>USER_ID);
+		$data  = array('sourceID'=>$sourceID,'typeID'=>$sourceSecret,'createUser'=>KodUser::id());
 		if($sourceSecret){
 			if($find){$model->update($find['id'],$data);}
 			if(!$find){$model->insert($data);}
@@ -338,7 +338,7 @@ class explorerIndex extends Controller{
 		$selfAuth = _get($pathInfo,'auth.authInfo.id');
 		$authList = array();
 		foreach($auth as $item){
-			if( $item['targetID'] == USER_ID && 
+			if( $item['targetID'] == KodUser::id() && 
 				$item['targetType'] == SourceModel::TYPE_USER){
 				continue;
 			}
@@ -346,7 +346,7 @@ class explorerIndex extends Controller{
 		}
 		if(!$authList || !$selfAuth) return $authList;
 		$authList[] = array(
-			'targetID' 	=> USER_ID, 
+			'targetID' 	=> KodUser::id(), 
 			'targetType'=> SourceModel::TYPE_USER,
 			'authID' 	=> $selfAuth
 		);
@@ -462,13 +462,13 @@ class explorerIndex extends Controller{
 		Action('explorer.recycleDriver')->remove($pathArr);
 
 		// 清空回收站时,重新计算大小; 一小时内不再处理;
-		Model('Source')->targetSpaceUpdate(SourceModel::TYPE_USER,USER_ID);
-		$cacheKey = 'autoReset_'.USER_ID;
+		Model('Source')->targetSpaceUpdate(SourceModel::TYPE_USER,KodUser::id());
+		$cacheKey = 'autoReset_'.KodUser::id();
 		if(isset($this->in['all']) && time() - intval(Cache::get($cacheKey)) > 3600 * 10 ){
 			Cache::set($cacheKey,time());
 			$USER_HOME = KodIO::sourceID(MY_HOME);
 			Model('Source')->folderSizeResetChildren($USER_HOME);
-			Model('Source')->userSpaceReset(USER_ID);
+			Model('Source')->userSpaceReset(KodUser::id());
 		}
 		show_json(LNG('explorer.success'));
 	}
@@ -666,7 +666,7 @@ class explorerIndex extends Controller{
 	// 文件移动; 耗时任务;
 	private function taskCopyCheck($list){
 		$list = is_array($list) ? $list : array();
-		$defaultID = 'copyMove-'.USER_ID.'-'.rand_string(8);
+		$defaultID = 'copyMove-'.KodUser::id().'-'.rand_string(8);
 		$taskID = $this->in['longTaskID'] ? $this->in['longTaskID']:$defaultID;
 		
 		$task = new TaskFileTransfer($taskID,'copyMove');
@@ -795,7 +795,7 @@ class explorerIndex extends Controller{
 	
 	private function taskZip($list){
 		$list = is_array($list) ? $list : array();
-		$defaultID = 'zip-'.USER_ID.'-'.rand_string(8);
+		$defaultID = 'zip-'.KodUser::id().'-'.rand_string(8);
 		$taskID = $this->in['longTaskID'] ? $this->in['longTaskID']:$defaultID;
 		$task = new TaskZip($taskID,'zip');
 		$task->update(0,true);//立即保存, 兼容文件夹子内容过多,扫描太久的问题;
@@ -805,7 +805,7 @@ class explorerIndex extends Controller{
 		return $task;
 	}
 	private function taskUnzip($path){
-		$defaultID = 'unzip-'.USER_ID.'-'.rand_string(8);
+		$defaultID = 'unzip-'.KodUser::id().'-'.rand_string(8);
 		$taskID = $this->in['longTaskID'] ? $this->in['longTaskID']:$defaultID;
 		$task = new TaskUnzip($taskID,'zip');
 		$task->update(0,true);//立即保存，部分解压方式不触发任务更新，导致进度获取失败

@@ -62,7 +62,10 @@
     margin-top: 20px;
     /* font-size: 22px; */
     font-size: 20px;
-    color: #888;
+    /* color: #888; */
+
+    color: #555;
+    font-weight: 600;
 }
 
 .install-box .form-target-save .setting-title{
@@ -100,6 +103,7 @@
     text-align: center; */
     color: #949494;
     flex: 1;
+    font-size: 14px;
 }
 .progress-box div .btm-line {
     width: 99%;
@@ -264,4 +268,67 @@
 }
 .aero:before{
 	background-image: url(../../../../../static/images/wall_page/2.jpg);
+}
+
+/* 多语言 */
+.header {display: flex;}
+.header .lang-box .menu-group {
+	position: absolute;
+	/*top: 5px;left: 5px;*/
+	top:20px; right: 20px;
+	z-index: 10;
+	font-weight: 400;
+}
+.header .lang-box .menu-group a i.font-icon {
+	padding-right: 5px;
+}
+.header .lang-box .language-list .language-menu {
+	background: #2196F3;
+	background: rgba(255, 255, 255, 0.2);
+	color: #fff;
+	border-radius: 2px;
+	height: 26px;
+	line-height: 26px;
+	cursor: pointer;
+	padding: 0px 10px;
+	display: inline-block;
+	text-align: center;
+	text-decoration: none;
+}
+.header .lang-box .open .language-menu,.language-menu:active,
+.header .lang-box .open .language-menu,.language-menu:hover {
+	background: #63acff;
+	color: #fff;
+}
+.header .lang-box .language-list .dropdown-menu {
+	width: 365px;padding:10px 5px 10px 10px;
+	/*left:0;*/
+	overflow: auto;
+	border-radius: 0 3px 3px 3px;
+	margin-top: -1px;
+	margin-left: 0px;border: none;
+	right: 0;
+			
+}
+.header .lang-box .language-list .dropdown-menu li {
+	float: left;width: 120px;
+	margin: 0 1px 1px 0;
+}
+.header .lang-box .language-list .dropdown-menu li a {
+    padding:3px 3px 3px 5px;
+	border-radius: 2px;
+	overflow: hidden;text-overflow: ellipsis;
+}
+.header .lang-box .language-list .dropdown-menu li a.this, 
+.header .lang-box .language-list .dropdown-menu li a.focus, 
+.header .lang-box .language-list .dropdown-menu li a.hover, 
+.header .lang-box .language-list .dropdown-menu li a.active {
+    background: #63acff;
+	filter: none;color: #fff;	
+}
+.header .lang-box .language-list .dropdown-menu.lang-small {
+	width: 155px;padding: 10px 0px;
+}
+.header .lang-box .language-list .dropdown-menu.lang-small li {
+    width: auto;float: none;margin: 0;margin-top: 1px;
 }

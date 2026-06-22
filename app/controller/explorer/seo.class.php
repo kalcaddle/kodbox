@@ -44,7 +44,7 @@ class explorerSeo extends Controller{
 			header('HTTP/1.1 404 Not Found');
 			return show_tips("Not allow robots!");
 		}
-		if(!defined("USER_ID")){define("USER_ID",0);}
+		KodUser::init(0);
 		switch(ST){
 			case 'index': $this->shareList();exit;break;
 			case 'share': $this->shareView(ACT);exit;break;

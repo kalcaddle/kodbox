@@ -27,6 +27,7 @@ class KodImaginary {
     private $urlKey;
     private $defQuality = 85;
     private $defFormat = 'jpeg';    // jpg不支持；png支持，但大小为jpeg的10+倍
+    private $image;
 
     public function __construct($plugin){
         $this->plugin = $plugin;
@@ -54,10 +55,10 @@ class KodImaginary {
 
     /**
      * 图片生成缩略图
-     * @param [type] $file
-     * @param [type] $cacheFile
-     * @param [type] $maxSize
-     * @param [type] $ext
+     * @param string $file
+     * @param string $cacheFile
+     * @param int    $maxSize
+     * @param string $ext
      * @return void
      */
     public function createThumb($file,$cacheFile,$maxSize,$ext) {
@@ -96,7 +97,7 @@ class KodImaginary {
     
     /**
      * 获取图片信息，类getimagesize格式
-     * @param [type] $file
+     * @param string $file
      * @return void
      */
     public function getImgSize($file, $ext='') {
@@ -124,12 +125,14 @@ class KodImaginary {
 
     /**
      * 图片处理请求
-     * @param [type] $path
-     * @param [type] $data
+     * @param string $path
+     * @param array $data
      * @param boolean $post
-     * @return void
+     * @return array
      */
     private function imgRequest($path, $data, $post=array(), $ext='') {
+        $this->checkRateLimit(); // 并发限制
+
         // key必须作为url参数传递，否则报错：Invalid or missing API key
         if (!empty($this->apiKey)) {
             $data['key'] = $this->apiKey;
@@ -151,11 +154,27 @@ class KodImaginary {
 		}
         $data = json_decode($rest['data'],true);
         if (!$rest['status'] || $rest['code'] != 200) {
-            $msg = _get($data, 'message', 'unknown error');
+            if (!$data && $rest['data']) {
+                $msg = trim($rest['data']);
+            } else {
+                $msg = _get($data, 'message', 'unknown error');
+            }
+            $msg = "[{$rest['code']}] ".$msg;
             $this->log("imaginary {$path} error: [{$this->image}] " . $msg);
             return false;
         }
         return $data ? $data : $rest['data'];
+    }
+
+    // 并发限制（默认配置10），仅对队列有效（同一进程）
+    private function checkRateLimit(){
+        static $lastCall = 0;
+        $minInterval = 0.2; // 200ms → 5 req/s
+        $now = timeFloat();
+        if ($now - $lastCall < $minInterval) {
+            usleep(intval(($minInterval - ($now - $lastCall)) * 1000000));
+        }
+        $lastCall = timeFloat();
     }
 
     /**
@@ -179,6 +198,7 @@ class KodImaginary {
     public function parsePathUrl($url) {
         $parse1 = parse_url($url);
         $parse2 = parse_url($this->apiUrl);
+        if (!$parse1 || !$parse2) return $url;
         if ($parse1['host'] != $parse2['host']) {
             if ($parse1['host'] == 'localhost') {
                 $server = new ServerInfo();

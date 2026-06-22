@@ -32,6 +32,12 @@ return array(
 											<li>5. 建议<u>单次导入数据量不要超过100万条</u>，网盘存放目录为空，避免数据过多导致内存溢出。</li>
 										</div>
 										<div>注意：<u>文件路径长度超过255个字符会被限制导入</u>，列表记录在网盘存放目录下的“导入失败文件(长度超255字符)”目录中，可在导入完成后查看并自行处理。</div>",
+	'storeImport.main.checkCnt'		=> "检查数量",
+	'storeImport.main.selectFromPath'=> "请选择原始目录",
+	'storeImport.main.allCnt'		=> "[0]个文件夹，[1]个文件",
+	'storeImport.main.errCnt'		=> "数据量过大，将会导致内存溢出，请务必分批导入",
+	'storeImport.main.warnCnt'		=> "数据量较大，建议分批导入",
+
 
 	'storeImport.task.rptErr'		=> "任务执行中，请勿重复操作！",
 	'storeImport.task.subErr'		=> "任务进行中，请勿重复提交！",

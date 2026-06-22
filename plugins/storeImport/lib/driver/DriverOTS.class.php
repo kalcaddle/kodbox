@@ -47,7 +47,7 @@ class impDrvOTS {
 
 	/**
 	 * 获取指定目录下所有列表，返回生成器
-	 * @param [type] $path
+	 * @param string $path
 	 * @return void
 	 */
 	public function listAll($path, &$result = array()) {
@@ -56,7 +56,7 @@ class impDrvOTS {
 
 	/**
      * 按批次获取文件列表（生成器）——对其他各存储类不再分别实现，直接获取全部列表分块返回（会占用更多内存）
-     * @param [type] $path
+     * @param string $path
      * @param integer $batchSize
      * @return void
      */

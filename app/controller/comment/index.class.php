@@ -34,7 +34,7 @@ class commentIndex extends Controller {
 		$list = $this->model->listData($data);
 		
 		// 自动标记已读;
-		if(USER_ID && !$data['idFrom'] && !!$data['idTo']){
+		if(KodUser::id() && !$data['idFrom'] && !!$data['idTo']){
 			Action("comment.topic")->read();
 		}		
 		show_json($list,!!$list);
@@ -50,7 +50,7 @@ class commentIndex extends Controller {
 			"content"       => array("check"=>"require"),
 			"pid"           => array("check"=>"number","default"=>0),
 		));
-		$data['userID'] = USER_ID;
+		$data['userID'] = KodUser::id();
 		$result = $this->model->addComment($data);
 		show_json($result,true);
 	}
@@ -134,7 +134,7 @@ class commentIndex extends Controller {
 	
 	// 自己的评论;
 	public function listSelf(){
-		$data   = array('userID'=>USER_ID);
+		$data   = array('userID'=>KodUser::id());
 		$list   = $this->model->listData($data);
 		show_json($list,!!$list);
 	}

@@ -67,9 +67,15 @@ body.weboffice-page.ol.loaded .page-box.pptx #output::before {
 }
 body.weboffice-page.loaded .wb-alert {
     /* font-size: 0.85em; */
-    left: 50%; transform: translateX(-50%);
+    /* left: 50%; transform: translateX(-50%); */
+    left: 0;right: 0;margin: 0 auto;
+    width: fit-content;
+    max-width: calc(100% - 40px);
+    box-sizing: border-box;
+
     bottom: 2px;
-    padding: 4px 12px;
+    /* padding: 4px 12px; */
+    padding: 4px 10px;
     border-radius: 4px;
     text-align: center;
     z-index: 9999;
@@ -113,17 +119,11 @@ body.weboffice-page.loaded .wb-alert span {
     position: fixed;
     right: 20px;
     z-index: 999;
-
-    bottom: 60px;
-    right: 40px;
     display: none;
+    top: 3px; right: 15px;
 }
 .weboffice-page.edit-mode.loaded>.edit-btn {
     display: block;
-}
-.weboffice-page>.edit-btn.lky {
-    right: 18px;
-    top: 3px;
 }
 .weboffice-page>.edit-btn button {
     font-size: 12px;
@@ -132,24 +132,26 @@ body.weboffice-page.loaded .wb-alert span {
     background-color: #fff;
     border-radius: 4px;
 
-    width: 55px;
-    height: 55px;
-    border-radius: 100%;
-    border: none;
-    box-shadow: 0 5px 20px rgb(0 0 0 / 15%);
-}
-.weboffice-page>.edit-btn.lky button {
-    border-color: #7ec1ff;
-    color: #7ec1ff;
+    border-radius: 4px;
+    color: #fff;
+    color: #1890ff;
+    padding: 3px 10px;
+    /* border: 1px solid #007cee; */
+    border: 1px solid #1890ff;
+    /* background: #1890ff; */
+    background: #fff;
+
+    /* background: #1890ff20; */
 }
 .weboffice-page>.edit-btn button:hover,
 .weboffice-page>.edit-btn button:focus,
 .weboffice-page>.edit-btn button:active {
-    background-color: #f9f9f9;
-    box-shadow: 0 5px 20px rgb(0 0 0 / 20%);
+    background: #def;
+    /* background: #1890ff40; */
 }
-.weboffice-page>.edit-btn button i {
+.weboffice-page>.edit-btn button .font-icon {
     vertical-align: text-top;
+    margin-right: 2px;
 }
 
 /* iframe下的 loading 框 */

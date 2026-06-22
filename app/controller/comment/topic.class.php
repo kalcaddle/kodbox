@@ -90,7 +90,7 @@ class commentTopic extends Controller {
 
 	// 某讨论主题已读; 用户/部门
 	private function readItem($targetType,$targetID){
-		$key   = "userChatReadLast_".USER_ID;
+		$key   = "userChatReadLast_".KodUser::id();
 		$topic = Cache::get($key);
 		$topic = $topic ? $topic : array();
 		$where = array(
@@ -107,11 +107,11 @@ class commentTopic extends Controller {
 	// 主题只包含: 用户,部门,关注文档; 群聊; [数据自动构建;] 没有评论过也会有该主题;
 	private function chatTopic(){return array();
 		$field = 'targetType,targetID';
-		$where = array("userID"=> USER_ID);
+		$where = array("userID"=> KodUser::id());
 		$topic = $this->model->field($field)->where($where)->group($field)->select();
 		
 		$topicList = array();
-		$topicRead = Cache::get("userChatReadLast_".USER_ID);
+		$topicRead = Cache::get("userChatReadLast_".KodUser::id());
 		foreach($topic as $item){
 			$id = $item['targetType'].'_'.$item['targetID'];
 			$item['readLast'] = isset($topicRead[$id]) ? $topicRead[$id]:0;

@@ -185,7 +185,8 @@
     /* top: 36%;
     left: 90px; */
     transform: scale(1) !important;
-    z-index: 999999;
+    /* z-index: 999999; */
+    z-index: 99;
     color: #ff8040;
     top: 50%;
     left: 50%;
@@ -204,7 +205,8 @@
     top: 0;
     height: 100%;
     cursor: url(images/arr_left.cur), auto;
-    z-index: 999999;
+    /* z-index: 999999; */
+    z-index: 99;
 }
 .not-in-wap .slide-right-icon{
     position: absolute;
@@ -213,7 +215,8 @@
     top: 0;
     height: 100%;
     cursor: url(images/arr_right.cur), auto;
-    z-index: 999999;
+    /* z-index: 999999; */
+    z-index: 99;
 }
 
 /* 全屏 */

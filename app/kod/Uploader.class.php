@@ -206,7 +206,7 @@ class Uploader{
 		$tempPath = $this->tempPathGet();
 		$tempName = isset($this->in['checkHashSimple']) ? $this->in['checkHashSimple']:false;
 		if(strlen($tempName) < 30){ //32+大小;
-			$tempName = md5(USER_ID.$this->in['path'].$this->fileName.$this->in['size']);
+			$tempName = md5(KodUser::id().$this->in['path'].$this->fileName.$this->in['size']);
 		}
 		$name = ".upload_".md5($tempName.$this->in['chunkSize']);
 		$this->tempFile = $this->tempPathGet().$name;

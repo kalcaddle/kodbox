@@ -88,7 +88,7 @@ location / {
     try_files $uri $uri/ /index.php?$query_string;
 }
 
-# 若为子目录部署（例如 /kodb/）
+# 若为子目录部署（例如 /kodbox/）
 location /kodbox/ {
     try_files $uri $uri/ /kodbox/index.php?$query_string;
 }

@@ -29,7 +29,32 @@ class storeImportPlugin extends PluginBase{
 		return $drvClass[$id];
 	}
 
-	// 数据导入
+	/**
+	 * 检查原始目录文件数量
+	 * @return void
+	 */
+	public function check(){
+		$pathFrom = Input::get('pathFrom','require');
+		$parse = KodIO::parse($pathFrom);
+		if ($parse['type'] != KodIO::KOD_IO) {
+			show_json(LNG('storeImport.main.ioPathErr'), false);
+		}
+		$data = array('folder'=>0,'file'=>0);
+		$list = $this->api($pathFrom)->listPath($pathFrom, 200000);
+		foreach ($list as $batch) {
+			foreach ($batch as $item) {
+				if ($item['folder']) {
+					$data['folder']++;
+				} else {$data['file']++;}
+			}
+		}
+		show_json($data);
+	}
+
+	/**
+	 * 数据导入（入口）
+	 * @return void
+	 */
 	public function start(){
 		KodUser::checkRoot();
 		// 0.任务进度
@@ -81,7 +106,7 @@ class storeImportPlugin extends PluginBase{
 	// 导入进度
 	private function getProcess(){
 		$taskId = Input::get('taskId', 'require');
-		$task = Task::get($taskId);	// TODO task存在时为false，不存在为null，待确认
+		$task = Task::get($taskId);	// 过期或未设置时，结果都为false
 		if (!isset($this->in['process'])) {
 			if ($task) {
 				show_json(LNG('storeImport.task.rptErr'), false);
@@ -90,7 +115,7 @@ class storeImportPlugin extends PluginBase{
 			return;
 		}
 		if ($this->in['kill']) {
-			if (!$task) {$task = $this->taskGet($taskId);}	// 没有必要
+			if (!$task) {$task = $this->taskGet($taskId);}
 			if ($task) $this->taskKill($task);
 			show_json('Task killed.');
 		}
@@ -133,8 +158,8 @@ class storeImportPlugin extends PluginBase{
 
 	/**
 	 * 存储导入
-	 * @param [type] $pathFrom	{io:2}/oldpath	{io:2}=>/var/usr/data
-	 * @param [type] $pathTo	{source:1}
+	 * @param string $pathFrom	{io:2}/oldpath	{io:2}=>/var/usr/data
+	 * @param string $pathTo	{source:1}
 	 * @return void
 	 */
 	public function doImport($pathFrom, $pathTo){
@@ -143,6 +168,10 @@ class storeImportPlugin extends PluginBase{
 		// （当前方法）正常调用结束、手动kill（？）、系统级错误等都会触发，注意后续处理逻辑
 		register_shutdown_function(function () {
 			$err = error_get_last();
+			if (!$err) return; // 无错误，正常结束
+			// 只处理致命级错误，避免 warning/notice 等误触发
+			$fatalErrors = array(E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR);
+			if (!in_array($err['type'], $fatalErrors)) return;
 			$msg = _get($err, 'message', '');
 			$this->showJson(array('data' => '任务异常中止，错误信息：'.$msg, 'code' => false));
         });
@@ -388,7 +417,7 @@ class storeImportPlugin extends PluginBase{
 	}
 	// 更新导入记录
 	public function logEdit ($id, $update) {
-		$info = Model('StoreImport')->edit($id, $update);
+		return Model('StoreImport')->edit($id, $update);
 	}
 
 }

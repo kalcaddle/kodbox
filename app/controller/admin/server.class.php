@@ -362,6 +362,7 @@ class adminServer extends Controller {
 			}
 			if(!$allow) show_json(sprintf(LNG('common.env.invalidExt'), $dbType), false);
 		}
+		// 判断配置文件是否可写
 		$this->checkSetWrt();
 
 		// 1. 切换了数据库类型，则全新安装，走完整流程
@@ -551,9 +552,9 @@ class adminServer extends Controller {
 
 	/**
 	 * 复制数据库：当前到新增
-	 * @param [type] $database
-	 * @param [type] $option
-	 * @param [type] $type	新增db类型
+	 * @param array $database
+	 * @param array $option
+	 * @param string $type	新增db类型
 	 * @return void
 	 */
     private function dbChangeAct($database, $option, $type){

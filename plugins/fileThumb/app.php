@@ -3,11 +3,13 @@
 class fileThumbPlugin extends PluginBase{
 	private $imgExts;
 	private $webExts;
+	private $videoExts;
 	private $ioFileInfo;
 	function __construct(){
 		parent::__construct();
 		$this->imgExts = array('gif','png','bmp','jpe','jpeg','jpg','webp','heic','heif','avif');
 		$this->webExts = array('png','jpg','jpeg','bmp','webp','gif','avif');
+		$this->videoExts = array('3gp','avi','mp4','m4v','mov','mpg','mpeg','mpe','mts','m2ts','wmv','ogv','webm','vob','flv','f4v','mkv','rmvb','rm');
 	}
 	public function regist(){
 		$this->hookRegist(array(
@@ -31,24 +33,34 @@ class fileThumbPlugin extends PluginBase{
 	public function listParse($data){
 		$current = is_array($data['current']) ? $data['current']:array();
 		if(!$data || !is_array($data['fileList']) || !count($data['fileList'])){return $data;}
-		if(!$this->getConvert() || !$this->getFFmpeg()){return $data;}
+		$imgmgkAllow = $this->getConvert();
+		$ffmpegAllow = $this->getFFmpeg();
+		$imgnryAllow = $this->isImgnryRunning();
+		$imageAllow = $imgmgkAllow || $imgnryAllow;	// 图片缩略图
+		if (!$imageAllow && !$ffmpegAllow) {return $data;}
 		if($current && $current['targetType'] == 'system' && strstr($current['pathDisplay'],'plugin/fileThumb/')){return $data;}
 
 		$config 		= $this->getConfig('fileThumb');
 		$supportWeb 	= $this->webExts;
 		$supportThumb 	= explode(',',$config['fileThumb'].','.implode(',',$supportWeb));
 		$supportView  	= explode(',',$config['fileExt'].','.implode(',',$supportWeb));
-		$cachePath 		= false;$timeStart = timeFloat();
-		
+		$timeStart = timeFloat();
+		$cachePath = $this->pluginCachePath();	// 放在foreach中可能频繁调用导致慢sql
+		if(!$cachePath){return $data;};
+
 		// 遍历文件列表,筛选出需要加入缩略图及显示图的内容(支持预览的,加入fileShowView)
 		$coverList = array();
 		foreach($data['fileList'] as &$file){
 			if(!$file['ext'] || $file['size'] <= 100){continue;}
 			if(!in_array($file['ext'],$supportThumb)){continue;}
 			if(!kodIO::allowCover($file)){continue;}
+			// 按文件类型过滤：视频需ffmpeg，图片/文档需convert或imaginary
+			$isVideo = in_array($file['ext'], $this->videoExts);
+			if ($isVideo && !$ffmpegAllow) {continue;}
+			if (!$isVideo && !$imageAllow) {continue;}
 			if(timeFloat() - $timeStart >= 10){break;} // 内容太多,超出时间则不再处理;
 			// if(in_array($file['ext'],$supportWeb) && $file['size'] <= 1024*50){continue;}
-			if(!$cachePath){$cachePath = $this->pluginCachePath();}
+			// if(!$cachePath){$cachePath = $this->pluginCachePath();}
 			
 			$fileHash = KodIO::hashPath($file);$path = $file['path'];
 			$coverList[$path] = array('fileThumb'=>array('cover'=>"cover_".$fileHash."_250.png",'width'=>250));
@@ -217,7 +229,7 @@ class fileThumbPlugin extends PluginBase{
 	// 本地文件:local,io-local, {{kod-local}}全量生成;
 	// 远端:(ftp,oss等对象存储)
 	public function coverMake($cachePath,$path,$coverName,$size){
-		$cckey = md5('fileThumb.conver.'.$path.$coverName.$size);
+		$cckey = md5('fileThumb.convert.'.$path.$coverName.$size);
 		if (Cache::get($cckey)) return;
 		Cache::set($cckey, 1, 60);	// 延迟1分钟，避免重复执行（对未生成的图片预览大图时，会执行3次250x250）
 		if(IO::fileNameExist($cachePath,$coverName)){return 'exists;';}
@@ -237,8 +249,7 @@ class fileThumbPlugin extends PluginBase{
 		$thumbFile = TEMP_FILES . $coverName;		
 		$localFile = $this->localFile($path);
 		// TODO 可能不应先下载到本地，而应该先判断是否需要生成
-		$movie = '3gp,avi,mp4,m4v,mov,mpg,mpeg,mpe,mts,m2ts,wmv,ogv,webm,vob,flv,f4v,mkv,rmvb,rm';
-		$isVideo = in_array($ext,explode(',',$movie));
+		$isVideo = in_array($ext, $this->videoExts);
 		// 过短的视频封面图,不指定时间;
 		$videoThumbTime = true;
 		if( $isVideo && is_array($info['fileInfoMore']) && 
@@ -247,13 +258,15 @@ class fileThumbPlugin extends PluginBase{
 			$videoThumbTime = false;
 		}
 		if($isVideo){
+			$isLoc = true;
 			// 不是本地文件; 切片后获取:mp4,mov,mpg,webm,f4v,ogv,avi,mkv,wmv;(部分失败)
-			if(!$localFile){
+			if (!$localFile) {
+				$isLoc = false;
 				$localTemp = $thumbFile.'.'.$ext;
 				$localFile = $localTemp;
-				file_put_contents($localTemp,IO::fileSubstr($path,0,1024*600));	// TODO 太小时不一定能生成
+				file_put_contents($localTemp,IO::fileSubstr($path,0,1024*600));
 			}
-			$this->thumbVideo($localFile,$thumbFile,$videoThumbTime);
+			$this->thumbVideo($localFile,$thumbFile,$videoThumbTime,$isLoc);
 		} else {
 			// 检查文件大小
 			if (!$this->thumbSizeLimit($localFile,'size',$info['size'])) {
@@ -262,7 +275,7 @@ class fileThumbPlugin extends PluginBase{
 			// 下载文件到本地
 			if(!$localFile){
 				// 支持imaginary的s3系文件使用url生成缩略图，省略中转下载
-				$localFile = $this->localFile2Url($path,$ext);
+				$localFile = $this->localImg2Url($path,$ext);
 				if (!$localFile) {
 					$localFile = $localTemp = $this->pluginLocalFile($path);
 				}
@@ -273,7 +286,7 @@ class fileThumbPlugin extends PluginBase{
 				$this->thumbImage($localFile,$thumbFile,$size,$ext);
 			}
 		}
-		if($localTemp){@unlink($localTemp);}
+		if(isset($localTemp)){@unlink($localTemp);}
 		if(@file_exists($thumbFile) && @is_file($thumbFile) && filesize($thumbFile) > 0){
 			Cache::remove($coverName);
 			$destFile = IO::move($thumbFile,$cachePath);
@@ -322,7 +335,7 @@ class fileThumbPlugin extends PluginBase{
 		return false;
 	}
 	// s3系对象存储，通过imaginary用文件url生成缩略图
-	private function localFile2Url($path,$ext){
+	private function localImg2Url($path,$ext){
 		if (request_url_safe($path)) return false;
 		if (!in_array($this->ioFileInfo['ioDriver'], array('s3','eds','eos','minio','oos'))) return false;
 		// 是否支持imaginary
@@ -330,7 +343,7 @@ class fileThumbPlugin extends PluginBase{
 		if (!$api) return false;
 		return Action('explorer.share')->link($path);
 	}
-	
+
 	// 缩略图：字体
 	private function thumbFont($fontFile,$cacheFile,$maxSize){
 		$textMore = '
@@ -356,28 +369,34 @@ class fileThumbPlugin extends PluginBase{
 	}
 
 	// 缩略图：视频
-	private function thumbVideo($file,$cacheFile,$videoThumbTime){
+	private function thumbVideo($file,$cacheFile,$videoThumbTime,$isLoc=true){
 		$api = $this->getImgmgkApi('ffmpeg');
 		if ($api) {
 			$res = $api->createThumbVideo($file,$cacheFile,$videoThumbTime);
 			if ($res) return true;
 		}
-		// 生成失败，尝试调用OSS直链生成
-		$this->thumbVideoByLink($cacheFile);
+		if ($isLoc) return false;
+		// 生成失败，尝试调用接口（OSS）或网络链接生成
+		$this->thumbVideoByLink($file,$cacheFile,$videoThumbTime);
 	}
 	// 对象存储通过链接获取缩略图——当前仅支持OSS
 	// https://help.aliyun.com/zh/oss/user-guide/video-snapshots?
-	private function thumbVideoByLink($cacheFile) {
+	private function thumbVideoByLink($file,$cacheFile,$videoThumbTime) {
 		$driver = _get($this->ioFileInfo, 'ioDriver', '');
-		if ($driver != 'oss') return false;
 		$path = $this->ioFileInfo['path'];
-		switch ($driver) {
-			case 'oss':
-				// 费用：截帧数*(0.1/1k)/1000
-				$options = array('x-oss-process' => 'video/snapshot,t_10000,f_jpg,w_250,m_fast');
-				$link = IO::link($path, $options);
-				break;
+		// 非OSS文件；这部分放在thumbVideo调用之前直接下载（转换）会更简单，不过以临时文件方式并非所有都会失败
+		if ($driver != 'oss') {
+			$api = $this->getImgmgkApi('ffmpeg');
+			if ($api) {
+				$fileLink = $this->streamLink($path);
+				if ($fileLink) $api->createThumbVideo($fileLink,$cacheFile,$videoThumbTime);
+			}
+			return;
 		}
+
+		// OSS，费用：截帧数*(0.1/1k)/1000
+		$options = array('x-oss-process' => 'video/snapshot,t_10000,f_jpg,w_250,m_fast');
+		$link = IO::link($path, $options);
 		if (!$link) return;
 
 		// 写入文件——视频缩略图收费，写入文件，避免反复调用
@@ -398,13 +417,16 @@ class fileThumbPlugin extends PluginBase{
 			$isImg = true;
 			if (!$this->thumbSizeLimit($file)) return;
 		}
+
 		// 2.使用imagick扩展
 		$api = $this->getImgickApi($ext);
 		if ($api) return $api->createThumb($file,$cacheFile,$maxSize,$ext);
+
 		// 3.使用ImageMagick
 		$api = $this->getImgmgkApi('convert',$ext);
 		if ($api) $api->createThumb($file,$cacheFile,$maxSize,$ext);
 		if ($isImg) return;
+
 		// 生成的封面图，再用gd生成缩略图
 		ImageThumb::createThumb($cacheFile,$cacheFile,$maxSize,$maxSize);
 	}
@@ -490,7 +512,7 @@ class fileThumbPlugin extends PluginBase{
 	private function checkConfigBin($bin,$check){
 		$config  = $this->getConfig();
 		$binFile = $config[$bin];
-		if($binFile && file_exists($binFile) && $this->checkBin($binFile,$check)){
+		if($binFile && is_executable($binFile) && $this->checkBin($binFile,$check)){
 			return $binFile;
 		}
 		return false;
@@ -499,9 +521,9 @@ class fileThumbPlugin extends PluginBase{
 	/**
 	 * 查找可执行文件命令
 	 * https://github.com/taligentx/ee204/blob/master/admin/SCRIPT_server_tools_pathguess.php
-	 * @param  [type] $bin   命令文件
-	 * @param  [type] $check 找到文件后执行,结果中匹配的字符串
-	 * @return [type]        可执行命令路径
+	 * @param  string $bin   命令文件
+	 * @param  string $check 找到文件后执行,结果中匹配的字符串
+	 * @return string        可执行命令路径
 	 */
 	private function guessBinPath($bin,$check){
 		$array = array(
@@ -715,4 +737,71 @@ class fileThumbPlugin extends PluginBase{
 		$api = $this->getThumbApi('imgmgk');
 		return (!$api || !$api->isSupport($ext,$type)) ? false : $api;
 	}
+	// 获取Imaginry服务状态
+	private function isImgnryRunning(){
+		static $status = null;
+		if (is_null($status)) {
+			$code = 0;
+			$config = $this->getConfig();
+			if (intval($config['imgnryOpen']) === 1) {
+				$rest = $this->getThumbApi('imgnry')->status();
+				$code = $rest ? 1 : 0;
+			}
+			$status = $code;
+		}
+		return $status;
+	}
+
+
+	// ----------------------------- 文件外链输出 -----------------------------
+
+	// 文件外链
+	public function streamLink($path){
+		if(!$path || !$info = IO::info($path)) return;
+		$pass = Model('SystemOption')->get('systemPassword');
+		$hash = Mcrypt::encode($info['path'],$pass);
+		return urlApi('plugin/fileThumb/streamOut',"hash={$hash}&name=/".rawurlencode($info['name']));
+	}
+	// 外链输出，用于ffmpeg读取视频文件，通常会请求3次
+	public function streamOut(){
+		// 检查请求及文件信息
+		$hash = $this->in['hash'];
+		if(!$hash || strlen($hash) > 5000) {
+			http_response_code(403);exit;
+		}
+		$path = Mcrypt::decode($hash,Model('SystemOption')->get('systemPassword'));
+		$fileInfo = $path ? IO::info($path) : false;
+		if (!$fileInfo || $fileInfo['isDelete'] == '1') {
+			http_response_code(404);exit;
+		}
+		$totalSize = $fileInfo['size'];
+
+		// 输出
+		ignore_timeout();
+		if (isset($_SERVER['HTTP_RANGE'])) {
+			if (preg_match('/bytes=(\d+)-(\d*)/', $_SERVER['HTTP_RANGE'], $match)) {
+				$start    = intval($match[1]);
+				$openEnd  = $match[2] === ''; // 开放式Range，ffmpeg会读到末尾
+				$end      = $openEnd ? ($totalSize - 1) : intval($match[2]);
+				$maxChunk = 1024 * 1024; // 开放式Range单次最多1MB，可能还会因长度不足而失败
+				if ($openEnd && ($end - $start + 1) > $maxChunk) {
+					$end = $start + $maxChunk - 1;
+				}
+				$length = $end - $start + 1;
+				if ($start >= $totalSize || $end >= $totalSize || $length <= 0) {
+					header('HTTP/1.1 416 Range Not Satisfiable');exit;
+				}
+				header('HTTP/1.1 206 Partial Content');
+				header("Content-Range: bytes {$start}-{$end}/{$totalSize}");
+				header('Content-Length: ' . $length);
+				header('Content-Type: application/octet-stream');
+				header('Accept-Ranges: bytes');
+				echo IO::fileSubstr($path, $start, $length);exit;
+			}
+		}
+		http_response_code(403);exit;
+		// header('Accept-Ranges: bytes');
+		// IO::fileOut($path);exit;
+	}
+
 }

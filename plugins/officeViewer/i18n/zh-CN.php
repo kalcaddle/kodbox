@@ -18,8 +18,8 @@ return array(
 	'officeViewer.meta.svcOpen'					=> "启用服务",
 
 	'officeViewer.main.error'					=> "操作失败！",
-	'officeViewer.main.invalidType'				=> "无效的打开方式，请联系管理员！",
-	'officeViewer.main.invalidUrl'				=> "无效的请求地址，请联系管理员！",
+	'officeViewer.main.invalidType'				=> "当前方式无法预览此文件，请选择其他打开方式！",
+	'officeViewer.main.invalidUrl'				=> "无效的请求地址，请尝试重新打开或选择其他方式！",
 	'officeViewer.main.notNetwork'				=> "请求失败，检查服务器能否连接网络。",
 	'officeViewer.main.needNetwork'				=> "服务器需在外网",
 	'officeViewer.main.needDomain'				=> "，且为域名访问。",
@@ -52,10 +52,10 @@ return array(
 	'officeViewer.libreOffice.checkOk' 			=> "恭喜，一切正常",
 	'officeViewer.libreOffice.checkErr' 		=> "运行环境异常",
 
-	"officeViewer.officeLive.desc"				=> "<div style='margin-top:3px;'>通过微软office服务解析文件（通过文件外链解析），实现文件预览。<br/><code style='color:#c7254e'>服务器需在外网，且为域名访问</code><br>内网的用户，可以自己搭建;<a href='https://kodcloud.com/help/show-5.html' target='_blank'>了解详情</a></div>",
+	"officeViewer.officeLive.desc"				=> "<div style='margin-top:3px;'>通过微软office服务解析文件（通过文件外链解析），实现文件预览。<br/><code style='color:#c7254e'>服务器需在外网，且为域名访问；可能导致文件泄露，请谨慎启用</code><br>内网的用户，可以自己搭建;<a href='https://kodcloud.com/help/show-5.html' target='_blank'>了解详情</a></div>",
 	"officeViewer.officeLive.apiServer"			=> "服务器接口",
-	"officeViewer.officeLive.apiServerDesc"		=> "<div class='can-select'>微软官方服务及第三方服务接口，选其中一个填写：<br/>
-													<div class='mt-5'> https://view.officeapps.live.com/op/embed.aspx?src=</div>
+	"officeViewer.officeLive.apiServerDesc"		=> "<div class='can-select mt-5'>微软官方服务及第三方服务接口，选其中一个填写：<br/>
+													<div class='grey-8'> https://view.officeapps.live.com/op/embed.aspx?src=</div>
 													<div class='grey-8'>https://owa-box.vips100.com/op/view.aspx?src=</div>
 													<div class='grey-8'>https://docview.mingdao.com/op/view.aspx?src=</div>
 													<div class='grey-8'>https://preview.tita.com/op/view.aspx?src=</div>
@@ -63,7 +63,7 @@ return array(
 
 
 	'officeViewer.yzOffice.name' 				=> "永中Office",
-	'officeViewer.yzOffice.desc' 				=> "<div style='margin-top:3px;'>通过永中office服务解析文件（文件会上传至其服务器），实现文件预览。<br><code style='color:#c7254e'>服务器需能访问外网</code></div>",
+	'officeViewer.yzOffice.desc' 				=> "<div style='margin-top:3px;'>通过永中office服务解析文件（文件会上传至其服务器），实现文件预览。<br><code style='color:#c7254e'>服务器需能访问外网；可能导致文件泄露，请谨慎启用</code></div>",
 	'officeViewer.yzOffice.transfer' 			=> "1.数据传输中,请稍后...",
 	'officeViewer.yzOffice.converting'			=> '2.文件转换中,请稍后...',
 	'officeViewer.yzOffice.uploadError' 		=> "上传失败,请检查php执行超时时间!",

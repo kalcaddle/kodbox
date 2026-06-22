@@ -228,7 +228,7 @@ $config['settingSystemDefault'] = array(
 	'systemLogoMenu' 	=> './static/images/common/logo-kod.png',
 	'adminTheme' 		=> 'black',// black/white 
 	
-	'pathHidden'		=> "Thumb.db,.DS_Store,.gitignore,.git",//目录列表隐藏的项
+	'pathHidden'		=> "Thumb.db,.DS_Store,.gitignore,.git,*.temp,*.tmp",//目录列表隐藏的项
 	'autoLogin'			=> "0",			// 是否自动登录；登录用户为guest
 	'needCheckCode'		=> "0",			// 登录是否开启验证码；默认关闭
 	'firstIn'			=> "explorer",	// 登录后默认进入[explorer desktop]
@@ -674,7 +674,7 @@ if(!defined('INSTALL_CHANNEL')){define('INSTALL_CHANNEL','');}
 
 function logDebug($log,$data=''){
 	// if(ACT == 'fileUpload'){return;}
-	// if(!defined('USER_ID') || USER_ID != '1122'){return;}
+	// if(KodUser::id() != 1122){return;}
 	if(is_object($data) || is_array($data)){
 		$data = json_encode_force($data);
 		$data = ' '.str_replace(array('\\n','\\r','\\t','\\"','\\\'','\/'),array("\n","\r","\t",'"',"'",'/'),$data);

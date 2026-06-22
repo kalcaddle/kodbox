@@ -433,6 +433,7 @@ class explorerUserShare extends Controller{
 		$source['shareID']  = $share['shareID'];
 		if($source['isShareOut']){return $source;}
 		
+		$userID = KodUser::id();
 		$sourceRoot = isset($share['sourceInfo']) ? $share['sourceInfo'] : $source;
 		$source['shareUser'] = $user;
 		// 物理路径,io路径;
@@ -453,7 +454,7 @@ class explorerUserShare extends Controller{
 			$listData = array($source);
 			Model('Source')->_listAppendAuthSecret($listData);
 			$source = $listData[0];
-			if($share['userID'] == USER_ID){
+			if($share['userID'] == $userID){
 				$source['auth'] = $share['sourceInfo']['auth'];
 			}
 		}
@@ -463,7 +464,7 @@ class explorerUserShare extends Controller{
 		$displayUser = '['.$userName.']'.LNG('common.share').'-'.$sourceRoot['name'];
 		if(!$user || $user['userID'] == '0'){$displayUser = $sourceRoot['name'];}
 
-		if($share['userID'] == USER_ID){
+		if($share['userID'] == $userID){
 			$displayUser = $sourceRoot['name'];
 			$shareInfoAdd = Model("Source")->shareFilterShow($share);
 			$source['sourceInfo']['selfShareInfo'] = array_merge($sourceRoot,$shareInfoAdd);
@@ -499,7 +500,7 @@ class explorerUserShare extends Controller{
 				$isReadable  = array_key_exists('isReadable',$source)  ?  $source['isReadable']  : true;
 			}
 			// 物理路径分享,自己访问自己分享的内容时权限处理;
-			if($share['sourceID'] == '0' && $share['userID'] == USER_ID){
+			if($share['sourceID'] == '0' && $share['userID'] == $userID){
 				$source['auth']['authValue'] = AuthModel::authAll();
 			}
 			$source['isWriteable'] = $isWriteable && AuthModel::authCheckEdit($source['auth']['authValue']);

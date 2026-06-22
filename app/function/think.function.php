@@ -373,14 +373,15 @@ function think_trace($value = '[think]', $label = '', $level = 'DEBUG', $record 
 		$_trace[$keyInfo]   = array('timeUse'=>0,'count'=>0);
 	}
 	
-	$useTime = substr($info,strrpos($info,'[ RunTime:')+10,-5);
+	$useTimePose = strrpos($info,'[ RunTime:');
+	$useTime = substr($info,$useTimePose+10,-5);
 	$_trace[$keyInfo]['timeUse'] = round($_trace[$keyInfo]['timeUse'] + floatval($useTime),5);
 	$_trace[$keyInfo]['count']++;
 	
 	$timeNow  = timeFloat();$timeNowArr = explode('.',$timeNow.'000');
 	$timeShow = date('i:s.',$timeNowArr[0]).substr($timeNowArr[1],0,4);
 	$index = 'i-'.$_trace[$keyInfo]['count'];
-	$_trace[$keyList][$index]  = $timeShow.'['.$useTime.'s]: '.substr($info,0,-21);
+	$_trace[$keyList][$index]  = $timeShow.'['.$useTime.'s]: '.substr($info,0,$useTimePose);
 	$_trace[$keyTrace][$index] = array_slice(get_caller_info(),4,-1); // 5ms 每个;
 	$_trace[$keyTrace] = array_slice($_trace[$keyTrace],-$logMax);
 	$_trace[$keyList]  = array_slice($_trace[$keyList],-$logMax);

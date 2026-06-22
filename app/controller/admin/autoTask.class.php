@@ -3,6 +3,7 @@
  * 计划任务
  */
 class adminAutoTask extends Controller {
+	private $model;
 	function __construct()    {
 		parent::__construct();
 		$this->model = Model('SystemTask');
@@ -60,8 +61,9 @@ class adminAutoTask extends Controller {
 		));
 		$this->checkEvent($data);
 		$result = $this->model->update($data['id'],$data);
-		$msg = !!$result ? LNG('explorer.success') : LNG('explorer.error');
-		show_json($msg,!!$result);
+		$code = !!$result;
+		$data = $code ? LNG('explorer.success') : LNG('explorer.error');
+		show_json($data,$code);
 	}
 
 	private function checkEvent($data) {
@@ -90,8 +92,9 @@ class adminAutoTask extends Controller {
 			"enable"	=> array("check"=>"bool"),
 		));
 		$result = $this->model->enable($data['id'],(bool)$data['enable']);
-		$msg = !!$result ? LNG('explorer.success') : LNG('explorer.error');
-		show_json($msg,!!$result);
+		$code = !!$result;
+		$data = $code ? LNG('explorer.success') : LNG('explorer.error');
+		show_json($data,$code);
 	}	
 	/**
 	 * 删除计划任务
@@ -99,8 +102,9 @@ class adminAutoTask extends Controller {
     public function remove(){
 		$id = Input::get('id','int');
 		$result = $this->model->remove($id);
-		$msg = !!$result ? LNG('explorer.success') : LNG('explorer.error');
-		show_json($msg,!!$result);
+		$code = !!$result;
+		$data = $code ? LNG('explorer.success') : LNG('explorer.error');
+		show_json($data,$code);
 	}
 	
 	/**
@@ -112,8 +116,9 @@ class adminAutoTask extends Controller {
         if($task){
             $result = AutoTask::taskRun($task);
 		}
-		$msg = !!$result ? LNG('explorer.success') : LNG('explorer.error');
-		show_json($msg,!!$result);
+		$code = isset($result) && $result ? true : false;
+		$data = $code ? LNG('explorer.success') : LNG('explorer.error');
+		show_json($data,$code);
 	}
 	
 	

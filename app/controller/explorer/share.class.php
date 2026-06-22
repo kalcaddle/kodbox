@@ -406,12 +406,13 @@ class explorerShare extends Controller{
 	
 	private function call($action,$parsePath=false){
 		$self = $this;
+		KodUser::set('guest');
 		if(isset($this->in['path']) && !$parsePath){
 			$this->in['path'] = $this->parsePath($this->in['path'],true);
 		}
 		ActionCallResult($action,function(&$res) use($self){
 			if(!$res['code']){return;}
-			if(ACT == 'fileSave'){$res['info'] = $this->shareItemInfo($res['info']);return;}
+			if(ACT == 'fileSave'){$res['info'] = $self->shareItemInfo($res['info']);return;}
 			
 			// 粘贴,拖拽情况处理;
 			if(ACT == 'pathCuteTo' || ACT == 'pathCopyTo' || ACT == 'pathPast'){

@@ -1,6 +1,7 @@
 <?php 
 
 class impDriver {
+    public $driver;
     public $ioList = array(
         'sg' => array('local','oss','qiniu','uss'), // ftp暂不考虑支持
         's3' => array('s3','bos','cos','eds','eos','jos','minio','obs','oos','moss','nos')
@@ -24,6 +25,7 @@ class impDriver {
             include_once(__DIR__.'/DriverS3.class.php');
             $class = 'impDrvS3';
         } else {
+            throw new Exception(LNG('storeImport.main.ioNotSup').$class);
             // // 不追加此else项则调用了父类存储：PathDriverXXX
             // include_once(__DIR__.'/DriverOTS.class.php');
             // $class = 'impDrvOTS';
@@ -52,7 +54,7 @@ class impDriver {
 
     /**
      * 获取文件列表
-     * @param [type] $path
+     * @param string $path
      * @return void yield [[path,size],...]
      */
     public function listAll($path){
@@ -62,7 +64,7 @@ class impDriver {
 
     /**
      * 按批次获取文件列表（生成器），注意：driver方法未实现时会调用父类方法
-     * @param [type] $path
+     * @param string $path
      * @param integer $batchSize
      * @return void
      */

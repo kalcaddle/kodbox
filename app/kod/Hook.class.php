@@ -106,28 +106,39 @@ class Hook{
 		array_shift($args);
 		for ($i=0; $i < $actionsCount; $i++) {
 			$action = $actions[$i];
+			$actionStr = self::getCallerStr($action['action']);
 			if($action['once'] && $action['times'] > 1) continue;
-			if($_logHook){write_log($event.'==>start: '.$action['action'],'hook-trigger');}
+			if($_logHook){write_log($event.'==>start: '.$actionStr,'hook-trigger');}
 
 			self::$events[$event][$i]['times'] = $action['times'] + 1;
 			try{
 				$res = ActionApply($action['action'],$args);
 			}catch(Exception $e){
-				$error = '['.$action['action'].']: '.$e->getMessage();
+				$error = '['.$actionStr.']: '.$e->getMessage();
 				$res = self::trigger('eventRun.error',$error);
-				if(!$res){throw new Exception($error);}
+				if(!$res){throw new Exception($e->getMessage());}
 			}
 			if(is_string($action['action'])){Hook::trigger($action['action']);}
 			
 			if($_logHook){
 				write_log(get_caller_info(),'hook-trigger');
 				if($action['times'] == 200){//避免循环调用
-					$msg = is_array($action['action']) ? json_encode_force($action['action']):$action['action'];
-					write_log("Warning,Too many trigger on:".$event.'==>'.$msg,'warning');
+					write_log("Warning,Too many trigger on:".$event.'==>'.$actionStr,'warning');
 				}
 			}
 			$result = is_null($res) ? $result:$res;
 		}
 		return $result;
+	}
+	
+	static public function getCallerStr($action){
+		if(is_string($action)){return $action;}
+		if(is_array($action) && count($action) >= 2) {
+			$callback = $action[0];
+			$method   = $action[1] ? $action[1]:'';
+			if(is_string($callback)){return $callback.'::'.$method;}
+			if(is_object($callback)){return get_class($callback).'->'.$method;}
+		}
+		return 'callUnknown';
 	}
 }

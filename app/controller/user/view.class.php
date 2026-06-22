@@ -10,6 +10,7 @@ class userView extends Controller{
 		if( isset($this->config['settings']['language']) ){
 			$this->config['settingAll']['language'] = array();
 		}
+		$userID  = KodUser::id();
 		$options = array(
 			"kod"	=> array(
 				'systemOS'		=> '-',
@@ -24,7 +25,7 @@ class userView extends Controller{
 				'channel'		=> INSTALL_CHANNEL,
 			),
 			"user"	=> array(
-				'userID'		=> USER_ID ? USER_ID:'',
+				'userID'		=> $userID ? $userID:'',
 				'myhome'    	=> defined('MY_HOME') ? MY_HOME : '',
 				'desktop'   	=> defined('MY_DESKTOP') ? MY_DESKTOP : '',
 				'isRoot'		=> KodUser::isRoot() ? 1:0,//固定数值,true/false Android会异常;
@@ -44,8 +45,8 @@ class userView extends Controller{
 			"lang"	=> I18n::getType(),
 		);
 		if($user){//空间大小信息;
-			$userInfoFull = Model('User')->getInfoFull(USER_ID);
-			$options['user']['targetSpace'] = Action('explorer.auth')->space('user',USER_ID);
+			$userInfoFull = Model('User')->getInfoFull($userID);
+			$options['user']['targetSpace'] = Action('explorer.auth')->space('user',$userID);
 			$options['user']['role'] = $options['user']['role']['roleList'];
 			$options['user']['config'] = array_merge($this->config['settingDefault'],Model('UserOption')->get());
 			$options['user']['editorConfig'] = array_merge($this->config['editorDefault'],Model('UserOption')->get(false,'editor'));

@@ -5,27 +5,33 @@
  */
 class KodLog{
 	public static $logLast = array();
+	public static $logTimeShowLast = array();
 	public static function replace($staus=true){self::log('',$staus ? 'replace':'reset');}
 	public static function enable ($staus=true){self::log('',$staus ? 'enable':'disable');}
 	public static function log($log,$replaceType=''){
-		static $replace = false;
-		static $disableOut = false;
+		static $_replace 	= false;
+		static $_enableLog 	= true;
 		if($replaceType){
-			if($replaceType == 'disable'){$disableOut = true;return;}
-			if($replaceType == 'enable' ){$disableOut = false;return;}
-			if($disableOut){return;}
+			self::$logTimeShowLast = array();
+			if($replaceType == 'replaceGet'){return $_replace;}
+			if($replaceType == 'enableGet' ){return $_enableLog;}
+			
+			if($replaceType == 'disable'){$_enableLog = false;return;}
+			if($replaceType == 'enable' ){$_enableLog = true;return;}
+			if(!$_enableLog){return;}
+			
 			$replaceNow = $replaceType == 'replace';
-			$hasChange  = (!$replace && $replaceNow) || ($replace && !$replaceNow);
-			$replace 	= $replaceNow;
-			if($hasChange){echoLog('',$replace);}
+			$hasChange  = $replaceNow != $_replace;
+			$_replace 	= $replaceNow;
+			if($hasChange){echoLog('',$_replace);} // 切换到非replace模式处理;
 			return;
 		}
 		write_log(str_replace('&nbsp;',' ',$log),'log');
-		if($disableOut){return;}
+		if(!$_enableLog){return;}
 		
-		self::$logLast = array('log'=>$log,'replace'=>$replace,'time'=>time());
+		self::$logLast = array('log'=>$log,'replace'=>$_replace,'time'=>time());
 		check_abort_now();
-		echoLog($log,$replace);
+		echoLog($log,$_replace);
 	}
 	public static function logKeep($timeout=5){
 		if(!self::$logLast){return;}
@@ -36,22 +42,31 @@ class KodLog{
 	public static function logTimeShow($timeStart,$index,$total,$logPre='',$logAfter=''){
 		$logPre   = $logPre   ? $logPre.' ':'';
 		$logAfter = $logAfter ? ';'.$logAfter:'';
+		self::$logTimeShowLast = compact('timeStart','index','total','logPre','logAfter');
 		self::log($logPre.self::timeShow($timeStart,$index,$total).$logAfter);
-	}	
+	}
+	public static function logTimeAdd($logAdd=''){
+		Hook::trigger('KodLog.logTimeAdd',$logAdd);
+		if(!self::$logTimeShowLast){return;}
+		extract(self::$logTimeShowLast);
+		self::log($logPre.self::timeShow($timeStart,$index,$total).$logAfter.';'.$logAdd);
+	}
+	
+	
 	// 进度及时间显示;  
 	public static function timeShow($timeStart,$index,$total){
 		$timeNeed  		= self::timeNeed($timeStart,$index,$total);
 		$timeUse 		= timeFloat() - $timeStart;
 		
 		$charCount 		= 20;$char = '=';
-		$pencent 		= $index / $total;
+		$pencent 		= $total > 0 ? $index / $total : 1;
 		$pencent 		= $pencent >= 1 ? 1:$pencent;
 		$charFinished 	= intval($pencent * $charCount);
 		$pencentView 	= '['.str_repeat($char,$charFinished).'>'.str_repeat('&nbsp;',$charCount - $charFinished).']';
 		$logIndex 		= str_repeat('&nbsp;',strlen($total.'') - strlen($index.'')).$index;
 		$logOut 		= $logIndex.'/'.$total.' '.$pencentView.sprintf(" %.2f",$pencent*100).'%';
 		
-		$speed   = $index / $timeUse;
+		$speed   = $timeUse > 0 ? $index / $timeUse : 0;
 		$speed   = $speed < 10 ? round($speed,2) : intval($speed);
 		if($speed > 0){$logOut .= '('.$speed.' '.LNG('common.item').'/'.LNG('common.second').')';}
 		if($pencent >= 1){
