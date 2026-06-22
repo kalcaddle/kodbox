@@ -1272,7 +1272,7 @@ class adminRepair extends Controller {
 		do {
 			$list = $model->where(array('sourceID'=>array('>',$lastSid)))->field('sourceID,parentID,parentLevel,isDelete')->order('sourceID asc')->limit($pageNum)->select();
 			if (empty($list)) break;
-			$lastSid = end($list)['sourceID'];
+			$lastSid  = _get(end($list),'sourceID');
 			foreach ($list as $item) {
 				$task->update(1);
 				if ($item['isDelete'] == '1') continue;

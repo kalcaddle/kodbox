@@ -668,7 +668,7 @@ class fileThumbPlugin extends PluginBase{
 		foreach ($apiMethods as $apiMethod) {
 			$func = $apiMethod['method'];
 			$args = explode(',',$apiMethod['param']);
-			$api = $this->$func(...$args);
+			$api  = call_user_func_array(array($this,$func), $args);
 			if ($api && $imageInfo = $api->getImgSize($image)) {
 				return $imageInfo;
 			}

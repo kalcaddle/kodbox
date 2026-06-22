@@ -36,6 +36,7 @@
 </head>
 
 <body>
+	<?php Model('SystemOption')->get('testKey','testServer_'.date('YmdHi'));?>
 	<?php Hook::trigger('templateCommonContent');?>
 	<div id="app"></div>
 	<style>
