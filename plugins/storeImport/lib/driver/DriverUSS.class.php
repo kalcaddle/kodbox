@@ -124,14 +124,14 @@ class impDrvUSS extends PathDriverUSS {
 
                 // 如果当前目录还有下一页，重新入栈继续
                 if (!$isEnd && $nextIter !== '') {
-                    array_push($stack, ['path' => $path, 'iter' => $nextIter]);
+                    array_push($stack, array('path' => $path, 'iter' => $nextIter));
                 }
 
                 // 处理完当前页的所有项后，发现的新子文件夹入栈（深度优先）
                 // 注意：这里要倒序 push，确保原始顺序（又拍云返回是升序）——后进先出
                 foreach (array_reverse($items) as $item) {
                     if ($item['folder']) {
-                        array_push($stack, ['path' => $item['path'] . '/', 'iter' => '']);
+                        array_push($stack, array('path' => $item['path'] . '/', 'iter' => ''));
                     }
                 }
             }

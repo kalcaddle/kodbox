@@ -20,7 +20,7 @@ class impDrvS3 {
     // 动态调用子类的方法
     public function __call($method, $arguments) {
         if (method_exists($this->instance, $method)) {
-            return call_user_func_array([$this->instance, $method], $arguments);
+            return call_user_func_array(array($this->instance, $method), $arguments);
         } else {
             throw new Exception("Method $method not found in " . get_class($this->instance));
         }
@@ -42,7 +42,7 @@ class impDrvS3 {
             $method = $reflectionClass->getMethod($name);
             $method->setAccessible(true);
             // $method->invoke($this->instance, $param);
-            return call_user_func_array([$method, 'invoke'], array_merge([$this->instance], $args));
+            return call_user_func_array(array($method, 'invoke'), array_merge(array($this->instance), $args));
         }
         throw new Exception("Property or method $name not found in " . get_class($this->instance));
     }
@@ -113,7 +113,7 @@ class impDrvS3 {
 		$nextMarker = null;
 		$maxkeys = 1000;
 
-		$buffer = [];
+		$buffer = array();
 		$bufferCount = 0;
 
 		while (true) {
@@ -148,7 +148,7 @@ class impDrvS3 {
 				// 缓冲满了就yield
 				if ($bufferCount >= $batchSize) {
 					yield $buffer;
-					$buffer = [];
+					$buffer = array();
 					$bufferCount = 0;
 				}
 			}

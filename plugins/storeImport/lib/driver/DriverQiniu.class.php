@@ -68,7 +68,7 @@ class impDrvQiniu extends PathDriverQiniu {
 		$nextMarker = '';
 		$maxkeys = 1000;
 
-		$buffer = [];
+		$buffer = array();
 		$bufferCount = 0;
 
 		while (true) {
@@ -104,7 +104,7 @@ class impDrvQiniu extends PathDriverQiniu {
 				// 缓冲满了就yield
 				if ($bufferCount >= $batchSize) {
 					yield $buffer;
-					$buffer = [];
+					$buffer = array();
 					$bufferCount = 0;
 				}
 			}

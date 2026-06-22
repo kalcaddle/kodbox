@@ -232,8 +232,8 @@ class FileParsePdf{
 	// 解析节点数据;(xxx xx obj)
 	private static function decodeStr($text){
 		$text = str_replace(
-			['\\\\', '\\ ', '\\/', '\(', '\)', '\n', '\r', '\t'],
-			['\\',   ' ',   '/',   '(',  ')',  "\n", "\r", "\t"],$text);
+			array('\\\\', '\\ ', '\\/', '\(', '\)', '\n', '\r', '\t'),
+			array('\\',   ' ',   '/',   '(',  ')',  "\n", "\r", "\t"),$text);
 			
 		$parts = preg_split('/(\\\\\d{3})/s', $text, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
         $text = '';

@@ -1778,7 +1778,7 @@ function is_csv_file($file) {
         if ($finfo) {
             $mime = @finfo_file($finfo, $file);
             @finfo_close($finfo);
-            $denyMimes = ['application/zip', 'application/x-zip', 'application/x-rar', 'application/pdf'];
+            $denyMimes = array('application/zip', 'application/x-zip', 'application/x-rar', 'application/pdf');
             if ($mime && in_array($mime, $denyMimes)) {
                 return false;
             }
@@ -1813,7 +1813,7 @@ function get_csv_sep($line, $default = ',') {
     }
     $max = max($counts);
     $best = array_keys($counts, $max);
-    return $best[0] ?? $default;
+    return $best[0] ? $best[0]:$default;
 }
 // csv单元格注入防护：防止Excel等打开时执行恶意公式
 function filter_csv_cell($value){

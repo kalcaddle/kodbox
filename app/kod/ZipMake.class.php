@@ -293,7 +293,7 @@ class ZipMake{
 	protected function sendHttpHeaders(){
 		$disposition = 'attachment';
 		if ($this->outputName) {
-			$safeOutput = trim(str_replace(['"', "'", '\\', ';', "\n", "\r"], '', $this->outputName));
+			$safeOutput = trim(str_replace(array('"', "'", '\\', ';', "\n", "\r"), '', $this->outputName));
             $urlencoded = rawurlencode($safeOutput);
 			$disposition .= "; filename*=utf-8''{$urlencoded}";
 		}		
@@ -350,6 +350,6 @@ class ZipMake{
 		return call_user_func_array('pack', $args);
 	}
 	protected function filterFilename($filename){
-		return str_replace(['\\', ':', '*', '?', '"', '<', '>', '|'], '_', $filename);
+		return str_replace(array('\\', ':', '*', '?', '"', '<', '>', '|'), '_', $filename);
 	}
 }
