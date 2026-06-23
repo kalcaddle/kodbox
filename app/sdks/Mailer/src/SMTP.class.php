@@ -1272,7 +1272,7 @@ class SMTP
             restore_error_handler();
 
             if ($n === false) {
-                $message = $this->getError()['detail'];
+                $message = _get($this->getError(),'detail');
 
                 $this->edebug(
                     'SMTP -> get_lines(): select failed (' . $message . ')',

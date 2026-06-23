@@ -1069,7 +1069,7 @@ function get_caller_trace($trace,$needArgs = true) {
 		$trace = array_slice($trace,count($trace) - $maxLoad);
 	}
 	$trace = array_reverse($trace);
-	$ignoreMethod = array('get_caller_info','think_exception','think_trace');
+	$ignoreMethod = array('get_caller_info','think_exception','think_trace','get_caller_msg');
 	$keepArgs     = array('Action','ActionApply','ActionCall');
 	foreach($trace as $i => $call){
 		$method = $call['function'] ? $call['function'] : '';
@@ -1121,7 +1121,6 @@ function get_caller_msg($trace = false) {
 	return get_caller_msg_parse(get_caller_info(),$trace);
 }
 function get_caller_msg_parse($msg,$trace = false) { 
-	$msg = array_slice($msg,0,count($msg) - 1);
 	$msg['memory'] = sprintf("%.3fM",memory_get_usage()/(1024*1024));
 	if($trace){
 		$msg['trace']  = think_trace('[trace]');

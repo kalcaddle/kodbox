@@ -50,6 +50,9 @@ function think_exception($msg) {
 	$trace = get_caller_trace($trace,false);
 	write_log($error."\n".get_caller_msg_parse($trace)."\n".json_encode($GLOBALS['in']),'error');
 	if(isset($GLOBALS['SHOW_OUT_EXCEPTION']) && $GLOBALS['SHOW_OUT_EXCEPTION']){
+		if($GLOBALS['SHOW_OUT_PLUGINS']){ // 插件 echoJs 中代码报错处理;
+			return plugin_echo_error($error,get_caller_msg_parse($trace));
+		}
 		throw new Exception($error);
 	}
     if(defined('GLOBAL_DEBUG') && GLOBAL_DEBUG ){$trace[] = $error;pr($trace);exit;}
@@ -62,6 +65,12 @@ function think_exception($msg) {
 	$error = $error.'<div style="border-top:1px dotted #eee;padding-top:10px;"><code>'.$desc.'</code></div>';
 	$error = $error.'<div style="color:#ccc;font-size:12px;"><code>['.think_system_info().']</code></div>';
 	show_tips($error,'',0,'',false);
+}
+function plugin_echo_error($error,$trace){
+	$errorShow 	= 'decodeURIComponent("'.rawurlencode($error).'")';
+	$errorTrace = 'decodeURIComponent("'.rawurlencode($trace).'")';
+	echo "\n\n;{console.error(".$errorShow.",".$errorTrace.");};\n";
+	echo ";{Tips.notify({title:".$errorShow.",content:".$errorTrace.",icon:'warning',delay:6000});};\n\n";
 }
 
 function think_error_parse(&$error,&$desc){

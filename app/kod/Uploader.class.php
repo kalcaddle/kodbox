@@ -192,7 +192,7 @@ class Uploader{
 		}else{
 			$stat = @stat($path);
 			while(($parent = dirname($path)) !== $path){
-				if(@stat($parent)['dev'] !== $stat['dev']){return $path;}
+				if(_get(@stat($parent),'dev') !== $stat['dev']){return $path;}
 				if($parent == '/'){return $parent;}
 				if(!$parent){break;}
 				$path = $parent;
