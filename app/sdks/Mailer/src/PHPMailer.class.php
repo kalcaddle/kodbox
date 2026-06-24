@@ -3094,7 +3094,7 @@ class PHPMailer
                         $signed,
                         'file://' . realpath($this->sign_cert_file),
                         array('file://' . realpath($this->sign_key_file), $this->sign_key_pass),
-                        array(),
+                        array()
                     );
                 } else {
                     $sign = @openssl_pkcs7_sign(
