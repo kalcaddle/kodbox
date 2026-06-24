@@ -509,8 +509,9 @@ function _get($arr,$key,$default=null){
 	return _getWithLevel($arr,$key,$default,$level);
 }
 function _getWithLevel($arr,$key,$default=null,&$level){
-	if(!is_array($arr)) return $default;
-	if(!is_string($key) || (!$key && $key !== '0')) return $arr;
+	if(!is_array($arr) || !$arr) return $default;
+	if(!is_string($key)){$key = $key.'';}
+	if(!$key && $key !== '0') return $arr;
 	if(array_key_exists($key,$arr)) return $arr[$key];
 	
 	if(strpos($key,'||') !== false){
