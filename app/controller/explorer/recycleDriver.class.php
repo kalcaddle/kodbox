@@ -119,14 +119,15 @@ class explorerRecycleDriver extends Controller{
 	// 还原
 	public function restore($sourceArr){
 		$list = $this->listData();
-		$listNew = $list;
+		$listNew = $list;$result  = array();
 		foreach($list as $thePath => $beforePath){
-			IO::move($thePath,$beforePath,REPEAT_RENAME_FOLDER);
+			$result[] = IO::move($thePath,$beforePath,REPEAT_RENAME_FOLDER);
 			unset($listNew[$thePath]);
 		}
 		if(count($listNew) != count($list)){
 			$this->resetList($listNew);
 		}
+		return $result;
 	}
 	
 	/**

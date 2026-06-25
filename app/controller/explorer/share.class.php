@@ -447,7 +447,7 @@ class explorerShare extends Controller{
 			$pathInfo = $this->shareItemInfo(IO::info($res['info'][$i]));
 			$res['info'][$i] = $pathInfo['path'];
 			if(is_array($res['infoMore']['listTo'])){
-				$res['infoMore']['listTo'][$i] = $pathInfo['path'];
+				$res['infoMore']['listTo'][$i] = array_field_key($pathInfo,array('path','name','type'));
 			}
 		}
 		if(is_array($res['infoMore']) && isset($res['infoMore']['pathTo'])){

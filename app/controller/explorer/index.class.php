@@ -487,9 +487,17 @@ class explorerIndex extends Controller{
 			$pathArr = $this->parseSource($dataArr);
 		}
 
-		Action('explorer.recycleDriver')->restore($pathArr);
-		Model('SourceRecycle')->restore($pathArr);
-		show_json(LNG('explorer.success')); 
+		$fileListDriver = Action('explorer.recycleDriver')->restore($pathArr);
+		$fileListSource = Model('SourceRecycle')->restore($pathArr);
+		
+		$fileList 	= array_merge($fileListDriver,$fileListSource);
+		$listTo 	= array();
+		foreach($fileList as $path){
+			if(!$path){continue;}
+			$info = IO::infoSimple($path);if(!$info){continue;}
+			$listTo[] = array_field_key($info,array('path','name','type'));
+		}
+		show_json(LNG('explorer.success'),true,$fileList,array('listTo'=>$listTo)); 
 	}
 	private function parseSource($list){
 		$result = array();
@@ -631,8 +639,8 @@ class explorerIndex extends Controller{
 				}
 			}
 			if(!$itemResult){$errorList[] = $thePath;continue;}
+			$infoMore['listTo'][] = IO::infoSimple($itemResult);
 			$result[] = $itemResult;
-			$infoMore['listTo'][] = array('path'=>$itemResult);
 		}
 		$code = $result ? true:false;
 		$msg  = $copyType == 'copy'?LNG('explorer.pastSuccess'):LNG('explorer.cutePastSuccess');
