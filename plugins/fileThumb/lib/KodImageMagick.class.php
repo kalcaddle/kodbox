@@ -235,13 +235,13 @@ class KodImageMagick {
     private function setTmpDir() {
         if(!is_dir(TEMP_FILES)){mk_dir(TEMP_FILES);}
         $path = TEMP_FILES . '/imagemagick'; mk_dir($path);
-        putenv('MAGICK_TEMPORARY_PATH='.$path);
-        putenv('MAGICK_TMPDIR='.$path);
+		if(function_exists('putenv')){
+			putenv('MAGICK_TEMPORARY_PATH='.$path);
+        	putenv('MAGICK_TMPDIR='.$path);
+		}
     }
-
     // 记录日志
     public function log($msg) {
         $this->plugin->log($msg);
-    }
-    
+    }    
 }

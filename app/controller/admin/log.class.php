@@ -211,6 +211,13 @@ class adminLog extends Controller{
 
 	// 文件预览下载,是否为从头开始下载(用于下载计数,或统计日志);  允许的情况:没有range; 有range且start=0且end大于5
 	public function checkHttpRange(){
+        // 客户端下载触发两次请求
+        if (isset($this->in['HTTP_X_PLATFORM'])) {
+            $cckey = KodUser::id().'_'.md5(json_encode($this->in));
+            if (Cache::get($cckey)) return false;
+            Cache::set($cckey, 1, 2);
+        }
+
 		if(strtoupper($_SERVER['REQUEST_METHOD']) == 'HEAD'){return false;}
 		if(!isset($_SERVER['HTTP_RANGE'])){return true;}
 		
