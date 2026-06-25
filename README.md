@@ -1,4 +1,4 @@
-######  [English](https://github.com/kalcaddle/kodbox/blob/master/README.md) | [中文文档](https://github.com/kalcaddle/kodbox/blob/master/README_zh-CN.md)
+######  [English](https://github.com/kalcaddle/kodbox/blob/main/README.md) | [中文文档](https://github.com/kalcaddle/kodbox/blob/main/README_zh-CN.md)
 
 <h2 align="center">
   <a href="http://kodcloud.com/" alt="logo" target="_blank"><img src="https://raw.githubusercontent.com/kalcaddle/static/master/images/kodbox/icon_512.png" width="120"/></a>
@@ -9,7 +9,7 @@
   <a href="http://kodcloud.com/" target="_blank">Home</a> •
   <a href="https://kodcloud.com/download/" target="_blank">Download</a> •
   <a href="https://doc.kodcloud.com/v2/#/" target="_blank">Doc</a>  • 
-  <a href="https://github.com/kalcaddle/kodbox/blob/master/ChangeLog.md" target="_blank">Changelog</a>
+  <a href="https://github.com/kalcaddle/kodbox/blob/main/ChangeLog.md" target="_blank">Changelog</a>
 </p>
 
 > kodbox is a file manager for web. It is also a web code editor, which allows you to develop websites directly within the web browser. Self-hosted file management system with muilt-cloud support. You can run kodbox either online or locally,on Linux, Windows or Mac based platforms. The only requirement is to have PHP 5 available.
@@ -141,8 +141,7 @@ location /kodbox/ {
 ![img](https://raw.githubusercontent.com/kalcaddle/static/master/images/kodbox/admin-3.png)
 
 
-
 ## License
-kodcloud is issued under GPLv3.   license.[License](http://kodcloud.com/tools/licenses/license.txt)  
+kodcloud is issued under GPLv3.
 Contact: kalcaddle#qq.com  
 Copyright (C) 2013 kodcloud.com  

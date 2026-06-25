@@ -1,4 +1,4 @@
-######  [English](https://github.com/kalcaddle/kodbox/blob/master/README.md) | [中文文档](https://github.com/kalcaddle/kodbox/blob/master/README_zh-CN.md)
+######  [English](https://github.com/kalcaddle/kodbox/blob/main/README.md) | [中文文档](https://github.com/kalcaddle/kodbox/blob/main/README_zh-CN.md)
 
 <h2 align="center">
   <a href="http://kodcloud.com/" alt="logo" target="_blank"><img src="https://raw.githubusercontent.com/kalcaddle/static/master/images/kodbox/icon_512.png" width="120"/></a>
@@ -9,7 +9,7 @@
   <a href="http://kodcloud.com/" target="_blank">官网</a> •
   <a href="https://kodcloud.com/download/" target="_blank">下载</a> •
   <a href="https://doc.kodcloud.com/v2/#/" target="_blank">文档</a>  • 
-  <a href="https://github.com/kalcaddle/kodbox/blob/master/ChangeLog.md" target="_blank">更新日志</a>
+  <a href="https://github.com/kalcaddle/kodbox/blob/main/ChangeLog.md" target="_blank">更新日志</a>
 </p>
 
 
@@ -145,6 +145,6 @@ location /kodbox/ {
 
 
 ## License
-kodcloud is issued under GPLv3.   license.[License](http://kodcloud.com/tools/licenses/license.txt)  
+kodcloud is issued under GPLv3.
 Contact: kalcaddle#qq.com  
 Copyright (C) 2013 kodcloud.com  
