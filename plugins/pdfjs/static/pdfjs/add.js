@@ -45,9 +45,57 @@ $(document).ready(function (){
 		setTimeout(function(){
 			if(canDownload == '1'){
 				$('.hiddenMediumView,.visibleMediumView #secondaryPrint,.visibleMediumView #secondaryDownload').show();
+
+				// 修复: disableAutoFetch为true时，未浏览的页面未加载pdfPage，导致pageViewsReady为false，打印会报"此PDF未完成加载"错误
+				// 在打印前预加载所有未加载的页面。
+				var _originalPrint = window.print;
+				var _printLoading = false;
+				window.print = function(){
+					var pdfViewer = PDFViewerApplication.pdfViewer;
+					var pdfDocument = PDFViewerApplication.pdfDocument;
+					if(!pdfViewer || !pdfDocument || pdfViewer.pageViewsReady){
+						return _originalPrint();
+					}
+					if(_printLoading) return; // 防止重复触发
+					_printLoading = true;
+
+					// 获取每页视图对象，如果存在但尚未加载实际页面数据，则获取并绑定到视图
+					var pagesCount = pdfViewer.pagesCount;
+					var promises = [];
+					for(var i = 0; i < pagesCount; i++){
+						(function(idx){
+							var pageView = pdfViewer.getPageView(idx);
+							if(pageView && !pageView.pdfPage){
+								promises.push(
+									pdfDocument.getPage(idx + 1).then(function(pdfPage){
+										if(!pageView.pdfPage){
+											pageView.setPdfPage(pdfPage);
+										}
+									})
+								);
+							}
+						})(i);
+					}
+					if(promises.length === 0){
+						_printLoading = false;
+						return _originalPrint();
+					}
+					// 等待页面加载完成
+					var $mask = $('<div style="position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.4);z-index:99999;display:flex;align-items:center;justify-content:center;color:#fff;font-size:14px;pointer-events:none;">正在准备打印，请稍候...</div>').appendTo('body');
+					Promise.all(promises).then(function(){
+						$mask.remove();
+						_printLoading = false;
+						_originalPrint();
+					}).catch(function(e){
+						$mask.remove();
+						_printLoading = false;
+						console.error('Failed to load pages for printing:', e);
+						_originalPrint();
+					});
+				};
 				return;
 			}
-			PDFViewerApplication.supportsPrinting = false;	// 无效
+			// PDFViewerApplication.supportsPrinting = false;	// 无效，因为supportsPrinting是只读getter
 			PDFViewerApplication.download = function(){};
 			window.print = function(){};
 			$('.hiddenMediumView,.visibleMediumView #secondaryPrint,.visibleMediumView #secondaryDownload').remove();

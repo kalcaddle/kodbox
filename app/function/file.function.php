@@ -916,7 +916,7 @@ function is_text_file($ext){
 			'gitignore_global,gitkeep,gitlog-to-changelog,gitmodules,glsl,gltf,gnumakefile,go,gql,gradle,groovy,gss,guardfile,guess,gunmakefile,gv,gypi',
 			'h,hacking,haml,handlebars,hbs,head,helmignore,hgignore_global,hh,hjson,hlean,hpp,hrl,hs,hta,htaccess,htgroups,htm,html,html.eex,html.erb,htpasswd,http,hx,hxml,hxx',
 			'i,ics,idl,iml,in,inc,inf,ini,ino,install,install-sh,installversion,intr,inx,io,iso19139,itk',
-			'j2,jack,jade,java,jexl,ji,jinja,jinja2,jl,jq,js,jsdtscope,jshintrc,jsm,json,json-check,json5,jsonld,jscsrc,jsp,jssm,jssm_state,jsx',
+			'j2,jack,jade,java,jexl,ji,jinja,jinja2,jl,jq,js,jsdtscope,jshintrc,jsm,json,jsonc,json-check,json5,jsonld,jscsrc,jsp,jssm,jssm_state,jsx',
 			'key,keys,kml,ksh,kt,kts,la,latex,latte,ldr,lean,less,lesshst,lgc,lhs,lic,license,license-gpl,license-mit',
 			'lightbgcolor,liquid,lisp,list,lnk,local,localized,lock,log,logic,lp,lql,lrc,ls,lsl,lsp,ltx,lua,lucene',
 			'm,m3,m3u8,m4,magnet,mailcap,make,makefile,manifest,map,markdown,mask,master,mathml,matlab,mbox,mc,mcurl,md,mdx',

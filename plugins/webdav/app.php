@@ -154,8 +154,7 @@ class webdavPlugin extends PluginBase{
 	}
 
 	private function isOpen(){
-		$option = $this->getConfig();
-		return $option['isOpen'] == '1';
+		return _get($this->getConfig(),'isOpen') == '1';
 	}
 	private function debug(){
 		// $this->log('start;'.$this->dav->pathGet().';'.$this->dav->path);
@@ -197,8 +196,7 @@ class webdavPlugin extends PluginBase{
 	
 	public function log($data){
 		static $logIndex = 0;
-		$config = $this->getConfig();
-		if(empty($config['echoLog'])) return;
+		if(_get($this->getConfig(),'echoLog') != '1') return;
 		if(is_array($data)){$data = json_encode_force($data);}
 		if($_SERVER['REQUEST_METHOD'] == 'PROPFIND' ) return;
 		
@@ -212,8 +210,7 @@ class webdavPlugin extends PluginBase{
 	}
 	public function clientLog($data){
 		static $logIndex = 0;
-		$config = $this->getConfig();
-		if(empty($config['echoLog'])) return;
+		if(_get($this->getConfig(),'echoLog') != '1') return;
 		if(is_array($data)){$data = json_encode_force($data);}
 
 		$prefix = "     [C-$logIndex] ";

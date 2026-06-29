@@ -44,8 +44,10 @@ class KodImagick {
     private function setTmpDir() {
         if(!is_dir(TEMP_FILES)){mk_dir(TEMP_FILES);}
         $path = TEMP_FILES . '/imagick'; mk_dir($path);
-        putenv('MAGICK_TEMPORARY_PATH='.$path);
-        putenv('MAGICK_TMPDIR='.$path);
+		if(function_exists('putenv')){
+			putenv('MAGICK_TEMPORARY_PATH='.$path);
+			putenv('MAGICK_TMPDIR='.$path);
+		}
     }
 
     // 设置Imagick内存限制——实际是ImageMagick在占用系统内存，不受PHP内存限制

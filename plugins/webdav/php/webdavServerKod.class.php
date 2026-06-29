@@ -190,19 +190,6 @@ class webdavServerKod extends webdavServer {
 		$pathAppend = implode('/',array_slice($pathArr,1));
 		$newPath = KodIO::clear($item['path'].'/'.$pathAppend);
 		$info = IO::infoFull($newPath);
-
-		// 已存在回收站中处理;
-		if($info && $info['isDelete'] == '1'){
-			$resetName = $info['name'] .date('(H-i-s)');
-			if($info['type'] == 'file'){
-				$ext = '.'.get_path_ext($info['name']);
-				$theName   = substr($info['name'],0,strlen($info['name']) - strlen($ext));
-				$resetName = $theName.date('(H-i-s)').$ext;
-			}
-			IO::rename($info['path'],$resetName);
-			$info = IO::infoFull($newPath);
-		}
-		// pr($newPath,$item,$pathArr,$info,count($parent['folderList']));
 		if($info) return $info['path'];
 
 		$parent = Action('explorer.list')->path($item['path']);
