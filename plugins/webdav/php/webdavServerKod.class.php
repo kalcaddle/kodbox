@@ -87,7 +87,7 @@ class webdavServerKod extends webdavServer {
 			
 			// 登录日志;
 			$needLog = time() - intval($find['lastLogin']) >= 60; // 超过1分钟才记录
-			if($needLog && HttpHeader::method() == 'OPTIONS'){
+			if($needLog && HttpHeader::method() == 'PROPFIND'){
 				Model('User')->userEdit($find['userID'],array("lastLogin"=>time()));
 				ActionCall('admin.log.loginLog');
 			}

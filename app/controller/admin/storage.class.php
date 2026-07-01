@@ -172,9 +172,6 @@ class adminStorage extends Controller {
 		if($clearDay <= 0) return;
 
 		$pathRecycle = KodIO::sourceID(IO_PATH_SYSTEM_RECYCLE);
-		$whereEmpty  = array("parentID"	=> $pathRecycle,'size'=>0);
-		$this->removeSource($whereEmpty); //清除内容为空的文件夹;
-
 		$pathList 	 = Model('Source')->field('sourceID')->where(array("parentID"=> $pathRecycle))->select();
 		$pathList	 = array_to_keyvalue($pathList,'','sourceID');
 		if(!$pathList) return;
@@ -182,7 +179,6 @@ class adminStorage extends Controller {
 		$timeEnd = time() - ($clearDay * 24 * 3600);
 		$whereChild = array('parentID'=>array('in',$pathList),'modifyTime' => array('<=',$timeEnd));
 		$this->removeSource($whereChild);
-		$this->removeSource($whereEmpty);
 	}
 	private function removeSource($where){
 		$model = Model('Source');
