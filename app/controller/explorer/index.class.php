@@ -742,15 +742,15 @@ class explorerIndex extends Controller{
 		}
 		
 		ignore_timeout();
-		$zipFolder = md5(json_encode(sort(array_to_keyvalue($dataArr,'','path'))));
-		$zipCache  = TEMP_FILES.$zipFolder.'/';
+		$cacheKey  = md5(json_encode($dataArr).'-user-'.KodUser::id());
+		$zipCache  = TEMP_FILES.$cacheKey.'/';
 		mk_dir($zipCache);file_put_contents($zipCache.'index.html','');
-		$zipPath   = Cache::get($zipFolder);
+		$zipPath   = Cache::get($cacheKey);
 		if($zipPath && IO::exist($zipPath) ){
 			return $this->zipDownloadStart($zipPath);
 		}
 		$zipPath = $this->zip($zipCache);
-		Cache::set($zipFolder, $zipPath, 3600*6);
+		Cache::set($cacheKey, $zipPath, 3600*6);
 		$this->zipDownloadStart($zipPath);
 	}
 	private function zipDownloadStart($zipPath){
@@ -919,20 +919,24 @@ class explorerIndex extends Controller{
 			$distInfo = IO::info($distPath);
 		}else{//KOD_SOURCE KOD_SHARE_ITEM(source,)
 			$info = IO::info($parse['path']);
+			$pathArr = explode('/',trim($parse['path'],'/'));
 			if($parse['type'] == kodIO::KOD_SOURCE){
 				$level = Model("Source")->parentLevelArray($info['parentLevel']);
 				$pathRoot = '{source:'.$level[0].'}';
 			}else if($parse['type'] == kodIO::KOD_SHARE_ITEM){
-				$pathArr   = explode('/',trim($parse['path'],'/'));
-				$pathRoot  = $pathArr[0];
-				$shareInfo = Model('Share')->getInfo($parse['id']); // source路径内部协作分享;
-				if($shareInfo['sourceID']){$pathRoot = $pathRoot.'/'.$shareInfo['sourceID'];}
+				$shareInfo = Model('Share')->getInfo($parse['id']);
+				$pathRoot  = $shareInfo['sourceID'] ? '{source:'.$shareInfo['sourceID'].'}' : $pathArr[0];
 			}
 			
 			$displayPathArr = explode('/',trim($info['pathDisplay'],'/'));array_shift($displayPathArr);
 			$displayPath = $pathRoot.'/'.implode('/',$displayPathArr);
 			$distPath = kodIO::pathTrue($displayPath.'/../'.$add);
 			$distInfo = IO::infoFullSimple($distPath);
+			if($parse['type'] == kodIO::KOD_SOURCE){$distPath = $distInfo['path'];}
+			if($parse['type'] == kodIO::KOD_SHARE_ITEM && $shareInfo['sourceID']){ 
+				$distPath = kodIO::pathTrue($pathArr[0].'/'.$distInfo['sourceID']); // source路径内部协作分享处理;
+				$distInfo = IO::info($distPath);
+			}
 		}
 		// pr($distPath,$distInfo,$parse,[$pathRoot,$displayPath,$info,$shareInfo]);exit;
 		if(!$distInfo || $distInfo['type'] != 'file'){
@@ -942,9 +946,9 @@ class explorerIndex extends Controller{
 			show_json($distInfo['path'],true);
 		}
 		
-		ActionCall('explorer.auth.canView',$distInfo['path']);// 再次判断新路径权限;
-		Hook::trigger('explorer.fileOut', $distInfo['path']);
-		$this->fileOutUpdate($distInfo['path'],false);
+		ActionCall('explorer.auth.canView',$distPath);// 再次判断新路径权限;
+		Hook::trigger('explorer.fileOut',$distPath);
+		$this->fileOutUpdate($distPath,false);
 	}
 	
 	public function fileOutUpdate($path,$isDownload=false,$downFilename=''){

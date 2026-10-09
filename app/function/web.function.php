@@ -443,6 +443,8 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 		if($data &&  strstr($url,'?')){$url = $url.'&'.$data;}
 		if($data && !strstr($url,'?')){$url = $url.'?'.$data;}
 	}
+	$urlBefore = $url;
+	url_request_proxy_check($url,$options);
 	curl_setopt($ch, CURLOPT_URL,$url);
 	curl_setopt($ch, CURLOPT_HEADER,1);
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
@@ -454,7 +456,7 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 	// curl_setopt($ch, CURLOPT_SSLVERSION,1);//1|5|6; http://t.cn/RZy5nXF
 	// curl_setopt($ch, CURLOPT_SSLVERSION, CURL_SSLVERSION_TLSv1_2);
 	curl_setopt($ch, CURLOPT_TIMEOUT,$timeout);
-	curl_setopt($ch, CURLOPT_REFERER,get_url_root($url));
+	curl_setopt($ch, CURLOPT_REFERER,get_url_root($urlBefore));
 	curl_setopt($ch, CURLOPT_NOPROGRESS, false);
 	curl_setopt($ch, CURLOPT_PROGRESSFUNCTION,'curl_progress');curl_progress_start($ch);
 	curl_setopt($ch, CURLOPT_USERAGENT,'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36');
@@ -499,7 +501,7 @@ function url_request($url,$method='GET',$data=false,$headers=false,$options=fals
 		default:break;
 	}
 
-	if(is_array($options)){
+	if($options && is_array($options)){
 		curl_setopt_array($ch, $options);
 	}
 	$response = curl_exec($ch);
@@ -556,18 +558,25 @@ function file_get_contents_nossl($url){
 }
 
 function url_request_proxy($url,$method='GET',$data=false,$headers=false,$options=false,$json=false,$timeout=3600){
-	if(!is_array($headers)){$headers = array();}
-	$config = $GLOBALS['config'];
-	if($config['CURLOPT_PROXY']){
-		if(!is_array($options)){$options = array();}
-		foreach($config['CURLOPT_PROXY'] as $k=>$v){$options[$k] = $v;}
-	}else if($config['HTTP_PROXY']){
-		$add = strstr($config['HTTP_PROXY'],'?') ? '&':'?';
-		$url = $config['HTTP_PROXY'] .$add.'_url='.base64_encode($url);
-	};
 	return url_request($url,$method,$data,$headers,$options,$json,$timeout);
 }
 
+// 代理请求处理; 忽略本地ip请求;
+function url_request_proxy_check(&$url,&$options){
+	$host = parse_url($url,PHP_URL_HOST);
+	if(substr($host,0,8) == "192.168." || substr($host,0,3) == "10."){return;}
+	if($host == 'localhost' || $host == '127.0.0.1'){return;}
+	if($host == parse_url(APP_HOST,PHP_URL_HOST)){return;}
+	if(strstr($host,'kodview.com') || strstr($host,'kodcloud.com')){return;}
+	
+	$options 	= is_array($options) ? $options : array();
+	$curlProxy 	= _get($GLOBALS,'config.CURLOPT_PROXY');$httpProxy = _get($GLOBALS,'config.HTTP_PROXY');
+	if($curlProxy && is_array($curlProxy)){
+		foreach($curlProxy as $k => $v){$options[$k] = $v;}
+	}else if($httpProxy){
+		$url = $httpProxy.(strstr($httpProxy,'?') ? '&':'?').'_url='.base64_encode($url);
+	}
+}
 
 // 多个url批量请求; ['url1','url2',...],  or [{url,method,data,header,options},...],  
 function url_request_mutil($requests,$timeout=20){
@@ -610,13 +619,8 @@ function url_request_mutil($requests,$timeout=20){
 			$headers = is_string($request['headers']) ? array($request['headers']) : $request['headers'];
 			curl_setopt($ch,CURLOPT_HTTPHEADER,$headers);
 		}
-		if(is_array($request['options'])){
-			if(isset($request['options']['cookie'])){
-				curl_setopt($ch, CURLOPT_COOKIE, $request['options']['cookie']);
-				unset($request['options']['cookie']);
-			}
-			curl_setopt_array($ch, $request['options']);
-		}
+		$urlBefore = $url;
+		url_request_proxy_check($url,$request['options']);
 		
 		curl_setopt($ch, CURLOPT_URL,$url);
 		curl_setopt($ch, CURLOPT_HEADER, 1);
@@ -627,10 +631,18 @@ function url_request_mutil($requests,$timeout=20){
 		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 		curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
 		curl_setopt($ch, CURLOPT_TIMEOUT,$timeout);
-		curl_setopt($ch, CURLOPT_REFERER,get_url_link($url));
+		curl_setopt($ch, CURLOPT_REFERER,get_url_link($urlBefore));
 		curl_setopt($ch, CURLOPT_USERAGENT,'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36');
 		curl_setopt($ch, CURLOPT_NOPROGRESS, false);
 		curl_setopt($ch, CURLOPT_PROGRESSFUNCTION,'curl_progress');curl_progress_start($ch);
+		
+		if($request['options'] && is_array($request['options'])){
+			if(isset($request['options']['cookie'])){
+				curl_setopt($ch, CURLOPT_COOKIE, $request['options']['cookie']);
+				unset($request['options']['cookie']);
+			}
+			curl_setopt_array($ch, $request['options']);
+		}
 		curl_multi_add_handle($mh, $ch);
 		$handles[$index] = $ch;
 	}
@@ -674,17 +686,19 @@ function get_headers_curl($url,$timeout=10,$depth=0,&$headers=array()){
 	if(!function_exists('curl_init')) return false;
 	if(!$url || !request_url_safe($url)) return false;
 	if($depth >= 10) return false;
-	$ch = curl_init(); 
+
+	$ch = curl_init();  
+	$options = array();$urlBefore = $url;
+	url_request_proxy_check($url,$options);
 	curl_setopt($ch, CURLOPT_URL,$url);
 	curl_setopt($ch, CURLOPT_HEADER,true); 
 	curl_setopt($ch, CURLOPT_NOBODY,true); 
     curl_setopt($ch, CURLOPT_PROTOCOLS, CURLPROTO_HTTP | CURLPROTO_HTTPS);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
 	curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-	
 	curl_setopt($ch, CURLOPT_RETURNTRANSFER, true); 
 	curl_setopt($ch, CURLOPT_TIMEOUT,$timeout);
-	curl_setopt($ch, CURLOPT_REFERER,get_url_link($url));
+	curl_setopt($ch, CURLOPT_REFERER,get_url_link($urlBefore));
 	curl_setopt($ch, CURLOPT_USERAGENT,'Mozilla/5.0 (Windows NT 6.2; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/27.0.1453.94 Safari/537.36');
 	
 	// 通过GET获取header, 兼容oss等服务器不允许method=HEAD的情况;
@@ -693,6 +707,7 @@ function get_headers_curl($url,$timeout=10,$depth=0,&$headers=array()){
 		curl_setopt($ch, CURLOPT_HTTPGET,1);
 		curl_setopt($ch, CURLOPT_HTTPHEADER, array("Range: bytes=0-0"));
 	}
+	if($options && is_array($options)){curl_setopt_array($ch,$options);}
 
 	$res = curl_exec($ch);
 	$res = explode("\r\n", $res);

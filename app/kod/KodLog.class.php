@@ -39,22 +39,28 @@ class KodLog{
 		self::log(self::$logLast['log']);
 	}
 		
-	public static function logTimeShow($timeStart,$index,$total,$logPre='',$logAfter=''){
+	public static function logTimeShow($timeStart,$index,$total,$logPre='',$logAfter='',$itemProgress=false){
 		$logPre   = $logPre   ? $logPre.' ':'';
 		$logAfter = $logAfter ? ';'.$logAfter:'';
-		self::$logTimeShowLast = compact('timeStart','index','total','logPre','logAfter');
-		self::log($logPre.self::timeShow($timeStart,$index,$total).$logAfter);
+		self::$logTimeShowLast = compact('timeStart','index','total','logPre','logAfter','itemProgress');
+		self::log($logPre.self::timeShow($timeStart,$index,$total,$itemProgress).$logAfter);
 	}
-	public static function logTimeAdd($logAdd=''){
+	public static function logTimeAdd($logAdd='',$_itemProgress=false){
 		Hook::trigger('KodLog.logTimeAdd',$logAdd);
 		if(!self::$logTimeShowLast){return;}
 		extract(self::$logTimeShowLast);
-		self::log($logPre.self::timeShow($timeStart,$index,$total).$logAfter.';'.$logAdd);
+
+		if($_itemProgress){$itemProgress = $_itemProgress;}
+		self::log($logPre.self::timeShow($timeStart,$index,$total,$itemProgress).$logAfter.';'.$logAdd);
 	}
 	
-	
 	// 进度及时间显示;  
-	public static function timeShow($timeStart,$index,$total){
+	public static function timeShow($timeStart,$index,$total,$itemProgress=false){
+		$index	 = $index >= $total ? $total : $index;
+		$indexAt = $index;
+		if(is_array($itemProgress) && $itemProgress['total'] > 0){ // 子进程进度;
+			$index = $index + ($itemProgress['index'] / $itemProgress['total']);
+		}
 		$timeNeed  		= self::timeNeed($timeStart,$index,$total);
 		$timeUse 		= timeFloat() - $timeStart;
 		
@@ -63,7 +69,7 @@ class KodLog{
 		$pencent 		= $pencent >= 1 ? 1:$pencent;
 		$charFinished 	= intval($pencent * $charCount);
 		$pencentView 	= '['.str_repeat($char,$charFinished).'>'.str_repeat('&nbsp;',$charCount - $charFinished).']';
-		$logIndex 		= str_repeat('&nbsp;',strlen($total.'') - strlen($index.'')).$index;
+		$logIndex 		= str_repeat('&nbsp;',strlen($total.'') - strlen($indexAt.'')).$indexAt;
 		$logOut 		= $logIndex.'/'.$total.' '.$pencentView.sprintf(" %.2f",$pencent*100).'%';
 		
 		$speed   = $timeUse > 0 ? $index / $timeUse : 0;
@@ -77,7 +83,7 @@ class KodLog{
 
 			$logOut .= ';'.$timeUseShow;$timeNeed = '';
 		}
-		if($timeNeed){$logOut .= '; '.LNG('common.task.timeNeed').$timeNeed;}
+		if($timeNeed){$logOut .= ';'.LNG('common.task.timeNeed').$timeNeed;}
 		return $logOut;
 	}
 	

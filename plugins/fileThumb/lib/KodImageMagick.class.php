@@ -5,6 +5,7 @@
  */
 class KodImageMagick {
 	private $plugin;
+	private $tmpPath;
     public function __construct($plugin) {
         $this->plugin = $plugin;
     }
@@ -18,7 +19,7 @@ class KodImageMagick {
 		if (!$cache) {
 			$cache = $this->getImgFormats();
 			if (!$cache) return false;
-			$cache = Cache::set($cckey, $cache, 3600);
+			Cache::set($cckey, $cache, 3600);
 		}
 		if (!is_array($cache)) return false;
 		return in_array(strtoupper($ext), $cache);
@@ -28,7 +29,7 @@ class KodImageMagick {
 	public function getImgFormats() {
         $command = $this->getCommand();
 		if (!$command) return false;
-		$output = shell_exec($command.' -list format 2>&1');	// linux和macos下格式不同
+		$output = shell_exec(escapeShell($command).' -list format 2>&1');	// linux和macos下格式不同
         if (!$output) return false;	// []
 
         $formats = array();
@@ -152,8 +153,12 @@ class KodImageMagick {
 		$this->setLctype($file,$tempPath);
 		$this->setTmpDir();
 
-		$script = $command.' '.$param.' '.escapeShell($file).' '.escapeShell($tempPath).' 2>&1';
-		$script = "export MAGICK_THREAD_LIMIT=2; {$script}";	// 限制进程数
+		$script = escapeShell($command).' '.$param.' '.escapeShell($file).' '.escapeShell($tempPath).' 2>&1';
+		if($GLOBALS['config']['systemOS'] != 'windows' && $this->tmpPath){
+			$script = "export MAGICK_THREAD_LIMIT=2; export MAGICK_TMPDIR=".escapeShell($this->tmpPath)."; export MAGICK_TEMPORARY_PATH=".escapeShell($this->tmpPath)."; {$script}";	// 限制进程数并固定临时目录
+		}else{
+			$script = "export MAGICK_THREAD_LIMIT=2; {$script}";	// 限制进程数
+		}
 		$out = shell_exec($script);
 
 		if(!file_exists($tempPath)) {
@@ -234,10 +239,10 @@ class KodImageMagick {
 	// 设置Imagick临时目录
     private function setTmpDir() {
         if(!is_dir(TEMP_FILES)){mk_dir(TEMP_FILES);}
-        $path = TEMP_FILES . '/imagemagick'; mk_dir($path);
+        $this->tmpPath = TEMP_FILES . '/imagemagick'; mk_dir($this->tmpPath);
 		if(function_exists('putenv')){
-			putenv('MAGICK_TEMPORARY_PATH='.$path);
-        	putenv('MAGICK_TMPDIR='.$path);
+			putenv('MAGICK_TEMPORARY_PATH='.$this->tmpPath);
+        	putenv('MAGICK_TMPDIR='.$this->tmpPath);
 		}
     }
     // 记录日志

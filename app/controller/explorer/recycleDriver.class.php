@@ -73,7 +73,7 @@ class explorerRecycleDriver extends Controller{
 				foreach($data['fileList'] as $i=>$item) {
 					if($info['sourceID'] == $item['sourceID']){unset($data['fileList'][$i]);}
 				}
-				foreach($data['folderList'] as $index=>$item) {
+				foreach($data['folderList'] as $i=>$item) {
 					if($info['sourceID'] == $item['sourceID']){unset($data['folderList'][$i]);}
 				}
 			}
@@ -135,6 +135,15 @@ class explorerRecycleDriver extends Controller{
 		$list = $this->listData();
 		$listNew = $list;$result  = array();
 		foreach($list as $thePath => $beforePath){
+			$pathFrom = rtrim($beforePath,'/').'/'.get_path_this($thePath);
+			if($pathArr && !(
+				in_array($pathFrom,$pathArr) || 
+				in_array(rtrim($pathFrom,'/'),$pathArr) ||
+				in_array(rtrim($pathFrom,'/').'/',$pathArr)
+			)){
+				continue;// 有指定还原内容时, 当前不在指定中则忽略;
+			}
+		
 			$result[] = IO::move($thePath,$beforePath,REPEAT_RENAME_FOLDER);
 			unset($listNew[$thePath]);
 		}

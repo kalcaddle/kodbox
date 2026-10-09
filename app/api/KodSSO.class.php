@@ -48,7 +48,7 @@ class KodSSO{
 	private static function checkToken($appName,$host,$token){
 		if(!$token) return false;
 		$timeStart = microtime(true);
-		$uri = 'user/sso/apiCheckToken&accessToken='.$token.'&appName='.$appName;
+		$uri = 'user/sso/apiCheckToken&kodTokenApi='.$token.'&appName='.$appName;
 		$cacheKey  = md5($uri);
 		$cacheData = self::cacheGet($cacheKey);
 		if(is_array($cacheData)){
@@ -77,6 +77,7 @@ class KodSSO{
 			self::cacheSet($cacheKey,$userInfo,3600);
 			return $userInfo;
 		}
+		self::cacheSet($cacheKey,'',3600);
 		if(!strstr($res,'[error]:')){echo $res;exit;}
 		return false;
 	}
@@ -209,12 +210,9 @@ class KodSSO{
 		return $httpType.'://'.trim($host,'/').'/';
 	}
 	public static function pathClear($path){
-		$path = str_replace('\\','/',trim($path));
-		$path = preg_replace('/\/+/', '/', $path);
-		if (strstr($path,'../')) {
-			$path = preg_replace('/\/\.+\//', '/', $path);
-		}
-		return $path;
+		if(!$path || $path == '.'){return $path;}
+		$path = str_replace(array("\r","\n",'\\'),array(' ',' ','/'),trim($path));//过滤换行符
+		return preg_replace('/\/+/','/',preg_replace('/(?:^|\/)\.+(?=\/|$)/','/',$path));
 	}
 	
 	// 记录缓存写入的key; 退出登陆时清除;
@@ -250,7 +248,7 @@ class KodSSO{
         }
         $str = @file_get_contents($file);
         $str = substr($str,strlen("<?php exit;?>"));
-		return unserialize($str);
+		return unserialize($str,array('allowed_classes'=>false));
     }
 	public static function cacheFile($key){
 		$BASIC_PATH = str_replace('\\','/',dirname(dirname(dirname(__FILE__)))).'/';

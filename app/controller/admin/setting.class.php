@@ -67,6 +67,7 @@ class adminSetting extends Controller {
 
 		$user = Session::get('kodUser');
 		$name = _get($user, 'nickName', _get($user, 'name'));
+		// TODO 改成统一在user.bind调用
 		$data = array(
 			'type'			=> 'email',
 			'input'			=> $input,
@@ -256,7 +257,7 @@ class adminSetting extends Controller {
 		file_put_contents(BASIC_PATH.'config/setting_user.php',$content);
 		
 		echoLog(str_repeat('-',50));
-		echoLog("update config/setting_user.php DB_CHARSET'=>'${charsetSimple}',");
+		echoLog("update config/setting_user.php DB_CHARSET'=>'{$charsetSimple}',");
 		echoLog("Successfull!");
 	}
 }

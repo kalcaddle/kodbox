@@ -339,6 +339,8 @@ class userSetting extends Controller {
 
 	// 个人空间使用统计
 	public function userChart(){
+		$this->in['userID'] = KodUser::id();
+		$this->in['groupID'] = '';
 		ActionCall('admin.analysis.chart');
 	}
 	// 个人操作日志

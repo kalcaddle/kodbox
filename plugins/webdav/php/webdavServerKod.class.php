@@ -10,6 +10,7 @@
  * 兼容sabre的文件patch追加协议: https://sabre.io/dav/http-patch/  
  */
 class webdavServerKod extends webdavServer {
+	private $fputTimeout = 5;	// put文件在列表中缓存时长
 	public function __construct($DAV_PRE) {
 		$this->davPre = $DAV_PRE;
 		$this->plugin = Action('webdavPlugin');
@@ -190,7 +191,11 @@ class webdavServerKod extends webdavServer {
 		$pathAppend = implode('/',array_slice($pathArr,1));
 		$newPath = KodIO::clear($item['path'].'/'.$pathAppend);
 		$info = IO::infoFull($newPath);
-		if($info) return $info['path'];
+		// 协作路径 {shareItem:id}/sourceID 只认第一段 sourceID，后续目录名会被丢掉并返回当前层。
+		// 若直接采用该结果，进入同名子目录会解析回父目录，表现为目录循环。
+		if($info && $this->pathInfoFullMatch($info,$pathArr,$item['path'])){
+			return $info['path'];
+		}
 
 		$parent = Action('explorer.list')->path($item['path']);
 		$result  = $this->pathInfoDeep($parent,array_slice($pathArr,1));
@@ -202,6 +207,19 @@ class webdavServerKod extends webdavServer {
 			}
 		}
 		return $result;
+	}
+
+	// infoFull 必须落到比当前层更深的节点，且最后一段名称（或 sourceID）匹配。
+	// 父子目录同名时，仅比名称会把「丢掉路径段后的当前层」误判为命中。
+	private function pathInfoFullMatch($info,$pathArr,$parentPath){
+		$want = $pathArr[count($pathArr) - 1];
+		if(!$info || $want === '' || $want === null) return false;
+		$resolved = KodIO::clear($info['path']);
+		$parent   = KodIO::clear($parentPath);
+		if(rtrim($resolved,'/') === rtrim($parent,'/')) return false;
+		if(isset($info['name']) && $info['name'] === $want) return true;
+		if(isset($info['sourceID']) && strval($info['sourceID']) === strval($want)) return true;
+		return false;
 	}
 	
 	public function pathInfo($path){
@@ -246,7 +264,61 @@ class webdavServerKod extends webdavServer {
 			$GLOBALS['in']['pageNum'] = -1;
 		}
 		// write_log([$path,$pathParse,$GLOBALS['in']],'test');		
-		return Action('explorer.list')->path($path);
+		$list = Action('explorer.list')->path($path);
+		return $this->pathListMergeRecentPut($path,$list);
+	}
+
+	// put操作后短时间内出现IO::infoFull存在但列表中不存在的情况，导致打开的文件句柄失效。将最近成功的put路径存缓存，获取列表后回填
+	private function pathListMergeRecentPut($path,$list){
+		if(!is_array($list)) return $list;
+		$key = $this->pathRecentPutCacheKey();
+		$recent = Cache::get($key);
+		if(!is_array($recent) || !$recent) return $list;
+		$folderPath = rtrim(KodIO::clear($path),'/');
+
+		$exists = array();
+		foreach (array('fileList','folderList') as $listKey){
+			if(!isset($list[$listKey]) || !is_array($list[$listKey])) continue;
+			foreach ($list[$listKey] as $item){
+				if(isset($item['path'])) $exists[$item['path']] = true;
+			}
+		}
+
+		$now = time();
+		foreach ($recent as $filePath=>$putTime){
+			if($now - intval($putTime) > $this->fputTimeout){
+				unset($recent[$filePath]);continue;
+			}
+			$fileInfo = IO::infoFull($filePath);
+			if(!$fileInfo || $fileInfo['type'] != 'file'){
+				unset($recent[$filePath]);continue;
+			}
+			$fileFolder = rtrim(KodIO::clear(IO::pathFather($fileInfo['path'])),'/');
+			if($fileFolder != $folderPath) continue;
+			if(isset($exists[$fileInfo['path']])) continue;
+			if(!isset($list['fileList']) || !is_array($list['fileList'])){
+				$list['fileList'] = array();
+			}
+			$list['fileList'][] = $fileInfo;
+			$exists[$fileInfo['path']] = true;
+		}
+
+		if($recent){
+			Cache::set($key,$recent,$this->fputTimeout);
+		}else{
+			Cache::remove($key);
+		}
+		return $list;
+	}
+	private function pathRecentPutCacheKey(){
+		return 'webdav_recent_put_'.KodUser::id();
+	}
+	private function pathRecentPutRemember($filePath){
+		$key = $this->pathRecentPutCacheKey();
+		$recent = Cache::get($key);
+		if(!is_array($recent)) $recent = array();
+		$recent[$filePath] = time();
+		Cache::set($key,$recent,$this->fputTimeout);
 	}
 	
 	public function pathMkdir($pathBefore){
@@ -323,6 +395,7 @@ class webdavServerKod extends webdavServer {
 			$result = true;	
 		}
 		$this->plugin->log("upload=$uploadPath;path=$path,$pathBefore;res=$result;local=$localFile;size=".$size);
+		if($result) $this->pathRecentPutRemember($uploadPath);
 		return $result;
 	}
 	private function pathPutRemoveTemp($path){
@@ -413,9 +486,21 @@ class webdavServerKod extends webdavServer {
 			$toExt   	= get_path_ext($destURL);// 误判情况: 将xx/aa.docx 移动到xx/aa~xxx.tmp会失败;
 			$officeExt 	= array('doc','docx','xls','xlsx','ppt','pptx');
 			if( $toExt == 'tmp' && in_array($fromExt,$officeExt) && strstr($toFile,'~')){
-				$result =  IO::mkfile($destFile);
-			    $this->plugin->log("move mkfile=$path;$pathUrl;$destURL;result=".$result);
-			    return $result;
+				// $result =  IO::mkfile($destFile);
+				// 保留正式路径，并创建完整内容备份文件，配合按.tmp文件名返回 MIME，使raidrive的MOVE后校验与正常站点保持一致。
+				$result = IO::copy($path,$dest,false,$toFile);	// copy中$dest为目录，路径可为二层时实际取父目录，tmp均为{source:id}/~xxx.tmp形式，故可用
+				$this->plugin->log("move linked backup=$path;$pathUrl;$destURL;result=".$result);
+				return $result;
+			}
+			// WPS 失败后会尝试将备份移回正式文件。禁止0字节占位覆盖仍然完整的 Office 文件，避免回滚造成数据清零。
+			if( $fromExt == 'tmp' && in_array($toExt,$officeExt) && strstr($fromFile,'~') &&
+				$this->pathExists($path,true) && $this->pathExists($destFile) ){
+				$fromInfo = IO::infoFull($path);
+				if( intval($fromInfo['size']) === 0 ){
+					$result = IO::remove($path);
+					$this->plugin->log("move ignore empty office rollback=$path;$pathUrl;$destURL;result=".$result);
+					return $destFile;
+				}
 			}
 			// 都存在则覆盖；
 			if( $this->pathExists($path,true) && $this->pathExists($destFile) ){

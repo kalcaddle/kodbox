@@ -54,6 +54,7 @@ return array(
     "fileThumb.video.STATUS_ERROR"   => "ランタイムエラー。ソフトウェアがインストールされているかどうか、または実行権限があるかどうかを確認してください (ffmpeg、shell_exec、proc_open)",
     "fileThumb.video.STATUS_RUNNING" => "トランスコーディング",
     "fileThumb.video.STATUS_LIMIT"   => "進行中のタスクの数が制限を超えました。しばらくしてからもう一度お試しください。",
+    "fileThumb.video.retry"          => "再エンコード",
     "fileThumb.config.debug"         => "デバッグモード",
     "fileThumb.config.debugDesc"     => "関連するログを生成します。<button class='btn btn-sm btn-default ml-20 view-log'>ログを表示します。</button>"
 );

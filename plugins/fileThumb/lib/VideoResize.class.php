@@ -31,6 +31,11 @@ class videoResize {
 		$fileInfo = IO::info($path);
 		$fileInfo = Action('explorer.list')->pathInfoMore($fileInfo);
 		$fileInfo['taskID'] = 'video-convert-'.KodIO::hashPath($fileInfo);
+		$retry = _get($GLOBALS['in'],'retry','');
+		if($retry == '1'){
+			$this->convertError($fileInfo['taskID'],-1);	// 清除上次转码失败缓存
+			if(Cache::get($fileInfo['taskID']) == 'error'){Cache::remove($fileInfo['taskID']);}
+		}
 		$status  = $this->run($path,$fileInfo,$plugin);
 		if($status === true) return;
 		
@@ -79,7 +84,7 @@ class videoResize {
 		$config 	= $plugin->getConfig('fileThumb');
 		$isVideo   	= in_array($fileInfo['ext'],explode(',',$config['videoConvertType']));
 		$fileSizeMax = floatval($config['videoConvertLimitTo']); //GB; 为0则不限制
-		$fileSizeMin = floatval($config['videoConvertLimit']); //GB; 为0则不限制
+		$fileSizeMin = floatval($config['videoConvertLimit']); //MB; 为0则不限制
 		if(IO::fileNameExist($cachePath, $tempFileName)){return self::STATUS_SUCCESS;}
 		
 		// 部分文件无法获取视频信息（或时长），导致无法执行转码
@@ -222,18 +227,18 @@ class videoResize {
 		$this->processKill($pid);
 		$this->convertClear($fileInfo['taskID']);
 		
-		$runError  = true;
 		$errorTips = 'Run error!';$cacheTime = 3600;
+		$errorMatch = false;
 		if( preg_match("/(Error .*)/",$output,$match) || 
 			preg_match("/(Unknown encoder .*)/",$output,$match) ||
 			preg_match("/(Invalid data found .*)/",$output,$match) ||
 			preg_match("/(No device available .*)/",$output,$match)
 		){
+			$errorMatch = true;
 			$errorTips = '[ffmpeg error] '.$match[0].';<br/>see log[data/temp/log/videoconvert/xx.log]';
 		}
-		if( preg_match("/frame=\s+(\d+)/",$output,$match)){
+		if(!$errorMatch && preg_match("/frame=\s+(\d+)/",$output,$match)){
 			$errorTips = 'Stoped!';
-			$runError  = false;
 		}
 		$logEnd  = get_caller_msg();
 		$logTime = 'time='.(time() - $timeStart);	
@@ -254,7 +259,7 @@ class videoResize {
 		@unlink($tempPath);
 		Cache::set($fileInfo['taskID'],'error',5);
 		$this->convertError($fileInfo['taskID'],$errorTips,$cacheTime);
-		$logAdd = $runError ? "\n".trim($output) : '';
+		$logAdd = "\n".trim($output);
 		$this->log('[end] '.$fileInfo['name'].';'.$errorTips.'; '.$logTime.$logAdd.$logEnd);
 		$this->log('[end] '.$output);
 	}
@@ -311,7 +316,7 @@ class videoResize {
 		Cache::set($key,$content,$cacheTime);
 	}
 	private function convertSupport($ffmpeg){
-		$out = shell_exec($ffmpeg.' -v 2>&1');
+		$out = shell_exec(escapeShell($ffmpeg).' -v 2>&1');
 		if(!strstr($out,'--enable-libx264')){return false;}
 		return true;
 	}
@@ -320,7 +325,7 @@ class videoResize {
 	// http://blog.kail.xyz/post/2018-03-28/other/windows-find-kill.html
 	public function processFind($search){
 		$this->setLctype($search);
-		$cmd = "ps -eo user,pid,ppid,args | grep '".escapeShell($search)."' | grep -v grep | awk '{print $2}'";
+		$cmd = "ps -eo user,pid,ppid,args | grep ".escapeShell($search)." | grep -v grep | awk '{print $2}'";
 		if($GLOBALS['config']['systemOS'] != 'windows'){return trim(@shell_exec($cmd));}
 		
 		// windows 获取pid;
@@ -337,9 +342,9 @@ class videoResize {
 	
 	// 通过pid结束进程;
 	public function processKill($pid){
-		if(!$pid) return;
-		if($GLOBALS['config']['systemOS'] != 'windows'){return @shell_exec('kill -9 '.$pid);}
-		@shell_exec('taskkill /F /PID '.$pid);
+		if(!preg_match('/^\d+$/', $pid)) return;
+		if($GLOBALS['config']['systemOS'] != 'windows'){return @shell_exec('kill -9 '.intval($pid));}
+		@shell_exec('taskkill /F /PID '.intval($pid));
 	}
 	
 	
@@ -414,7 +419,7 @@ class videoResize {
 	// 解析视频文件信息;
 	private function parseVideoInfo($command,$video){
 		$this->setLctype($video);
-		$result  = shell_exec($command.' -i '.escapeShell($video).' 2>&1');
+		$result  = shell_exec(escapeShell($command).' -i '.escapeShell($video).' 2>&1');
 		$info    = array('playtime'=>0,'createTime'=>'','audio'=>array());
 		if(preg_match("/Duration:\s*([0-9\.\:]+),/", $result, $match)) {
 			$total = explode(':', $match[1]);
@@ -443,15 +448,15 @@ class videoResize {
 		$isWin = $GLOBALS['config']['systemOS'] == 'windows';
 		$path  = false;
 		if ($isWin) {
-			exec('where '.escapeshellarg($bin),$output);
+			exec('where '.escapeShell($bin),$output);
 			foreach ($output as $line) {
 				if (stripos($line,$check) !== false) {
-					$path = escapeshellarg($line).'/'.$bin.'.exe';
+					$path = $line.'/'.$bin.'.exe';
 					break;
 				}
 			}
 		} else {
-			exec('which '.$bin,$output,$status);
+			exec('which '.escapeShell($bin),$output,$status);
 			if ($status == 0) {
 				$path = $bin;
 				if($output[0]){

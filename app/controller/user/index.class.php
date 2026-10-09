@@ -215,7 +215,7 @@ class userIndex extends Controller {
 		$errorTips = _get($this->in,'msg','');
 		$errorTips = $errorTips == '[API LOGIN]' ? '':$errorTips; // 未登录标记,不算做登录错误;
 		if(KodUser::isLogin() && !$errorTips){
-			$param = 'kodTokenApi='.$this->accessToken();
+			$param = 'kodTokenApi='.$this->apiTokenMake();
 			if($this->in['callbackToken'] == '1'){
 				$link .= strstr($link,'?') ? '&'.$param:'?'.$param;
 			}
@@ -226,6 +226,18 @@ class userIndex extends Controller {
 		$param .= isset($this->in['msg']) ? "&msg=".$this->in['msg']:'';
 		$param .= isset($this->in['callbackToken']) ? '&callbackToken=1':'';
 		header('Location:'.APP_HOST.$param);exit;
+	}
+	
+	// 构造用于临时校验的token;
+	public function apiTokenMake(){
+		if(!KodUser::isLogin()){return '';}
+		$sessionSign = Session::sign();
+		$apiToken    = Cache::get($sessionSign);
+		if(!$apiToken){$apiToken = rand_string(16,3);}
+
+		Cache::set($apiToken,$sessionSign,3600);
+		Cache::set($sessionSign,$apiToken,3600);
+		return $apiToken;
 	}
 
 	/**
@@ -427,7 +439,7 @@ class userIndex extends Controller {
 		}
 		
 		$userID  = Session::get('kodUser.userID');
-		$timeout = $timeout ? $timeout : 3600*24*30; // 咱不使用, 默认一直有效;
+		$timeout = $timeout ? $timeout : 3600*24*30; // 暂不使用, 默认一直有效;
 		$param   = '';
 		$keyList = array(strtolower($action));
 		$signArr = array(strtolower($action),$appSecret);
@@ -496,13 +508,28 @@ class userIndex extends Controller {
 	}
 
 	// 系统维护中
+	// 旧版$value仅作为开关(1/0)，现改为时间戳，超过2小时自动解除，避免因异常中断永久锁定
 	public function maintenance($update=false,$value=0){
-		// Model('SystemOption')->set('maintenance',0);exit;
-		if($update) return Model('SystemOption')->set('maintenance', $value);
-		// 有配置参数则不处理
-		if ($GLOBALS['config']['settings']['systemMaintenance'] === 0) return;
-		// 管理员or未启动维护，返回
-		if(KodUser::isRoot() || !Model('SystemOption')->get('maintenance')) return;
+		if($update) {
+			return Model('SystemOption')->set('maintenance', $value ? time() : 0);
+		}
+		$mtceLock = _get($GLOBALS, 'config.settings.systemMaintenanceLock'); // 强制锁(1/0)
+		if ($mtceLock === 0) return;	// 强制不锁
+
+		// 管理员，返回
+		if(KodUser::isRoot()) return;
+
+		// 未加强制锁时，未维护或维护超时，返回
+		if ($mtceLock !== 1) {
+			$mtceAt = intval(Model('SystemOption')->get('maintenance'));
+			if(!$mtceAt) return;
+
+			$elapsed = time() - $mtceAt;
+			if($elapsed > 7200 || $elapsed < 0){
+				Model('SystemOption')->set('maintenance', 0);
+				return;
+			}
+		}
 		show_tips(LNG('common.maintenanceTips'), '','',LNG('common.tips'));
 	}
 }

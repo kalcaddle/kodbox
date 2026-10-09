@@ -184,7 +184,8 @@ class adminPlugin extends Controller{
 
 	public function unInstall(){
 		$app = Input::get('app','key');
-		if( !$this->in['app']){
+		$app = str_replace(array('.','/','\\',' '),'',$app); // 避免传入 `..`等非法字符,
+		if(!$app || !$this->in['app']){
 			show_json(LNG('explorer.dataNotFull'),false);
 		}
 		if(substr($app,0,3) == 'oem'){

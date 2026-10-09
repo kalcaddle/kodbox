@@ -160,7 +160,7 @@ ClassBase.define({
         var key  = md5('store_import_'+jsonEncode(data));
         var notify = this.notifyList[key] || null;
         if (notify) return Tips.tips(LNG['storeImport.task.subErr'], 'warning');
-        data.taskId = key + '|' + timeFloat()+roundString(4);
+        data.taskId = key + '-' + timeFloat()+roundString(4);
 
         var self = this;
         var tips = Tips.loadingMask();
@@ -232,15 +232,33 @@ ClassBase.define({
         }
         // TODO 2.3 尚未获取到 ——也可能任务被意外结束
         if (!result.data) return;
-        // 2.4 更新进度
-        var percent = _.get(result.data, 'taskPercent') || 0;
-        var text = (_.get(result,'data.taskFinished') || 0) + ' / ' + (_.get(result,'data.taskTotal') || 0);
-        tips.content(_.get(result, 'data.currentTitle') || '').process({text: text, process: percent});
+        // 2.4 更新进度：标题右侧显示已用时长（不带标签），数字右侧显示“剩余约 xx”（都不加行，保持弹窗原尺寸）
+        var d       = _.get(result, 'data') || {};
+        var percent = _.get(d, 'taskPercent') || 0;
+        var numText = this.numShow(_.get(d, 'taskFinished')) + ' / ' + this.numShow(_.get(d, 'taskTotal'));
+        var time    = this.progressInfo(d);
+        var title   = _.get(d, 'currentTitle') || '';
+        var text    = numText;
+        if (time.elapsed > 0) {
+            // 标题右侧：xx分xx秒（不加“已用/耗时”字样）
+            title += '<span class="fl-right opacity-60">' + timeShow(time.elapsed) + '</span>';
+        }
+        if (time.need > 0) {
+            // 数字右侧：剩余约 xx（超过 5 小时按框架惯例显示“5小时以上”）
+            var needTxt = (time.need >= 18000)
+                ? '5' + LNG.space + LNG['common.hour'] + LNG.space + LNG['common.sizeMore']
+                : timeShow(time.need);
+            text += '<span class="fl-right opacity-60">' + this.lngText('storeImport.task.timeRemain', '剩余约 [0]', needTxt) + '</span>';
+        }
+        tips.content(title).process({text: text, process: percent});
         // 2.5 完成
         if (_.get(result,'info') == '1') { // percent=1
-            var msg     = _.get(result, 'data.desc') || '';
-            if (!msg && _.get(result, 'data.timeNeed')) {
-                msg = timeShow(_.get(result, 'data.timeNeed')); // 耗时
+            var msg = _.get(result, 'data.desc') || '';
+            if (!msg) {
+                // 总耗时 = 服务端最后更新时刻 - 开始时刻（原来这里取的是 timeNeed，那是“剩余”估算值）
+                var dd = result.data || {};
+                var useSec = Math.floor(parseFloat(dd.timeSave || dd.timeUpdate || 0) - parseFloat(dd.timeStart || 0));
+                if (useSec > 0) msg = this.lngText('storeImport.task.timeUsed', '总耗时 [0]', timeShow(useSec));
             }
             if(msg) msg = '<span class="fl-right">'+msg+'</span>';
             var icon    = 'success';
@@ -257,13 +275,40 @@ ClassBase.define({
                 tips.content(LNG['storeImport.task.partDesc']);
                 // tips.$main.find('.process-add').css('background-color', '#f7ba29');
             }
-            tips.icon(icon).title(title).process({text: text + msg, process: percent});
+            tips.icon(icon).title(title).process({text: numText + msg, process: percent});
             this.formDisable(false);
             this._delay(function(){
                 _.unset(self.notifyList, key);
                 tips.close();
             }, 5000);
         }
+    },
+
+    // 数字千分位：76666 → 76,666
+    numShow: function (n) {
+        n = parseInt(n || 0, 10);
+        return String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    },
+
+    // 取文案：缺翻译时退回默认文案（避免界面上出现 key 名）
+    lngText: function (key, def, arg) {
+        var v = LNG[key];
+        if (!v || String(v).indexOf('storeImport.') === 0) v = def;
+        return (arg === undefined) ? v : _.replace(v, '[0]', arg);
+    },
+
+    // 由任务字段推导两个时长（秒）：已用 = 服务端最后时刻 - 开始时刻；剩余 = timeNeed（缺失时按平均速度兜底）
+    progressInfo: function (d) {
+        // var now   = parseFloat(d.timeSave || d.timeUpdate || 0);   // 服务端时刻，避免客户端时钟偏差
+        var now   = time();
+        var start = parseFloat(d.timeStart || 0);
+        var speed = parseFloat(d.taskSpeed || 0) || 0;
+        var need  = parseFloat(d.timeNeed  || 0) || 0;
+        var done  = parseInt(d.taskFinished || 0, 10);
+        var total = parseInt(d.taskTotal    || 0, 10);
+        var elapsed = (now && start && now > start) ? Math.floor(now - start) : 0;
+        if (need <= 0 && speed > 0 && total > done) {need = (total - done) / speed;}
+        return {elapsed: elapsed, need: need > 0 ? Math.floor(need) : 0};
     },
 
     // 禁/启用dialog中的操作

@@ -46,10 +46,10 @@ kodReady.push(function(){
 	};
 	var autoPlayFast = "{{config.videoPlayType}}" == 'normal';
 	var videoLoadSmall = function(filePath,kodApp,$target,success){
-		var timeout = 1000,delay = false;
-		var api = API_URL('plugin/fileThumb/videoSmall','noOutput=1&path='+urlEncode(filePath));
+		var timeout = 1000,delay = false,retry = false;
 		var lastAjax = false;
 		var request  = function(){
+			var api = API_URL('plugin/fileThumb/videoSmall','noOutput=1'+(retry?'&retry=1':'')+'&path='+urlEncode(filePath));
 			lastAjax = $.ajax({url:api,dataType:'json',success:function(data){
 				// console.log(111,arguments);
 				if(!data){delay = setTimeout(request,timeout);return;}
@@ -92,6 +92,13 @@ kodReady.push(function(){
 			if(runInfo && runInfo.status == status.STATUS_ERROR){
 				$tips.css({'background':'rgb(255,100,100,0.5)'});
 				tipsTime = 6000;console.warn(message);
+				var $retry = $('<a style="cursor:pointer;margin-left:10px;color:#fff;text-decoration:underline;">'+LNG['fileThumb.video.retry']+'</a>');
+				$tips.append($retry);
+				$retry.on('click',function(){
+					$tips.stop(true,true).remove();
+					retry = true;
+					request();
+				});
 			}
 			$tips.html(message).hide().fadeIn(300);
 			$tips.delay(tipsTime).fadeOut(300,function(){$tips.remove();});

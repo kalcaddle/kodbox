@@ -244,7 +244,7 @@ class explorerShare extends Controller{
 		$where 		= array("shareID"=>$this->share['shareID']);
 		// 分享者角色没有上传权限时, 忽略配置开启上传;
 		$actionUpload 	= array('fileupload','mkdir','mkfile');
-		$actionEdit 	= array('fileupload','mkdir','mkfile','pathrename','pathDelete','pathcopy','pathcute','pathcuteto','pathcopyto','pathpast','filesave');
+		$actionEdit 	= array('fileupload','mkdir','mkfile','pathrename','pathdelete','pathcopy','pathcute','pathcuteto','pathcopyto','pathpast','filesave');
 		$canUpload 		= $options['canUpload']   == '1';
 		$canEdit 		= $options['canEditSave'] == '1';
 		$canView	 	= $options['notView'] 	  != '1';

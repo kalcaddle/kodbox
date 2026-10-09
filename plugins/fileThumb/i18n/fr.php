@@ -54,6 +54,7 @@ return array(
     "fileThumb.video.STATUS_ERROR"   => "Erreur d'exécution, vérifiez si le logiciel est installé ou s'il dispose d'une autorisation d'exécution (ffmpeg, shell_exec, proc_open)",
     "fileThumb.video.STATUS_RUNNING" => "Transcodage",
     "fileThumb.video.STATUS_LIMIT"   => "Le nombre de tâches en cours a dépassé la limite. Veuillez réessayer ultérieurement.",
+    "fileThumb.video.retry"          => "Réencodage",
     "fileThumb.config.debug"         => "Mode débogage",
     "fileThumb.config.debugDesc"     => "Générer des journaux pertinents. <button class='btn btn-sm btn-default ml-20 view-log'>Consulter les journaux.</button>"
 );

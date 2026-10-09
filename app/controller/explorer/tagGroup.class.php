@@ -210,7 +210,7 @@ class explorerTagGroup extends Controller{
 	private function checkAuth(){
 		if(strtolower(MOD.'.'.ST) != 'explorer.taggroup') return;
 		$ACTION = strtolower(ACT);
-		$checkSourceAuth = array('filesRemoveFromTag','filesAddToTag');
+		$checkSourceAuth = array('filesRemoveFromTag','filesAddToTag','set');
 		
 		// 文档权限检测;
 		$groupID = $this->in['groupID'];

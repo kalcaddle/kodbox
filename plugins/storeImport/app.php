@@ -5,9 +5,13 @@
  */
 
 class storeImportPlugin extends PluginBase{
+	// 异常明细是否已写（一次导入只写一份：正常结束 / 异常捕获 / 致命错误收尾 三条路径共用）
+	private $errDetailWritten = false;
+
 	function __construct(){
 		parent::__construct();
 	}
+
 	public function regist(){
 		$this->hookRegist(array(
 			'user.commonJs.insert' => 'storeImportPlugin.echoJs',
@@ -34,13 +38,14 @@ class storeImportPlugin extends PluginBase{
 	 * @return void
 	 */
 	public function check(){
+		KodUser::checkRoot();
 		$pathFrom = Input::get('pathFrom','require');
 		$parse = KodIO::parse($pathFrom);
 		if ($parse['type'] != KodIO::KOD_IO) {
 			show_json(LNG('storeImport.main.ioPathErr'), false);
 		}
 		$data = array('folder'=>0,'file'=>0);
-		$list = $this->api($pathFrom)->listPath($pathFrom, 200000);
+		$list = $this->api($pathFrom)->listPathBatch($pathFrom, 200000);
 		foreach ($list as $batch) {
 			foreach ($batch as $item) {
 				if ($item['folder']) {
@@ -181,9 +186,6 @@ class storeImportPlugin extends PluginBase{
 		$task	= new Task($taskId, 'storeImport', 0, LNG('storeImport.main.dataImport'));
 		$this->writeLog('开始导入任务：from=>'.$pathFrom.'; to=>'.$pathTo);
 
-		// 删除记录文件
-		$errFile = $this->err255File($pathTo, $taskId);
-		if ($errFile) IO::delFile($errFile);
 		// 记录日志
 		$logId = $this->logAdd($pathFrom, $pathTo, $task->task);
 
@@ -191,17 +193,27 @@ class storeImportPlugin extends PluginBase{
 		$this->writeLog('开始批量导入');
 		include_once($this->pluginPath.'lib/batchImport.class.php');
 		$import = new batchImport($task);	// 每次创建新的实例，避免内存累积——实际占用差别不大，改为共用
+		// 致命错误（OOM 等）也要尽量把异常明细写出去：正常结束/异常捕获路径会先写，这里用标志位保证只写一份
+		register_shutdown_function(function () use ($import, $pathFrom, $pathTo, $taskId) {
+			$err = error_get_last();
+			$fatalErrors = array(E_ERROR, E_PARSE, E_CORE_ERROR, E_COMPILE_ERROR, E_USER_ERROR, E_RECOVERABLE_ERROR);
+			if (!$err || !in_array($err['type'], $fatalErrors)) return;
+			$this->flushErrDetail($pathFrom, $pathTo, $taskId, $import, '任务异常中止：' . _get($err, 'message', ''));
+		});
 
 		$idx = 1;
 		$task->task['currentTitle'] = LNG('storeImport.task.readdir').'-'.$idx;
 		$task->update(0,true);
-		$list = $this->api($pathFrom)->listPath($pathFrom, 200000);	// 500000反而慢
+		$list = $this->api($pathFrom)->listPathBatch($pathFrom, 200000);	// 500000反而慢
 		foreach ($list as $i => $batch) {
 			if (!$batch) continue;
 			$this->writeLog('开始任务批次（'.$idx.'）');
 			try {
 				$res = $import->import($pathFrom, $pathTo, $batch);
 			} catch (Exception $e) {
+				// show_json 会 exit（finally 不会执行），所以这里先把异常明细落盘再上报
+				$this->logListErrors($this->api($pathFrom));
+				$this->flushErrDetail($pathFrom, $pathTo, $taskId, $import, '任务异常中止：' . $e->getMessage());
 				$this->showJson(array('data' => $e->getMessage(), 'code' => false));
 			}
 			$this->writeLog('结束任务批次（'.$idx.'）');
@@ -210,19 +222,28 @@ class storeImportPlugin extends PluginBase{
 			$task->update(0,true);
 		}
 		$this->writeLog("完成批量导入，共导入文件：{$task->task['taskFinished']}/{$task->task['taskTotal']}");
+		// 2.1 源目录遍历阶段的异常（原来全是静默跳过，日志里看不到）
+		$this->logListErrors($this->api($pathFrom));
 
 		// 更新日志
 		$update = array('status' => 1, 'taskInfo' => $task->task);
 		$this->logEdit($logId, $update);
 
-		// 3.统计因路径过长（>255）忽略导入的文件
-		$logCnt = 0;
-		$errFile = $this->err255File($pathTo, $taskId);
-		if ($errFile) {
-			$lines = IO::getContent($errFile);
-			$lines = array_filter(explode(PHP_EOL, $lines));
-			$logCnt  = count($lines);
-			$this->writeLog("共有{$logCnt}个文件因路径长度超255字符导入失败");
+		// 3. 写“文件导入明细”（每类异常一条，含总览表头；没有异常则不建目录）
+		$errFile = $this->flushErrDetail($pathFrom, $pathTo, $taskId, $import, '正常完成');
+
+		// 3.1 整轮对账汇总：扫描数 / 入库数 / 各类跳过，便于判断“少文件、少字节”出在哪一步
+		$stat = $import->getStat();
+		$skipCharset = _get($stat, 'skipBadCharset', 0);
+		$this->writeLog("【导入汇总】扫描到文件 {$stat['fileSeen']}，写入 io_source {$stat['sourceRows']} 行 / io_file {$stat['fileRows']} 行；"
+			. "跳过：超255字符 {$stat['skipPathLen']}、编码/4字节字符 {$skipCharset}、父目录无法建立 {$stat['skipNoParent']}、相对路径为空 {$stat['skipEmptyRel']}；"
+			. "目录：新建 {$stat['folderCreated']}、复用 {$stat['folderExisted']}、失败 {$stat['folderFailed']}；失败批次 {$stat['batchFail']}");
+		$this->writeLog("【导入汇总】异常明细共 " . $import->errTotal() . " 条：" . $import->errSummaryText()
+			. ($errFile ? "；明细文件：" . $errFile : "；（无异常，未生成明细文件）"));
+		if ($stat['fileSeen'] != $stat['fileBuffered'] + $stat['skipPathLen'] + $skipCharset + $stat['skipNoParent'] + $stat['skipEmptyRel']) {
+			$this->writeLog("【导入汇总】注意：扫描数与“入库+跳过”不相等，差额 "
+				. ($stat['fileSeen'] - $stat['fileBuffered'] - $stat['skipPathLen'] - $skipCharset - $stat['skipNoParent'] - $stat['skipEmptyRel'])
+				. "，说明列表中可能有重复条目或统计口径差异，请结合日志核对");
 		}
 
 		// 4. 更新目标目录大小
@@ -258,16 +279,136 @@ class storeImportPlugin extends PluginBase{
 		$this->writeLog('结束导入任务：from=>'.$pathFrom.'; to=>'.$pathTo);
 	}
 
-	// 长度超出255字符的列表记录文件
-	private function err255File($pathTo, $taskId) {
-		// 文件夹
-		$source = IO::fileNameExist($pathTo, LNG('storeImport.task.errLog'));
-		if (!$source) return false;
-		// 文件
-		$name = 'task-'.$taskId.'.txt';
-		$source = IO::fileNameExist(KodIO::make($source), $name);
-		if (!$source) return false;
-		return $source ? KodIO::make($source) : false;
+	/**
+	 * 输出源目录遍历阶段的异常（原来这些位置都是静默跳过，日志里完全看不到）
+	 *   unreadable：目录不可读 → 整棵子树不会进入导入结果（“少文件/少字节”的头号嫌疑）
+	 *   stat      ：条目 stat 失败（断链软链、权限不足）→ 该条丢失
+	 *   symlink   ：软链接目录 → 同一份内容会按软链接路径再遍历一次（重复计数）；仅记录，不改变既有行为
+	 */
+	private function logListErrors($drv) {
+		if (!is_object($drv) || empty($drv->errList) || !is_array($drv->errList)) return;
+		$title = array(
+			'unreadable' => '目录不可读（整棵子树被跳过，内容不会出现在导入结果中）',
+			'stat'       => '条目无法 stat（已跳过，内容不会出现在导入结果中）',
+			'symlink'    => '软链接目录（会按软链接路径再遍历一次，可能重复导入/重复计数）',
+		);
+		$max = 50;	// 每条类型最多打印 50 条明细，避免把日志刷爆
+		foreach ($drv->errList as $type => $list) {
+			$cnt = count($list);
+			if (!$cnt) continue;
+			$desc = isset($title[$type]) ? $title[$type] : $type;
+			$this->writeLog("源目录列表异常-{$desc}：{$cnt} 条");
+			foreach (array_slice($list, 0, $max) as $item) {
+				$this->writeLog('    ' . $item);
+			}
+			if ($cnt > $max) $this->writeLog('    其余 ' . ($cnt - $max) . ' 条省略');
+		}
+	}
+
+
+	/**
+	 * 写“文件导入明细”
+	 * 位置：目标目录下新建“文件导入明细”目录，每次导入生成一个文件
+	 * 文件名：异常明细-YYYYmmdd-His-<taskId 的 md5 前 8 位>.txt（带时间便于多次导入区分；用 md5 避免把请求参数直接拼进文件名）
+	 * 内容：表头（任务/时间/源与目标/结束状态/对账/分类汇总）+ TSV 明细（类型、级别、对象、原因）
+	 * 覆盖：超长路径、编码非法、4 字节字符、扩展名超长、父目录无法建立、目录不可读 / stat 失败 / 软链目录、批次回滚等
+	 * @return string|false 写入的文件路径
+	 */
+	private function flushErrDetail($pathFrom, $pathTo, $taskId, $import, $tail = '') {
+		if ($this->errDetailWritten) return false;
+		$this->errDetailWritten = true;
+
+		$map   = $import->errTypeMap();
+		$count = $import->getErrCount();
+		$rows  = array();
+
+		// 1) 导入过程收集到的异常
+		foreach ($import->getErrItems() as $it) {
+			$rows[] = $this->errRow($map, $it['type'], $it['obj'], $it['reason']);
+		}
+		// 2) 源目录遍历阶段的异常（驱动采集，如目录不可读导致整棵子树被跳过）
+		$drv = $this->api($pathFrom);
+		if (is_object($drv) && !empty($drv->errList) && is_array($drv->errList)) {
+			$merge = array('unreadable' => 'dir_unreadable', 'stat' => 'stat_failed', 'symlink' => 'symlink_dir');
+			foreach ($drv->errList as $k => $list) {
+				if (empty($list)) continue;
+				$type = isset($merge[$k]) ? $merge[$k] : $k;
+				$count[$type] = _get($count, $type, 0) + count($list);
+				foreach ($list as $line) {
+					$parts = explode("\t", $line, 2);
+					$rows[] = $this->errRow($map, $type, $parts[0], _get($parts, 1, ''));
+				}
+			}
+		}
+		// 3) 超出条数上限、只计数未列出的部分
+		foreach ($import->getErrDropped() as $type => $n) {
+			$rows[] = $this->errRow($map, $type, '另有 ' . $n . ' 条同类未列出', '超出单次明细条数上限');
+		}
+
+		if (!$count && !$rows) return false;	// 没有异常就不建目录
+
+		// 表头
+		$stat  = $import->getStat();
+		$lines = array();
+		$lines[] = '# storeImport 导入异常明细';
+		$lines[] = "# 任务ID\t" . $this->errCell($taskId);
+		$lines[] = "# 生成时间\t" . date('Y-m-d H:i:s');
+		$lines[] = "# 源目录\t" . $this->errCell($pathFrom);
+		$lines[] = "# 目标目录\t" . $this->errCell($pathTo);
+		$lines[] = "# 结束状态\t" . $this->errCell($tail);
+		$lines[] = "# 数据库字符集\t" . $import->getDbCharset();
+		$lines[] = "# 对账\t扫描文件 " . $stat['fileSeen'] . '；写入 io_source ' . $stat['sourceRows']
+			. ' 行 / io_file ' . $stat['fileRows'] . ' 行；目录 新建 ' . $stat['folderCreated']
+			. '、复用 ' . $stat['folderExisted'] . '、失败 ' . $stat['folderFailed'] . '；失败批次 ' . $stat['batchFail'];
+		$lines[] = "# 异常合计\t" . array_sum($count);
+		$group = array('skip' => array(), 'fail' => array(), 'warn' => array());
+		foreach ($count as $type => $n) {
+			$info = isset($map[$type]) ? $map[$type] : array($type, 'warn');
+			$lv = isset($group[$info[1]]) ? $info[1] : 'warn';
+			$group[$lv][] = $info[0] . ' ' . $n;
+		}
+		foreach ($group as $lv => $arr) {
+			if (!$arr) continue;
+			$lines[] = '# ' . $this->errLevelName($lv) . "\t" . implode('；', $arr);
+		}
+		$lines[] = "# 说明\t「跳过」需要处理后重新导入；「失败」表示该部分内容未入库（多为整批回滚、整棵子树不可读）；「提示」表示已导入但需留意";
+		$lines[] = "类型\t级别\t对象\t原因";
+
+		$content = implode(PHP_EOL, $lines) . PHP_EOL;
+		foreach ($rows as $row) { $content .= $row . PHP_EOL; }
+
+		// 落盘：{目标目录}/文件导入明细/异常明细-<时间>-<md5前8>.txt
+		$dirName = rtrim($pathTo, '/') . '/' . LNG('storeImport.task.errLog');
+		$dirPath = IO::mkdir($dirName);
+		if (!$dirPath) {
+			$this->writeLog('异常明细目录创建失败：' . $pathTo . '（异常共 ' . $import->errTotal() . ' 条，详见日志）');
+			return false;
+		}
+		$fileName = '异常明细-' . date('Ymd-His') . '-' . substr(md5((string)$taskId), 0, 8) . '.txt';
+		$dispPath = $dirName . '/' . $fileName;	// {source:1}/文件导入明细/异常明细-xxx.txt，全路径写入日志，方便查看
+		$file = IO::mkfile($dirPath . $fileName, '', REPEAT_REPLACE);
+		if (!$file) {
+			$this->writeLog('异常明细文件创建失败：' . $dispPath);
+			return false;
+		}
+		IO::setContent($file, $content);
+		$this->writeLog('异常明细已写入：' . $dispPath . '（明细 ' . count($rows) . ' 行；' . $import->errSummaryText() . '）');
+		return $dispPath;
+	}
+
+	// 明细行（TSV；名字里的换行/制表符必须转义，否则会串行）
+	private function errRow($map, $type, $obj, $reason) {
+		$info = isset($map[$type]) ? $map[$type] : array($type, 'warn');
+		return $this->errCell($info[0]) . "\t" . $this->errLevelName($info[1]) . "\t"
+			. $this->errCell($obj) . "\t" . $this->errCell($reason);
+	}
+	private function errLevelName($lv) {
+		$names = array('skip' => '跳过', 'fail' => '失败', 'warn' => '提示');
+		return isset($names[$lv]) ? $names[$lv] : $lv;
+	}
+	// 单元格转义（外部文件名可能含换行/制表符/回车）
+	private function errCell($s) {
+		return str_replace(array("\r", "\n", "\t"), array('\\r', '\\n', '\\t'), (string)$s);
 	}
 
 	// 更新io_file.hash；io文件内容有变更时，会导致md5不匹配——忽略
@@ -303,7 +444,7 @@ class storeImportPlugin extends PluginBase{
 		$model = Model('File');
 		$list = $model->where($where)->field('fileID,path')->select();
 
-		$title = $pathFrom ? "目录（{$pathFrom}）下" : "全部";
+		$title = $pathFrom ? "目录（{$pathFrom}）下的" : "全部";
 		$this->writeLog("正在更新{$title}文件MD5，共：".count($list)."条记录");
 		// 更新hash；每次重新获取判断，避免多任务重复
 		foreach ($list as $item) {
@@ -362,11 +503,16 @@ class storeImportPlugin extends PluginBase{
 		return $result;
 	}
 
+	/**
+	 * 写入日志
+	 * @param string $msg
+	 * @return void
+	 */
 	public function writeLog($msg) {
 		$taskId = $this->in['taskId'] ? substr($this->in['taskId'], 0, 6) : '';
 		$title	= $taskId ? "[{$taskId}]" : '';
 		$data	= is_array($msg) ? array($title, $msg) : $title . $msg;
-        write_log($data, $this->pluginName);
+		write_log($data, $this->pluginName);
 	}
 
 	/**

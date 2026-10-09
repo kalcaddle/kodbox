@@ -15,7 +15,7 @@ class Authenticator {
             throw new InvalidArgumentException('Code length must be between 6 and 10');
         }
         $algorithm = strtolower($algorithm);
-        if (!in_array($algorithm, ['sha1', 'sha256', 'sha512'], true)) {
+        if (!in_array($algorithm, array('sha1', 'sha256', 'sha512'), true)) {
             throw new InvalidArgumentException('Algorithm must be sha1, sha256 or sha512');
         }
         $this->codeLength = $codeLength;

@@ -54,6 +54,7 @@ return array(
     "fileThumb.video.STATUS_ERROR"   => "Błąd czasu wykonania. Sprawdź, czy oprogramowanie jest zainstalowane i czy ma uprawnienia do wykonywania (ffmpeg, shell_exec, proc_open).",
     "fileThumb.video.STATUS_RUNNING" => "Transkodowanie",
     "fileThumb.video.STATUS_LIMIT"   => "Liczba bieżących zadań przekroczyła limit. Spróbuj ponownie później.",
+    "fileThumb.video.retry"          => "Ponowne kodowanie",
     "fileThumb.config.debug"         => "Tryb debugowania",
     "fileThumb.config.debugDesc"     => "Wygeneruj odpowiednie logi. <button class='btn btn-sm btn-default ml-20 view-log'>Wyświetl logi.</button>"
 );

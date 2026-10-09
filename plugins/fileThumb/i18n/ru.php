@@ -54,6 +54,7 @@ return array(
     "fileThumb.video.STATUS_ERROR"   => "Ошибка выполнения. Убедитесь, что программа установлена и у процесса есть права на выполнение (ffmpeg, shell_exec, proc_open)",
     "fileThumb.video.STATUS_RUNNING" => "Выполняется перекодирование...",
     "fileThumb.video.STATUS_LIMIT"   => "Превышен лимит одновременных задач. Повторите попытку позже.",
+    "fileThumb.video.retry"          => "Перекодирование",
     "fileThumb.config.debug"         => "Режим отладки",
     "fileThumb.config.debugDesc"     => "Включить запись журналов. <button class='btn btn-sm btn-default ml-20 view-log'>Открыть журнал</button>"
 );

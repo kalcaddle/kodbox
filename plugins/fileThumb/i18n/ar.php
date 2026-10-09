@@ -54,6 +54,7 @@ return array(
     "fileThumb.video.STATUS_ERROR"   => "خطأ وقت التشغيل، تحقق مما إذا كان البرنامج مثبتًا أو ما إذا كان لديه إذن التنفيذ (ffmpeg، shell_exec، proc_open)",
     "fileThumb.video.STATUS_RUNNING" => "الترميز",
     "fileThumb.video.STATUS_LIMIT"   => "تجاوز عدد المهام الجارية الحد الأقصى. يُرجى المحاولة لاحقًا.",
+    "fileThumb.video.retry"          => "إعادة الترميز",
     "fileThumb.config.debug"         => "وضع التصحيح",
     "fileThumb.config.debugDesc"     => "إنشاء سجلات ذات صلة. <button class='btn btn-sm btn-default ml-20 view-log'>عرض السجلات</button>"
 );

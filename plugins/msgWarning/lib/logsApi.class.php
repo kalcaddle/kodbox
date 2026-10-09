@@ -34,7 +34,7 @@ class logsApi {
 		}
 		// 标记存在但表被删除/恢复丢失时，允许重新创建
 		$path = __DIR__.'/data/plugin_msgwarning_log.sql';
-		if(stristr($GLOBALS['config']['database']['DB_TYPE'],'sqlite')){
+		if(getDatabaseType() == 'sqlite'){
 			$path = __DIR__.'/data/plugin_msgwarning_log.sqlite.sql';
 		}
 		$sqlArr = sqlSplit(file_get_contents($path));

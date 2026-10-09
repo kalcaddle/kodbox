@@ -6,16 +6,16 @@
 class KodImagick {
 
     // 支持的图像格式
-    private const IMAGE_FORMATS = array(
+    private static $IMAGE_FORMATS = array(
         'jpg', 'jpeg', 'png', 'gif', 'bmp', 'webp', 'tif', 'jpe', 'heic','avif'
     );
     // 支持的文档格式
-    private const DOCUMENT_FORMATS = array(
+    private static $DOCUMENT_FORMATS = array(
         'psd', 'psb', 'eps', 'ai', 'pdf',
         // 'doc', 'docx', 'ppt', 'pptx',
     );
     // 支持的相机RAW格式
-    private const RAW_FORMATS = array(
+    private static $RAW_FORMATS = array(
         'dng', 'cr2', 'erf', 'raf', 'kdc', 'dcr', 'mrw', 'nrw', 'nef', 'orf', 'pef',
         'x3f', 'srf', 'arw', 'sr2', '3fr', 'crw', 'dcm', 'fff', 'iiq', 'mdc', 'mef',
         'mos', 'plt', 'ppm', 'raw', 'rw2', 'srw', 'tst'
@@ -27,13 +27,14 @@ class KodImagick {
     private $defQuality = 85;
     private $defFormat = 'jpeg';
     private $maxResolution = 40000; // 支持的最大分辨率
+    private $tmpPath;
 
     public function __construct($plugin) {
         $this->plugin = $plugin;
         $this->allFormats = array_merge(
-            self::IMAGE_FORMATS, 
-            self::DOCUMENT_FORMATS, 
-            self::RAW_FORMATS
+            self::$IMAGE_FORMATS, 
+            self::$DOCUMENT_FORMATS, 
+            self::$RAW_FORMATS
         );
 
         $this->setTmpDir();
@@ -43,10 +44,10 @@ class KodImagick {
     // 设置Imagick临时目录
     private function setTmpDir() {
         if(!is_dir(TEMP_FILES)){mk_dir(TEMP_FILES);}
-        $path = TEMP_FILES . '/imagick'; mk_dir($path);
+        $this->tmpPath = TEMP_FILES . '/imagick'; mk_dir($this->tmpPath);
 		if(function_exists('putenv')){
-			putenv('MAGICK_TEMPORARY_PATH='.$path);
-			putenv('MAGICK_TMPDIR='.$path);
+			putenv('MAGICK_TEMPORARY_PATH='.$this->tmpPath);
+			putenv('MAGICK_TMPDIR='.$this->tmpPath);
 		}
     }
 
@@ -90,6 +91,11 @@ class KodImagick {
 
         try {
             $imagick = new Imagick();
+            // 显式指定磁盘像素缓存目录，避免 putenv 不生效时落到项目根目录
+            if ($this->tmpPath) {
+                $imagick->setOption('registry:temporary-path', $this->tmpPath);
+                $imagick->setOption('temporary-path', $this->tmpPath);
+            }
 
             // 预读图像尺寸
             $imagick->pingImage($file);
@@ -100,6 +106,7 @@ class KodImagick {
             if ($orgWidth > $this->maxResolution || $orgHeight > $this->maxResolution) {
                 $msg = sprintf("Imagick convert error [%s]: Image too large: %s x %s", $file, $orgWidth, $orgHeight);
                 $this->log($msg);
+                $this->destroyImagick($imagick);
                 return false;
             }
             // 启用像素缓存加速
@@ -109,11 +116,11 @@ class KodImagick {
             $imagick->setOption('filter:blur', '0.8');        // 轻微模糊提升缩放速度
 
             // 读取图像
-            if (in_array($ext, self::DOCUMENT_FORMATS)) {
+            if (in_array($ext, self::$DOCUMENT_FORMATS)) {
                 // 特殊格式处理
                 $imagick->setResolution(300, 300);
                 $imagick->readImage($file . '[0]');
-            } else if (in_array($ext, self::RAW_FORMATS)) {
+            } else if (in_array($ext, self::$RAW_FORMATS)) {
                 // RAW格式处理
                 $imagick->setResolution(300, 300);
                 $imagick->readImage($file);
@@ -192,18 +199,14 @@ class KodImagick {
 
             // 写入文件
             $result = $image->writeImage($cacheFile);
+            $this->destroyImagick($imagick);
             return $result;
         } catch (Exception $e) {
             // Stack trace: $e->getTraceAsString()
             $msg = sprintf("Imagick convert error [%s]: %s", $file, $e->getMessage());
             $this->log($msg);
+            $this->destroyImagick($imagick);
             return false;
-        } finally {
-            // 确保资源释放
-            if ($imagick instanceof Imagick) {
-                $imagick->clear();
-                $imagick->destroy();
-            }
         }
     }
     
@@ -254,27 +257,38 @@ class KodImagick {
         $imagick = null;
         try {
             $imagick = new Imagick();
+            // 显式指定磁盘像素缓存目录
+            if ($this->tmpPath) {
+                $imagick->setOption('registry:temporary-path', $this->tmpPath);
+                $imagick->setOption('temporary-path', $this->tmpPath);
+            }
             // 特殊格式只读第一页/第一帧
-            if (in_array($ext, self::DOCUMENT_FORMATS) || $ext === 'gif' || $ext === 'tif') {
+            if (in_array($ext, self::$DOCUMENT_FORMATS) || $ext === 'gif' || $ext === 'tif') {
                 $imagick->pingImage($file . '[0]');
             } else {
                 $imagick->pingImage($file); // readImage，使用pingImage避免加载像素
             }
             // $image = $imagick->getImage();
-            return array (
+            $result = array(
                 $imagick->getImageWidth(),
                 $imagick->getImageHeight(),
                 // 'channels'  => $image->getImageChannelCount(),
                 'channels'  => 3,
                 'bits'      => $imagick->getImageDepth(),
             );
+            $this->destroyImagick($imagick);
+            return $result;
         } catch (Exception $e) {
+            $this->destroyImagick($imagick);
             return false;
-        } finally {
-            if ($imagick instanceof Imagick) {
-                $imagick->clear();
-                $imagick->destroy();
-            }
+        }
+    }
+
+    // 释放Imagick资源（PHP 5.3 兼容写法，避免 finally）
+    private function destroyImagick($imagick) {
+        if ($imagick instanceof Imagick) {
+            $imagick->clear();
+            $imagick->destroy();
         }
     }
 

@@ -134,6 +134,7 @@ define(function(require, exports) {
 		player.jPlayer("play");
 		jPlayerBindControl($playerBox);
 		$playerBox.find('audio').attr('autoplay','autoplay').removeAttr('muted');
+		window.postMessage({type:'kodApp.videoLoadReady'},'*');
 		// plaryer.mute(false);//取消静音;兼容android;
 		if(window.kodApp && kodApp.mediaAutoPlay === false){player.jPlayer("pause");}
 		if(window.kodApp && kodApp.videoLoadSmall && isMovie){

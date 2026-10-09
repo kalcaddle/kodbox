@@ -55,23 +55,13 @@ class commentIndex extends Controller {
 		show_json($result,true);
 	}
 	
-	// 目标本身点赞用户列表
-	public function starUserList(){
-		$data = Input::getArray(array(
-			"targetType"	=> array("check"=>"number"),
-			"targetID"      => array("check"=>"number"),
-		));
-		$result = $this->model->addComment($data);
-		show_json($result,true);
-	}
-	
 	// 评论编辑;
 	public function edit(){
 		$data = Input::getArray(array(
 			"id"			=> array("check"=>"number"),
 			"content"       => array("check"=>"require"),
 		));
-		$result = $this->model->edit($data['id'],$data['continue']);
+		$result = $this->model->edit($data['id'],$data['content']);
 		show_json($result,true);
 	}
 
@@ -127,8 +117,7 @@ class commentIndex extends Controller {
 	 */
 	public function listByUser(){
 		$userID = Input::get("userID","number");
-		$data   = array('userID'=>$userID);
-		$list   = $this->model->listData($data);
+		$list   = $this->model->listData(array('userID'=>$userID));
 		show_json($list,!!$list);
 	}
 	
@@ -144,8 +133,7 @@ class commentIndex extends Controller {
 	 */
 	public function listChildren(){
 		$pid   = Input::get("pid","number");
-		$data  = array('pid'=>$pid);
-		$list  = $this->model->listData($data);
+		$list  = $this->model->listData(array('pid'=>$pid));
 		show_json($list,!!$list);
 	}
 }

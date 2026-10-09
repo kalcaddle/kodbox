@@ -166,15 +166,15 @@ function clear_html($html, $br = true){
 function clear_quote($html){
 	$html = $html === null ? "" : $html;
 	$replace = array('"',"'",'</script');
-	$replaceTo = array('\\"',"\\'","<\/script");	
+	$replaceTo = array('\\"',"\\'","<\/script");
+	$html = str_replace("\\","",$html); // 去除转义符,避免在js中输出字符串构造xxs;
 	return str_ireplace($replace,$replaceTo,$html);
 }
 
 // 反序列化攻击防护,不允许类对象;
 function unserialize_safe($str){
 	if(!$str) return false;
-	if(preg_match("/O:(\d+):/",$str,$match)) return false;
-	return unserialize($str);
+	return unserialize($str,array('allowed_classes'=>false));
 }
 
 /**

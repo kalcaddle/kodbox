@@ -14,8 +14,7 @@ class msgWarningSysNotice extends Controller {
 
 	/**
 	 * 按事件发送通知
-	 * @param [type] $evntInfo
-	 * @param [type] $msg
+	 * @param array $evntInfo
 	 * @return void
 	 */
 	public function send($evntInfo) {
@@ -86,9 +85,9 @@ class msgWarningSysNotice extends Controller {
 
 	/**
 	 * 通过第三方（钉钉、企业微信）发送通知
-	 * @param [type] $user
-	 * @param [type] $content	['','']
-	 * @param [type] $logs
+	 * @param array $user
+	 * @param array $content	['','']
+	 * @param array $logs
 	 * @return void
 	 */
 	public function byThird($user, $content, $logs){
@@ -148,8 +147,8 @@ class msgWarningSysNotice extends Controller {
 
 	/**
 	 * 通过邮件发送通知
-	 * @param [type] $user
-	 * @param [type] $content	['','']
+	 * @param array $user
+	 * @param array $content	['','']
 	 * @return void
 	 */
 	public function byEmail($user, $content, $logs){
@@ -192,8 +191,8 @@ class msgWarningSysNotice extends Controller {
 
 	/**
 	 * 通过短信发送通知——暂不支持
-	 * @param [type] $user
-	 * @param [type] $content	[msg]
+	 * @param array $user
+	 * @param array $content	[msg]
 	 * @return void
 	 */
 	public function bySms($user, $content, $logs) {
@@ -220,8 +219,8 @@ class msgWarningSysNotice extends Controller {
 	 */
 	public function oldTaskQueue(){
 		$key = $this->pluginName.'.msgQueue';
-		Cache::removeMemory($key);
-		$cache = Cache::get($key);
+		// Cache::removeMemory($key);
+		$cache = Cache::get($key, true);
 		if (!$cache) return;
 
 		$call = $this->pluginName.'.sys.notice.byQueue';
@@ -236,7 +235,7 @@ class msgWarningSysNotice extends Controller {
 
 	/**
 	 * 消息发送添加到任务队列
-	 * @param [type] $data	消息发送参数
+	 * @param array $data	消息发送参数
 	 * @return void
 	 */
 	public function addTaskQueue($user, $data, $logs){
@@ -246,8 +245,8 @@ class msgWarningSysNotice extends Controller {
 		if ($rest) return;
 		// 添加失败，存入缓存，下次任务开始时读取然后继续添加
 		$key = $this->pluginName.'.msgQueue';
-		Cache::removeMemory($key);
-		$cache = Cache::get($key);
+		// Cache::removeMemory($key);
+		$cache = Cache::get($key, true);
 		if (!$cache) $cache = array();
 		$cache[] = $args;
 		Cache::set($key, $cache, 3600*24);
@@ -255,9 +254,9 @@ class msgWarningSysNotice extends Controller {
 
 	/**
 	 * 通过任务队列发送sms、email消息
-	 * @param [type] $user	[name=>'',phone/email=>'']
-	 * @param [type] $data	消息参数
-	 * @param [type] $logs	日志参数
+	 * @param array $user	[name=>'',phone/email=>'']
+	 * @param array $data	消息参数
+	 * @param array $logs	日志参数
 	 * @return void
 	 */
 	public function byQueue($user, $data, $logs){
@@ -277,7 +276,7 @@ class msgWarningSysNotice extends Controller {
 
 	/**
 	 * 写入通知日志
-	 * @param [type] $data
+	 * @param array $data
 	 * @return void
 	 */
 	public function addLog($data) {

@@ -29,7 +29,7 @@
 		<script type="text/javascript">
 			var fileName 	= "<?php echo str_replace("\n",' ',clear_quote($fileName));?>";
 			var staticPath  = "<?php echo $this->pluginHost;?>static/";
-      		var canDownload = "<?php echo intval($canDownload);?>";
+			var canDownload = "<?php echo intval($canDownload);?>";
 			var kodSdkConfig = {api:'<?php echo APP_HOST;?>'};
 		</script>
 		<?php $this->link('static/pdfjs/web/viewer.css');?>
@@ -41,36 +41,36 @@
 		<?php $this->link('static/pdfjs/web/viewer.js');?>
 		<?php $this->link('static/pdfjs/add.js');?>
 		<script>
-      // defaultUrl需在viewer.js之前加载；但加载pdf.worker.js后在此处加载也正常
-      // pdfjsLib.GlobalWorkerOptions.workerSrc = ''; // 也有效
-      var options = {
-        annotationEditorMode: -1, // 注释编辑器模式：-1：隐藏；0：可用；1：不可用
-        // disablePreferences: true,  // 禁用首选项
-        // enableScripting: false,  // 启用脚本
-        sidebarViewOnLoad: 0, // 加载侧边栏
-        // forcePageColors: true,
+			// defaultUrl需在viewer.js之前加载；但加载pdf.worker.js后在此处加载也正常
+			// pdfjsLib.GlobalWorkerOptions.workerSrc = ''; // 也有效
+			var options = {
+				annotationEditorMode: -1, // 注释编辑器模式：-1：隐藏；0：可用；1：不可用
+				// disablePreferences: true,  // 禁用首选项
+				// enableScripting: false,  // 启用脚本
+				sidebarViewOnLoad: 0, // 加载侧边栏
+				// forcePageColors: true,
 
-        renderAnnotationsAsImageBitmap: false,  // 禁用ImageBitmap
-        scrollMode: 0,
-        renderingQueue: true, // 
-        disableAutoFetch: true, // 禁止预加载
-        // disableStream: true,
-        // maxImageSize: 1024*1024, // 限制图片大小为1MB
-        // scale: 1.0, // 默认缩放比例
-        // useOnlyCssZoom: true, // 用CSS缩放替代Canvas重绘
-        // disableFontFace: true,  // 禁用@font-face减少字体解析错误——会导致部分文本无法显示或乱码
+				renderAnnotationsAsImageBitmap: false,  // 禁用ImageBitmap
+				scrollMode: 0,
+				renderingQueue: true, // 
+				disableAutoFetch: true, // 禁止预加载
+				// disableStream: true,
+				// maxImageSize: 1024*1024, // 限制图片大小为1MB
+				// scale: 1.0, // 默认缩放比例
+				// useOnlyCssZoom: true, // 用CSS缩放替代Canvas重绘
+				// disableFontFace: true,  // 禁用@font-face减少字体解析错误——会导致部分文本无法显示或乱码
 
-        isEvalSupported: false,
-        imageResourcesPath: staticPath+'pdfjs/web/images/',
-        cMapUrl: staticPath+'pdfjs/web/cmaps/',
-        cMapPacked: true,
-        standardFontDataUrl: staticPath+'pdfjs/web/standard_fonts/',
-        workerSrc: staticPath + 'pdfjs/build/pdf.worker.js',
-        localeProperties: {lang: '<?php echo $lang; ?>'},
+				isEvalSupported: false,
+				imageResourcesPath: staticPath+'pdfjs/web/images/',
+				cMapUrl: staticPath+'pdfjs/web/cmaps/',
+				cMapPacked: true,
+				standardFontDataUrl: staticPath+'pdfjs/web/standard_fonts/',
+				workerSrc: staticPath + 'pdfjs/build/pdf.worker.js',
+				localeProperties: {lang: '<?php echo $lang; ?>'},
 
-        defaultUrl: "<?php echo clear_quote($fileUrl);?>",
-      };
-      PDFViewerApplicationOptions.setAll(options);  // PDFViewerApplicationOptions.set(key,value);
+				defaultUrl: "<?php echo clear_quote($fileUrl);?>",
+			};
+			PDFViewerApplicationOptions.setAll(options);  // PDFViewerApplicationOptions.set(key,value);
 		</script>
 	</head>
 

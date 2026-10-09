@@ -25,7 +25,11 @@ class explorerShareOut extends Controller{
 		$data  = $this->shareParamParse();
 		$model = Model('Share');
 		
-		$siteFrom   = rtrim(get_url_link($data['siteFrom']),'/');
+		$siteFrom = rtrim(get_url_link($data['siteFrom']),'/');
+		if(!request_url_safe($siteFrom)){
+			show_json(LNG('explorer.shareOut.errorNetwork'),false);
+		}
+		
 		$sourcePath = 'share@'.intval($data['shareID']).'@'.$siteFrom;
 		$shareFind  = $model->where(array('userID'=>0,'sourcePath'=>$sourcePath))->find();
 		if(!$data['_authTo']){
@@ -254,7 +258,7 @@ class explorerShareOut extends Controller{
 		if(Model('SystemOption')->get('shareOutInit')){return;}
 		Model('SystemOption')->set('shareOutInit','1');
 		$sql = "ALTER TABLE `share` CHANGE `options` `options` text COLLATE 'utf8_general_ci' NULL COMMENT 'json 配置信息' AFTER `numDownload`;";
-		if(stristr($this->config['database']['DB_TYPE'],'sqlite')){$sql = '';}
+		if(getDatabaseType() == 'sqlite'){$sql = '';}
 		if($sql){Model()->db()->execute($sql);}
 	}
 }

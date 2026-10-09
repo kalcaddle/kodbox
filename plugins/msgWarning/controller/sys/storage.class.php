@@ -23,8 +23,8 @@ class msgWarningSysStorage extends Controller {
     public function checkStoreList ($task=false) {
         $cckey = $this->stCacheKey;
         // 长驻计划任务进程中必须清除内存缓存，否则会一直读到首次加载的数据
-        Cache::removeMemory($cckey);
-        $cache = Cache::get($cckey);
+        // Cache::removeMemory($cckey);
+        $cache = Cache::get($cckey, true);
         if ($cache !== false && !$task) return $cache;
 
         // 获取有数据的存储

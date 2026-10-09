@@ -26,6 +26,7 @@ class explorerList extends Controller{
 	}
 	public function path($thePath = false){
 		$path     = $thePath ? $thePath : $this->in['path'];
+		$path	  = (substr($path,0,1) == '.' && KodUser::isRoot()) ? realpath(BASIC_PATH.$path) : $path;
 		$cacheKey = 'explorerList-'.KodUser::id().'-'.$path;$cacheTime = 0;// 0不缓存;缓存时间
 		$cacheData = $cacheTime > 0 ? Cache::get($cacheKey) : false;
 		if($cacheData && is_array($cacheData)){

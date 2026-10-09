@@ -32,6 +32,7 @@ class adminRepair extends Controller {
 	 */
 	public function autoReset(){
 		KodUser::checkRoot();
+		ignore_timeout();
 		$done = isset($this->in['done']) ? intval($this->in['done']) : 0;
 		if ($done == 2) {	// 仅消费done=1阶段生成的缺失物理文件缓存
 			// clearErrorFile只依赖resetPathKey定位作用域缓存, 无需重新扫描目录，仅生成$this->resetPathKey供clearFileKey定位作用域缓存
@@ -270,6 +271,7 @@ class adminRepair extends Controller {
 		}
 	}
 
+	// 重置io_file.hash（hashSimple/hashMd5）
 	public function resetFileHash(){
 		KodUser::checkRoot();
 		$taskID ='resetFileHash';$pageNum = $this->pageCount;$changeNum = 0;
@@ -618,7 +620,7 @@ class adminRepair extends Controller {
 	 */
 	public function clearSource(){
 		KodUser::checkRoot();
-		echoLog('根据sourceID彻底删除关联文件!参数sourceID=1,2,3');
+		echoLog('根据sourceID彻底删除关联文件!参数示例：sourceID=1,2,3');
 		$ids = $this->in['sourceID'];
 		if (!$ids) {
 			echoLog('无效的参数:sourceID!');exit;
@@ -635,19 +637,19 @@ class adminRepair extends Controller {
 			exit;
 		}
 
-		echoLog('删除开始:');
 		$ids  = array_to_keyvalue($list, '', 'sourceID');
 		$file = array_to_keyvalue($list, '', 'fileID');
-		$file = array_filter($file);
+		$file = array_filter(array_unique($file));
 		$fCnt = count($file);
+		$ids  = array_filter(array_unique($ids));
+		$sCnt = count($ids);
+		echoLog("共 {$sCnt} 条source记录，{$fCnt} 条file记录，开始删除:");
 		// 2.根据fileID查所有sourceID
 		if (!empty($file)) {
 			$where = array('fileID'=>array('in', $file));
 			$list = Model('Source')->where($where)->field('sourceID')->select();
 			$ids = array_to_keyvalue($list, '', 'sourceID');
 		}
-		$ids  = array_filter($ids);
-		$sCnt = count($ids);
 		// 3.清理关联的分享/回收站引用
 		if (!empty($ids)) {
 			$shareList = Model('Share')->where(array('sourceID'=>array('in',$ids)))->field('shareID')->select();
@@ -1801,5 +1803,104 @@ class adminRepair extends Controller {
 		echoLog('删除完成! 成功 '.$ok.' 个, 失败 '.$fail.' 个, 跳过 '.$skip.' 个, 释放 '.size_format($sizeFreed).'。');
 		exit;
 	}
+
+	/**
+	 * 按io清除异常文件
+	 * 传参io=1,2,3，不传递时获取已不存在于存储列表的io_file.ioType记录进行清除
+	 * @return void
+	 */
+	public function clearErrIOFile(){
+		KodUser::checkRoot();
+		echoLog('本接口用于清除指定io（存储id）关联的所有文件数据，参数示例：io=1,2,3。如不指定io值，将从io_file中获取所有已不存在于存储列表的io进行处理');
+		$io = _get($this->in,'io','');
+		if ($io) {
+			$list = explode(',', $io);
+			$list = array_unique(array_filter($list));
+			$where = array('ioType'=>array('in',$list));
+		} else {
+			$list = Model('Storage')->listData();
+			$list = array_to_keyvalue($list, '', 'id');
+			if (empty($list)) {
+				echoLog('存储列表为空，系统异常！');exit;
+			}
+			$where = array('ioType'=>array('not in',$list));
+		}
+		// 获取io_file记录
+		$list = Model('File')->where($where)->field('fileID,ioType')->select();
+		// pr($list);exit;
+		if (empty($list)) {
+			echoLog('没有需要清理的数据');exit;
+		}
+		$data = array('io'=>array(),'file'=>array());
+		foreach ($list as $item) {
+			$data['io'][] = $item['ioType'];
+			$data['file'][] = $item['fileID'];
+		}
+		if ($this->in['done'] != '1') {
+			$ioArr = array_unique($data['io']);
+			echoLog('搜索到'.count($ioArr).'个存储（io='.implode(',',$ioArr).'）共'.count($data['file']).'个文件，如需清理，请在地址中追加参数后再次访问：&done=1');
+			exit;
+		}
+		// 根据fileID获取sourceID列表
+		$where = array('fileID'=>array('in',$data['file']));
+		$list = Model('Source')->where($where)->field('sourceID')->select();
+		// 没有io_source记录，直接清除io_file记录
+		if (empty($list)) {
+			Model('File')->where($where)->delete();
+			echoLog('成功清除'.count($data['file']).'条io_file记录');exit;
+		}
+		$this->in['sourceID'] = implode(',', array_to_keyvalue($list,'','sourceID'));
+		$this->clearSource();	// TODO 这里会删物理文件，需要调整一下或传个参数
+	}
+
+	/**
+	 * 按fileID清除异常文件
+	 * @return void
+	 */
+	public function clearErrFile(){
+		KodUser::checkRoot();
+		echoLog('本接口用于清除指定fileID的所有文件数据（不删除物理文件），参数示例：fileID=1,2,3');
+		$ids = array_filter(explode(',', $this->in['fileID']));
+		if (empty($ids)) {
+			echoLog('请指定参数fileID');exit;
+		}
+		// 获取io_file记录
+		$where = array('fileID' => array('in', $ids));
+		$fileList = Model('File')->where($where)->field('fileID')->select();
+		$sourceList = Model('Source')->where($where)->field('sourceID')->select();
+		if (empty($fileList) && empty($sourceList)) {
+			echoLog('没有需要清理的数据');exit;
+		}
+		$sCnt = is_array($sourceList) ? count($sourceList) : 0;
+		$fCnt = is_array($fileList) ? count($fileList) : 0;
+		if ($this->in['done'] != '1') {
+			echoLog('搜索到'.$sCnt.'条io_source记录，'.$fCnt.'条io_file记录，如确定清理，请在地址中追加参数后再次访问：&done=1');exit;
+		}
+
+		// 没有io_source记录，直接清除io_file记录
+		if (empty($sourceList)) {
+			Model('File')->where($where)->delete();
+			echoLog('成功清除'.$fCnt.'条io_file记录');exit;
+		}
+		$this->in['sourceID'] = implode(',', array_to_keyvalue($sourceList,'','sourceID'));
+		$this->clearSource();
+	}
+
+	/**
+	 * 将指定文件从指定用户回收站还原——仅限系统数据
+	 * @return void
+	 */
+	public function restoreRecyclePath(){
+	    KodUser::checkRoot();
+	    $userID = $this->in['userID'];
+	    $sourceID = $this->in['sourceID'];
+	    if (empty($sourceID) || empty($userID)) {
+			echoLog('参数缺失：sourceID=id,id/userID=id');exit;
+		}
+	    $pathArr = explode(',', $sourceID);
+	    $res = Model('SourceRecycle')->restore($pathArr,$userID);
+	    pr($res);exit;
+	}
+
 	
 }

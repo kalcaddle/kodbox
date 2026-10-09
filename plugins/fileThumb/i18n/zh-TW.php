@@ -54,6 +54,7 @@ return array(
     "fileThumb.video.STATUS_ERROR"   => "執行錯誤,偵測是否安裝該軟體,或是否有執行權限(ffmpeg,shell_exec,proc_open)",
     "fileThumb.video.STATUS_RUNNING" => "正在轉碼",
     "fileThumb.video.STATUS_LIMIT"   => "進行中的任務超出限制,請稍後再試",
+    "fileThumb.video.retry"          => "重新轉碼",
     "fileThumb.config.debug"         => "偵錯模式",
     "fileThumb.config.debugDesc"     => "產生相關日誌.<button class='btn btn-sm btn-default ml-20 view-log'>查看日誌</button>"
 );

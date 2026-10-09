@@ -20,16 +20,19 @@ class clientTfaTotp extends Controller {
 	 */
 	public function index(){
 		$check  = array('initInfo','bind','unbind','bindInfo');
-        $func   = Input::get('action');
+		$func   = Input::get('action');
 		if (!in_array($func, $check)) return;
 
-		$tfaKey = Input::get('sign');
-		if ($tfaKey) {
-			$user   = Cache::get($tfaKey);	// 前端绑定
+		$funcWrite = array('bind','unbind');	// 绑定、解绑仅允许在个人中心进行（已登录）——登录绑定由 tfaVerify 完成
+		if (in_array($func, $funcWrite)) {
+			$user = Session::get('kodUser');
 		} else {
-			$user = Session::get('kodUser');// 个人中心绑定
+			$tfaKey = Input::get('sign');	// 存在时为前端绑定，否则为个人中心
+			$user   = $tfaKey ? Cache::get('tfaSign_'.$tfaKey) : Session::get('kodUser');
 		}
-        if (!$user) show_json(LNG('client.tfa.userLgErr'), false, 10011);
+		if (!$user || empty($user['userID'])) {
+			show_json(LNG('client.tfa.userLgErr'), false, 10011);
+		}
 		if ($func == 'initInfo') $this->initInfo($user);
 		if ($func == 'bind') $this->bind($user);
 		if ($func == 'unbind') $this->unbind($user);

@@ -414,7 +414,7 @@ class explorerUserShare extends Controller{
 		};unset($keyList);
 
 		$list['current'] = $this->_shareItemeParse($sourceInfo,$shareInfo);
-		// pr($parseInfo,$truePath,$sourceInfo,$shareInfo,$list);exit;
+		// trace_log([$parseInfo,$truePath,$sourceInfo,$shareInfo,$list]);
 		return $list;
 	}
 
@@ -449,6 +449,7 @@ class explorerUserShare extends Controller{
 		}
 		$source['path'] = KodIO::makeShare($share['shareID'],$pathAdd);
 		$source['path'] = KodIO::clear($source['path']);
+		if($source['type'] == 'file'){$source['path'] = rtrim($source['path'],'/');}
 		
 		if($source['auth'] && $share['sourceID'] != '0'){
 			$listData = array($source);
@@ -513,7 +514,7 @@ class explorerUserShare extends Controller{
 		
 		// 协作内容不再有分享权限时处理; 其他人内容--隐藏; 自己的内容-突出显示;
 		if(!Action('explorer.authUser')->canShare($share)){return false;}
-		// pr($source,$sourceBefore,$share);exit;
+		// trace_log([$source['path'],$sourceBefore['path'],$pathAdd,$source,$sourceBefore,$share]);
 		return $source;
 	}
 	

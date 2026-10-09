@@ -238,7 +238,8 @@ class filterUserCheck extends Controller {
 		}
 
 		// pc:windows,mac;
-		if(stristr($ua,'kodcloud') && stristr($ua,'Electron')){
+		$channel = defined('INSTALL_CHANNEL') ? INSTALL_CHANNEL : '';
+		if(stristr($ua,'Electron') && (stristr($ua,'kodcloud') || ($channel && stristr($ua,$channel)))){
 			$device['type'] = 'pc';
 			$device['system'] = stristr($ua,'Mac OS') ? 'mac':'';
 			$device['system'] = stristr($ua,'Windows') ? 'windows':$device['system'];

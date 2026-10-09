@@ -54,6 +54,7 @@ return array(
     "fileThumb.video.STATUS_ERROR"   => "Errore di runtime, verificare se il software è installato o se ha i permessi di esecuzione (ffmpeg, shell_exec, proc_open)",
     "fileThumb.video.STATUS_RUNNING" => "Transcodifica",
     "fileThumb.video.STATUS_LIMIT"   => "Il numero di attività in corso ha superato il limite. Riprova più tardi.",
+    "fileThumb.video.retry"          => "Ricodifica",
     "fileThumb.config.debug"         => "Modalità di debug",
     "fileThumb.config.debugDesc"     => "Genera log pertinenti. <button class='btn btn-sm btn-default ml-20 view-log'>Visualizza i log</button>"
 );

@@ -94,15 +94,9 @@ class KodArchive {
 		$output  = $output && function_exists('iconv');
 		for ($i=0; $i < count($result); $i++) {
 			//不允许相对路径
-			$result[$i]['filename'] = str_replace(array('../','..\\'),"_",$result[$i]['filename']);
+			$result[$i]['filename'] = path_clear($result[$i]['filename']);
 			if($output){
 				$charset = get_charset($result[$i]['filename']);
-				// if($charsetAll != $charset && $charset == 'utf-8'){$charset = $charsetAll;}
-				if ($charset == 'big5') {$charset = 'gbk';}	// big5转换乱码，可能编码混杂
-				// $encoding = array('GB2312', 'GBK', 'GB18030', 'UTF-8', 'ASCII', 'BIG5', 'EUC-CN');
-				// $charset = mb_detect_encoding($result[$i]['filename'],$encoding,true);
-				// $charset = mb_detect_encoding($result[$i]['filename'], mb_list_encodings(), false);
-				// $result[$i]['filename'] = iconv_to($result[$i]['filename'],$charset,'utf-8');
 				if($GLOBALS['config']['systemCharset'] != $charset){
 					$result[$i]['filename'] = unzip_pre_name($result[$i]['filename']);//系统编码——需提前调用unzip_charset_get
 				}
@@ -135,7 +129,7 @@ class KodArchive {
 		}
 		if($part != '-1'){//解压部分.则构造 $pathRemove $indexPath
 			$indexInfo = self::fileIndex($listContent['data'],$part);
-			$partName  = str_replace(array('../','..\\'),'_',$indexInfo['filename']);
+			$partName  = path_clear($indexInfo['filename']);
 			$indexPath = $partName;
 			if($GLOBALS['config']['systemCharset'] != 'utf-8'){
 				$indexPath = unzip_pre_name($partName);//系统编码

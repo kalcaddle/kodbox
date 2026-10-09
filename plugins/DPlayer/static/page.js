@@ -201,6 +201,7 @@ define(function(require, exports){
 	var playerDialogResize = function($player,dialog,player,animate){
 		var isReset  = false;
 		if(!dialog) return;
+		window.postMessage({type:'kodApp.videoLoadReady'},'*');
 		
 		// 已经重置过尺寸的不再重置, 视频未加载完成不重置, 最大化时不重置;
 		var resetSize = function(fileLoad){

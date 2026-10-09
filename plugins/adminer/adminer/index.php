@@ -69,8 +69,9 @@ function adminer_object() {
 		function selectVal($val,$link,array $field,$original){
 			$isTime = strlen($val.'') == 10 && is_numeric($val) && (substr($val.'',0,1) == '1' || substr($val.'',0,1) == '2');
 			$fieldLikeTime = stristr($field['field'],'time') || stristr($field['field'],'date') || stristr($field['field'],'last');
+			// var_dump($val, $link, $field, $original);exit;
+			if($isTime && !$fieldLikeTime && $field['field'] == 'value'){$fieldLikeTime = true;}
 			if($isTime && $fieldLikeTime){
-				// var_dump($val, $link, $field, $original);
 				return '<div class="field-value-show field-time">'.$val.'</div>'.'<div class="field-value-desc field-time">'.date('Y-m-d H:i:s', $val).'</div>';
 			}
 			return parent::selectVal($val,$link,$field,$original);

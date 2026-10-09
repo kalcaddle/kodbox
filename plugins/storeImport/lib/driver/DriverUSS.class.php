@@ -1,6 +1,18 @@
 <?php 
 // USS
 class impDrvUSS extends PathDriverUSS {
+	/**
+	 * 列表过程中的异常记录（与 DriverLocal 同一套结构，供 app.php 汇总进“文件导入明细”）
+	 * list_failed：分页/列举接口失败 → 剩余条目不会再被导入（原来只写日志或完全静默）
+	 */
+	public $errList = array('unreadable' => array(), 'stat' => array(), 'symlink' => array(), 'list_failed' => array());
+	private $lastErr = '';
+
+	// 记录一条列表异常（obj 与 reason 用 \t 分隔，与 DriverLocal 的格式一致）
+	protected function addErr($type, $obj, $reason = '') {
+		$this->errList[$type][] = $obj . "\t" . $reason;
+	}
+
 	public function __construct($config, $type='') {
 		parent::__construct($config);
 	}
@@ -58,7 +70,7 @@ class impDrvUSS extends PathDriverUSS {
      * @param integer $batchSize
      * @return void
      */
-    public function listPath($path, $batchSize=100000) {
+    public function listPathBatch($path, $batchSize=100000) {
         $path = rtrim($path,'/');
 
         $stack = array(array('path' => $path . '/', 'iter' => ''));
@@ -100,7 +112,10 @@ class impDrvUSS extends PathDriverUSS {
                     'iter'  => $iter,
                 );
                 $res = $this->listFiles($path, $options);
-                if (!$res['code']) break;    // continue
+                if (!$res['code']) {
+                    $this->addErr('list_failed', $path, '列举接口失败，已提前结束：' . _get($res, 'msg', '未知原因'));
+                    break;    // continue
+                }
                 $nextIter = _get($res, 'data.iter', '');
                 $isEnd = ($nextIter === 'g2gCZAAEbmV4dGQAA2VvZg');
 

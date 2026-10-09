@@ -37,8 +37,8 @@ class msgWarningMsgData extends Controller {
 
 		// 超限的用户id列表缓存
 		$cckey = $this->pluginName.'.dataFileDownErr.'.date('Ymd');
-		Cache::removeMemory($cckey);
-		$cache = Cache::get($cckey);
+		// Cache::removeMemory($cckey);
+		$cache = Cache::get($cckey, true);
 		$users = $cache ? explode(',', $cache) : array();
 
 		// 统计用户下载文件次数

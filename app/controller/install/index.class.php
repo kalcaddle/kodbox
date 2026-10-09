@@ -406,7 +406,7 @@ class installIndex extends Controller {
         $db = $this->config['database'];
         $cc = $this->config['cache'];
         // 数据库
-        if (stripos($db['DB_TYPE'],'sqlite') === 0) {
+        if (getDatabaseType() == 'sqlite') {
             $data = array('--database', 'sqlite');
         } else {
             $data = array(

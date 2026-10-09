@@ -170,6 +170,7 @@ class fileThumbPlugin extends PluginBase{
 	 * @return void
 	 */
 	public function check(){
+		KodUser::checkRoot();	// 仅后台管理员使用的检测/停止任务接口
 		$this->checkImgnry();	// imaginary服务检查
 		Cache::remove('fileThumb.getFFmpeg');
 		Cache::remove('fileThumb.getConvert');
@@ -474,7 +475,7 @@ class fileThumbPlugin extends PluginBase{
 	}
 	
 	public function ffmpegSupportCheck($ffmpeg){
-        $out = shell_exec($ffmpeg.' -v 2>&1');
+        $out = shell_exec(escapeShell($ffmpeg).' -v 2>&1');
         if(strstr($out,'--disable-muxer=image2')){
 			$this->log('ffmpeg support error. '.$out);
 			return false;
@@ -555,7 +556,6 @@ class fileThumbPlugin extends PluginBase{
 		foreach ($array as $value){
 			if(!file_exists($value.$bin)){continue;}
 			$file = $value.$bin;
-			if(strstr($file,' ')){$file = '"'.$file.'"';}
 			$findArray[] = $file;
 		}
 		if(!strstr($bin,'/')){
@@ -575,10 +575,10 @@ class fileThumbPlugin extends PluginBase{
 			$this->log('shell_exec function is disabled.');
 			return false;
 		}
-		$result = shell_exec($bin.' --help');
+		$result = shell_exec(escapeShell($bin).' --help');
 		if (stripos($result,$check) !== false) return true;
 		
-		$out = shell_exec($bin.' --help 2>&1');
+		$out = shell_exec(escapeShell($bin).' --help 2>&1');
 		$this->log('imagick env error:'.$out.';cmd='.$bin.' --help 2>&1');
 		return false;
 	}
@@ -640,7 +640,7 @@ class fileThumbPlugin extends PluginBase{
 		// $memLimit = intval($memFree / 1024);	// KB
 		// return "ulimit -v {$memLimit}; {$param} -threads 2 ";	// $param=>ffmpeg
 		$memLimit = $memFree;	// max_alloc 支持无后缀(bytes)和有后缀(m/g)
-		return "{$param} -max_alloc {$memLimit} -threads 2 ";	// $param=>ffmpeg;
+		return escapeShell($param)." -max_alloc {$memLimit} -threads 2 ";	// $param=>ffmpeg;
 	}
 	private function sizeFormat($size, $type = 'convert') {
 		// $temp = explode(' ',size_format($size));
@@ -694,6 +694,7 @@ class fileThumbPlugin extends PluginBase{
 
 	// imagry环境检查
 	public function checkImgnry(){
+		KodUser::checkRoot();	// 仅后台管理员使用
 		$type = $this->in['type'];
 		if ($type != 'imgnry') return;
 		if(isset($_GET['check'])){

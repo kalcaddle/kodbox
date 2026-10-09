@@ -136,6 +136,7 @@ class explorerSeo extends Controller{
 		$sourcePath = $shareInfo['sourcePath'].'/'.$viewPath;
 		$shareDesc 	= $this->shareMakeItem($shareInfo);
 		$linkPage 	= $this->shareLink($shareInfo);
+		$shareInfo['title'] = htmlentities($shareInfo['title']);
 		$addressHtml = "<a href='{$linkPage}'>{$shareInfo['title']}</a>";
 		$viewPathArr = explode('/',$viewPath);
 		for($i = 0; $i < count($viewPathArr); $i++){

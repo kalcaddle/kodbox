@@ -33,8 +33,8 @@ class msgWarningMsgSvr extends Controller {
 
 	/**
 	 * 系统盘剩余空间不足
-	 * @param [type] $evntInfo
-	 * @return void
+	 * @param array $evntInfo
+	 * @return array
 	 */
 	public function svrDiskSizeErr ($evntInfo) {
 		$policy = $evntInfo['policy'];
@@ -65,19 +65,18 @@ class msgWarningMsgSvr extends Controller {
     }
 
 	/**
-	 * 文件系统异常
-	 * @param [type] $evntInfo
-	 * @return void
+	 * 文件系统异常——cockpit中获取
+	 * @param array $evntInfo
+	 * @return array
 	 */
 	public function svrFileSysErr ($evntInfo) {
-		// TODO cockpit中获取
 		return array();
 	}
 
 	/**
 	 * 文件系统异常
-	 * @param [type] $evntInfo
-	 * @return void
+	 * @param array $evntInfo
+	 * @return array
 	 */
 	public function svrCpuErr ($evntInfo) {
 		$policy = $evntInfo['policy'];
@@ -104,11 +103,10 @@ class msgWarningMsgSvr extends Controller {
 
 	/**
 	 * 文件系统异常
-	 * @param [type] $evntInfo
-	 * @return void
+	 * @param array $evntInfo
+	 * @return array
 	 */
 	public function svrMemErr ($evntInfo) {
-		// pr($evntInfo);exit;
 		$policy = $evntInfo['policy'];
 		if (!$policy) return array();
 		$useRatio = $policy['useRatio'];
@@ -135,10 +133,10 @@ class msgWarningMsgSvr extends Controller {
 
 	/**
 	 * 记录cpu、内存异常信息
-	 * @param [type] $data
-	 * @param [type] $useTime	持续时长（分钟）
-	 * @param [type] $type
-	 * @return void true:不发送；false:发送
+	 * @param array $data
+	 * @param integer $useTime	持续时长（分钟）
+	 * @param string $type
+	 * @return bool true:不发送；false:发送
 	 */
 	private function warnUsage($data, $useTime, $type) {
 		$model = Model('SystemWarn');

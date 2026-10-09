@@ -1,6 +1,18 @@
 <?php 
 // OSS
 class impDrvOSS extends PathDriverOSS {
+	/**
+	 * 列表过程中的异常记录（与 DriverLocal 同一套结构，供 app.php 汇总进“文件导入明细”）
+	 * list_failed：分页/列举接口失败 → 剩余条目不会再被导入（原来只写日志或完全静默）
+	 */
+	public $errList = array('unreadable' => array(), 'stat' => array(), 'symlink' => array(), 'list_failed' => array());
+	private $lastErr = '';
+
+	// 记录一条列表异常（obj 与 reason 用 \t 分隔，与 DriverLocal 的格式一致）
+	protected function addErr($type, $obj, $reason = '') {
+		$this->errList[$type][] = $obj . "\t" . $reason;
+	}
+
 	public function __construct($config, $type='') {
 		parent::__construct($config);
 	}
@@ -61,7 +73,7 @@ class impDrvOSS extends PathDriverOSS {
      * @param integer $batchSize
      * @return void
      */
-	public function listPath($path, $batchSize=100000) {
+	public function listPathBatch($path, $batchSize=100000) {
 		$path	= trim($path, '/');
 		$prefix = (empty($path) && $path !== '0') ? '' : $path . '/';
 		$nextMarker = '';
@@ -78,6 +90,8 @@ class impDrvOSS extends PathDriverOSS {
 			);
 			$listObjectInfo = $this->listFiles($path, $options);
 			if ($listObjectInfo === false) {
+				// 记录异常：剩余条目不会再被导入（原来只写日志，导入汇总里看不到）
+				$this->addErr('list_failed', $path, '列举接口失败，已提前结束：' . ($this->lastErr ?: '未知原因'));
 				// 失败时如果有缓冲，先yield出去
 				if ($bufferCount > 0) {
 					yield $buffer;
@@ -118,6 +132,7 @@ class impDrvOSS extends PathDriverOSS {
 			// 安全保护：如果nextMarker与上一次相同，避免死循环
 			static $lastMarker = null;
 			if ($lastMarker === $nextMarker) {
+				$this->addErr('list_failed', $path, '分页标记重复，已提前结束（防死循环保护）');
 				break;
 			}
 			$lastMarker = $nextMarker;

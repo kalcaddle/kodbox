@@ -3,6 +3,18 @@
  * S3系存储拓展方法——有新增s3系存储时在Driver.ioList.s3数组中追加
  */
 class impDrvS3 {
+	/**
+	 * 列表过程中的异常记录（与 DriverLocal 同一套结构，供 app.php 汇总进“文件导入明细”）
+	 * list_failed：分页/列举接口失败 → 剩余条目不会再被导入（原来只写日志或完全静默）
+	 */
+	public $errList = array('unreadable' => array(), 'stat' => array(), 'symlink' => array(), 'list_failed' => array());
+	private $lastErr = '';
+
+	// 记录一条列表异常（obj 与 reason 用 \t 分隔，与 DriverLocal 的格式一致）
+	protected function addErr($type, $obj, $reason = '') {
+		$this->errList[$type][] = $obj . "\t" . $reason;
+	}
+
     private $instance;
     public $client;
     public $bucket;
@@ -104,7 +116,7 @@ class impDrvS3 {
      * @param integer $batchSize
      * @return void
      */
-	public function listPath($path, $batchSize=100000) {
+	public function listPathBatch($path, $batchSize=100000) {
         $this->client = $this->getProtMember('client');
         $this->bucket = $this->getProtMember('bucket');
 
@@ -124,6 +136,7 @@ class impDrvS3 {
 			);
 			$ret = $this->listFiles($path, $options);
 			if ($ret === false) {
+				$this->addErr('list_failed', $path, '列举接口失败，已提前结束：' . ($this->lastErr ?: '未知原因'));
 				// 失败时如果有缓冲，先yield出去
 				if ($bufferCount > 0) {
 					yield $buffer;
@@ -178,7 +191,7 @@ class impDrvS3 {
 		$limit	= $options['limit'];
 		$delimiter = '';
         $result = $this->client->getBucket($this->bucket, $prefix, $nextMarker, $limit, $delimiter, true);
-		if (!$result) return false;
+		if (!$result) { $this->lastErr = '列举接口返回失败'; return false; }
 		return $result;
 	}
 

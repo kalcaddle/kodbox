@@ -161,8 +161,8 @@ class msgWarningSysTask extends Controller {
 
 		// 存前端缓存——未被覆盖的继续保留，用户23点登录系统接收到的可能是8点的通知；临界点打开时与下一次间隔较小，忽略处理
 		$cckey = $this->pluginName.'.webNtcList.'.date('Ymd');
-		Cache::removeMemory($cckey);	// 先清除内存缓存——重要，否则计划任务（同一进程）始终读的是它而非redis最新值（被webNotice修改）
-		$cache = Cache::get($cckey);
+		// Cache::removeMemory($cckey);	// 先清除内存缓存——重要，否则计划任务（同一进程）始终读的是它而非redis最新值（被webNotice修改）
+		$cache = Cache::get($cckey, true);
 		if (!is_array($cache)) $cache = array();
 		$cache = array_merge($cache, $wbcache);
 		Cache::set($cckey, $cache, 3600*24);
@@ -205,7 +205,7 @@ class msgWarningSysTask extends Controller {
 		}
 
 		// 通知方式
-		if (!_get($notice, 'method')) return false;
+		if (empty(_get($notice, 'method', ''))) return false;
 		// toAll：将[系统通知]添加到通知方式中——前端限制取消后，此处没有必要强制添加
 		if ($evntInfo['toAll'] == '1') {
 			if (stripos($notice['method'], 'kwarn') === false) {

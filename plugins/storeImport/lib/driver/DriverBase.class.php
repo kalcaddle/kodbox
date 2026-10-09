@@ -64,13 +64,19 @@ class impDriver {
 
     /**
      * 按批次获取文件列表（生成器），注意：driver方法未实现时会调用父类方法
+     *
+     * 方法名说明：原名 listPath()，与框架父类 PathDriverXxx::listPath() **同名但契约不同**
+     * （框架那套由 kodbox 核心定义；本插件这套是"按 batchSize 攒批 yield 数组"）。
+     * 同名覆盖既容易误解，也会触发 IDE 的兼容性告警，故统一改名为 listPathBatch()。
+     * 调用点：app.php 的 check() 与 doImport()。
+     *
      * @param string $path
      * @param integer $batchSize
-     * @return void
+     * @return \Generator yield [ [path,folder,modifyTime,size], ... ]
      */
-    public function listPath($path, $batchSize=100000) {
+    public function listPathBatch($path, $batchSize=100000) {
         $path = $this->getPathInner($path);
-        return $this->driver->listPath($path, $batchSize);
+        return $this->driver->listPathBatch($path, $batchSize);
     }
 }
 

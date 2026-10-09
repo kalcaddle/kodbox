@@ -62,7 +62,7 @@ class clientTfaIndex extends Controller {
         if (!$tfaInfo['tfaOpen']) return;
 
         $tfaKey = md5('tfa-'.$user['userID'].time().rand_string(6));
-        Cache::set($tfaKey, $user, 600);
+        Cache::set('tfaSign_'.$tfaKey, $user, 600);
         $tfaInfo['sign'] = $tfaKey;
         show_json($tfaInfo);
     }
@@ -79,7 +79,7 @@ class clientTfaIndex extends Controller {
         $func   = Input::get('action','in',null,$check);
 
         $tfaKey = Input::get('sign','require');
-        $user   = Cache::get($tfaKey);
+        $user   = Cache::get('tfaSign_'.$tfaKey);
         if (!$user) show_json(LNG('client.tfa.userLgErr'), false, 10011);
         if ($func == 'tfaCode') {
             $this->tfaCode($user);
@@ -132,9 +132,27 @@ class clientTfaIndex extends Controller {
         return array(
             'tfaOpen' => 1,
             'tfaType' => implode(',',$typeArr),
-            'tfaList' => $data
+            'tfaList' => $data  // 已绑定项列表
         );
 	}
+
+    /**
+     * 检查请求的验证方式：有绑定时仅允许已绑定项，无绑定则为配置全集
+     * @param array  $user
+     * @param string $type
+     * @return array tfaInfo
+     */
+    private function checkTfaType($user, $type) {
+        $tfaInfo = $this->getTfaInfo($user);
+        if (empty($tfaInfo['tfaOpen'])) {
+            show_json(LNG('common.invalidRequest'), false);
+        }
+        $allow = array_filter(explode(',', _get($tfaInfo, 'tfaType', '')));
+        if (!$type || !in_array($type, $allow)) {
+            show_json(LNG('common.invalidRequest'), false);
+        }
+        return $tfaInfo;
+    }
 
     // 获取手机/邮箱（加*）
     private function getMscValue($value, $type){
@@ -158,6 +176,8 @@ class clientTfaIndex extends Controller {
      * @param array $user
      */
     public function tfaCode($user) {
+        // 只允许该账号当前可用的验证方式（已绑定优先；无绑定时为配置全集）
+        $this->checkTfaType($user, Input::get('type'));
         $data = $this->checkCode($user);
         $this->sendCode($data);
     }
@@ -256,27 +276,67 @@ class clientTfaIndex extends Controller {
 	}
 
     /**
+     * TOTP 失败次数检查（计数绑定在本次登录sign上），超过则使sign失效，需重新用密码登录
+     * @param string $tfaKey
+     */
+    private function totpFailCheck($tfaKey) {
+        if (!$tfaKey) return;
+        // 无需判断过期时间，Cache缓存已有设置
+        $sess = Cache::get('tfaFail_'.$tfaKey);
+        if ($sess && _get($sess, 'cnt', 0) >= 10) {
+            Cache::remove('tfaFail_'.$tfaKey);
+            Cache::remove('tfaSign_'.$tfaKey);
+            show_json(LNG('user.codeErrorTooMany'), false);
+        }
+    }
+
+    /**
+     * TOTP 失败次数累加
+     * @param string $tfaKey
+     */
+    private function totpFailAdd($tfaKey) {
+        if (!$tfaKey) return;
+        $sess = Cache::get('tfaFail_'.$tfaKey);
+        $cnt  = $sess ? intval(_get($sess, 'cnt', 0)) : 0;
+        Cache::set('tfaFail_'.$tfaKey, array('cnt' => $cnt + 1), 600);
+    }
+
+    /**
      * 提交验证码
      * @param array $user
      */
     public function tfaVerify($user) {
         // 验证码验证
-        $type = Input::get('type');
+        $type    = Input::get('type');
+        // 只接受该账号当前允许的验证方式（已绑定优先；无绑定时为配置全集）
+        $tfaInfo = $this->checkTfaType($user, $type);
+        $hasBind = !empty($tfaInfo['tfaList']);   // 账号是否已绑定任一因子
+        $tfaKey  = Input::get('sign');
+
         if ($type == 'totp') { // 验证器单独处理
             $input = Input::get('input', 'require');
-            $code = Input::get('code', 'require');
+            $code  = Input::get('code', 'require');
+            // 失败次数过多则使本次登录流程失效
+            $this->totpFailCheck($tfaKey);
+
             // 获取绑定信息
             $secret = $this->totpAct()->getBindInfo($user);
-            if (!$secret) {
-                $secret = $input;
-            }
-            // 检查验证码
-            if (!$this->totpAct()->verifyCode($secret, $code)) {
-                show_json(LNG('user.codeError'), false);
-            }
-            // 绑定更新；二者相等，说明input为完整值（初始化值），需要绑定
-            if ($input == $secret) {
-                $this->totpAct()->setBindInfo($user, $secret);
+            if ($secret) {
+                // 已绑定：只验证已绑定密钥，不使用请求提交的 input 覆盖
+                if (!$this->totpAct()->verifyCode($secret, $code)) {
+                    $this->totpFailAdd($tfaKey);
+                    show_json(LNG('user.codeError'), false);
+                }
+            } else {
+                // 未绑定：仅允许零因子（无任何绑定）账号在登录时完成首次绑定
+                if ($hasBind) {
+                    show_json(LNG('common.invalidRequest'), false);
+                }
+                if (!$this->totpAct()->verifyCode($input, $code)) {
+                    $this->totpFailAdd($tfaKey);
+                    show_json(LNG('user.codeError'), false);
+                }
+                $this->totpAct()->setBindInfo($user, $input);
             }
         } else {
             $data = $this->checkCode($user);
@@ -290,8 +350,10 @@ class clientTfaIndex extends Controller {
             }
         }
         // 删除用户缓存
-        $tfaKey = Input::get('sign');
-        if ($tfaKey) Cache::remove($tfaKey);
+        if ($tfaKey) {
+            Cache::remove('tfaFail_'.$tfaKey);
+            Cache::remove('tfaSign_'.$tfaKey);
+        }
         // 更新登录状态
         $user['tfaVerified'] = true;
         Action("user.index")->loginSuccessUpdate($user);

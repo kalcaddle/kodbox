@@ -46,7 +46,7 @@ class KodImaginary {
     // 检查服务状态
     public function status(){
         // $this->initData();  // 刷新配置参数
-        $rest = $this->imgRequest('/health', array(), array(), '', 5);
+        $rest = $this->imgRequest('/health', array(), array(), '', 5, 'GET');
         return $rest ? true : false;
     }
 
@@ -132,15 +132,14 @@ class KodImaginary {
      * @param boolean $post
      * @return array
      */
-    private function imgRequest($path, $data, $post=array(), $ext='', $timeout=3600) {
+    private function imgRequest($path, $data, $post=array(), $ext='', $timeout=3600, $method='POST') {
         $this->checkRateLimit(); // 并发限制
 
         // key必须作为url参数传递，否则报错：Invalid or missing API key
         if (!empty($this->apiKey)) {
             $data['key'] = $this->apiKey;
         }
-        $method = 'POST';
-        if (isset($post['url'])) {
+        if (isset($post['url']) && $method == 'POST') {
             $method = 'GET';
             $data['url'] = $post['url'];
             $post = array();

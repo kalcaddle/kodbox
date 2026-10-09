@@ -3,8 +3,28 @@
  * 本地存储拓展方法
  */
 class impDrvLocal extends PathDriverLocal {
+	/**
+	 * 遍历过程中的异常记录（只记录，不改变既有遍历行为）
+	 * unreadable: 目录无法读取 —— 整棵子树会被跳过，是“导入后少文件/少字节”的头号原因
+	 * stat      : 条目无法 stat（断链软链、权限不足等）
+	 * symlink   : 软链接目录 —— 目前会被继续向下遍历（listAll 跳过、listPathBatch 不跳，两者行为不一致）
+	 */
+	public $errList = array('unreadable' => array(), 'stat' => array(), 'symlink' => array(), 'list_failed' => array());
+
 	public function __construct($config, $type='') {
 		parent::__construct($config);
+	}
+
+	// 取最近一次被 @ 抑制的错误原因（供上面几类异常记录使用）
+	private function lastError(){
+		$err = error_get_last();
+		return ($err && !empty($err['message'])) ? $err['message'] : '未知原因';
+	}
+	// 各类异常条数
+	public function errSummary(){
+		$out = array();
+		foreach ($this->errList as $k => $v) { $out[$k] = count($v); }
+		return $out;
 	}
 
 	/**
@@ -53,7 +73,7 @@ class impDrvLocal extends PathDriverLocal {
      * @param integer $batchSize
      * @return void
      */
-	public function listPath($path, $batchSize=100000) {
+	public function listPathBatch($path, $batchSize=100000) {
 		$path = rtrim($path, '/') . '/';
 		if (!is_dir($path)) return array();
 
@@ -66,7 +86,11 @@ class impDrvLocal extends PathDriverLocal {
 			$curPath = array_pop($stack);
 			// 读取当前目录
 			$items = @scandir($curPath);
-			if ($items === false) continue; // 无法读取目录，跳过
+			if ($items === false) {
+				// 原为静默 continue：目录不可读时整棵子树会被无声跳过，必须记录
+				$this->errList['unreadable'][] = $curPath . "\t" . $this->lastError();
+				continue;
+			}
 
 			foreach ($items as $item) {
 				if ($item === '.' || $item === '..') continue;
@@ -74,9 +98,17 @@ class impDrvLocal extends PathDriverLocal {
 
 				// 获取文件信息
 				$stat = @stat($fullPath);
-				if ($stat === false) continue; // 无法获取信息，跳过
+				if ($stat === false) {
+					// 原为静默 continue：断链软链、无权限等会整条丢掉
+					$this->errList['stat'][] = $fullPath . "\t" . $this->lastError();
+					continue;
+				}
 
 				$isFolder = is_dir($fullPath);
+				if ($isFolder && is_link($fullPath)) {
+					// 仅记录：同一个物理目录会被按两条路径各导入一次（软链路径 + 真实路径）
+					$this->errList['symlink'][] = $fullPath;
+				}
 				$batch[] = array(
 					'path'      => $fullPath . ($isFolder ? '/' : ''),	// 调用getPathOuter无效，$this->pathDriver缺失
 					'folder'    => (int)$isFolder,

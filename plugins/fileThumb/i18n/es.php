@@ -54,6 +54,7 @@ return array(
     "fileThumb.video.STATUS_ERROR"   => "Error de tiempo de ejecución, verifique si el software está instalado o si tiene permiso de ejecución (ffmpeg, shell_exec, proc_open)",
     "fileThumb.video.STATUS_RUNNING" => "Transcodificación",
     "fileThumb.video.STATUS_LIMIT"   => "El número de tareas en curso ha excedido el límite. Inténtalo de nuevo más tarde.",
+    "fileThumb.video.retry"          => "Recodificación",
     "fileThumb.config.debug"         => "Modo de depuración",
     "fileThumb.config.debugDesc"     => "Generar registros relevantes. <button class='btn btn-sm btn-default ml-20 view-log'>Ver los registros.</button>"
 );

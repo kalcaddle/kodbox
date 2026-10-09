@@ -31,7 +31,7 @@ return array(
 											<li>4. 建议在导入之前对数据库进行备份，以免出现意外。</li>
 											<li>5. 建议<u>单次导入数据量不要超过100万条</u>，网盘存放目录为空，避免数据过多导致内存溢出。</li>
 										</div>
-										<div>注意：<u>文件路径长度超过255个字符会被限制导入</u>，列表记录在网盘存放目录下的“导入失败文件(长度超255字符)”目录中，可在导入完成后查看并自行处理。</div>",
+										<div>注意：<u>文件路径长度超过255个字符会被限制导入</u>，导入异常明细在网盘存放目录下的“文件导入明细”目录中，可在导入完成后自行查看并处理。</div>",
 	'storeImport.main.checkCnt'		=> "检查数量",
 	'storeImport.main.selectFromPath'=> "请选择原始目录",
 	'storeImport.main.allCnt'		=> "[0]个文件夹，[1]个文件",
@@ -50,7 +50,9 @@ return array(
 	'storeImport.task.stopErr'		=> "异常终止！",
 	'storeImport.task.stopErrDesc'	=> "存储导入数据，异常中断",
 	'storeImport.task.afterTime'	=> "剩余时间约：",
-	'storeImport.task.errLog'		=> "导入失败文件(长度超255字符)",
+	'storeImport.task.errLog'		=> "文件导入明细",
+	'storeImport.task.timeUsed'		=> '总耗时 [0]',
+    'storeImport.task.timeRemain'	=> '剩余约 [0]',
 
 	'storeImport.task.importOK'		=> "导入成功！",
 	'storeImport.task.importEnd'	=> "导入完成！",

@@ -5,7 +5,15 @@
  */
 class userSso extends Controller{
 	public function __construct(){
+		if(!defined('MOD')){
+			define('MOD','user');
+			define('ST','sso');
+			define('ACT','index');
+			define('ACTION',MOD.'.'.ST.'.'.ACT);
+		}
 		parent::__construct();
+	}
+	public function index(){
 	}
 
 	// sdk模式; 引入代码调用;
@@ -13,22 +21,20 @@ class userSso extends Controller{
 		$urlInfo = parse_url(this_url());
 		$GLOBALS['API_SSO_KEY']  = 'kodTokenApi-'.substr(md5($urlInfo['path']),0,5);
 		$GLOBALS['API_SSO_PATH'] = $this->thisPathUrl();
-		if(isset($this->in['kodTokenApi'])){
-			$_REQUEST['accessToken'] = $this->in['kodTokenApi'];
-		}
+		$apiToken 	 = isset($this->in['kodTokenApi']) ? $this->in['kodTokenApi'] : '';
+		$sessionSign = $apiToken ? Cache::get($apiToken) : '';
+		if($sessionSign){Session::sign($sessionSign);}
 		
 		$app = new Application();
 		$app->setDefault('user.index.index');
 		$result = $this->checkAuth($appName);
 		$theUrl = $this->urlRemoveKey(this_url(),'kodTokenApi');
 		if($result === true){
-			if(isset($this->in['kodTokenApi'])){// 登录成功处理;	
-				header('Location:'.$theUrl);exit;
-			}
+			if($apiToken){header('Location:'.$theUrl);exit;} // 登录成功处理;
 			return $this->userInfo();
 		}
-		$login = 'index.php?user/index/autoLogin&link='.rawurlencode($theUrl).'&callbackToken=1&msg='.$result;
-		header('Location:'.APP_HOST.$login);exit;
+		$location = APP_HOST.'index.php?user/index/autoLogin&link='.rawurlencode($theUrl).'&callbackToken=1&msg='.$result;
+		header('Location:'.$location);exit;
 	}
 	private function userInfo(){
 		$userInfo = Session::get('kodUser');
@@ -36,7 +42,7 @@ class userSso extends Controller{
 		
 		$keys = explode(',','userID,name,email,phone,nickName,avatar,sex,avatar');
 		$user = array_field_key($userInfo,$keys);
-		$user['accessToken'] = Action('user.index')->accessToken();
+		// $user['accessToken'] = Action('user.index')->accessToken(); // 不再输出token,避免被攻击引导泄露;
 		return $user;
 	}
 	private function thisPathUrl(){
@@ -63,8 +69,15 @@ class userSso extends Controller{
 		return true;
 	}
 
-	// 第三方通过url调用请求;
+	// 第三方通过url调用请求; 校验kodTokenApi,成功后返回用户基本信息;
 	public function apiCheckToken(){
+		$apiToken = isset($this->in['kodTokenApi']) ? $this->in['kodTokenApi'] : '';
+		$sessionSign = $apiToken ? Cache::get($apiToken):'';
+		if(!$sessionSign){echo "[error]:[API LOGIN]";return;}
+
+		// 运行期内指定当前session会话;
+		Cookie::disable(true);
+		Session::setBySign($sessionSign,Session::getBySign($sessionSign));
 		$result  = $this->checkAuth($_GET['appName']);
 		$content = "[error]:".$result;
 		if($result === true){
@@ -75,21 +88,15 @@ class userSso extends Controller{
 	}
 	// -> login&apiLogin => 第三方app&token=accessToken;
 	public function apiLogin(){
+		$link = isset($_GET['callbackUrl']) ? $_GET['callbackUrl']:'';
 		$result = $this->checkAuth($_GET['appName']);
-		$callbackUrl = $_GET['callbackUrl'];
-		if($result === true){
-			$token = Action('user.index')->accessToken();
-			$callbackUrl = $this->urlRemoveKey($callbackUrl,'kodTokenApi');
-			if(strstr($callbackUrl,'?')){
-				$callbackUrl = $callbackUrl.'&kodTokenApi='.$token;
-			}else{
-				$callbackUrl = $callbackUrl.'?kodTokenApi='.$token;
-			}
-			// pr($callbackUrl,$token);exit;
-			header('Location:'.$callbackUrl);exit;
+		if($result !== true){
+			$link = APP_HOST.'#user/login&link='.rawurlencode($link).'&callbackToken=1&msg='.$result;
+			header('Location:'.$link);exit;
 		}
-		
-		$link = APP_HOST.'#user/login&link='.rawurlencode($callbackUrl).'&callbackToken=1&msg='.$result;
+		$apiToken 	= Action('user.index')->apiTokenMake();// 允许泄露,仅用于第三方应用回调校验;
+		$link 		= $this->urlRemoveKey($link,'kodTokenApi');
+		$link 		= $link.(strstr($link,'?') ? '&':'?').'kodTokenApi='.$apiToken;
 		header('Location:'.$link);exit;
 	}
 	

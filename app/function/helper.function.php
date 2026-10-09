@@ -109,7 +109,7 @@ function unzip_filter_ext($name){
 //解压到kod，文件名处理;识别编码并转换到当前系统编码
 function unzip_pre_name($fileName){
 	Hook::trigger('unzip.nameParse',$fileName);
-	$fileName = str_replace(array('../','..\\',''),'',$fileName);
+	$fileName = path_clear($fileName);
 	if (!function_exists('iconv')){
 		return unzip_filter_ext($fileName);
 	}

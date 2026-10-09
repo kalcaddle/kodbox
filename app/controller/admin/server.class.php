@@ -518,7 +518,8 @@ class adminServer extends Controller {
 		$option = array_change_key_case($option, CASE_UPPER);
 
 		// 数据库配置存缓存，用于清除获取
-		$key = 'db_change.new_config.' . date('Y-m-d');
+		// $key = 'db_change.new_config.' . date('Y-m-d'); // 跨午夜导致失效
+		$key = 'db_change.new_config';
 		Cache::set($key, array('type' => $dbType, 'db' => $option), 3600*24);
 
         // 2. 复制数据库——读取当前库表结构、表数据，写入到新增库
@@ -678,10 +679,12 @@ class adminServer extends Controller {
 		http_close();
 
 		// 2.导入数据库
+		ignore_timeout();
 		ActionCall('user.index.maintenance', true, 1);
+		// 正常结束/致命错误/exit 时会执行，但进程被强杀（FPM request_terminate_timeout、kill -9、重启）时不会执行；
 		register_shutdown_function(function() {
-            ActionCall('user.index.maintenance', true, 0);
-        });
+			ActionCall('user.index.maintenance', true, 0);
+		});
 		// 2.1 下载备份文件到本地临时目录
 		$pathLoc = $this->tmpActPath('recovery');
 		$path = $this->recLocPath($type, $path, $pathLoc);
@@ -770,7 +773,11 @@ class adminServer extends Controller {
 			}
 			$database['db_dsn'] = $dsn;
 		}
-		$key = 'db_recovery.new_config.' . date('Y-m-d');
+		// 缓存键由"新库配置"（recDatabase）与"失败清理"（dropErrorDb）共用，两侧必须使用同一拼法。
+		// 注意用的是 $type（已解析出的规范化类型 mysql/sqlite），而非 $data['type']——后者可能缺失/大小写不一致，
+		// 一旦拼错，导入失败后 dropErrorDb 就找不到新库配置，半成品库将残留在数据库服务器上。
+		// $key = 'db_recovery.new_config.' . date('Y-m-d'); // 跨午夜导致失效
+		$key = 'db_recovery.new_config';
 		Cache::set($key, array('type' => $type, 'db' => $database), 3600*24);
 		return $database;
 	}
@@ -834,8 +841,10 @@ class adminServer extends Controller {
 	}
 	// 删除导入失败的数据表
 	private function dropErrorDb($type){
-		$key = 'db_'.$type.'.new_config.'.date('Y-m-d');
-		if(!$cache = Cache::get($key) || empty($cache['db'])) return;
+		// $key = 'db_'.$type.'.new_config.'.date('Y-m-d');
+		$key = 'db_'.$type.'.new_config';
+		$cache = Cache::get($key);
+		if (!$cache || empty($cache['db'])) return;
 
 		$type = $cache['type'];
 		if($type == 'sqlite') {
@@ -868,26 +877,46 @@ class adminServer extends Controller {
 		$in = $this->in;
 		if ($in['tab'] != 'recovery' || $in['action'] != 'save' || $in['recType'] != 'file') return;
 		$path = Input::get('filePath', 'require');
+
 		// 获取进度
 		if ($in['process'] == '1') {
-			$task = Task::get('restore.file');	// 没有任务或已结束时都为false
-			// 可能存在进度请求未发出但任务即已结束的情况，导致任务为false，故存缓存
-			$taskUuid  = _get($in, 'taskUuid', 'recFileTaskUuid');
-			$taskCache = Cache::get($taskUuid);
-			if ($task) {
-				Cache::set($taskUuid, $task);
-			} else {
-				if ($taskCache) {$task['taskPercent'] = 1;}
+			$sysModel = Model('SystemOption');
+			$task     = Task::get('restore.file');	// 没有任务或已结束时都为false
+			$timeUpd  = intval(_get($task, 'timeUpdate', 0));
+			// 1.进行中：任务记录存在且近期有更新（含 kill/stop 等待进程退出的状态——保持展示，避免前端进度清零）
+			if ($task && (time() - $timeUpd) <= BackupFile::STALE_LIMIT) {   // 活动窗口统一（2 小时）
+				$data = ($task['status'] == 'running')
+					? $task	// 进度取 Task
+					: array('taskPercent' => _get($task, 'taskPercent', 0), 'status' => 'running');
+				// running 字段是给前端的显式信号：true=本次执行确实在进行，前端继续轮询；false=已结束，info 为最终统计
+				show_json($data, true, array('running' => true));
 			}
-			// 备份结果信息
-			$info = null;
-			if ($task['taskPercent'] == 1) {
-				Cache::remove($taskUuid);
-				$info = Model('SystemOption')->get('fileTaskInfo', 'restore');
-				$info = json_decode($info, true);
+			// 以下为结束/未开始判定，才需要读取最终统计
+			$info = json_decode($sysModel->get('fileTaskInfo', 'restore'), true);
+
+			// 2.执行已开始但任务记录尚未可用。两种情形都走这里：
+			// 1）系统检查/初始化阶段（fileTaskInfo.scanAt 仍为 0，尚未进入主扫描）；
+			// 2）已进入主扫描、但最后一批里 Task 已 end、收尾尚未清除标记的窗口。
+			// 只有活动时间 beatAt 还在窗口内（其次 runAt），说明进程还活着、本次尚未结束。
+			// 不用 scanAt 因为可能与 runAt 混淆，scanAt == 0：还没进入主扫描（初始化中），scanAt > 0：已进入主扫描
+			$runAt   = intval(_get($info, 'runAt', 0));
+			$beatAt  = intval(_get($info, 'beatAt', 0));
+			$lastAct = $beatAt > 0 ? $beatAt : $runAt;
+			$running = ($lastAct > 0 && (time() - $lastAct) <= BackupFile::STALE_LIMIT);	// 活动窗口（2 小时）：标记超过这么久没刷新，视为执行进程已死（崩溃/被强杀/OOM）
+			// 执行确在进行但 Task 记录不可用：必须带 running=true 返回，前端据此继续轮询；否则前端会误判结束并永久停止刷新（界面卡在"执行中"）。
+			if ($running) {
+				show_json(array('taskPercent' => 0, 'status' => 'running'), true, array('running' => true));
 			}
-			show_json($task, true, $info);
+			// 注意：进程被强杀时标记会残留，但 1 小时窗口 + 收尾/kill 回调（RestoreFile::resolveKilled）会清掉它，因此不会长期卡在"进行中"。
+			// 3.已结束（正常结束 / 被中止 / 被 kill / 未开始）：返回最终统计
+			// 标记存在但久未刷新（超 STALE 窗口）= 进程没走完收尾就被杀，结果可能不完整
+			$dead = (!$running && $lastAct > 0);
+			if (!is_array($info)) $info = array();
+			$info['running'] = false;      // 显式信号：已结束（前端据此停止轮询并展示最终统计）
+			$info['dead']    = $dead;      // 进程没走完收尾就被杀：结果可能不完整（供前端/排障用）
+			show_json(array('taskPercent' => 1), true, $info);
 		}
+
 		// 执行还原
 		$restore = new RestoreFile();
         $code = $restore->start($path);

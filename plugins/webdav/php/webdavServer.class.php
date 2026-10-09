@@ -136,7 +136,9 @@ class webdavServer {
 				$result['modifyTime'] = $_SERVER['HTTP_DATE'];
 			}
 		}else{
-			$ext    = $itemFile['ext'] ? $itemFile['ext']:get_path_ext($itemFile['name']);
+			$nameExt = get_path_ext($itemFile['name']);
+			// 复制/引用重命名后，内部 ext 可能仍是源扩展名。WebDAV 的 content type 应与当前资源名一致，尤其是 Office backup.tmp。
+			$ext    = $nameExt == 'tmp' ? $nameExt:($itemFile['ext'] ? $itemFile['ext']:$nameExt);
 			$mime   = get_file_mime($ext);
 			$xmlAdd = '<D:resourcetype/>';
 			$xmlAdd.= "<D:getcontenttype>{$mime}</D:getcontenttype>";

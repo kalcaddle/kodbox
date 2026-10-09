@@ -54,6 +54,7 @@ return array(
     "fileThumb.video.STATUS_ERROR"   => "런타임 오류, 소프트웨어가 설치되어 있는지 또는 실행 권한이 있는지 확인하세요(ffmpeg, shell_exec, proc_open)",
     "fileThumb.video.STATUS_RUNNING" => "트랜스코딩",
     "fileThumb.video.STATUS_LIMIT"   => "진행 중인 작업 수가 한도를 초과했습니다. 나중에 다시 시도해 주세요.",
+    "fileThumb.video.retry"          => "재인코딩",
     "fileThumb.config.debug"         => "디버그 모드",
     "fileThumb.config.debugDesc"     => "관련 로그를 생성합니다. <button class='btn btn-sm btn-default ml-20 view-log'>로그를 확인합니다.</button>"
 );

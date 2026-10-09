@@ -25,7 +25,6 @@ class batchImport {
     // 缓存系统（改进的清理策略）
     private $pathCache      = array();  // path => fileID（可安全清理）
     private $existingPaths  = array();  // 已存在的完整路径缓存 [relPath => sourceID] - 仅在文件夹创建阶段使用
-    private $parentChildMap = array();  // 父目录ID => [name => sourceID] (用于文件查重) - 仅在文件夹创建阶段使用
     private $parentFileCache= array();  // parentID => array(name => fileInfo)（按LRU清理）
     private $parentFileNames= array();  // parentID => array(name => true) （按LRU清理）
     private $newFolderIDs   = array();  // 本次导入新建的文件夹ID
@@ -62,17 +61,98 @@ class batchImport {
     private $taskId;
     private $tmpFileCnt = 0;    // 临时文件数量（用于任务进度）
 
-    // 路径长度超出文件
-    private $errPathFiles   = array();
+    // 诊断统计（只用于日志输出，不参与业务流程；整个请求内累计，cleanup() 不重置）
+    private $stat = array(
+        'fileSeen'           => 0,   // 扫描到的文件条目数（来自原目录列表）
+        'fileBuffered'       => 0,   // 进入文件缓冲区（准备写库）的数量
+        'skipEmptyRel'       => 0,   // 因相对路径为空跳过
+        'skipPathLen'        => 0,   // 因 io 路径超 255 字符跳过
+        'skipBadCharset'     => 0,   // 因编码非法 / 4 字节字符跳过（数据库非 utf8mb4 时）
+        'skipNoParent'       => 0,   // 因父目录无法建立跳过
+        'fileRows'           => 0,   // 实际写入 io_file 的行数
+        'sourceRows'         => 0,   // 实际写入 io_source 的文件行数
+        'folderExisted'      => 0,   // 目录已存在（复用）
+        'folderCreated'      => 0,   // 目录本次新建
+        'folderFailed'       => 0,   // 目录创建/父级解析失败（原为静默跳过）
+        'folderFailedSample' => array(),
+        'batchFail'          => 0,   // 失败批次计数
+    );
+
     // 数据库sql长度
     private $dbPacketValue  = 0;
+
+    /**
+     * 异常明细收集（供导入结束后写“文件导入明细”）
+     * 明细只保留前 $errItemsMax 条，超出的只计数（避免“整棵子树不可读”之类把内存吃光）
+     */
+    private $errItems    = array();   // [['type'=>..,'obj'=>..,'reason'=>..], ...]
+    private $errCount    = array();   // type => 条数
+    private $errDropped  = array();   // type => 只计数、未保留明细的条数
+    private $errItemsMax = 50000;
+
+    // 数据库字符集：非 utf8mb4 时 4 字节字符（emoji 等）无法入库，必须在写库前拦下
+    private $dbUtf8mb4 = false;
+    private $dbCharset = 'utf8';
+
+    /**
+     * 耗时归因（只用于日志）：把墙钟时间拆成“PHP 收集”和各个 SQL 块
+     * 排查“导入变慢”时先看这一行，再对照 MySQL 侧 performance_schema 的语句耗时，即可判断慢在 PHP 还是 SQL
+     * 1.查已存在文件/写目录 => 查库/索引问题；
+     * 2.取回fileID/写io_source => 批次写入问题；
+     * 3.未归类(PHP) => 文件数×路径解析的纯 PHP 成本（比如路径特别深、特别长）；
+     * 4.若所有项都很小但墙钟很大 => 框架层（比如think_trace）
+     */
+    private $prof = array();
+    private function profAdd($key, $sec) {
+        if (!isset($this->prof[$key])) $this->prof[$key] = 0;
+        $this->prof[$key] += $sec;
+    }
+    /**
+     * 一行「耗时归因」汇总（只在导入结束时打一条）
+     * 重要约定：**这里只能列"叶子桶"**（互不包含的步骤）。
+     * 现在列表里都是互不重叠的叶子，剩下的（逐条解析父目录、缓冲/组装 SQL、收尾等）统一落到"未归类(PHP)"。
+     */
+    private function profLine($wall) {
+        $names = array(
+            'file.outPath' => '框架getPathOuter', 'file.exist' => '查已存在文件', 'file.preload' => '预加载父目录',
+            'file.dup'     => '重名判定',      'file.insIo'  => '写io_file',   'file.ids'     => '取回fileID',
+            'file.insSrc'  => '写io_source',   'file.link'   => '引用计数',     'file.updFid'  => '回写fileID',
+            'dir.analyze'  => '目录分析',      'dir.query'   => '查已存在目录', 'dir.ins'      => '写目录',
+            'dir.backfill' => '目录ID回填',
+        );
+        $sum = 0; $parts = array();
+        foreach ($names as $k => $label) {
+            $v = _get($this->prof, $k, 0);
+            $sum += $v;
+            if ($v >= 0.05) $parts[] = $label . ' ' . round($v, 1) . 's';
+        }
+        if ($wall > 0) $parts[] = '未归类(PHP) ' . round(max(0, $wall - $sum), 1) . 's';
+        return '【耗时归因】' . ($parts ? implode('；', $parts) : '无') . '　合计墙钟 ' . round($wall, 1) . 's';
+    }
+
+    // 批量插入 io_source 后，该语句生成的第一个自增ID（用于回填新建文件夹的 sourceID 映射）
+    private $lastSourceInsID = 0;
 
     public function __construct($task) {
         $this->impTask = $task;
         $this->taskId = substr($task->task['id'], 0, 6);
 
+        // 性能关键：先关掉框架的 SQL 调试记录，再开始任何查询
+        $this->disableSqlTrace();
+
         $repeat = Model('UserOption')->get('fileRepeat');
         if ($repeat) $this->options['duplicateMode'] = $repeat;
+
+        // 数据库字符集（与框架 explorer::pathAllowCheck() 同一判据）：非 utf8mb4 时 4 字节字符不能入库
+        $charset = '';
+        if (isset($GLOBALS['config']['database']['DB_CHARSET'])) {
+            $charset = $GLOBALS['config']['database']['DB_CHARSET'];
+        } elseif (function_exists('think_config')) {
+            $charset = think_config('DB_CHARSET');
+        }
+        if (!$charset) $charset = 'utf8';
+        $this->dbCharset = strtolower($charset);
+        $this->dbUtf8mb4 = ($this->dbCharset === 'utf8mb4');
 
         // 数据库优化配置
         $this->prepareDatabase();
@@ -80,6 +160,23 @@ class batchImport {
     public function __destruct() {
         // 数据库恢复配置
         $this->restoreDatabase();
+    }
+
+    /**
+     * 关闭 SQL 调试记录（database.DB_SQL_LOG）
+     *
+     * DB_SQL_LOG 为 true 时，框架 Db::debug() 会对「每一条 SQL」调用 think_trace()，
+     * 而 think_trace() 会用 get_caller_info() 把调用栈里每一帧的每个实参依次做 json_encode → json_decode → array_parse_deep(深拷贝) → 再 json_encode。
+     * 导入时调用栈里挂着「1.5 万 ~ 3 万行」的文件/文件夹数组，于是每条 SQL 都要把这些数组完整序列化好几遍：
+     *   实测 4 层栈各挂 3 万行数组 → 单条 SELECT 1 要 3595~6165ms；
+     *   同一调用在 DB_SQL_LOG=false 时为 0.4ms。
+     */
+    private function disableSqlTrace() {
+        if (!defined('GLOBAL_DEBUG') || !GLOBAL_DEBUG ) return;
+        if (!function_exists('think_config')) return;
+        if (!think_config('DB_SQL_LOG')) return;
+        think_config('DB_SQL_LOG', false);
+        $this->writeLog('[性能] 检测到框架 SQL 调试记录 DB_SQL_LOG 为开启，已在本请求内关闭，避免影响执行效率');
     }
 
     /**
@@ -125,9 +222,6 @@ class batchImport {
             // 处理剩余缓冲区
             $this->flushBuffer(true);
 
-            // 收集异常文件信息（path>255）
-            $this->check255Path(KodIO::make($targetID), true);
-
             // 统计信息
             $elapsed = round(microtime(true) - $this->startTime);
             $speed   = $elapsed > 0 ? round($this->importedCount / $elapsed) : 0;
@@ -135,12 +229,20 @@ class batchImport {
             $data = "导入成功！总文件数：{$this->importedCount}，总文件夹数：{$this->totalFolders}；";
             $data .= "总耗时：{$elapsed} 秒（" . round($elapsed/60, 1) . " 分钟)，平均速度：{$speed} 文件/秒";
             $this->writeLog($data);
+            $this->logStat('本批');   // 对账明细
+            $this->writeLog($this->profLine(microtime(true) - $this->startTime));
 
         } catch (Exception $e) {
             $this->writeLog("导入失败，已处理文件数：{$this->importedCount}；当前批次大小：" . count($this->fileBuffer));
+            $this->logStat('失败时');   // 失败也要留下对账数据，否则无法判断丢了多少
 
-            $this->flushBuffer(true);
-            // $this->restoreDatabase();
+            // 再冲一次缓冲区，尽量保住已收集的数据；这一步本身也可能抛异常，原来没有保护 → 会直接变成致命错误，连“导入失败！错误信息”都来不及记
+            try {
+                $this->flushBuffer(true);
+                // $this->restoreDatabase();
+            } catch (Exception $e2) {
+                $this->writeLog("异常中止：缓冲区收尾刷新失败（剩余 " . count($this->fileBuffer) . " 条）：" . $e2->getMessage());
+            }
 
             $this->writeLog("导入失败！错误信息：" . $e->getMessage(), false);
         }
@@ -167,7 +269,9 @@ class batchImport {
 
         $this->writeLog('正在分析文件夹结构...');
         // 1. 收集所有需要创建的文件夹路径
+        $t = microtime(true);
         $allFolders = $this->collectAllFolderPaths($list, $pathFrom);
+        $this->profAdd('dir.analyze', microtime(true) - $t);
 
         // 立即释放部分内存
         gc_collect_cycles();
@@ -182,7 +286,9 @@ class batchImport {
 
             // 2. 一次性查询目标目录下所有已存在的文件夹
             $this->writeLog('正在查询已存在的文件夹...');
+            $t = microtime(true);
             $this->loadExistingFoldersCache($targetID);
+            $this->profAdd('dir.query', microtime(true) - $t);
 
             // 3. 批量创建文件夹（使用缓存）
             $this->writeLog('正在批量创建文件夹...');
@@ -192,13 +298,12 @@ class batchImport {
         // step1：文件夹创建完成后，释放不再需要的缓存
         $this->writeLog('文件夹创建完成，释放相关缓存...');
         $this->existingPaths = array();    // 不再需要，因为已转换为 $folderMap
-        $this->parentChildMap = array();   // 不再需要，文件夹关系已建立
 
         // 释放文件夹列表内存
         unset($allFolders);
 
         gc_collect_cycles();
-        $this->writeLog('内存清理后：'.sprintf("%.3fM",memory_get_usage()/(1024*1024)));
+        $this->writeLog('内存清理后：'.sprintf("%.1fM",memory_get_usage()/(1024*1024)));
 
         // 4.收集并创建文件
         $this->writeLog('正在收集文件信息...');
@@ -303,18 +408,12 @@ class batchImport {
 
                 // 存入完整路径缓存
                 $this->existingPaths[$relPath] = $sourceID;
-
-                // 存入父目录子项缓存
-                if (!isset($this->parentChildMap[$parentID])) {
-                    $this->parentChildMap[$parentID] = array();
-                }
-                $this->parentChildMap[$parentID][$name] = $sourceID;
             }
             $this->levelMap[$sourceID] = $item['parentLevel'] . $sourceID . ',';
         }
 
         // 最大内存占用项
-        $this->writeLog("路径缓存构建完成，共" . count($this->existingPaths) . "个路径缓存，当前内存：".sprintf("%.3fM",memory_get_usage()/(1024*1024)));
+        $this->writeLog("路径缓存构建完成，共" . count($this->existingPaths) . "个路径缓存，当前内存：".sprintf("%.1fM",memory_get_usage()/(1024*1024)));
     }
 
     /**
@@ -340,14 +439,23 @@ class batchImport {
             // 分批次插入
             $thisDepthFolders = $depthBuckets[$depth];
             foreach ($thisDepthFolders as $relPath) {
+                // ★ 入库前预检：编码非法 / 4 字节字符（数据库非 utf8mb4 时无法入库）→ 跳过并记明细
+                if (!$this->checkPathSafe($relPath)) {
+                    $this->stat['folderFailed']++;
+                    continue;
+                }
+                // 名称含框架不支持字符：仍创建，但提示出来
+                $this->checkNameWarn($relPath, get_path_this($relPath));
                 // 检查是否已存在（使用缓存）
                 if (isset($this->existingPaths[$relPath])) {
                     $sourceID = $this->existingPaths[$relPath];
                     $this->folderMap[$relPath] = $sourceID;
+                    $this->stat['folderExisted']++;
                     continue;
                 }
                 // 检查是否已经创建过（在本次导入中）
                 if (isset($this->folderMap[$relPath])) {
+                    $this->stat['folderExisted']++;
                     continue;
                 }
 
@@ -357,7 +465,15 @@ class batchImport {
                 $parentID = $parentRel === '' ? $targetID : _get($this->folderMap,$parentRel,null);
                 if (!$parentID) {
                     $parentID = $this->findOrCreateParentWithCache($parentRel, $targetID);
-                    if (!$parentID) continue;
+                    if (!$parentID) {
+                        // 原为静默跳过：目录没建成，它的文件就会无处可去，必须记录
+                        $this->stat['folderFailed']++;
+                        if (count($this->stat['folderFailedSample']) < 20) {
+                            $this->stat['folderFailedSample'][] = $relPath;
+                        }
+                        $this->writeLog("目录创建失败，已跳过：{$relPath}（父级：{$parentRel}）");
+                        continue;
+                    }
                 }
                 // 批量插入
                 $batchData[] = array(
@@ -367,7 +483,8 @@ class batchImport {
                 );
                 if (count($batchData) >= $this->options['folderBatchSize']) {
                     $createdInBatch = $this->batchInsertFoldersWithCache($batchData);
-                    $totalCreated += $createdInBatch;
+                    $totalCreated += intval($createdInBatch);
+                    $this->stat['folderCreated'] += intval($createdInBatch);
                     $batchData = array();
                     if ($totalCreated % 10000 == 0) {
                         $this->writeLog("已创建文件夹：{$totalCreated}/{$this->totalFolders}");
@@ -377,12 +494,16 @@ class batchImport {
             // 处理剩余的批次数据
             if (!empty($batchData)) {
                 $createdInBatch = $this->batchInsertFoldersWithCache($batchData);
-                $totalCreated += $createdInBatch;
+                $totalCreated += intval($createdInBatch);
+                $this->stat['folderCreated'] += intval($createdInBatch);
                 $batchData = array();
             }
         }
 
-        $this->writeLog("文件夹创建完成，共创建：{$totalCreated}个，跳过" . ($this->totalFolders - $totalCreated) . "个，当前内存：".sprintf("%.3fM",memory_get_usage()/(1024*1024)));
+        // 原来只用 “总数-创建数” 表示“跳过”，把“已存在”和“创建失败”混为一谈
+        $this->writeLog("文件夹创建完成：新建 {$this->stat['folderCreated']} 个，已存在复用 {$this->stat['folderExisted']} 个，"
+            . "创建失败 {$this->stat['folderFailed']} 个，本批唯一路径 " . count($allFolders) . " 个，当前内存："
+            . sprintf("%.1fM", memory_get_usage()/(1024*1024)));
     }
 
     /**
@@ -398,9 +519,12 @@ class batchImport {
 
             // 批量插入
             $insertData = array();
-            foreach ($folders as $folder) {
+            foreach ($folders as $i => $folder) {
+                $hash = $this->getSourceHash();
+                // 把本次生成的 sourceHash 留在 $folders 里，回填时用它精确判定“这一行是不是我们插入的”
+                $folders[$i]['sourceHash'] = $hash;
                 $insertData[] = array(
-                    'sourceHash'  => $this->getSourceHash(),
+                    'sourceHash'  => $hash,
                     'targetType'  => $this->targetType,
                     'targetID'    => $this->targetID,
                     'createUser'  => USER_ID,
@@ -427,28 +551,109 @@ class batchImport {
             return count($folders);
         } catch (Exception $e) {
             $db->rollback();
+            // 失败要留下可用于定位的上下文（批次大小、样本路径），否则只看到一句 SQL 报错
+            $sample = array();
+            foreach (array_slice($folders, 0, 3) as $f) { $sample[] = $f['relPath']; }
+            $this->stat['batchFail']++;
+            $this->writeLog('文件夹批次插入失败：本批 ' . count($folders) . ' 个，父目录样本['
+                . implode(' | ', $sample) . ']，错误：' . $e->getMessage());
             $this->writeLog("批量插入文件夹失败: " . $e->getMessage(), false);
         }
     }
 
     /**
      * 插入后更新文件夹缓存
+     *
+     * 【重要】不能再按 (parentID, name) 反查数据库来建立 relPath => sourceID 映射：
+     * 目录名是数字字符串时，PHP 的 == 是按“数值”比较的（"2025.1" == "2025.10"、"9.3" == "9.30"），
+     * 同一父目录下存在这类“数值相等”的目录名（如 2025.1/2025.10、9.3/9.30、3.1/3.10、12.3/12.30）时，
+     * 反查结果会张冠李戴，导致：
+     *   1) 其中一个目录拿不到映射 → 其文件回落写入目标根目录，其子目录被重复创建；
+     *   2) 另一个目录被映射成错误的 sourceID → 文件被写进同名但不同目录的目录里。
+     * 多值 INSERT 生成的自增ID是连续的，可用「首个自增ID + 行数」定位这批新记录；
+     * 归属判定则用每行随机的 sourceHash（见 resolveInsertedFolderIDs()），定位与判定分离，既要快也要准。
      */
     private function updateFolderCacheAfterInsert($folders) {
         if (empty($folders)) return;
 
-        // 查询最后插入的一批数据
-        $conditions = array();
-        foreach ($folders as $folder) {
-            $conditions[] = array(
-                'parentID'  => $folder['parentID'],
-                'name'      => $folder['name']
-            );
+        $t0 = microtime(true);
+        $ids = $this->resolveInsertedFolderIDs($folders);
+        $this->profAdd('dir.backfill', microtime(true) - $t0);
+        if ($ids === false) {
+            // 极端情况（自增ID不连续/期间有并发写入）回退到严格反查
+            $this->writeLog('新建文件夹自增ID推导失败，回退为严格反查（parentID+name）');
+            $ids = $this->queryInsertedFolderIDs($folders);
+        }
+        if (count($ids) !== count($folders)) {
+            // 映射不完整时宁可中止本批次（事务回滚），也不能让层级错乱
+            $this->writeLog('新建文件夹映射回填不完整（'.count($ids).'/'.count($folders).'），已中止本批次', false);
         }
 
-        // 分批查询
+        foreach ($folders as $i => $folder) {
+            $sourceID = intval(_get($ids, $i, 0));
+            $relPath  = $folder['relPath'];
+            $parentID = $folder['parentID'];
+
+            // 更新映射
+            $this->folderMap[$relPath]      = $sourceID;
+            $this->levelMap[$sourceID]      = $this->getParentLevel($parentID) . $sourceID . ',';
+            // 更新缓存——似乎也可以不要
+            $this->existingPaths[$relPath]  = $sourceID;
+            // 记录新建文件夹ID
+            $this->newFolderIDs[]           = $sourceID;
+        }
+    }
+
+    /**
+     * 依据“多值INSERT的首个自增ID + 行数”定位新记录，并用每行的 sourceHash 精确判定归属
+     *
+     * 注意：自增ID只用于**定位候选行**，判定归属靠 sourceHash（本行随机生成、唯一）。
+     * 这样即使环境存在主主复制（auto_increment_increment>1）、触发器插队、显式ID插入等情况，
+     * 只要区间内容与预期不符就会返回 false，交由 queryInsertedFolderIDs() 严格反查兜底，
+     * 不会出现“ID 对不上却写错映射”的情况。
+     *
+     * @return array|false 成功返回与 $folders 顺序一致的 sourceID 数组；无法确定时返回 false
+     */
+    private function resolveInsertedFolderIDs($folders) {
+        $count   = count($folders);
+        $firstID = intval($this->lastSourceInsID);
+        if ($firstID <= 0) return false;
+
+        $lastID = $firstID + $count - 1;
+        $db   = $this->sModel->db();
+        $rows = $db->query("SELECT sourceID,sourceHash FROM io_source
+                            WHERE sourceID BETWEEN {$firstID} AND {$lastID} ORDER BY sourceID ASC");
+        if (!is_array($rows) || count($rows) !== $count) return false;
+
+        // 预期集合：sourceHash => 该目录在 $folders 中的下标
+        $expect = array();
+        foreach ($folders as $i => $folder) {
+            $hash = _get($folder, 'sourceHash', '');
+            if (!is_string($hash) || $hash === '') return false;   // 拿不到 hash 就不做推测，直接走回退
+            $expect[$hash] = $i;
+        }
+        if (count($expect) !== $count) return false;               // hash 重复（理论不可能）时同样回退
+
+        $ids = array();
+        foreach ($rows as $row) {
+            $hash = $row['sourceHash'];
+            if (!isset($expect[$hash])) return false;              // 区间内混入了不是本次插入的行
+            $ids[$expect[$hash]] = intval($row['sourceID']);
+        }
+        return count($ids) === $count ? $ids : false;
+    }
+
+    /**
+     * 回退方案：按 (parentID,name) 反查（严格字符串比较；同键取最新插入的记录）
+     */
+    private function queryInsertedFolderIDs($folders) {
+        $conditions = array();
+        foreach ($folders as $folder) {
+            $conditions[] = array('parentID' => $folder['parentID'], 'name' => $folder['name']);
+        }
+
         $batchSize = 1000;  // 注意：设置过大会非常慢
-        $allResults = array();
+        $keyToIds  = array();
         for ($i = 0; $i < count($conditions); $i += $batchSize) {
             $batch = array_slice($conditions, $i, $batchSize);
 
@@ -458,39 +663,25 @@ class batchImport {
             }
             $orWhere['_logic'] = 'OR';
             $where = array(
-                'isFolder' => 1, 
-                'isDelete' => 0, 
+                'isFolder' => 1,
+                'isDelete' => 0,
                 $orWhere
             );
-            $list = $this->sModel->where($where)->field('sourceID,name,parentID,parentLevel')->select();
-            if ($list) {
-                $allResults = array_merge($allResults, $list);
+            $list = $this->sModel->where($where)->field('sourceID,name,parentID')->order('sourceID desc')->select();
+            if (!$list) continue;
+            foreach ($list as $row) {
+                $keyToIds[intval($row['parentID']) . "\0" . $row['name']][] = intval($row['sourceID']);
             }
         }
 
-        // 更新缓存和映射
-        foreach ($allResults as $item) {
-            foreach ($folders as $folder) {
-                if ($folder['parentID'] == $item['parentID'] && $folder['name'] == $item['name']) {
-                    $relPath = $folder['relPath'];
-                    $sourceID = $item['sourceID'];
-
-                    // 更新映射
-                    $this->folderMap[$relPath] = $sourceID;
-                    $this->levelMap[$sourceID] = $item['parentLevel'] . $sourceID . ',';
-                    // 更新缓存——似乎也可以不要
-                    $this->existingPaths[$relPath] = $sourceID;
-                    // 记录新建文件夹ID
-                    $this->newFolderIDs[] = $sourceID;
-
-                    if (!isset($this->parentChildMap[$item['parentID']])) {
-                        $this->parentChildMap[$item['parentID']] = array();
-                    }
-                    $this->parentChildMap[$item['parentID']][$item['name']] = $sourceID;
-                    break;
-                }
-            }
+        $ids = array();
+        foreach ($folders as $i => $folder) {
+            $key = intval($folder['parentID']) . "\0" . $folder['name'];
+            if (empty($keyToIds[$key])) continue;
+            // 已按 sourceID 倒序，先取最新插入的那条
+            $ids[$i] = array_shift($keyToIds[$key]);
         }
+        return $ids;
     }
 
     /**
@@ -514,6 +705,17 @@ class batchImport {
         $parentID = $this->findOrCreateParentWithCache($parentRel, $targetID);
         if (!$parentID) return null;
 
+        // 缓存未命中时先查库：该目录可能已经存在（上次导入已建、缓存曾被清理等），避免重复创建
+        $exist = $this->getFolderByName($parentID, $name);
+        if ($exist) {
+            $folderID    = intval($exist['sourceID']);
+            $parentLevel = $exist['parentLevel'];
+            $this->folderMap[$relPath]     = $folderID;
+            $this->existingPaths[$relPath] = $folderID;
+            $this->levelMap[$folderID]     = $parentLevel . $folderID . ',';
+            return $folderID;
+        }
+
         // 创建父目录
         $folderID = $this->createSingleFolderWithCache($name, $parentID, time());
         $this->folderMap[$relPath] = $folderID;
@@ -522,11 +724,7 @@ class batchImport {
 
         // 更新缓存
         $this->existingPaths[$relPath] = $folderID;
-        if (!isset($this->parentChildMap[$parentID])) {
-            $this->parentChildMap[$parentID] = array();
-        }
-        $this->parentChildMap[$parentID][$name] = $folderID;
-        
+
         return $folderID;
     }
 
@@ -560,6 +758,33 @@ class batchImport {
     }
 
     /**
+     * 按 (parentID, name) 精确查询已存在的文件夹
+     * 用 BINARY 做严格（区分大小写、不看数值）比较，避免 '2025.1' 匹到 '2025.10' 这类误配
+     */
+    private function getFolderByName($parentID, $name) {
+        $db   = $this->sModel->db();
+        $sql  = "SELECT sourceID,parentLevel FROM io_source
+                 WHERE parentID=" . intval($parentID) . "
+                   AND isFolder=1 AND isDelete=0
+                   AND BINARY name='" . $db->escapeString($name) . "'
+                 ORDER BY sourceID ASC LIMIT 1";
+        $rows = $db->query($sql);
+        return (is_array($rows) && !empty($rows)) ? $rows[0] : false;
+    }
+
+    /**
+     * 解析文件所属父目录：缓存优先，未命中则先查库、再按需创建——不再像原来那样在父目录缺失时静默落到目标根目录
+     * @param string $relPath       相对路径（不以 / 开头、结尾；空串表示目标根目录）
+     * @param int    $rootSourceID  目标根目录的 sourceID
+     */
+    private function resolveParentID($relPath, $rootSourceID) {
+        if ($relPath === '' || $relPath === false) return $rootSourceID;
+        if (isset($this->folderMap[$relPath]))     return $this->folderMap[$relPath];
+        if (isset($this->existingPaths[$relPath])) return $this->existingPaths[$relPath];
+        return $this->findOrCreateParentWithCache($relPath, $rootSourceID);
+    }
+
+    /**
      * 收集文件信息（优化内存占用）
      */
     private function collectFilesFromFlatList($list, $rootPath) {
@@ -570,38 +795,59 @@ class batchImport {
         $fileBufferSize = 0;
         foreach ($list as $item) {
             if ($item['folder']) continue;
+            $this->stat['fileSeen']++;
 
+            $tOut = microtime(true);
             $full = $this->ioDriver->getPathOuter($item['path']);
+            $this->profAdd('file.outPath', microtime(true) - $tOut);
             $rel  = ltrim(substr($full, $rootLen), '/');
             if ($rel === '' || $rel === false) {
-                $this->writeLog("忽略导入：相对路径为空，path={$full}");
+                $this->stat['skipEmptyRel']++;
+                $this->addErr('name_empty', $full, '相对路径为空');
+                continue;
+            }
+
+            // ★ 入库前预检：编码非法 / 4 字节字符（数据库非 utf8mb4 时无法入库）→ 跳过并记明细
+            if (!$this->checkPathSafe($full)) {
+                $this->stat['skipBadCharset'] = _get($this->stat, 'skipBadCharset', 0) + 1;
                 continue;
             }
 
             // 检查是否超过255个字符（io_file.path长度）
             if (!$this->check255Path($full)) {
-                // $this->writeLog("忽略导入：路径长度超出255个字符，path={$full}");
+                // 逐条记日志会把日志刷爆，明细统一写入目标目录下的“文件导入明细”
+                $this->stat['skipPathLen']++;
+                $this->addErr('path_too_long', $full, 'io 路径长度 ' . mb_strlen($full) . ' 字符（上限 255）');
                 continue;
             }
 
             $dir = dirname($rel);
             $dir = ($dir === '.' || $dir === '') ? '' : $dir;
-            $parentID = $dir ? _get($this->folderMap,$dir,null) : '';   // _get($arr,$key)，$key为空时返回整个数组
-            // 如果父目录不存在，可能是没有显式的文件夹记录，尝试使用根目录
+            // 【注意】父目录缺失时不能回落到目标根目录（原逻辑会静默把文件写到 {source:x} 根下）。
+            // 这里改为：缓存优先 → 查库 → 按需创建；确实建不出来才跳过并记日志。
+            $parentID = $this->resolveParentID($dir, $this->folderMap['']);
             if (!$parentID) {
-                $parentID = $this->folderMap[''];
-                if (!$parentID) {
-                    $this->writeLog("忽略导入：找不到父目录（dir={$dir}），path={$full}");
-                    continue;
+                if ($this->stat['skipNoParent'] < 20) {
+                    $this->writeLog("忽略导入：父目录无法建立（dir={$dir}），path={$full}");
                 }
+                $this->stat['skipNoParent']++;
+                $this->addErr('parent_missing', $full, '父目录无法建立：' . $dir);
+                continue;
             }
 
             $name = get_path_this($full);
+            // 名称里含框架不支持的字符：仍导入，但提示出来（导入后在网盘内可能无法改名/复制/移动）
+            $this->checkNameWarn($full, $name);
+            $ext = get_path_ext($name);
+            if (mb_strlen($ext) > 10) {
+                $this->addErr('type_too_long', $full, '后缀「' . $ext . '」超过 10 字符，按无后缀处理（fileType 置空）');
+                $ext = '';
+            }
             $fileData = array(
                 'path'       => $full,
                 'name'       => $name,
                 'size'       => $item['size'],
-                'ext'        => get_path_ext($name),
+                'ext'        => $ext,
                 'mtime'      => _get($item, 'modifyTime', $time),
                 'parentID'   => $parentID,
                 'parentLevel'=> $this->getParentLevel($parentID),
@@ -612,6 +858,7 @@ class batchImport {
 
             $this->fileBuffer[] = $fileData;
             $fileCount++;
+            $this->stat['fileBuffered']++;
             $fileBufferSize++;
             if ($fileBufferSize >= $this->options['fileBatchSize']) {
                 $this->flushBuffer();
@@ -641,34 +888,16 @@ class batchImport {
 
         // 如果内存使用超过1.5GB，提前清理
         if ($currentMemory > 1.5 * 1024 * 1024 * 1024) {
-            $this->writeLog("内存使用超过阈值，提前清理: " . sprintf("%.3fM", $currentMemory/(1024*1024)));
+            $this->writeLog("内存使用超过阈值，提前清理: " . sprintf("%.1fM", $currentMemory/(1024*1024)));
             $this->flushBuffer();
             gc_collect_cycles();
         }
     }
 
     // 检查路径长度
-    private function check255Path($path, $save=false) {
-        // 收集路径长度超出文件
-        if (!$save) {
-            if (mb_strlen($path) <= 255) return true;
-            $this->errPathFiles[] = $path;
-            return false;
-        }
-        // 保存至文件，并更新任务信息
-        if (!$this->errPathFiles) return false;
-        $path = IO::mkdir($path.LNG('storeImport.task.errLog'));  // {source:123}/导入失败文件(长度超255字符)
-        $name = 'task-'.$this->impTask->task['id'].'.txt';   // task-xxx.txt
-        $path = IO::mkfile($path.$name,'',REPEAT_SKIP);
-        if (!$path) {
-            $this->writeLog('超255字符记录文件创建失败，异常文件记录：'.count($this->errPathFiles));
-            $this->errPathFiles = array();
-            return false;
-        }
-        $content = IO::getContent($path);
-        IO::setContent($path, $content . implode(PHP_EOL, $this->errPathFiles).PHP_EOL);
-        $this->errPathFiles = array();
-        return false;
+    private function check255Path($path) {
+        // io_file.path 为 varchar(255)：超过 255 个字符的文件无法入库
+        return (mb_strlen($path) <= 255);
     }
 
     /**
@@ -693,6 +922,18 @@ class batchImport {
                 $db->commit();
             } catch (Exception $e) {
                 $db->rollback();
+                // 失败要留下可用于定位的上下文：整块 data 都会回滚，本批文件等于没导入
+                $sample = array();
+                foreach (array_slice($batch, 0, 3) as $it) {
+                    $sample[] = $it['path'] . '(parentID=' . $it['parentID'] . ')';
+                }
+                $this->stat['batchFail']++;
+                $this->writeLog('文件批次失败（共 ' . count($batch) . ' 条，已回滚），样本：' . implode(' | ', $sample) . '，错误：' . $e->getMessage());
+                // 记入异常明细：一条汇总 + 最多 50 条样本路径（便于对照处理）
+                $this->addErr('batch_failed', $batch[0]['path'] . ' 等 ' . count($batch) . ' 条', '该批已回滚，未写入；错误：' . $e->getMessage());
+                foreach (array_slice($batch, 0, 50) as $k => $it) {
+                    $this->addErr('batch_failed', $it['path'], '同批回滚样本(' . ($k + 1) . '/' . count($batch) . ')');
+                }
                 $this->writeLog("文件批次处理失败: " . $e->getMessage(), false);
             }
         }
@@ -732,29 +973,39 @@ class batchImport {
         // 1. 预加载所有需要的缓存
         // 1.1 批量查询已存在的物理文件（按路径）
         $paths = array_to_keyvalue($batch, '', 'path');
+        $t = microtime(true);
         $existFiles = $this->getExistFilePaths($paths); // 耗时
+        $this->profAdd('file.exist', microtime(true) - $t);
 
         // 1.2 批量查询当前批次中所有父目录下的文件（用于查重）
         $parentIds = array_to_keyvalue($batch, '', 'parentID');
         $parentIds = array_unique($parentIds);
+        $t = microtime(true);
         $this->preloadFilesForParents($parentIds);  // 耗时
+        $this->profAdd('file.preload', microtime(true) - $t);
 
         // 2. 批量处理重名文件（关键点）
+        $t = microtime(true);
         $batch = $this->batchResolveDuplicateNames($batch, $duplicateMode, $existFiles, $linkInc, $linkDec, $forceFileID);
+        $this->profAdd('file.dup', microtime(true) - $t);
 
         // 3. 处理新文件
         foreach ($batch as $item) {
             $finalName = $item['name'];
             $pathKey = $item['path'];
             $parentID = $item['parentID'];
+            $processed = _get($item, 'processed', '');
 
             // 跳过已处理的覆盖文件
-            if (isset($item['processed']) && $item['processed'] === 'skip') {
+            if ($processed === 'skip') {
                 continue;
             }
-            // 如果是覆盖模式且已处理过
-            if (isset($item['processed']) && $item['processed'] === 'replace') {
-                // 已在批量处理中处理过
+            // 覆盖模式：已存在的 io_source 行由 batchUpdateFileIDs() 更新 fileID，不再插入 source 记录；
+            // 但物理文件若尚未登记到 io_file，仍需补插 io_file，否则回填 fileID 会得到 0（旧逻辑的漏洞）
+            if ($processed === 'replace') {
+                if (!isset($existFiles[$pathKey])) {
+                    $ioFileInsert[] = $this->buildIoFileInsert($item, $pathKey);
+                }
                 continue;
             }
             // 处理新文件
@@ -762,16 +1013,7 @@ class batchImport {
                 $fileID = $existFiles[$pathKey];
                 $linkInc[$fileID] = _get($linkInc,$fileID,0) + 1;
             } else {
-                $ioFileInsert[] = array(
-                    'name'       => $item['name'],
-                    'size'       => $item['size'],
-                    'ioType'     => $this->ioType,
-                    'path'       => $pathKey,
-                    'hashSimple' => '',
-                    'hashMd5'    => $this->hashMd5,
-                    'linkCount'  => 1,
-                    'modifyTime' => $item['mtime'],
-                );
+                $ioFileInsert[] = $this->buildIoFileInsert($item, $pathKey);
                 $fileID = 'PENDING:' . (count($ioFileInsert) - 1);
             }
             $sourceInsert[] = array(
@@ -806,7 +1048,9 @@ class batchImport {
 
             // 批量获取新插入的fileID
             $newPaths = array_to_keyvalue($ioFileInsert, '', 'path');
+            $t = microtime(true);
             $pathToNewId = $this->getFileIdsByPaths($newPaths);
+            $this->profAdd('file.ids', microtime(true) - $t);
         }
 
         // 5. 回填 PENDING 的 fileID
@@ -816,6 +1060,7 @@ class batchImport {
         // 6. 批量插入io_source记录
         if ($sourceInsert) {
             $this->batchInsertSourceDirect($sourceInsert);
+            $this->stat['sourceRows'] += count($sourceInsert);   // 对账用：实际写入的文件行数
             $this->updateTaskCnt(count($sourceInsert));
 
             // 更新文件名缓存（这是关键缓存，不清除）
@@ -831,12 +1076,32 @@ class batchImport {
         }
         
         // 7. 更新被覆盖的文件
+        $t = microtime(true);
         $this->batchUpdateFileIDs($forceFileID);
+        $this->profAdd('file.updFid', microtime(true) - $t);
 
         // 8. 更新文件引用计数
+        $t = microtime(true);
         $this->updateLinkCounts($linkInc, $linkDec);
+        $this->profAdd('file.link', microtime(true) - $t);
 
         // $this->writeLog("文件批处理完成");
+    }
+
+    /**
+     * 构造 io_file 插入数据（一条物理文件记录）
+     */
+    private function buildIoFileInsert($item, $path) {
+        return array(
+            'name'       => $item['name'],
+            'size'       => $item['size'],
+            'ioType'     => $this->ioType,
+            'path'       => $path,
+            'hashSimple' => '',
+            'hashMd5'    => $this->hashMd5,
+            'linkCount'  => 1,
+            'modifyTime' => $item['mtime'],
+        );
     }
 
     // 更新任务进度
@@ -847,37 +1112,58 @@ class batchImport {
     }
 
     /**
-     * 批量处理重名文件（核心优化）
+     * 批量处理重名文件
      */
     private function batchResolveDuplicateNames(&$batch, $duplicateMode, $existFiles, &$linkInc, &$linkDec, &$forceFileID) {
         $result = array();
 
         if ($duplicateMode === 'skip' || $duplicateMode === 'replace') {
             // 对于skip和replace模式，只需过滤或标记
+            $batchKeys = array();   // "parentID\0name" => $result 下标：本批次内将插入的同名文件
             foreach ($batch as $item) {
                 $parentID = $item['parentID'];
                 $name = $item['name'];
-                if (isset($this->parentFileNames[$parentID][$name])) {
-                    if ($duplicateMode === 'skip') {
+                $key  = $parentID . "\0" . $name;
+                $existDup = isset($this->parentFileNames[$parentID][$name]);    // 与库中已有文件重名
+                $batchDup = isset($batchKeys[$key]);                            // 与本批次内前面的文件重名
+
+                $skipped = false;
+                $replaced = false;
+                if ($duplicateMode === 'skip') {
+                    if ($existDup || $batchDup) {
                         // 跳过
                         $item['processed'] = 'skip';
-                    } elseif ($duplicateMode === 'replace') {
+                        $skipped = true;
+                    }
+                } else {    // replace
+                    if ($batchDup) {
+                        // 同批次内同名：后出现的生效，丢弃前面那条（原来同批次内的重名会双双插入）
+                        $result[$batchKeys[$key]]['processed'] = 'skip';
+                    }
+                    if ($existDup) {
                         // 标记为覆盖
                         $item['processed'] = 'replace';
                         $this->handleReplaceDuplicate($item, $existFiles, $linkInc, $linkDec, $forceFileID);
+                        $replaced = true;
                     }
+                }
+                // 仅记录“将要插入”的那条的落点下标
+                if (!$skipped && !$replaced) {
+                    $batchKeys[$key] = count($result);
                 }
                 $result[] = $item;
             }
         } else if ($duplicateMode === 'rename') {
             // 重命名模式：批量生成新名称
             $renameGroups = array();
+            $batchUsed = array();   // "parentID\0name" => true：本批次内已占用的名称（原来同批次内的重名会漏改名）
 
             // 先分组，相同父目录和基础名称的放在一起处理
             foreach ($batch as $index => $item) {
                 $parentID = $item['parentID'];
                 $name = $item['name'];
-                if (isset($this->parentFileNames[$parentID][$name])) {
+                $key = $parentID . "\0" . $name;
+                if (isset($this->parentFileNames[$parentID][$name]) || isset($batchUsed[$key])) {
                     $base = pathinfo($name, PATHINFO_FILENAME);
                     $ext = pathinfo($name, PATHINFO_EXTENSION);
                     $ext = $ext ? ".$ext" : '';
@@ -893,6 +1179,7 @@ class batchImport {
                     }
                     $renameGroups[$groupKey]['indices'][] = $index;
                 }
+                $batchUsed[$key] = true;
             }
             // 为每个组批量生成新名称
             foreach ($renameGroups as $groupKey => $group) {
@@ -1257,7 +1544,11 @@ class batchImport {
         $cases = array();
         $ids = array();
         foreach ($linkUpdates as $fid => $n) {
-            $ids[] = intval($fid);
+            // 全部强制转 int 后再拼接：这两个值虽然都来自库内 id/计数，但不留裸插值的口子
+            $fid = intval($fid);
+            $n   = intval($n);
+            if ($n <= 0) continue;
+            $ids[] = $fid;
             if ($operation === '+') {
                 $cases[] = "WHEN {$fid} THEN linkCount + {$n}";
             } else {
@@ -1265,6 +1556,7 @@ class batchImport {
                 $cases[] = "WHEN {$fid} THEN CASE WHEN linkCount >= {$n} THEN linkCount - {$n} ELSE 0 END";
             }
         }
+        if (!$cases) return;
         $idsStr = implode(',', $ids);
         $casesStr = implode(' ', $cases);
         $sql = "UPDATE io_file 
@@ -1322,8 +1614,8 @@ class batchImport {
             $saved = ($beforeMemory - $afterMemory) / (1024 * 1024);
 
             $this->writeLog("安全缓存清理完成，释放 " . round($saved, 2) . "M 内存，当前内存: " . 
-                sprintf("%.3fM", memory_get_usage()/(1024*1024)) . 
-                "，峰值: " . sprintf("%.3fM", memory_get_peak_usage()/(1024*1024)));
+                sprintf("%.1fM", memory_get_usage()/(1024*1024)) . 
+                "，峰值: " . sprintf("%.1fM", memory_get_peak_usage()/(1024*1024)));
         }
     }
 
@@ -1403,8 +1695,11 @@ class batchImport {
 
         $timeStart = microtime(true);
         $result = $db->execute($sql);
+        // 记录本语句生成的第一个自增ID：多值 INSERT 的自增ID连续，供回填文件夹映射使用
+        $this->lastSourceInsID = intval($this->sModel->getLastInsID());
         $timeQuery = microtime(true) - $timeStart;
 
+        $this->profAdd($insertData[0]['isFolder'] == 1 ? 'dir.ins' : 'file.insSrc', $timeQuery);
         $type = $insertData[0]['isFolder'] == 1 ? '文件夹' : '文件';
         $this->writeLog("批量插入{$type}（io_source），共".count($insertData)."条记录，总耗时: " . round($timeQuery*1000, 1) . "ms");
 
@@ -1440,7 +1735,9 @@ class batchImport {
 
         $timeStart = microtime(true);
         $result = $db->execute($sql);
+        $this->stat['fileRows'] += count($insertData);   // 对账用：实际写入的 io_file 行数
         $timeQuery = microtime(true) - $timeStart;
+        $this->profAdd('file.insIo', $timeQuery);
 
         $this->writeLog("批量插入文件（io_file），共".count($insertData)."条记录，总耗时: " . round($timeQuery*1000, 1) . "ms");
         return $result;
@@ -1478,11 +1775,11 @@ class batchImport {
         $beforeMemory = memory_get_usage();
 
         // 清理所有缓存
+        // 注意：$this->stat 与 $this->errItems/$this->errCount/$this->errDropped 不在此重置，留到整轮导入结束后，由 app.php 写日志与“文件导入明细”
         $this->folderMap = array();
         $this->levelMap = array();
         $this->fileBuffer = array();
         $this->existingPaths = array();
-        $this->parentChildMap = array();
         $this->parentFileCache = array();  // 仅在导入结束时清理
         $this->parentFileNames = array();  // 仅在导入结束时清理
         $this->pathCache = array();
@@ -1495,7 +1792,6 @@ class batchImport {
         $this->totalFiles = 0;
         $this->totalFolders = 0;
         $this->tmpFileCnt = 0;
-        $this->errPathFiles = array();
         $this->lastMemoryCheck = 0;
 
         gc_collect_cycles();
@@ -1503,15 +1799,128 @@ class batchImport {
         $afterMemory = memory_get_usage();
         $saved = ($beforeMemory - $afterMemory) / (1024 * 1024);
 
-        $this->writeLog("缓存清理完成，释放 " . round($saved, 2) . "M 内存，当前内存: " . sprintf("%.3fM", memory_get_usage()/(1024*1024)));
+        $this->writeLog("缓存清理完成，释放 " . round($saved, 2) . "M 内存，当前内存: " . sprintf("%.1fM", memory_get_usage()/(1024*1024)));
+    }
+
+    /**
+     * 异常类型定义：type => array(中文名, 级别)
+     * 级别：skip=未导入（需处理后可重导）；fail=写入失败（该部分内容未入库）；warn=已导入但需留意
+     * 说明：dir_unreadable / stat_failed / symlink_dir 三类由驱动（DriverLocal）采集，由 app.php 合并进明细
+     */
+    public function errTypeMap() {
+        return array(
+            'path_too_long'  => array('io路径超255字符', 'skip'),
+            'invalid_utf8'   => array('文件名编码非法(非UTF-8)', 'skip'),
+            'char_4byte'     => array('含4字节字符(数据库非utf8mb4)', 'skip'),
+            'parent_missing' => array('父目录无法建立', 'skip'),
+            'name_empty'     => array('相对路径为空', 'skip'),
+            'dir_unreadable' => array('目录不可读(整棵子树被跳过)', 'fail'),
+            'stat_failed'    => array('条目无法读取(stat失败)', 'fail'),
+            'batch_failed'   => array('批次写入失败(该批已回滚)', 'fail'),
+            'list_failed'    => array('列表接口失败(后续条目未导入)', 'fail'),
+            'type_too_long'  => array('后缀超长(已按无后缀处理)', 'warn'),
+            'char_forbidden' => array('含框架不支持字符', 'warn'),
+            'symlink_dir'    => array('软链目录(内容会重复导入)', 'warn'),
+        );
+    }
+
+    /**
+     * 记一条异常明细（超出 $errItemsMax 后只计数）
+     */
+    private function addErr($type, $obj, $reason = '') {
+        $this->errCount[$type] = _get($this->errCount, $type, 0) + 1;
+        if (count($this->errItems) < $this->errItemsMax) {
+            $this->errItems[] = array('type' => $type, 'obj' => $obj, 'reason' => $reason);
+        } else {
+            $this->errDropped[$type] = _get($this->errDropped, $type, 0) + 1;
+        }
+    }
+
+    /**
+     * 入库前预检：名字/路径能不能安全写进数据库（外部数据直接落库的防线）
+     * @return bool false = 应跳过该条目（已计入异常明细）
+     */
+    private function checkPathSafe($path) {
+        // 1) 非法 UTF-8（GBK 等字节文件名，常见于从 Windows/SMB 拷入）：严格模式下 MySQL 报 1366，整批失败
+        if (!mb_check_encoding($path, 'UTF-8')) {
+            $this->addErr('invalid_utf8', $path, '不是合法的 UTF-8 编码（常见于 Windows/SMB 拷入的文件名）');
+            return false;
+        }
+        // 2) 4 字节字符（emoji 等）：数据库非 utf8mb4 时无法存储，会让整批 INSERT 失败
+        if (!$this->dbUtf8mb4 && preg_match('/[\x{10000}-\x{10FFFF}]/u', $path)) {
+            $this->addErr('char_4byte', $path, '含 4 字节字符（emoji 等），数据库字符集为 ' . $this->dbCharset . '，无法存储');
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 名字里含框架不支持的字符（/ \ : * ? " < > |）：仍然导入，但记入明细提示
+     * 这类条目在网盘里存在却不好操作（改名/复制/移动会被框架拒绝）
+     */
+    private function checkNameWarn($path, $name) {
+        if (preg_match('/[\\\\\/:*?"<>|]/', $name)) {
+            $this->addErr('char_forbidden', $path, '文件名含框架不支持字符（/ \\ : * ? " < > |），导入后在网盘内可能无法改名/复制/移动');
+        }
+        return true;
+    }
+
+    // 异常明细（供 app.php 写“文件导入明细”文件）
+    public function getErrItems()   { return $this->errItems; }
+    public function getErrCount()   { return $this->errCount; }
+    public function getErrDropped() { return $this->errDropped; }
+    public function getDbCharset()  { return $this->dbCharset; }
+    public function hasErr()        { return !empty($this->errCount); }
+
+    // 异常汇总文本（日志与明细文件表头用）
+    public function errSummaryText() {
+        $map = $this->errTypeMap();
+        $parts = array();
+        foreach ($map as $type => $info) {
+            $n = _get($this->errCount, $type, 0);
+            if (!$n) continue;
+            $parts[] = $info[0] . ' ' . $n;
+        }
+        return $parts ? implode('；', $parts) : '无';
+    }
+
+    // 异常合计条数
+    public function errTotal() {
+        $n = 0;
+        foreach ($this->errCount as $c) { $n += $c; }
+        return $n;
+    }
+
+    /**
+     * 输出对账统计（只读日志）：用于判断“少文件 / 少字节”究竟发生在哪一步
+     * 数值在整个请求内累计（cleanup() 不重置本统计）
+     */
+    private function logStat($tag = '') {
+        $s = $this->stat;
+        $this->writeLog("【对账{$tag}】扫描到文件 {$s['fileSeen']}，进入缓冲区 {$s['fileBuffered']}，"
+            . "写入 io_source {$s['sourceRows']} 行 / io_file {$s['fileRows']} 行；"
+            . "跳过：相对路径为空 {$s['skipEmptyRel']}、超255字符 {$s['skipPathLen']}、父目录无法建立 {$s['skipNoParent']}；"
+            . "目录：新建 {$s['folderCreated']}、复用 {$s['folderExisted']}、失败 {$s['folderFailed']}；"
+            . "失败批次 {$s['batchFail']}");
+        if (!empty($s['folderFailedSample'])) {
+            $this->writeLog('目录创建失败样本（最多20条）：' . implode(' | ', $s['folderFailedSample']));
+        }
+        if (!empty($this->errCount)) {
+            $this->writeLog('【对账' . $tag . '】异常明细：共 ' . $this->errTotal() . ' 条 —— ' . $this->errSummaryText());
+        }
+    }
+
+    // 供 app.php 做整轮汇总
+    public function getStat() {
+        return $this->stat;
     }
 
     /**
      * 写入日志
      */
     private function writeLog($msg, $code=true) {
-        $memory = sprintf("%.3fM", memory_get_usage()/(1024*1024));
-        $peak = sprintf("%.3fM", memory_get_peak_usage()/(1024*1024));
+        $memory = sprintf("%.1fM", memory_get_usage()/(1024*1024));
+        $peak = sprintf("%.1fM", memory_get_peak_usage()/(1024*1024));
         $logMsg = '['.$this->taskId.'][内存:'.$memory.'/峰值:'.$peak.'] '.$msg;
 
         write_log($logMsg, 'storeImport');

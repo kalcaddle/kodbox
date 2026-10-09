@@ -54,6 +54,7 @@ return array(
     "fileThumb.video.STATUS_ERROR"   => "Çalışma zamanı hatası, yazılımın kurulu olup olmadığını veya yürütme iznine sahip olup olmadığını kontrol edin (ffmpeg, shell_exec, proc_open)",
     "fileThumb.video.STATUS_RUNNING" => "Kod dönüştürme",
     "fileThumb.video.STATUS_LIMIT"   => "Devam eden görev sayısı sınırı aştı. Lütfen daha sonra tekrar deneyin.",
+    "fileThumb.video.retry"          => "Yeniden kodlama",
     "fileThumb.config.debug"         => "Hata Ayıklama Modu",
     "fileThumb.config.debugDesc"     => "İlgili günlükleri oluşturun. <button class='btn btn-sm btn-default ml-20 view-log'>Günlükleri görüntüleyin</button>"
 );

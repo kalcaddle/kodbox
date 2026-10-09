@@ -39,7 +39,7 @@ class filterFileOut extends Controller{
 			if($token && strlen($token) < 500){
 				$pass = substr(md5('safe_'.get_client_ip().Model('SystemOption')->get('systemPassword')),0,15);
 				$sessionSign = Mcrypt::decode($token,$pass);
-				if($sessionSign){Session::sign($sessionSign);}
+				if($sessionSign){Cookie::disable(true);Session::sign($sessionSign);}
 				
 				$parse = kodIO::parse($this->in['path']);// 不允许以相对路径获取php扩展名文件;避免管理员被钓鱼攻击;
 				$pathAdd  = kodIO::pathUrlClear(rawurldecode($this->in['add']));
