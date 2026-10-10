@@ -279,10 +279,10 @@ class adminServer extends Controller {
             "\$config['cache']['cacheType'] = '{$type}';"
 		);
 		if($type != 'file'){
-			$text[] = "\$config['cache']['{$type}']['host'] = '".$data['host']."';";
-			$text[] = "\$config['cache']['{$type}']['port'] = '".$data['port']."';";
+			$text[] = "\$config['cache']['{$type}']['host'] = '".addslashes($data['host'])."';";
+			$text[] = "\$config['cache']['{$type}']['port'] = '".addslashes($data['port'])."';";
 			if ($type == 'redis' && $data['auth']) {
-				$text[] = "\$config['cache']['{$type}']['auth'] = '".$data['auth']."';";
+				$text[] = "\$config['cache']['{$type}']['auth'] = '".addslashes($data['auth'])."';";
 			}
 		}
 		$content = implode(PHP_EOL, $text);
