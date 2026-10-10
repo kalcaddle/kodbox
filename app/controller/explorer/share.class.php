@@ -317,9 +317,11 @@ class explorerShare extends Controller{
 			show_json(LNG('common.noPermission'),false);
 		}
 		
-		$pathInfo = IO::infoFullSimple($rootSource.$parse['param']);
+		// A share root uses '/' even when the shared source is a local file.
+		$truePath = trim($parse['param'],'/') === '' ? $rootSource : $rootSource.$parse['param'];
+		$pathInfo = IO::infoFullSimple($truePath);
 		if(!$pathInfo){
-			if($allowNotExist){return $rootSource.$parse['param'];}
+			if($allowNotExist){return $truePath;}
 			show_json(LNG('common.pathNotExists'),false);
 		}
 		return $pathInfo['path'];
