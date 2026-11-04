@@ -339,6 +339,7 @@ class userIndex extends Controller {
 		$third = Input::get('third');
 		if(empty($third)) return false;
 		$third = is_array($third) ? $third : json_decode($third, true);
+		if(empty($third)) return false;
 
 		// 判断执行结果
 		if(isset($third['avatar'])) $third['avatar'] = rawurldecode($third['avatar']);

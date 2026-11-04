@@ -552,6 +552,18 @@ class explorerShare extends Controller{
 	 */
 	public function zipDownload(){
 		$dataArr = json_decode($this->in['dataArr'],true);
+		$dataArrAllow = array(); // 校验仅允许的路径
+		if(!is_array($dataArr) || !$dataArr){show_json(array(),true);}
+		foreach($dataArr as $item){
+			if(!is_array($item) || !$item['path']){continue;}
+			$parse = KodIO::parse($item['path']);
+			if($parse['type'] != KodIO::KOD_SHARE_LINK){continue;}
+			if($parse['id'] != $this->share['shareHash']){continue;}
+			$dataArrAllow[] = $item;
+		}
+		$dataArr = $dataArrAllow;
+		if(!is_array($dataArr) || !$dataArr){show_json(array(),true);}
+		
 		if($this->in['zipClient'] == '1'){
 			$result = Action('explorer.index')->zipDownloadClient($dataArr);
 			$sharePath = $this->share['sourcePath'];

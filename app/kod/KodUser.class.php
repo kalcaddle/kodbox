@@ -48,9 +48,9 @@ class KodUser{
 
 	/**
 	 * 解析加盐密码
-	 * @param [type] $pass
+	 * @param string $pass
 	 * @param integer $salt
-	 * @return void
+	 * @return string
 	 */
 	public static function parsePass($pass, $salt=0){
 		$pass = trim($pass);

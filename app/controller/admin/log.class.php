@@ -1,6 +1,7 @@
 <?php 
 
 class adminLog extends Controller{
+    private $model;
     public $actionList = array();
 	function __construct() {
         parent::__construct();
@@ -206,6 +207,12 @@ class adminLog extends Controller{
         if (isset($in['_change']['password'])) {
             $in['_change']['password'] = str_repeat('*', strlen($in['_change']['password']));
         }
+        // // 凭证类敏感参数: 找回密码token、邮箱/短信验证码、图形验证码——意义不大
+        // foreach (array('token', 'msgCode', 'checkCode') as $sensKey) {
+        //     if (isset($in[$sensKey]) && is_string($in[$sensKey])) {
+        //         $in[$sensKey] = str_repeat('*', strlen($in[$sensKey]));
+        //     }
+        // }
         return $in;
     }
 

@@ -102,6 +102,11 @@ class kodRarArchive {
 		$passwd  = $passwd ?" -p".escapeShell($passwd).' ':'';
 		
 		$paramAdd = $partName ? (is_array($partName) ? $partName[0] : $partName):'';
+		// 以'- / @'开头时会被 7z/unrar 解析为命令行开关(如 '-spf' 会按归档内绝对路径写出文件);
+		if($paramAdd && preg_match('/^\s*[-@]/',trim($paramAdd,'/'))){
+			return array('code'=>false,'data'=>'[extract] invalid part name!');
+		}
+		
 		$paramAdd = $paramAdd ? ' '.escapeShell(trim($paramAdd,'/')):'';
 		$paramType = (!$partName || is_array($partName)) ? ' x':' e';// 为空或数组=>保持文件夹结构;传入字符串则单纯解压文件,不保留文件夹结构;
 		if($ext == 'rar'){

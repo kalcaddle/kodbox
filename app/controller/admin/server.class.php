@@ -233,7 +233,7 @@ class adminServer extends Controller {
 			$rows = $size = 0;
 			foreach($tables as $item) {
 				$rows += $item['Rows'];
-				$size += ($item['Data_lenth'] + $item['Index_length'] - $item['Data_free']);
+				$size += ($item['Data_length'] + $item['Index_length'] - $item['Data_free']);
 			}
 		}
 		return array(
@@ -265,6 +265,7 @@ class adminServer extends Controller {
 		}else{
 			$type = Input::get('cacheType','in',null,array('file','redis','memcached'));
 		}
+		$data = array();
 		if(in_array($type, array('redis','memcached'))) {
 			$data = $this->_cacheCheck($type);
 			if($check) {
@@ -491,16 +492,28 @@ class adminServer extends Controller {
 		if(!file_put_contents($file, $content, FILE_APPEND)) {
 			// 删除复制的数据表文件
 			del_dir($this->tmpActPath($type));
-            show_json(LNG('explorer.error'), false);
+            $this->maintenanceSet(0);	// 配置写失败：站点仍在旧库，先解锁
+            $this->dbJson(LNG('explorer.error'), false);
         }
+		// setting_user.php 是 include 进来的：opcache 关闭时间戳校验时，不 reset 会继续用旧库配置
+		if (function_exists('opcache_reset')) {
+			opcache_reset();
+		}
     }
 
     // 生成全新的数据库
 	private function dbChangeSave($dbType, $pdo, $database){
         // 1. 获取数据库配置信息
 		$dbList = $this->validDbList();
+		$isCheck = Input::get('check', null, false);
 		if($dbType == 'sqlite') {
-			if(Input::get('check', null, false)) {
+			if($isCheck) {
+				// 检测：在目标目录建临时文件验证可写，随后删除，不留下真正的库文件
+				$tmpFile = USER_SYSTEM . 'db_check_' . rand_string(8) . '.php';
+				if(!@touch($tmpFile)) {
+					show_json(LNG('admin.setting.dbCreateError'), false);
+				}
+				del_file($tmpFile);
 				show_json(LNG('admin.setting.checkPassed'));
 			}
 			$dbFile = USER_SYSTEM . rand_string(12) . '.php';
@@ -517,21 +530,88 @@ class adminServer extends Controller {
 		$option = array_merge($option, $this->dbExtend($database));
 		$option = array_change_key_case($option, CASE_UPPER);
 
-		// 数据库配置存缓存，用于清除获取
-		// $key = 'db_change.new_config.' . date('Y-m-d'); // 跨午夜导致失效
+		// 检测：真建一次以验证建库权限；只有“本次新建且仍为空”才删，已存在的空库不删
+		if($isCheck) {
+			$this->dbCheckTarget($option);
+		}
+
+		// 新一轮切换：清掉上一轮遗留的 4 个进度缓存/任务记录。
+		// Task::__construct 查到同 id 记录会直接 return（$this->task 为 null），只 kill 不删会让本轮进度恒为 0。
+		$this->taskReset('change');
+
+		// 数据库配置缓存：校验通过、真正进入复制阶段时才由 dbChangeAct 登记（见下），
+		// 避免“目标库非空/建表文件缺失”等前置校验失败后留下待清理缓存，后续误删用户指定的库
 		$key = 'db_change.new_config';
-		Cache::set($key, array('type' => $dbType, 'db' => $option), 3600*24);
 
         // 2. 复制数据库——读取当前库表结构、表数据，写入到新增库
-        $this->dbChangeAct($database, $option, $dbType);
+        try {
+			$res = $this->dbChangeAct($database, $option, $dbType);
+        } catch(Exception $e) {
+			$res = 'Error: '.$e->getMessage();
+        }
+        if($res !== true) {
+			// HTTP 已断开（dbChangeAct 内部 http_close），错误回不去浏览器：
+			// 落日志 + 立即清理目标库/临时文件 + 把当前步骤置为未完成，前端按超时判失败。
+			write_log('数据库切换失败: '.$res, 'dbchange');
+			$this->maintenanceSet(0);
+			$this->dropErrorDb('change');
+			del_dir($this->tmpActPath('change'));
+			Cache::remove($key);
+			// 前端会显示 currentTitle：写到四个步骤，保证它停在第一步时也能看到失败原因
+			foreach($this->actTask('change') as $taskId) {
+				Cache::set('task_'.$taskId, array(
+					'currentTitle' => $res, 'error' => $res, 'taskTotal' => 1, 'taskFinished' => 0
+				), 3600*24);
+			}
+			exit;
+        }
 
-        // 3.保存配置
+        // 3.保存配置（异常标志保持开启，maintenanceSet 失败可捕获；settingSave 失败走 dbJson）
 		$taskSet = new Task('db.setting_user.set', $dbType, 1, LNG('admin.setting.dbSetSave'));
 		$this->settingSave($dbType, $option, 'change');
 		$taskSet->update(1);
 		$this->taskToCache($taskSet);
+		$this->maintenanceSet(0);	// 新库在 dbChangeAct 里已清，这里清旧库（缓存的是旧连接）
+		// 成功后不再保留“待清理的新库”，避免之后点“清除失败数据”时误删正在使用的库
+		Cache::remove($key);
+		unset($GLOBALS['SHOW_OUT_EXCEPTION']);
 
 		show_json(LNG('explorer.success'));
+	}
+
+	/**
+	 * 目标库检测：先试连（不创建）；连不上说明库不存在，再真建一次验证权限，随后删掉。
+	 * 已存在的空库直接通过、不删。
+	 */
+	private function dbCheckTarget($option){
+		$option = array_change_key_case($option);
+		$GLOBALS['SHOW_OUT_EXCEPTION'] = 1;
+		try {
+			$manage = new DbManage($option);
+			$db = $manage->db(false);	// 不创建；库不存在会抛异常
+			if(!empty($db->getTables())) {
+				$this->dbJson(LNG('admin.setting.recDbExist'), false);
+			}
+			$this->dbJson(LNG('admin.setting.checkPassed'));
+		} catch(Exception $e) {}
+		try {
+			$manage = new DbManage($option);
+			$db = $manage->db(true);	// 库不存在：真建一次验证权限
+			if(!$db) $this->dbJson(LNG('explorer.error').$manage->message, false);
+			if(!empty($db->getTables())) {
+				$this->dbJson(LNG('admin.setting.recDbExist'), false);
+			}
+			$db->execute('DROP DATABASE `'.str_replace('`', '``', $option['db_name']).'`');	// 仅本次新建且为空
+		} catch(Exception $e) {
+			$this->dbJson(LNG('explorer.error').$e->getMessage(), false);
+		}
+		$this->dbJson(LNG('admin.setting.checkPassed'));
+	}
+
+	// 检测路径临时开了 SHOW_OUT_EXCEPTION（让 think_exception 抛异常）；show_json 在该标志下会抛 JSON 异常，出口先关掉
+	private function dbJson($data, $code = true){
+		unset($GLOBALS['SHOW_OUT_EXCEPTION']);
+		show_json($data, $code);
 	}
 
 	// 任务进度入缓存
@@ -542,7 +622,7 @@ class adminServer extends Controller {
             'taskTotal'     => $total,
             'taskFinished'  => $task->task['taskFinished'],
 		);
-		if($cache['taskFinished'] > 0 && $cache['taskTotal'] == $cache['taskFinished']) {
+		if($cache['taskFinished'] >= $cache['taskTotal']) {
 			$cache['success'] = 1;
 		}
 		// 某些环境下进度请求获取不到缓存，加上过期时间后正常，原因未知——应该是时间过短，被即刻删除了
@@ -556,13 +636,21 @@ class adminServer extends Controller {
 	 * @param array $database
 	 * @param array $option
 	 * @param string $type	新增db类型
-	 * @return void
+	 * @return bool|string	true=成功；string=失败原因（http_close 之后无法回传浏览器，由调用方落日志/清理）
 	 */
     private function dbChangeAct($database, $option, $type){
 		// 1.初始化db
 		$manageOld = new DbManage($database);
 		$manageNew = new DbManage($option);
-		$dbNew = $manageNew->db(true);
+		$GLOBALS['SHOW_OUT_EXCEPTION'] = 1;
+		$dbNew = null;
+		try {
+			$dbNew = $manageNew->db(true);
+		} catch(Exception $e) {
+			unset($GLOBALS['SHOW_OUT_EXCEPTION']);
+			show_json(LNG('explorer.error').$e->getMessage(), false);
+		}
+		unset($GLOBALS['SHOW_OUT_EXCEPTION']);
 		if (!$dbNew) {
 			show_json(LNG('explorer.error').$manageNew->message, false);
 		}
@@ -575,42 +663,98 @@ class adminServer extends Controller {
 		if(Input::get('check', null, false)) {
 			show_json(LNG('admin.setting.checkPassed'));
 		}
+
 		// 3.获取建表sql文件——提前获取，避免异常时无法报错
 		$file = $manageOld->getSqlFile($type);
 		if (!$file) show_json(LNG('admin.install.dbFileError').'(install/'.$type.'.sql)', false);
 
-		// 截断http请求，后面的操作继续执行
+		// 目录与备份共用，为避免并发被删可重命名进行移动——实际没有必要
+		if($type == 'mysql') $this->cleanMysqlDdl($file);	// 清掉 OceanBase 专有建表选项
+		$expectTables = $this->sqlTableNames($file);
+
+		// 目标库校验通过、即将进入后台复制：此时才登记“待清理的新库”
+		Cache::set('db_change.new_config', array('type' => $type, 'db' => $option), 3600*24);
+
+		// 4.开始写入目标库
+		// 4.1 前置设置
 		echo json_encode(array('code'=>true,'data'=>'OK', 'info'=>1));
 		http_close();
 
+		ignore_timeout();	// 大库导出/导入耗时长
+		// 后台阶段同样需要“可捕获的异常”：否则建表/导入失败会直接 exit，失败清理（dropErrorDb）不会执行
+		$GLOBALS['SHOW_OUT_EXCEPTION'] = 1;
+
+		// 复制期间进入维护模式（普通用户不可写；管理员不受影响，前端可继续轮询）。
+		// 正常结束/exit 会关闭；进程被强杀时不会执行（与还原流程一致）。
+		$this->maintenanceSet(1);
+		register_shutdown_function(function() {
+			$this->maintenanceSet(0);
+		});
+
 		$taskId	 = 'db.new.table.create';
 		$taskCrt = new Task($taskId, $type, 0, LNG('admin.setting.dbCreate'));
-		// 3.表结构写入目标库
-		// $file = $manageOld->getSqlFile($type);
-        $manageNew->createTable($file, $taskCrt);
+		// 4.2 表结构写入目标库
+		try {
+			$manageNew->createTable($file, $taskCrt);
+		} catch(Exception $e) {
+			$this->taskToCache($taskCrt, $taskId);
+			del_dir(get_path_father($file));
+			return LNG('admin.setting.dbCrtTblErr').': '.$e->getMessage();
+		}
 		$this->taskToCache($taskCrt, $taskId);
-		$tableNew = $dbNew->getTables();
-		del_dir(get_path_father($file));
 
-		// 4.获取当前表数据，写入sql文件
+		// 建表结果校验：createTable 对单条建表语句失败只记日志、不中断，缺表会导致后面静默跳过
+		$tableNew = $dbNew->getTables();
+		$miss = array_diff($expectTables, $tableNew);
+		del_dir(get_path_father($file));
+		if(empty($tableNew) || !empty($miss)) {
+			return LNG('admin.setting.dbCrtTblUndone').($miss ? '（Missing: '.implode(',', array_slice($miss, 0, 5)).'）' : '');
+		}
+
+		// 源库的业务表必须都在目标库里，否则后面的导出会静默跳过（丢表）
+		$tableOld = $manageOld->db()->getTables();
+		$tableOld = array_diff($tableOld, array('______', 'sqlite_sequence'));	// 排除sqlite系统表
+		$missingOld = array_diff($tableOld, $tableNew);
+		if(!empty($missingOld)) {
+			return LNG('admin.setting.dbTgtTblMiss').': '.implode(',', array_slice($missingOld, 0, 5));
+		}
+
+		// 跨类型（sqlite→mysql）：install/data/mysql.sql 是 utf8；新建表为空，尽力转 utf8mb4，
+		// 索引长度等不兼容时保持原字符集并记日志（导入阶段会暴露 4 字节字符问题）
+		if($type == 'mysql' && $manageOld->dbType() != 'mysql') {
+			foreach(array_diff($tableNew, array('______')) as $table) {
+				try {
+					$dbNew->execute('ALTER TABLE `'.str_replace('`', '``', $table).'` CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci');
+				} catch(Exception $e) {
+					write_log('切库字符集转换失败['.$table.']: '.$e->getMessage(), 'dbchange');
+				}
+			}
+		}
+
+		// 4.3 获取当前表数据，写入sql文件
 		$pathLoc = $this->tmpActPath('change');
 		del_dir($pathLoc); mk_dir($pathLoc);
 
 		$fileList = array();
-		$tableOld = $manageOld->db()->getTables();
-		$tableOld = array_diff($tableOld, array('______', 'sqlite_sequence'));	// 排除sqlite系统表
 		$total = 0;
         foreach($tableOld as $table) {
 			if(!in_array($table, $tableNew)) continue;
+			if($table == 'io_file_contents') continue;	// 内容表按设计不随切库复制
 			$total += $manageOld->model($table)->count();
 		}
 		$taskId	 = 'db.old.table.select';
-		$taskGet = new Task('db.old.table.select', $type, $total, LNG('admin.setting.dbSelect'));
+		$taskGet = new Task($taskId, $type, $total, LNG('admin.setting.dbSelect'));
+		$exportTotal = 0;
         foreach($tableOld as $table) {
-			// 对比原始库，当前库如有新增表（不存在的表），直接跳过
 			if(!in_array($table, $tableNew)) continue;
+			if($table == 'io_file_contents') continue;
 			$file = $pathLoc . $table . '.sql';
-            $manageOld->sqlFromDb($table, $file, $taskGet);
+			$num = $manageOld->sqlFromDb($table, $file, $taskGet, 'dbchange', $type);
+			if($num === false) {
+				$this->taskToCache($taskGet, $taskId);
+				return LNG('admin.setting.dbExpErr').': '.$table;
+			}
+			$exportTotal += intval($num);
             $fileList[] = $file;
 		}
 		// 这里的task缺失id等参数，导致cache无法保存，原因未知
@@ -618,12 +762,72 @@ class adminServer extends Controller {
 
 		$taskId	 = 'db.new.table.insert';
 		$taskAdd = new Task($taskId, $type, 0, LNG('admin.setting.dbInsert'));
-		// 5.读取sql文件，写入目标库
-        $manageNew->insertTable($fileList, $taskAdd);
+		// 4.4 读取sql文件，写入目标库（insertTable 会跳过 io_file_contents；失败返回 false）
+		$ok = true;
+		try {
+			// 旧版 insertTable 成功时无返回值（null），失败时 show_json（本标志下抛异常）；
+			// 新版返回 bool，所以只在 === false 时判失败，兼容重打包前后
+			if($manageNew->insertTable($fileList, $taskAdd) === false) $ok = false;
+		} catch(Exception $e) {
+			$ok = false;
+			$err = $e->getMessage();
+			$pos = strpos($err, '[ SQL');
+			if($pos !== false) $err = substr($err, 0, $pos);
+			$manageNew->message = trim(substr($err, 0, 300));
+			write_log('数据库切换导入异常: '.$e->getMessage(), 'dbchange');
+		}
+		// 必须先取完成数：taskToCache 会 Task::end()，之后 $task->task 变为 false
+		$imported = intval($taskAdd->task['taskFinished']);
 		$this->taskToCache($taskAdd, $taskId);
+		if(!$ok) {
+			return sprintf(LNG('admin.setting.dbImpErr'), $imported) . ($manageNew->message ? ': '.$manageNew->message : '');
+		}
 
-		// 6.删除临时sql文件
+		// 导入条数校验（io_file_contents 已按设计排除）
+		if($exportTotal != $imported) {
+			write_log("数据库切换导入条数不一致: export={$exportTotal}, import={$imported}", 'dbchange');
+			return sprintf(LNG('admin.setting.dbImpNotMatch'), $exportTotal, $imported);
+		}
+
+		// 复制时旧库的 maintenance 已随 system_option 写进新库；切换前在新库清掉，否则新库会保持维护模式
+		try {
+			$dbNew->execute("UPDATE `system_option` SET `value`='0' WHERE `key`='maintenance'");
+		} catch(Exception $e) {
+			write_log('清理新库维护标记失败: '.$e->getMessage(), 'dbchange');
+		}
+
+		// 4.5 删除临时sql文件
         del_dir($pathLoc);
+		return true;
+	}
+
+	// 建表SQL里的表名清单
+	private function sqlTableNames($file){
+		$content = IO::getContent($file);
+		preg_match_all('/create\s+table\s+[`"\[]?(\w+)[`"\]]?/i', $content, $match);
+		return array_values(array_unique($match[1]));
+	}
+
+	/**
+	 * 目标为 MySQL 时，清掉源库（OceanBase）带回的 MySQL 不支持的建表选项：
+	 * BLOCK_SIZE ... LOCAL/GLOBAL、ORGANIZATION INDEX、WITH PARSER space、PARSER_PROPERTIES、
+	 * AUTO_INCREMENT_MODE、COMPRESSION、REPLICA_NUM、BLOCK_SIZE =、USE_BLOOM_FILTER、
+	 * ENABLE_MACRO_BLOCK_BLOOM_FILTER、TABLET_SIZE、PCTFREE。
+	 * 正常 MySQL 的 SHOW CREATE TABLE 不会命中这些模式。
+	 */
+	private function cleanMysqlDdl($file){
+		$sql = file_get_contents($file);
+		// 只有出现 OceanBase 特征才处理，避免误改正常 MySQL 的注释/默认值
+		if(!preg_match('/\b(?:ORGANIZATION\s+INDEX|BLOCK_SIZE\s+\d+\s+(?:LOCAL|GLOBAL)|PARSER_PROPERTIES\s*=|AUTO_INCREMENT_MODE\s*=|REPLICA_NUM\s*=|TABLET_SIZE\s*=)/i', $sql)) return true;
+		$sql = preg_replace('/\s+BLOCK_SIZE\s+\d+(?:\s+(?:LOCAL|GLOBAL))?/i', '', $sql);
+		$sql = preg_replace('/\s+ORGANIZATION\s+INDEX/i', '', $sql);
+		$sql = preg_replace('/\s+WITH\s+PARSER\s+space\b/i', '', $sql);
+		$sql = preg_replace('/\s+PARSER_PROPERTIES\s*=\s*\([^)]*\)/i', '', $sql);
+		$sql = preg_replace('/\s+AUTO_INCREMENT_MODE\s*=\s*\'[^\']*\'/i', '', $sql);
+		$sql = preg_replace('/\s+COMPRESSION\s*=\s*\'[^\']*\'/i', '', $sql);
+		$sql = preg_replace('/\s+(?:REPLICA_NUM|BLOCK_SIZE|TABLET_SIZE|PCTFREE)\s*=\s*\d+/i', '', $sql);
+		$sql = preg_replace('/\s+(?:USE_BLOOM_FILTER|ENABLE_MACRO_BLOCK_BLOOM_FILTER)\s*=\s*(?:TRUE|FALSE)/i', '', $sql);
+		return file_put_contents($file, $sql);
 	}
 
 	/**
@@ -636,6 +840,8 @@ class adminServer extends Controller {
 		// 备份文件先下载至临时目录，如果本就在本地，则没有必要；中途失败，显示提示到弹窗下；中途失败不能继续（包括切换）
 		$this->taskGet('recovery');		// 获取任务状态
 		$this->taskClear('recovery');	// 清除失败的数据
+		// 同一批任务 id 会在多次还原间复用；Task::__construct 查到旧记录会直接 return，必须清掉
+		$this->taskReset('recovery');
 		$data = Input::getArray(array(
 			'dbType'	=> array('check' => 'in', 'param' => array('sqlite', 'mysql'), 'aliasKey' => 'type'),
 			'dbPath'	=> array('check' => 'require', 'aliasKey' => 'path'),
@@ -710,13 +916,17 @@ class adminServer extends Controller {
         // 2.3 新建数据表
 		$taskId	 = 'recovery.db.table.create';
         $taskCrt = new Task($taskId, $type, 0, LNG('admin.setting.dbCreate'));
+		if($type == 'mysql') $this->cleanMysqlDdl($file);	// 还原 OceanBase 备份到 MySQL 时同样需要
         $manage->createTable($file, $taskCrt);
 		$this->taskToCache($taskCrt, $taskId);
 
 		// 2.4 读取sql文件，写入目标库
 		$taskId	 = 'recovery.db.table.insert';
         $taskAdd = new Task($taskId, $type, 0, LNG('admin.setting.dbInsert'));
-        $manage->insertTable($fileList, $taskAdd);
+        if($manage->insertTable($fileList, $taskAdd) === false) {
+			$this->taskToCache($taskAdd, $taskId);
+			show_json(LNG('admin.setting.dbInsertError'), false);
+		}
 		$this->taskToCache($taskAdd, $taskId);
 
 		// 2.5 删除临时sql文件
@@ -806,6 +1016,24 @@ class adminServer extends Controller {
 		);
 		return $step ? $task[$type][$step] : $task[$type];
 	}
+	// 维护模式开关：失败只记日志，不影响切库主流程
+	private function maintenanceSet($on){
+		try {
+			ActionCall('user.index.maintenance', true, $on ? 1 : 0);
+		} catch(Exception $e) {
+			write_log('维护模式设置失败: '.$e->getMessage(), 'dbchange');
+		}
+	}
+
+	// 清理某类任务的旧记录：只 kill 不删会让 Task::__construct 直接 return，进度恒为 0
+	private function taskReset($type){
+		foreach($this->actTask($type) as $taskId) {
+			Cache::remove('task_'.$taskId);
+			Task::kill($taskId);
+			Task::valueSet($taskId, false);
+		}
+	}
+
 	// 进行中（切换、恢复）任务进度获取
 	private function taskGet($type){
 		if(!Input::get('task', null, 0)) return;
@@ -825,14 +1053,12 @@ class adminServer extends Controller {
 		if(Input::get('success', null, false)) {
 			echo json_encode(array('code'=>true,'data'=>LNG('explorer.success')));
 			http_close();
+			// 成功也要清任务记录：它们可能已被复制进新库，留着会变成“执行中”的脏任务
+			$this->taskReset($type);
 			Action('admin.setting')->clearCache();exit;
 		}
 		// 1.杀掉任务、清除缓存
-		$task = $this->actTask($type);
-		foreach($task as $key) {
-			Task::kill($key);
-			Cache::remove('task_'.$key);
-		}
+		$this->taskReset($type);
 		// 2.删除临时sql目录
 		del_dir($this->tmpActPath($type));
 		// 3.删除导入失败的数据库
@@ -850,14 +1076,18 @@ class adminServer extends Controller {
 		if($type == 'sqlite') {
 			del_file($cache['db']['db_name']);
 		}else if ($type == 'mysql') {
-			$manage = new DbManage($cache['db']);
-			// if($manage) $manage->dropTable();
-			if($manage) {
-				$dbname = $cache['db']['db_name'];
-				try {
-					model()->db()->execute("drop database if exists `{$dbname}`");
-				} catch(Exception $e) {}
+			$db = array_change_key_case($cache['db']);
+			$dbname = $db['db_name'];
+			// 目标连接需要 charset；当前库可能是 sqlite，全局 DB_CHARSET 为空
+			if(!think_config('DB_CHARSET')) {
+				think_config('DB_CHARSET', !empty($db['db_charset']) ? $db['db_charset'] : 'utf8mb4');
 			}
+			try {
+				// 用目标库配置连接（跨类型切换时当前连接可能是 sqlite）
+				$manage = new DbManage($cache['db']);
+				$conn = $manage->db(false);
+				if($conn) $conn->execute("drop database if exists `".str_replace('`','``',$dbname)."`");
+			} catch(Exception $e) {}
 		}
 		Cache::remove($key);
 	}

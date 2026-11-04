@@ -14,6 +14,7 @@ class explorerRecycleDriver extends Controller{
 		$pathParse  = KodIO::parse($path);
 		$driver 	= IO::init($path);
 		if(!$toRecycle || $pathParse['type'] == KodIO::KOD_SOURCE){
+			$this->pathCheck($path);
 			return IO::remove($path,$toRecycle);
 		}
 		$recycleLocal = rtrim(DATA_PATH,'/').'/'.$this->localRecycleFolder().'/';
@@ -23,8 +24,15 @@ class explorerRecycleDriver extends Controller{
 		// 协作分享内容: 某人删除时, 移动到自己的回收站(物理路径及io路径; db路径处理)
 		if($pathParse['type'] == KodIO::KOD_SHARE_ITEM && $driver->getType() == 'dbshareitem'){
 			$recyclePath  = rtrim($driver->getPathRoot(),'/').'/.recycle/';
+			$this->pathCheck($recyclePath);
 		}
 		return $this->moveToRecycle($path,$recyclePath,IO::pathFather($path));
+	}
+	private function pathCheck($path) {
+		$info = IO::infoFull($path);
+		if (_get($info,'parentID',false) === 0) {
+			show_json('No permission to delete this path: '.$path, false);	// 仅拦截，不会在界面展示
+		}
 	}
 	
 	/**

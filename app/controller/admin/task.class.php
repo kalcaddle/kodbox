@@ -74,6 +74,11 @@ class adminTask extends Controller {
 			}
 			return array('result'=>false,'taskInfo'=>false);
 		}
+		
+		if(!KodUser::isRoot() && $taskInfo['sid'] != md5('sid_'.Session::sign())){
+			return array('result'=>false,'taskInfo'=>false); // 身份认证;
+		}
+		
 		switch($param['action']){
 			case 'get':		$result = $taskInfo;break;
 			case 'stop':	$result = Task::stop($param['id']);break;

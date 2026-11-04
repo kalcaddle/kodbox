@@ -8,7 +8,8 @@
  */
 
 class userSetting extends Controller {
-	public $user;
+	private $user;
+	private $model;
 	public function __construct() {
 		parent::__construct();
 		$this->user = Session::get('kodUser');
@@ -41,16 +42,16 @@ class userSetting extends Controller {
 	 * 个人中心-账号设置保存
 	 */
 	public function setUserInfo() {
-		$limit = array('nickName', 'email', 'phone', 'password');
+		$allow = array('nickName', 'email', 'phone', 'password');
 		$data = Input::getArray(array(
-			"type"		 => array("check" => "in", "param" => $limit),
-			"msgCode"	 => array("default" => null),
+			"type"		=> array("check" => "in", "param" => $allow),
+			"msgCode"	=> array("default" => null),
 		));
+		$input = '';
 		if($data['type'] != 'password') {
 			$input = Input::get('input','require');
-			$input = trim(rawurldecode($input));
+			$input = html2txt(trim(rawurldecode($input)));
 		}
-		$input = html2txt($input);
 		$userID = $this->user['userID'];
 		if(in_array($data['type'], array('email', 'phone'))){
 			if(!isset($data['msgCode'])){$data['msgCode'] = '000';}
@@ -79,7 +80,7 @@ class userSetting extends Controller {
 
 	/**
 	 * (图片)验证码校验
-	 * @param type $code
+	 * @param string $code
 	 */
 	public function checkImgCode($code){
 		$checkCode = Session::get('checkCode');
@@ -91,11 +92,11 @@ class userSetting extends Controller {
 
 	/**
 	 * 手机、邮箱验证码存储、验证
-	 * @param type $type	email、phone
-	 * @param type $code
-	 * @param type $data	{type: [source], input: ''}
-	 * @param type $set	首次存储验证码(检测错误次数)
-	 * @return type
+	 * @param string $type	email、phone
+	 * @param string $code
+	 * @param array $data	{type: [source], input: ''}
+	 * @param bool $set	首次存储验证码(检测错误次数)
+	 * @return void|bool
 	 */
 	public function checkMsgCode($type, $code, $data = array(), $set = false) {
 		$typeList = array('setting', 'regist', 'findpwd', 'deregist');	// 个人设置、注册、找回密码、注销
@@ -139,7 +140,7 @@ class userSetting extends Controller {
 	/**
 	 * 消息发送频率检查
 	 * [type/input/source]
-	 * @param [type] $data
+	 * @param array $data
 	 * @return void
 	 */
 	public function checkMsgFreq($data, $set=false){
@@ -164,8 +165,8 @@ class userSetting extends Controller {
 
 	/**
 	 * (短信、邮箱)验证码校验
-	 * @param type $input
-	 * @param type $data
+	 * @param string $input
+	 * @param array $data
 	 */
 	private function userMsgCheck($input, $data) {
 		$type = $data['type'];
@@ -173,7 +174,7 @@ class userSetting extends Controller {
 		if($this->user[$type] == $input) return;
 
 		$where = array($type=> $input);
-		if ($res = Model('User')->userSearch($where, 'name,nickName')) {
+		if (Model('User')->userSearch($where, 'name,nickName')) {
 			$typeTit = $type . ($type == 'phone' ? 'Number' : '');
 			show_json(LNG('common.' . $typeTit) . LNG('common.error'), false);
 		}
@@ -187,8 +188,8 @@ class userSetting extends Controller {
 
 	/**
 	 * 修改密码检测
-	 * @param type $data
-	 * @return type
+	 * @param array $data
+	 * @return string
 	 */
 	private function userPwdCheck($data) {
 		$newpwd = Input::get('newpwd','require');
@@ -266,62 +267,100 @@ class userSetting extends Controller {
 		if(!$token){
 			$res = $this->findPwdCheck();
 		}else{
-			$res = $this->findPwdReset();
+			$res = $this->findPwdReset($token);
 		}
 		show_json($res, true);
 	}
 
 	/**
-	 * 找回密码 step1:根据账号检测并获取用户信息
-	 * @return type
+	 * 找回密码 step1：校验验证码，生成一次性的重置token
+	 * 注意:先校验验证码再查询用户; 否则"账号未绑定"与"验证码错误"返回不同信息，可枚举出系统内已注册的邮箱/手机号
+	 * @return void|string
 	 */
 	private function findPwdCheck() {
 		$data = Input::getArray(array(
-			'type'			=> array('check' => 'in','default'=>'','param'=>array('phone','email')),
-			'input'			=> array('check' => 'require'),
-			'msgCode'		=> array('check' => 'require')
+			'type'		=> array('check' => 'require'),
+			'input'		=> array('check' => 'require'),
+			'msgCode'	=> array('check' => 'require')
 		));
-		// 是否绑定
-		$res = Model('User')->userSearch(array($data['type'] => $data['input']), 'userID');
-		if (empty($res)) {
-			show_json(LNG('user.notBind'), false);
+		$data['type'] = strtolower(trim($data['type']));
+		if(!in_array($data['type'], array('phone','email'), true)){
+			show_json(LNG('common.illegalRequest'), false);
 		}
+
+		// 1. 先校验邮箱/短信验证码; 未绑定/不存在的账号同样落到"验证码错误",不泄露账号是否存在;
 		$param = array(
-			'type' => 'findpwd',
+			'type'	=> 'findpwd',
 			'input' => $data['input']
 		);
 		$this->checkMsgCode($data['type'], $data['msgCode'], $param);
 
+		// 2. 验证码通过后再确认账号(未绑定邮箱/手机号的账号收不到验证码,正常不会走到这里)
+		$res = Model('User')->userSearch(array($data['type'] => $data['input']), 'userID');
+		if (empty($res)) {
+			show_json(LNG('user.notBind'), false);
+		}
+
+		// 3. 生成一次性token; 有效期10分钟,只允许使用一次;
 		$data = array(
-			'type' => $data['type'],
-			'input' => $data['input'],
-			'userID' => $res['userID'],
-			'time' => time()
+			'type'	=> $data['type'],
+			'input'	=> $data['input'],
+			'userID'=> intval($res['userID']),
+			'time'	=> time(),
+			'cnt'	=> 0		// 重置密码错误次数
 		);
-		$pass = md5('findpwd_' . implode('_', $data));
-		Cache::set($pass, $data, 60 * 20);	// 有效期20分钟
+		$pass = 'findpwd_' . md5(implode('_', $data).'_'.rand_string(8));
+		Cache::set($pass, $data, 60 * 10);
 		return $pass;
 	}
 
 	/**
-	 * 找回密码 step1:更新密码
-	 * @return type
+	 * 找回密码 step2：校验一次性token并更新密码
+	 * @return void|string
 	 */
-	private function findPwdReset() {
-		$token = Input::get('token', 'require');
+	private function findPwdReset($token) {
+		if (strlen($token) > 64 || strpos($token, 'findpwd_') !== 0) {
+			show_json(LNG('common.errorExpiredRequest'), false);
+		}
 		$password = Input::get('password', 'require');
 		$password = KodUser::parsePass($password);
+		if(!is_string($password) || $password === ''){
+			show_json(LNG('explorer.error'), false);
+		}
+
 		// 检测token是否有效
 		$cache = Cache::get($token);
-		if(!$cache) show_json(LNG('common.errorExpiredRequest'), false);
-		if(!isset($cache['type']) || !isset($cache['input']) || !isset($cache['userID']) || !isset($cache['time'])){
+		if(!$cache || !is_array($cache)){
+			show_json(LNG('common.errorExpiredRequest'), false);
+		}
+		// 结构&类型校验: 必须是step1写入的结构,避免复用其它业务的缓存内容;
+		// 如有必要还应检查：input必须为非空字符串、time为数字等
+		$check = true;
+		foreach (array('type','input','userID','time','cnt') as $key) {
+			if (!isset($cache[$key])) {$check = false; break;}
+		}
+		if ($check && !in_array($cache['type'], array('phone','email'), true)) {
+			$check = false;
+		}
+		if(!$check){
+			Cache::remove($token);
 			show_json(LNG('common.illegalRequest'), false);
 		}
-		if($cache['time'] < time() - 60 * 10){
+		// 有效期10分钟(与写缓存时保持一致)，过期即删除
+		if(intval($cache['time']) + 60 * 10 < time()){
+			Cache::remove($token);
 			show_json(LNG('common.expiredRequest'), false);
 		}
+		// 错误次数过多则作废
+		if(intval($cache['cnt']) >= 5){
+			Cache::remove($token);
+			show_json(LNG('common.expiredRequest'), false);
+		}
+
+		// 根据条件查找用户
 		$res = Model('User')->userSearch(array($cache['type'] => $cache['input']), 'userID');
-		if(empty($res) || $res['userID'] != $cache['userID']){
+		if(empty($res) || intval($res['userID']) != intval($cache['userID'])){
+			$this->findPwdResetFail($token, $cache);
 			show_json(LNG('common.illegalRequest'), false);
 		}
 		if (!Action('user.authRole')->authCanUser('user.edit',$res['userID'])) {
@@ -330,11 +369,23 @@ class userSetting extends Controller {
 		if( !ActionCall('filter.userCheck.password',$password) ){
 			return ActionCall('filter.userCheck.passwordTips');
 		}
+		// 一次性使用：先失效token再更新密码
 		Cache::remove($token);
 		if (!$this->model->userEdit($res['userID'], array('password' => $password))) {
 			show_json(LNG('explorer.error'), false);
 		}
 		return LNG('explorer.success');
+	}
+
+	// 重置密码token校验失败: 累加错误次数(剩余有效期不变),超限则作废
+	private function findPwdResetFail($token, $cache) {
+		$cache['cnt'] = intval($cache['cnt']) + 1;
+		$timeout = intval($cache['time']) + 60 * 10 - time();
+		if($cache['cnt'] >= 5 || $timeout <= 0){
+			Cache::remove($token);
+			return;
+		}
+		Cache::set($token, $cache, $timeout);
 	}
 
 	// 个人空间使用统计

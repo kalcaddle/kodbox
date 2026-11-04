@@ -8,6 +8,7 @@
  */
 
 class userRegist extends Controller {
+	private $regOpen = null;
 	public function __construct() {
 		parent::__construct();
 	}
@@ -62,7 +63,14 @@ class userRegist extends Controller {
 		}
 		// 1.2找回密码(前端找回、后端重置)检测
 		if ($source == 'findpwd') {
-			$this->userFindPwdCheck($data);
+			// 账号不存在、或该账号未绑定此邮箱/手机时: 不报错也不发送, 统一返回"发送成功";
+			// 否则未登录即可借本接口判断某邮箱/手机是否已注册(CWE-203, 与 findPassword 同源);
+			if ($this->userFindPwdCheck($data) === false) {
+				// 与真实发送保持同一频控口径,否则"未注册从不限频"本身又成为区分点;
+				Action('user.setting')->checkMsgFreq($data);
+				Action('user.setting')->checkMsgFreq($data, true);
+				show_json(LNG('user.sendSuccess'), true);
+			}
 		}
 
 		// 2.发送邮件/短信
@@ -73,6 +81,11 @@ class userRegist extends Controller {
 			$res = Action('user.bind')->sendSms($input, $type.'_'.$source);
 		}
 		if (!$res['code']) {
+			// 找回密码: 发送失败返回统一提示，避免暴露账号可能存在
+			if ($source == 'findpwd') {
+				Action('user.setting')->checkMsgFreq($data, true);
+				show_json(LNG('user.sendSuccess'), true);
+			}
 			show_json(LNG('user.sendFail') . ': ' . $res['data'], false);
 		}
 		Action('user.setting')->checkMsgFreq($data, true);
@@ -88,7 +101,7 @@ class userRegist extends Controller {
 
 	/**
 	 * 判断号码、邮箱是否已注册
-	 * @param type $data
+	 * @param array $data
 	 */
 	private function userRegistCheck($data) {
 		$where = array($data['type'] => $data['input']);
@@ -99,8 +112,8 @@ class userRegist extends Controller {
 
 	/**
 	 * 判断账号(及图片验证码-前端)是否有效-找回密码
-	 * @param type $data
-	 * @return type
+	 * @param array $data
+	 * @return bool
 	 */
 	private function userFindPwdCheck($data) {
 		$userID = Input::get('userID', 'require', '0');
@@ -109,10 +122,9 @@ class userRegist extends Controller {
 		if ($userID == '0') {
 			$where = array($data['type'] => $data['input']);
 			if (!Model('User')->userSearch($where)) {
-				show_json(LNG('common.' . $text) . LNG('common.error'), false);
-				// show_json(LNG('common.' . $data['type']) . LNG('user.notRegist'), false);
+				return false;
 			}
-			return;
+			return true;
 		}
 		// 后端重置密码
 		$userInfo = Model('User')->getInfoSimple($userID);
@@ -127,6 +139,7 @@ class userRegist extends Controller {
 		if ($userInfo[$data['type']] != $data['input']) {
 			show_json(sprintf(LNG('user.inputNotMatch'), LNG('common.' . $text)), false);
 		}
+		return true;
 	}
 
 	/**
@@ -174,8 +187,8 @@ class userRegist extends Controller {
 
 	/**
 	 * 新增/注册用户
-	 * @param type $data
-	 * @return type
+	 * @param array $data
+	 * @return void|array
 	 */
 	public function addUser($data) {
 		$this->checkAllow();

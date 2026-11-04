@@ -91,6 +91,7 @@ class explorerShareOut extends Controller{
 		if($config['shareOutAllowRecive'] != '1'){show_json(LNG('explorer.shareOut.errorDisableReceive'),false);}
 		if($data['siteFrom'] != $checkKey){show_json(LNG('explorer.share.errorParam'),false);}
 		if(!Cache::limitCall($limitKey,5,10,false)){show_json(LNG('explorer.shareOut.errorCallLimit'),false);}
+		if(!Cache::limitCall('shareOutRecive',5,10,true)){show_json(LNG('explorer.shareOut.errorCallLimit'),false);}
 		
 		$authList = $this->authListMake();
 		$data['_shareTarget'] = array();$data['_authTo'] = array();

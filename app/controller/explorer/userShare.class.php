@@ -588,6 +588,13 @@ class explorerUserShare extends Controller{
 		if(!$authTo || !$pathInfo || !$pathInfo['auth']) return;
 		$selfAuth = intval($pathInfo['auth']['authInfo']['auth']);
 		foreach ($authTo as $authItem){
+			if(!intval(_get($authItem,'authID',0))){
+				$authDefine = intval(_get($authItem,'authDefine',0));
+				if($authDefine && ($authDefine | $selfAuth) <= $selfAuth){continue;}
+				
+				show_json(LNG('admin.auth.errorAdmin'),false); // 指定权限: 不能设置比自己权限大;
+			}
+
 			$authInfo = Model("Auth")->listData($authItem['authID']);
 			$authBoth = $selfAuth | intval($authInfo['auth']);
 			if($authBoth == $selfAuth) continue;

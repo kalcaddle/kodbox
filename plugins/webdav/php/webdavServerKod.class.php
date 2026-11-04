@@ -442,11 +442,11 @@ class webdavServerKod extends webdavServer {
 	public function pathRemove($path){
 		if(!$this->can($path,'remove')) return false;
 		$tempInfo = IO::infoFull($path);
-		if(!$tempInfo) return true;
+		if(!$tempInfo || !trim($tempInfo['path'],'/')) return true;
 		
 		$toRecycle = Model('UserOption')->get('recycleOpen');
 		if($tempInfo['isDelete'] == '1'){$toRecycle = false;}
-		return IO::remove($tempInfo['path'], $toRecycle);
+		return Action('explorer.recycleDriver')->removeCheck($tempInfo['path'],$toRecycle);
 	}
 	public function pathMove($path,$dest){
 		$pathUrl = $this->pathGet();

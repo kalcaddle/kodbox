@@ -48,6 +48,8 @@ class explorerAutoPathParse extends Controller {
 			'explorer.index.unzip' 		=> 1,
   		);
 		$allowNotMatch  = isset($allowNotMatchAction[$theAction]) ? true : false;
+		if($allowNotMatch){return;} //  test目录{source:xxx} 下创建test,会失败问题;
+		
 		foreach($checkArr[$theAction] as $key){
 			if(substr($key,0,1) == '['){
 				$this->parseArr(substr($key,1,-1),$allowNotMatch);

@@ -15,6 +15,7 @@ class userBind extends Controller {
 	 * 发送信息(验证码)-短信、邮件	当前只有个人设置绑定使用,暂时只记为绑定
 	 */
 	public function sendMsg() {
+		KodUser::checkLogin();
 		$data = Input::getArray(array(
 			'type'	 => array('check' => 'in', 'param' => array('email', 'phone')),
 			'input'	 => array('check' => 'require'),

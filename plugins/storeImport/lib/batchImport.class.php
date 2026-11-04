@@ -329,7 +329,7 @@ class batchImport {
         $folderGenerator = function() use ($list, $rootLen) {
             foreach ($list as $item) {
                 $full = $this->ioDriver->getPathOuter($item['path']);   // /a/b/c => {io:x}/b/c
-                $rel  = ltrim(substr($full, $rootLen), '/');
+                $rel  = trim(substr($full, $rootLen), '/'); // 首尾都去掉 / ，避免建出空名目录
                 if ($rel === '' || $rel === false) continue;
                 
                 if ($item['folder']) {
@@ -424,6 +424,9 @@ class batchImport {
         $maxDepth = 0;
         $depthBuckets = array();
         foreach ($allFolders as $relPath) {
+            // 兜底：去尾斜杠并丢弃空路径（空路径由目标根目录代表，不能建）
+            $relPath = rtrim($relPath, '/');
+            if ($relPath === '') continue;
             $depth = substr_count($relPath, '/');
             $depthBuckets[$depth][] = $relPath;
             if ($depth > $maxDepth) {
@@ -439,7 +442,7 @@ class batchImport {
             // 分批次插入
             $thisDepthFolders = $depthBuckets[$depth];
             foreach ($thisDepthFolders as $relPath) {
-                // ★ 入库前预检：编码非法 / 4 字节字符（数据库非 utf8mb4 时无法入库）→ 跳过并记明细
+                // 入库前预检：编码非法 / 4 字节字符（数据库非 utf8mb4 时无法入库）→ 跳过并记明细
                 if (!$this->checkPathSafe($relPath)) {
                     $this->stat['folderFailed']++;
                     continue;
@@ -461,6 +464,12 @@ class batchImport {
 
                 $parts  = explode('/', $relPath);
                 $name   = array_pop($parts);
+                // 空名没有意义，绝不允许落库（尾斜杠已在上面统一去掉，这里是最后一道防线）
+                if ($name === '' || $name === false || $name === null) {
+                    $this->stat['folderFailed']++;
+                    $this->writeLog("目录名为空，已跳过：{$relPath}");
+                    continue;
+                }
                 $parentRel = implode('/', $parts);
                 $parentID = $parentRel === '' ? $targetID : _get($this->folderMap,$parentRel,null);
                 if (!$parentID) {
@@ -701,6 +710,8 @@ class batchImport {
 
         $parts = explode('/', $relPath);
         $name = array_pop($parts);
+        // 空名目录没有意义：直接返回失败，由调用方按“父目录建不出”处理，避免建出空壳
+        if ($name === '' || $name === false || $name === null) return null;
         $parentRel = implode('/', $parts);
         $parentID = $this->findOrCreateParentWithCache($parentRel, $targetID);
         if (!$parentID) return null;
@@ -807,7 +818,7 @@ class batchImport {
                 continue;
             }
 
-            // ★ 入库前预检：编码非法 / 4 字节字符（数据库非 utf8mb4 时无法入库）→ 跳过并记明细
+            // 入库前预检：编码非法 / 4 字节字符（数据库非 utf8mb4 时无法入库）→ 跳过并记明细
             if (!$this->checkPathSafe($full)) {
                 $this->stat['skipBadCharset'] = _get($this->stat, 'skipBadCharset', 0) + 1;
                 continue;
