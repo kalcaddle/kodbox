@@ -205,7 +205,7 @@ class msgWarningSysTask extends Controller {
 		}
 
 		// 通知方式
-		if (empty(_get($notice, 'method', ''))) return false;
+		if (!_get($notice, 'method', '')) return false;
 		// toAll：将[系统通知]添加到通知方式中——前端限制取消后，此处没有必要强制添加
 		if ($evntInfo['toAll'] == '1') {
 			if (stripos($notice['method'], 'kwarn') === false) {

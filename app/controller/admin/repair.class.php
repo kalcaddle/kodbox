@@ -1431,7 +1431,10 @@ class adminRepair extends Controller {
 	}
 	private function getBaseLevels($list) {
 		// 去除空路径并排序（从短到长）
-		$data = array_filter($list, function($path){return !empty(trim($path, ','));});
+		$data = array_filter($list, function($path){
+			$pathTemp = trim($path, ',');
+			return !empty($pathTemp);
+		});
 		usort($data, function($a, $b){return strlen($a) - strlen($b);});
 		$base = array();
 		foreach ($data as $path) {

@@ -455,8 +455,9 @@ class installIndex extends Controller {
         $content = array_filter(explode(PHP_EOL, $content));
         foreach($content as $line) {
             $tmp = explode("=", trim($line));
-            if(empty(trim($tmp[1]))) continue;
-            $data[strtolower(trim($tmp[0]))] = trim($tmp[1]);
+			$lineVal = trim($tmp[1]);
+            if(empty($lineVal)) continue;
+            $data[strtolower(trim($tmp[0]))] = $lineVal;
         }
         if(isset($data['adm_name']) && isset($data['adm_pwd'])) {
             return array(

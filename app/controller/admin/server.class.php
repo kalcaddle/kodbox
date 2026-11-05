@@ -589,7 +589,8 @@ class adminServer extends Controller {
 		try {
 			$manage = new DbManage($option);
 			$db = $manage->db(false);	// 不创建；库不存在会抛异常
-			if(!empty($db->getTables())) {
+			$tables = $db->getTables();
+			if(!empty($tables)) {
 				$this->dbJson(LNG('admin.setting.recDbExist'), false);
 			}
 			$this->dbJson(LNG('admin.setting.checkPassed'));
@@ -597,8 +598,9 @@ class adminServer extends Controller {
 		try {
 			$manage = new DbManage($option);
 			$db = $manage->db(true);	// 库不存在：真建一次验证权限
-			if(!$db) $this->dbJson(LNG('explorer.error').$manage->message, false);
-			if(!empty($db->getTables())) {
+			if(!$db){$this->dbJson(LNG('explorer.error').$manage->message, false);}
+			$tables = $db->getTables();
+			if(!empty($tables)) {
 				$this->dbJson(LNG('admin.setting.recDbExist'), false);
 			}
 			$db->execute('DROP DATABASE `'.str_replace('`', '``', $option['db_name']).'`');	// 仅本次新建且为空

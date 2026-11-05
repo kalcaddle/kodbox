@@ -275,6 +275,7 @@ class explorerListGroup extends Controller{
 			$data = json_decode($this->in['dataArr'],true);
 			if(is_array($data)){
 				foreach ($data as $item) {
+					if(!is_array($item)){continue;}
 					$isGroupRoot = $this->pathIsRoot($item['path']);
 					if($isGroupRoot){
 						$errorAdd = '['.$item['name'].'],';
