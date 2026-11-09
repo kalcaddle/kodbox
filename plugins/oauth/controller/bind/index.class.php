@@ -123,7 +123,7 @@ class oauthBindIndex extends Controller {
 	 */
 	private function isBind($key, $unionid, $client = 1) {
 		// 根据metadata.unionid获取用户信息
-		$user = Model('User')->getInfoByMeta($key . $this->metaKeyUnionid, $unionid);
+		$user = Model('User')->getInfoByMeta($key . $this->metaKeyUnionid, $unionid.'');
 		if (empty($user)) return false;
 		// 后端，要判断是否已经绑定了其他账号
 		// 通过绑定信息获取到的用户，不是当前登录用户，说明已绑定其他账号
