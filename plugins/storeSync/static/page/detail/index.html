@@ -1,0 +1,110 @@
+<div class="sync-detail-wrap">
+
+    <!-- 全局步骤条 -->
+    <div class="sync-stepper">
+        <div class="step-item {{stepStatus(info,'scan')}}" data="tab-scan">
+            <div class="step-icon">{{stepIcon(info,'scan',1)}}</div>{{LNG['storeSync.task.stepScan']}}
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item {{stepStatus(info,'comp')}}" data="tab-comp">
+            <div class="step-icon">{{stepIcon(info,'comp',2)}}</div>{{LNG['storeSync.task.stepComp']}}
+        </div>
+        <div class="step-line"></div>
+        <div class="step-item {{stepStatus(info,'exec')}}" data="tab-exec">
+            <div class="step-icon">{{stepIcon(info,'exec',3)}}</div>{{LNG['storeSync.task.stepExec']}}
+        </div>
+    </div>
+
+    <!-- 主内容区 -->
+    <div class="sync-content">
+        <!-- 阶段1: 扫描 -->
+        <div class="tab-panel" id="tab-scan">
+            <div class="scan-dashboard">
+                <div class="scan-side">
+                    <div class="scan-title" id="ui-col-A-scan">
+                        <div class="title">{{LNG['storeSync.main.dir']}} A</div>
+                        <div class="path" title="{{info.pathA}}" title-timeout="200">{{@pathFormat(info.pathAInfo)}}</div>
+                    </div>
+                    <div class="scan-num">{{window.numberShow((info.lastData.scan.A.dirCnt + info.lastData.scan.A.fileCnt))}}</div>
+                    <div class="scan-meta">{{LNG['common.file']}}: {{window.numberShow(info.lastData.scan.A.fileCnt)}} | 大小: {{info.lastData.scan.A.fileSize}}</div>
+                </div>
+                <div class="bidi-icon">
+                    <i class="font-icon ri-arrow-{{info.isBidi == '1' ? 'left-right' : 'right'}}-line"></i>
+                </div>
+                <div class="scan-side">
+                    <div class="scan-title" id="ui-col-B-scan">
+                        <div class="title">{{LNG['storeSync.main.dir']}} B</div>
+                        <div class="path" title="{{info.pathB}}" title-timeout="200">{{@pathFormat(info.pathBInfo)}}</div>
+                    </div>
+                    <div class="scan-num">{{window.numberShow((info.lastData.scan.B.dirCnt + info.lastData.scan.B.fileCnt))}}</div>
+                    <div class="scan-meta">{{LNG['common.file']}}: {{window.numberShow(info.lastData.scan.B.fileCnt)}} | 大小: {{info.lastData.scan.B.fileSize}}</div>
+                </div>
+            </div>
+            <!-- <div class="scan-path-log">
+                > 当前正在读取: /projects/2023_design/assets/images/icon_set.svg
+            </div> -->
+        </div>
+
+        <!-- 阶段2: 比对 -->
+        <div class="tab-panel" id="tab-comp">
+            <h3 style="text-align: center; color: #303133; margin: 10px 0;">{{LNG['storeSync.task.compResult']}}</h3>
+            <div class="comp-summary">
+                <div class="comp-card">
+                    <div class="cc-icon color-to-b"><i class="font-icon ri-arrow-right-line"></i></div>
+                    <div class="cc-info">
+                        <div class="cc-title" id="ui-card-to-b-title">{{LNG['storeSync.task.push2pathB']}}</div>
+                        <div class="cc-num">{{info.lastData.comp.copy2B}}</div>
+                    </div>
+                </div>
+                {{if info.isBidi == '1'}}
+                <div class="comp-card bidi-only">
+                    <div class="cc-icon color-to-a">
+                        <i class="font-icon ri-arrow-left-line"></i>
+                    </div>
+                    <div class="cc-info">
+                        <div class="cc-title">{{LNG['storeSync.task.pull2pathA']}}</div>
+                        <div class="cc-num">{{info.lastData.comp.copy2A}}</div>
+                    </div>
+                </div>
+                {{/if}}
+                <div class="comp-card">
+                    <div class="cc-icon color-del"><i class="font-icon ri-close-line"></i></div>
+                    <div class="cc-info">
+                        <div class="cc-title" id="ui-card-del-title">{{LNG['storeSync.task.deletePath']}}</div>
+                        <div class="cc-num">{{info.lastData.comp.delete}}</div>
+                    </div>
+                </div>
+                {{if info.isBidi == '1'}}
+                <div class="comp-card bidi-only">
+                    <div class="cc-icon color-skip"><i class="font-icon ri-question-mark"></i></div>
+                    <div class="cc-info">
+                        <div class="cc-title">{{LNG['storeSync.task.conflictPath']}}</div>
+                        <div class="cc-num">{{info.lastData.comp.conflict}}</div>
+                    </div>
+                </div>
+                {{/if}}
+            </div>
+        </div>
+
+        <!-- 阶段3: 执行同步 -->
+        <div class="tab-panel pb-10" id="tab-exec">
+            <div class="exec-grid">
+
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部统计与总进度 -->
+    <div class="sync-footer">
+        <div class="footer-stats">
+            {{LNG['storeSync.task.left']}} <strong>{{info.lastData.taskInfo.leftCnt}}</strong> {{LNG['storeSync.task.leftCnt']}}
+        </div>
+        <div class="sync-prog-wrap">
+            <span style="font-size:12px;color:#606266">{{LNG['storeSync.task.progress']}}</span>
+            <div class="sync-prog-bar">
+                <div class="sync-prog-inner" style="width:{{info.lastData.taskInfo.percent}}%;"></div>
+            </div>
+            <div class="sync-prog-text">{{info.lastData.taskInfo.percent}}%</div>
+        </div>
+    </div>
+</div>

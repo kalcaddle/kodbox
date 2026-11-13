@@ -1,0 +1,26 @@
+{
+	"id":"storeSync",
+	"name":"{{LNG['storeSync.meta.name']}}",
+	"title":"{{LNG['storeSync.meta.title']}}",
+	"version":"1.04",
+	"category":"tools",
+	"hidden":1,
+	"source":{
+		"className":"font-icon ri-folder-transfer-line bg-blue-6"
+	},
+	"description":"{{LNG['storeSync.meta.desc']}}",
+	"auther":{
+		"copyright":"kodcloud.",
+		"homePage":"https://www.kodcloud.com"
+	},
+	"configItem":{
+		"pluginAuth":{
+			"type":"userSelect",
+			"value":{"all":1},
+			"className":"hidden",
+			"display":"{{LNG['admin.plugin.auth']}}",
+			"desc":"{{LNG['admin.plugin.authDesc']}}",
+			"require":1
+		}
+	}
+}

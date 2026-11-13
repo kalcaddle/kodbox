@@ -215,7 +215,7 @@ $config['settings']['appType'] = array(
 $config['defaultPlugins'] = array(
 	'adminer','DPlayer','jPlayer','photoSwipe','picasa','pdfjs','htmlEditor',
 	'simpleClock','client','webodf','webdav','toolsCommon','oauth','fileThumb',
-	'officeViewer','msgWarning','storeImport'
+	'officeViewer','msgWarning','storeImport','storeSync'
 );
 
 //初始化系统配置
@@ -563,6 +563,8 @@ $config['authAllowAction'] = array(
 	'explorer.userShare.shareExit',
 	
 	'explorer.tagGroup.get','explorer.tagGroup.set',
+	'explorer.tagGroup.toolbarGet','explorer.tagGroup.toolbarSet',
+	'explorer.tagGroup.filesSetTags','explorer.tagGroup.sourceTags',
 	'explorer.tagGroup.filesRemoveFromTag','explorer.tagGroup.filesAddToTag',
 
 	'user.setting.notice','user.setting.userLoginList',

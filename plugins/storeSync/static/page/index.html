@@ -1,0 +1,80 @@
+<div class="io-sync-page">
+    <div class="mb-10">
+        <button class="kui-btn kui-btn-blue" action-data="add"><b class="font-icon ri-add-circle-line"></b> {{LNG['common.add']}} </button>
+    </div>
+    <div class="content">
+
+        <div class="container sync-info can-select can-right-menu">
+
+            {{each dataList info i}}
+            <% var scanInfoA = lastScanInfo(info,'A'); var scanInfoB = lastScanInfo(info,'B'); %>
+            <div class="option col-xl-12 col-sm-6 col-lg-4">
+                <div class="opt-body" data="{{window.urlEncode(window.jsonEncode(info))}}">
+                    <div class="opt-header" action-data="dtl">
+                        <div class="content">
+                            <div class="left" title="{{LNG['storeSync.task.viewDtl']}}" title-timeout="200">
+                                <span class="title">{{info.title}}</span>
+                                <i class="font-icon ri-arrow-right-s-line hidden"></i>
+                            </div>
+                            <div class="right align-right">{{@syncStatus(info)}}</div>
+                        </div>
+                    </div>
+                    <div class="opt-info" action-data="dtl">
+                        <div class="content">
+                            <div class="left">
+                                <div class="opt">
+                                    <div class="icon mr-10"><i class="x-item-icon x-folder"></i></div>
+                                    <div class="dtl">
+                                        <div class="desc">{{LNG['storeSync.task.pathA']}}</div>
+                                        <div title="{{info.pathA}}" title-timeout="200">{{@pathFormat(info.pathAInfo,true)}}</div>
+                                    </div>
+                                </div>
+                                <div class="align-left mt-5 pl-45">
+                                    <div class="file-cnt">{{scanInfoA.cnt}}</div>
+                                    <div class="file-size">{{scanInfoA.size}}</div>
+                                </div>
+                            </div>
+                            <div class="center">
+                                <% 
+                                    var bidiIcon = 'right';
+                                    var bidiText = LNG['storeSync.task.notBidi'];
+                                    if (info.isBidi == '1') {
+                                        bidiIcon = 'left-right';
+                                        bidiText = LNG['storeSync.task.isBidi'];
+                                    }
+                                    var bidiIcon = info.isBidi == '1' ? 'left-right' : 'right';
+                                %>
+                                <i class="font-icon ri-arrow-{{bidiIcon}}-line" title="{{bidiText}}" title-timeout="200"></i>
+                            </div>
+                            <div class="right">
+                                <div class="opt">
+                                    <div class="icon mr-10"><i class="x-item-icon x-folder"></i></div>
+                                    <div class="dtl">
+                                        <div class="desc">{{LNG['storeSync.task.pathB']}}</div>
+                                        <div title="{{info.pathB}}" title-timeout="200">{{@pathFormat(info.pathBInfo,true)}}</div>
+                                    </div>
+                                </div>
+                                <div class="align-left mt-5 pl-45">
+                                    <div class="file-cnt">{{scanInfoB.cnt}}</div>
+                                    <div class="file-size">{{scanInfoB.size}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="opt-footer">
+                        <div class="content-x">
+                            <!-- <div class="left"><span class="time">上次同步：{{@lastSyncInfo(info)}}</span></div> -->
+                            <div class="left"><span class="time">{{@lastSyncInfo(info)}}</span></div>
+                            <div class="right align-right">
+                                {{@syncAction(info)}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{/each}}
+
+        </div>
+
+    </div>
+</div>

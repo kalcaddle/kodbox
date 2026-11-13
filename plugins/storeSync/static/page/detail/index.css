@@ -1,0 +1,444 @@
+.artDialog.dialog-storesync .sync-dtl-content {
+    margin: 0;
+    padding: 0;
+    /* background: #f0f2f5; */
+    height: 100%;
+}
+.artDialog.dialog-storesync .sync-detail-wrap {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    /* 严格 100% 填满父级弹窗容器 */
+    /* background: #fff; */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    box-sizing: border-box;
+}
+
+/* 1. 顶部 Tab 式步骤条 */
+.artDialog.dialog-storesync .sync-stepper {
+    flex-shrink: 0;
+    /* 保证高度不被压缩 */
+    display: flex;
+    justify-content: space-between;
+    /* padding: 15px 40px; */
+    padding: 15px 20px;
+    background: #fafafa;
+    border-bottom: 1px solid #ebeef5;
+}
+.artDialog.dialog-storesync .step-item {
+    display: flex;
+    align-items: center;
+    color: #909399;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    /* padding: 5px 10px; */
+    /* padding: 6px 12px; */
+    padding: 6px 20px;
+    border-radius: 4px;
+    transition: all 0.3s;
+    /* padding: 6px 0; */
+    /* border-bottom: 2px solid transparent; */
+}
+.artDialog.dialog-storesync .step-item:hover {
+    background: #f0f2f5;
+    /* border-bottom: 2px solid; */
+}
+.artDialog.dialog-storesync .step-item.active {
+    /* color: #409eff; */
+    color: #1890ff;
+    background: #e6f1fc;
+    /* border-bottom: 2px solid; */
+}
+.artDialog.dialog-storesync .step-item.done {
+    /* color: #67c23a; */
+    color: #22b66c;
+}
+.artDialog.dialog-storesync .step-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 8px;
+    font-size: 12px;
+}
+.artDialog.dialog-storesync .step-line {
+    flex: 1;
+    height: 2px;
+    background: #ebeef5;
+    margin: 0 15px;
+    align-self: center;
+}
+
+/* 2. 主内容区 */
+.artDialog.dialog-storesync .sync-content {
+    flex: 1;
+    /* 撑满剩余高度 */
+    overflow-y: auto;
+    /* 允许中间内容独立滚动 */
+    position: relative;
+    display: flex; 
+    flex-direction: column; /* 保证子元素能继承高度 */
+
+    overflow-x: hidden;
+    /* min-width: 485px; */
+}
+.artDialog.dialog-storesync .tab-panel {
+    display: none;
+    flex: 1; 
+    flex-direction: column;
+    padding: 20px;
+    box-sizing: border-box;
+}
+.artDialog.dialog-storesync .tab-panel.active {
+    display: flex;
+}
+
+/* -- 阶段1: 扫描 -- */
+.artDialog.dialog-storesync .scan-dashboard {
+    display: flex;
+    /* gap: 20px; */
+    gap: 15px;
+    flex: 1;
+
+    /* width: calc(100% - 90px); */
+}
+.artDialog.dialog-storesync .scan-side {
+    flex: 1;
+    background: #f8f9fa;
+    border-radius: 8px;
+    /* padding: 30px; */
+    padding: 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ebeef5;
+    min-width: 0;
+
+    background: #fbfcfe;
+}
+.artDialog.dialog-storesync .bidi-icon {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #1890ff;
+}
+.artDialog.dialog-storesync .scan-title {
+    /* font-size: 16px;
+    color: #606266;
+    font-weight: bold; */
+    /* margin-bottom: 20px; */
+    margin-bottom: 15px;
+    width: 100%;
+    text-align: center;
+}
+.artDialog.dialog-storesync .scan-title .title {
+    font-size: 16px;
+    color: #606266;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+.artDialog.dialog-storesync .scan-title .path {
+    display: inline-block;
+}
+.artDialog.dialog-storesync .scan-title .path>span {
+    overflow: hidden;
+    /* white-space: nowrap; */
+    text-overflow: ellipsis;
+    display: inline-block;
+    /* width: 80%; */
+    height: 20px;
+}
+.artDialog.dialog-storesync .scan-num {
+    font-size: 48px;
+    font-weight: bold;
+    /* color: #409eff; */
+    color: #1890ff;
+    font-family: monospace;
+
+    font-size: 30px;
+    font-weight: 400;
+}
+.artDialog.dialog-storesync .scan-meta {
+    color: #909399;
+    font-size: 13px;
+    margin-top: 10px;
+}
+
+/* -- 阶段2: 比对 (动态控制显示隐藏) -- */
+.artDialog.dialog-storesync #tab-comp {
+    justify-content: center;
+}
+.artDialog.dialog-storesync #tab-comp>h3 {
+    text-align: center;
+    color: #303133;
+    margin: 10px 0;
+    top: 20px;
+    position: absolute;
+    left: 20px;
+    right: 20px;
+}
+.artDialog.dialog-storesync .comp-summary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    justify-content: center;
+    /* margin-top: 30px; */
+}
+.artDialog.dialog-storesync .comp-card {
+    /* width: 45%; */
+    width: 40%;
+    /* background: #fff; */
+    border: 1px solid #ebeef5;
+    border-radius: 8px;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+.artDialog.dialog-storesync .cc-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    margin-right: 15px;
+}
+.artDialog.dialog-storesync .cc-info {
+    flex: 1;
+}
+.artDialog.dialog-storesync .cc-title {
+    font-size: 13px;
+    color: #909399;
+}
+.artDialog.dialog-storesync .cc-num {
+    font-size: 24px;
+    font-weight: bold;
+    color: #303133;
+    margin-top: 5px;
+
+    font-size: 20px;
+    font-weight: 400;
+    color: #555;
+}
+.artDialog.dialog-storesync .color-to-b {
+    /* background: #e6f1fc;
+    color: #409eff; */
+    
+    background: #def4e9;
+    color: #22b66c;
+}
+.artDialog.dialog-storesync .color-to-a {
+    /* background: #f0f9eb;
+    color: #67c23a; */
+    
+    background: #d8eafb;
+    color: #1890ff;
+}
+.artDialog.dialog-storesync .color-del {
+    /* background: #fef0f0;
+    color: #f56c6c; */
+    background: #fde9e8;
+    color: #f46e65;
+}
+.artDialog.dialog-storesync .color-skip {
+    /* background: #fdf6ec;
+    color: #e6a23c; */
+    background: #faeade;
+    color: #f78e3d;
+}
+
+/* -- 阶段3: 执行同步 (通用网格布局) -- */
+
+/* #tab-exec {
+    padding: 10px 20px;
+} */
+.artDialog.dialog-storesync #tab-exec .kodTable>div{
+    position: absolute;
+    left: 20px; right: 20px;
+}
+.artDialog.dialog-storesync #tab-exec .kodTable .toolbar {
+    width: stretch;
+}
+.artDialog.dialog-storesync #tab-exec .kodTable .content {
+    /* position: relative; */
+    top: 58px;
+    bottom: 30px;
+}
+.artDialog.dialog-storesync #tab-exec .kodTable .footerbar {
+    bottom: 5px;
+}
+.artDialog.dialog-storesync #tab-exec .kodTable .content .list-table {
+    position: absolute;
+    overflow: auto;
+}
+.artDialog.dialog-storesync #tab-exec .kodTable .content .list-table .list-row:not(.title) .list-col {
+    padding: 5px 10px;
+}
+.artDialog.dialog-storesync #tab-exec .kodTable .content .list-table .list-row.title .list-col[field=action] {
+    text-align: center;
+}
+.artDialog.dialog-storesync #tab-exec .kodTable .content .list-table .list-row .list-col[field=path] {
+    max-width: 200px;
+    overflow: hidden;
+}
+.artDialog.dialog-storesync #tab-exec .kodTable .content .list-table .list-row .list-col[field=path]>div {
+    /* white-space: nowrap; */
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.artDialog.dialog-storesync #tab-exec .exec-grid {
+    /* min-height: 380px; */
+    min-height: 368px;
+}
+
+/* 列表内容 */
+.artDialog.dialog-storesync .action-dir {
+    /* font-size: 18px; */
+    /* font-size: 14px; */
+    font-size: 12px;
+    font-weight: bold;
+}
+.artDialog.dialog-storesync .action-status {
+    font-size: 11px;
+    /* margin-top: 4px; */
+    /* padding: 2px 6px; */
+    padding: 1px 6px;
+    border-radius: 4px;
+}
+.artDialog.dialog-storesync .dir-to-b {
+    /* color: #409eff; */
+    
+    color: #22b66c;
+}
+.artDialog.dialog-storesync .dir-to-a {
+    /* color: #67c23a; */
+    
+    color: #1890ff;
+}
+.artDialog.dialog-storesync .dir-del {
+    /* color: #f56c6c; */
+    color: #f46e65;
+}
+.artDialog.dialog-storesync .status-done {
+    /* background: #f0f9eb;
+    color: #67c23a; */
+    background: #def4e9;
+    color: #22b66c;
+}
+.artDialog.dialog-storesync .status-ing {
+    /* background: #e6f1fc;
+    color: #409eff; */
+    background: #d8eafb;
+    color: #1890ff;
+    font-weight: bold;
+}
+.artDialog.dialog-storesync .status-wait {
+    /* background: #fdf6ec;
+    color: #e6a23c; */
+    background: #faeade;
+    color: #f78e3d;
+}
+.artDialog.dialog-storesync .status-err {
+    /* background: #fef0f0;
+    color: #f56c6c; */
+    background: #fde9e8;
+    color: #f46e65;
+}
+
+.artDialog.dialog-storesync .file-missing {
+    opacity: 0.4;
+    filter: grayscale(100%);
+}
+.artDialog.dialog-storesync .file-del {
+    text-decoration: line-through;
+}
+
+/* 3. 底部统计 */
+.artDialog.dialog-storesync .sync-footer {
+    flex-shrink: 0;
+    /* 永远固定在底部，不被压缩 */
+    padding: 15px 20px;
+    /* background: #fff; */
+    border-top: 1px solid #ebeef5;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.artDialog.dialog-storesync .footer-stats {
+    font-size: 13px;
+    color: #606266;
+}
+
+.artDialog.dialog-storesync .sync-prog-wrap {
+    flex: 0 0 45%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.artDialog.dialog-storesync .sync-prog-bar {
+    flex: 1;
+    /* height: 8px; */
+    height: 6px;
+    background: #ebeef5;
+    border-radius: 4px;
+    overflow: hidden;
+
+    /* max-width: 300px; */
+}
+.artDialog.dialog-storesync .sync-prog-inner {
+    height: 100%;
+    /* background: #409eff; */
+    background: #1890ff;
+    width: 45%;
+    transition: width 0.3s;
+}
+.artDialog.dialog-storesync .sync-prog-text {
+    font-size: 12px;
+    color: #909399;
+    width: 45px;
+    text-align: right;
+    font-family: monospace;
+}
+
+/* 列表loading */
+.artDialog.dialog-storesync #tab-exec .loading-msg-mask{
+    display: none !important;
+}
+
+.app-wap-small .artDialog.dialog-storesync .dialog-form .form-box .form-row {
+    padding: 0px;
+}
+@media (max-width: 767px) {
+    .artDialog.dialog-storesync .comp-card {
+        width: 80%;
+    }
+}
+
+/* dark模式 */
+.dark-mode .artDialog.dialog-storesync .scan-side,
+.dark-mode .artDialog.dialog-storesync .sync-stepper {
+    background: rgba(255, 255, 255, 0.04);
+}
+.dark-mode .artDialog.dialog-storesync .step-line,
+.dark-mode .artDialog.dialog-storesync .step-item:hover, 
+.dark-mode .artDialog.dialog-storesync .step-item.active, 
+.dark-mode .artDialog.dialog-storesync .sync-prog-bar, 
+.dark-mode .artDialog.dialog-storesync .cc-icon {
+    background: rgba(255, 255, 255, 0.25);
+}
+.dark-mode .artDialog.dialog-storesync .sync-stepper, 
+.dark-mode .artDialog.dialog-storesync .sync-footer, 
+.dark-mode .artDialog.dialog-storesync .scan-side, 
+.dark-mode .artDialog.dialog-storesync .comp-card {
+    border-color: rgba(255, 255, 255, 0.1);
+}

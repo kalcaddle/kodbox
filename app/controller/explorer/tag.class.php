@@ -22,6 +22,7 @@
  */
 class explorerTag extends Controller{
 	private $model;
+	private $modelSource;
 	function __construct(){
 		parent::__construct();
 		$this->model  		= Model('UserTag');
@@ -68,11 +69,11 @@ class explorerTag extends Controller{
 		Model('UserOption')->set('userTagInit','ok','flag');
 	}
 	
-	public function listSource($tags){
+	public function listSource($tags,$pathParse=null){
 		$groupPre = 'group-';
 		if(strstr($tags,$groupPre)){
 			$tags = explode('-',substr($tags,strlen($groupPre)));
-			return Action("explorer.tagGroup")->listSource($tags[0],array_slice($tags,1));
+			return Action("explorer.tagGroup")->listSource($tags[0],array_slice($tags,1),$pathParse);
 		}
 		
 		$tags   = explode('-',$tags);

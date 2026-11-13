@@ -43,7 +43,7 @@ class explorerList extends Controller{
 		$this->checkExist($current,$path);
 		switch($pathParse['type']){
 			case KodIO::KOD_USER_FAV:			$data = Action('explorer.fav')->get();break;
-			case KodIO::KOD_USER_FILE_TAG:		$data = Action('explorer.tag')->listSource($id);break;
+			case KodIO::KOD_USER_FILE_TAG:		$data = Action('explorer.tag')->listSource($id,$pathParse);break;
 			case KodIO::KOD_USER_RECYCLE:		$data = $this->model->listUserRecycle();break;
 			case KodIO::KOD_USER_FILE_TYPE:		$data = Action('explorer.listFileType')->get($id,$pathParse);break;
 			case KodIO::KOD_USER_RECENT:		$data = Action('explorer.listRecent')->listData();break;

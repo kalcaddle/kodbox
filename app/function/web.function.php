@@ -186,7 +186,7 @@ function get_host() {
 		return str_replace(array('<','>'),'_',$kodHost);
 	}
 	
-	$host = str_replace(array('<','>'),'_',$host);// 安全检测兼容(xxs)
+	$host = str_replace(array('<','>',' ',"\n","\r","\t"),'_',$host);// 安全检测兼容(xxs)
 	return $httpType.'://'.trim($host,'/').'/';
 }
 // current request url

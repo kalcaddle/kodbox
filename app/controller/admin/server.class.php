@@ -493,6 +493,8 @@ class adminServer extends Controller {
 			// 删除复制的数据表文件
 			del_dir($this->tmpActPath($type));
             $this->maintenanceSet(0);	// 配置写失败：站点仍在旧库，先解锁
+			$this->taskError($type, LNG('explorer.error'));
+			$this->dropErrorDb($type);
             $this->dbJson(LNG('explorer.error'), false);
         }
 		// setting_user.php 是 include 进来的：opcache 关闭时间戳校验时，不 reset 会继续用旧库配置
@@ -806,7 +808,7 @@ class adminServer extends Controller {
 	// 建表SQL里的表名清单
 	private function sqlTableNames($file){
 		$content = IO::getContent($file);
-		preg_match_all('/create\s+table\s+[`"\[]?(\w+)[`"\]]?/i', $content, $match);
+		preg_match_all('/create\s+table\s+(?:if\s+not\s+exists\s+)?[`"\[]?(\w+)[`"\]]?/i', $content, $match);
 		return array_values(array_unique($match[1]));
 	}
 
@@ -876,9 +878,13 @@ class adminServer extends Controller {
 		if ($type == 'mysql') {
 			// 没有权限时，create/use/drop database 会直接报错；show databases 不会（返回空）
 			try {
-				$dbname = 'kod_rebuild_test';
+				// 随机库名：避免上次异常残留的检测库导致“已存在”误报
+				$dbname = 'kod_rebuild_test_' . rand_string(6);
 				$res = Model()->db()->execute("create database `{$dbname}`");
-				if ($res) {Model()->db()->execute("drop database if exists `{$dbname}`");}
+				if (!$res) {
+					show_json(LNG('explorer.error').' create database failed', false);
+				}
+				Model()->db()->execute("drop database if exists `{$dbname}`");
 			} catch(Exception $e) {
 				show_json(LNG('explorer.error').$e->getMessage(), false);
 			}
@@ -895,41 +901,116 @@ class adminServer extends Controller {
 		});
 		// 2.1 下载备份文件到本地临时目录
 		$pathLoc = $this->tmpActPath('recovery');
-		$path = $this->recLocPath($type, $path, $pathLoc);
+		try {
+			$path = $this->recLocPath($type, $path, $pathLoc);
+		} catch(Exception $e) {
+			$this->recoveryFail(LNG('admin.setting.dbFileDownErr').': '.$e->getMessage(), false);
+		}
 		if (!$path || !is_dir($path)) {
-			show_json(LNG('admin.setting.dbFileDownErr'), false);
+			$this->recoveryFail(LNG('admin.setting.dbFileDownErr'), false);
 		}
 		$manage->unmixBakList($path);
 		$list = IO::listPath($path, true);
 		$fileList = array_to_keyvalue($list['fileList'], 'name', 'path');
 		$file = $fileList[$type . '.sql'];	// sqlite.sql、mysql.sql
 		if(!$file) {
-			show_json(LNG('admin.setting.dbFileDownErr'), false);
+			$this->recoveryFail(LNG('admin.setting.dbFileDownErr'), false);
 		}
 
 		// 2.2 新建数据库
-		$database = $this->recDatabase($data);
+		try {
+			$database = $this->recDatabase($data);
+		} catch(Exception $e) {
+			$this->recoveryFail(LNG('admin.setting.dbCreateError').': '.$e->getMessage(), false);
+		}
         $manage = new DbManage($database);
-        $dbNew = $manage->db(true);   // 新建数据库
+		try {
+			$dbNew = $manage->db(true);   // 新建数据库
+		} catch(Exception $e) {
+			$this->recoveryFail(LNG('explorer.error').$e->getMessage());
+		}
 		if (!$dbNew) {
-			show_json(LNG('explorer.error').$manage->message, false);
+			$this->recoveryFail(LNG('explorer.error').$manage->message);
+		}
+		// 目标库必须为空；否则建表会失败，而 insertTable 会静默跳过缺表，最后仍可能切换过去
+		$tableNew = $dbNew->getTables();
+		if (!empty($tableNew)) {
+			$this->recoveryFail(LNG('admin.setting.recDbExist'));
 		}
 
         // 2.3 新建数据表
 		$taskId	 = 'recovery.db.table.create';
         $taskCrt = new Task($taskId, $type, 0, LNG('admin.setting.dbCreate'));
 		if($type == 'mysql') $this->cleanMysqlDdl($file);	// 还原 OceanBase 备份到 MySQL 时同样需要
-        $manage->createTable($file, $taskCrt);
+		$expectTables = $this->sqlTableNames($file);
+		if (empty($expectTables)) {
+			$this->recoveryFail(LNG('admin.setting.dbCrtTblErr'));
+		}
+		try {
+			$manage->createTable($file, $taskCrt);
+		} catch(Exception $e) {
+			$this->recoveryFail(LNG('admin.setting.dbCrtTblErr').': '.$e->getMessage());
+		}
 		$this->taskToCache($taskCrt, $taskId);
+
+		// 建表结果校验：createTable 对单条建表失败只记日志、不中断；缺表会被 insertTable 静默跳过
+		$tableNew = $dbNew->getTables();
+		$have = array_map('strtolower', $tableNew);
+		$miss = array();
+		foreach ($expectTables as $table) {
+			if (!in_array(strtolower($table), $have)) $miss[] = $table;
+		}
+		if (empty($tableNew) || !empty($miss)) {
+			$this->recoveryFail(LNG('admin.setting.dbCrtTblUndone')
+				.($miss ? '（Missing: '.implode(',', array_slice($miss, 0, 5)).'）' : ''));
+		}
+
+		// 备份里的数据表文件必须都能在目标库找到；否则该表数据会被 insertTable 静默跳过
+		$dataFiles = array();
+		$expectLower = array_map('strtolower', $expectTables);
+		foreach ($fileList as $name => $pathFile) {
+			if (substr($name, -4) !== '.sql') continue;
+			if (in_array($name, array($type.'.sql', 'mysql.sql', 'sqlite.sql'))) continue;
+			$table = basename($name, '.sql');
+			if ($table === '' || $table === 'io_file_contents') continue;
+			if (!in_array(strtolower($table), $expectLower)) {
+				$this->recoveryFail(LNG('admin.setting.recSysTbErr')." [{$table}]");
+			}
+			$dataFiles[$table] = $pathFile;
+		}
+		if (empty($dataFiles)) {
+			$this->recoveryFail(LNG('admin.setting.recSysTbErr'));
+		}
 
 		// 2.4 读取sql文件，写入目标库
 		$taskId	 = 'recovery.db.table.insert';
         $taskAdd = new Task($taskId, $type, 0, LNG('admin.setting.dbInsert'));
-        if($manage->insertTable($fileList, $taskAdd) === false) {
-			$this->taskToCache($taskAdd, $taskId);
-			show_json(LNG('admin.setting.dbInsertError'), false);
+		$importOk = true;
+		$importErr = '';
+		try {
+			// 旧版 insertTable 成功时无返回值（null），失败时 show_json；新版返回 bool
+			if($manage->insertTable($fileList, $taskAdd) === false) $importOk = false;
+		} catch(Exception $e) {
+			$importOk = false;
+			$importErr = $e->getMessage();
 		}
+		$imported = isset($taskAdd->task['taskFinished']) ? intval($taskAdd->task['taskFinished']) : 0;
 		$this->taskToCache($taskAdd, $taskId);
+		write_log('数据库还原导入完成: '.$imported.' 条', 'dbchange');
+		if (!$importOk) {
+			$msg = LNG('admin.setting.dbInsertError');
+			if ($manage->message) $msg .= ': '.$manage->message;
+			if ($importErr) $msg .= ': '.$importErr;
+			$this->recoveryFail($msg);
+		}
+
+		// 备份里的 system_option 可能带着备份时的 maintenance=时间戳（例如切库中途备份），
+		// 切换配置前必须在新库清掉，否则新库会保持维护模式。
+		try {
+			$dbNew->execute("UPDATE `system_option` SET `value`='0' WHERE `key`='maintenance'");
+		} catch(Exception $e) {
+			write_log('清理还原库维护标记失败: '.$e->getMessage(), 'dbchange');
+		}
 
 		// 2.5 删除临时sql文件
         del_dir($pathLoc);
@@ -940,10 +1021,9 @@ class adminServer extends Controller {
 		$this->settingSave($type, $database, 'recovery');
 		$taskSet->update(1);
 		$this->taskToCache($taskSet);
-
-		// $this->in['clear'] = 1;
-		// $this->in['success'] = 1;
-		// $this->taskClear('recovery');
+		// 新库已成为当前库，不能再留在待清理缓存里；否则下一次失败会被 dropErrorDb 误删
+		Cache::remove('db_recovery.new_config');
+		$this->maintenanceSet(0);
 
 		show_json(LNG('explorer.success'));
 	}
@@ -967,11 +1047,15 @@ class adminServer extends Controller {
 			if(!$name) {
 				$name = USER_SYSTEM . rand_string(12) . '.php';
 				if(!@touch($name)) {
-					show_json(LNG('admin.setting.dbCreateError'), false);
+					// 此处 HTTP 已断开，不能 show_json；抛给 recoverySave 统一清理并写失败进度
+					throw new Exception(LNG('admin.setting.dbCreateError'));
 				}
 			}
 		}else{
-			$name = $database['db_name'] . '_' . date('Ymd') . '_rebuild';
+			// 每次还原使用独立库名：原来按日期生成，同一天第二次还原会复用上次失败/成功的库，
+			// 目标非空时 createTable 会失败、insertTable 可能把数据写进半成品库。
+			$base = substr($database['db_name'], 0, 40);
+			$name = $base . '_' . date('Ymd') . '_' . rand_string(4) . '_rebuild';
 			$name = substr($name, 0, 64);	// 长度限制64
 		}
 		$database['db_name'] = $name;
@@ -1036,6 +1120,30 @@ class adminServer extends Controller {
 		}
 	}
 
+	// 后台失败（HTTP 已断开）：把失败原因写进四个步骤的进度缓存，前端轮询时立即显示并停止
+	private function taskError($type, $message){
+		foreach($this->actTask($type) as $taskId) {
+			Cache::set('task_'.$taskId, array(
+				'currentTitle' => $message,
+				'error'        => $message,
+				'taskTotal'    => 1,
+				'taskFinished' => 0,
+			), 3600*24);
+		}
+	}
+
+	// 还原失败：与切库失败一致——立即清目标库/临时文件、关闭维护、写失败进度，不能把半成品库切为当前库
+	private function recoveryFail($message, $cleanTarget = true){
+		write_log('数据库还原失败: '.$message, 'dbchange');
+		$this->maintenanceSet(0);
+		// 目标库尚未创建时不能按旧缓存清理：缓存可能指向上一次成功还原后正在使用的库
+		if ($cleanTarget) $this->dropErrorDb('recovery');
+		del_dir($this->tmpActPath('recovery'));
+		Cache::remove('db_recovery.new_config');
+		$this->taskError('recovery', $message);
+		exit;
+	}
+
 	// 进行中（切换、恢复）任务进度获取
 	private function taskGet($type){
 		if(!Input::get('task', null, 0)) return;
@@ -1057,6 +1165,8 @@ class adminServer extends Controller {
 			http_close();
 			// 成功也要清任务记录：它们可能已被复制进新库，留着会变成“执行中”的脏任务
 			$this->taskReset($type);
+			// 新库已经是当前库，不能再留在“待清理”缓存里；否则下一次失败会被 dropErrorDb 误删
+			Cache::remove('db_'.$type.'.new_config');
 			Action('admin.setting')->clearCache();exit;
 		}
 		// 1.杀掉任务、清除缓存

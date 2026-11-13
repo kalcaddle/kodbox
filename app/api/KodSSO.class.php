@@ -58,17 +58,20 @@ class KodSSO{
 		
 		$res = '';
 		$phpBin = self::phpBin();
+		if(!$phpBin || !function_exists('shell_exec')){return false;}
 		if($phpBin && function_exists('shell_exec')){
 			$BASIC_PATH = str_replace('\\','/',dirname(dirname(dirname(__FILE__)))).'/';
 			$command = $phpBin.' '.$BASIC_PATH.'index.php '.escapeshellarg($uri);
 			$res = shell_exec($command);
 		}
 		if(!$res || substr(trim($res),0,1) != '{' ){ // 避免命令行调用返回错误的问题; 
+			$url = $host.'?'.$uri;
 			$context = stream_context_create(array(
 				'http'	=> array('timeout' => 2,'method'=>"GET"),
 				"ssl" 	=> array("verify_peer"=>false,"verify_peer_name"=>false)
 			));
-			$res = file_get_contents($host.'?'.$uri,false,$context);
+			if(strstr($url,'../')){return false;}
+			$res = file_get_contents($url,false,$context);
 		}
 		// var_dump(microtime(true) - $timeStart,$host.'?'.$uri,$res);exit;
 		$userInfo = @json_decode($res,true);
@@ -206,7 +209,7 @@ class KodSSO{
 		}else if(isset($_SERVER['HTTP_X_FORWARDED_SERVER'])){
 			$host  = $_SERVER['HTTP_X_FORWARDED_SERVER'];
 		}
-		$host = str_replace(array('<','>'),'_',$host);// 安全检测兼容(xxs)
+		$host = str_replace(array('<','>',' ',"\n","\r","\t"),'',$host);// 安全检测兼容(xxs)
 		return $httpType.'://'.trim($host,'/').'/';
 	}
 	public static function pathClear($path){

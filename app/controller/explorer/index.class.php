@@ -629,7 +629,7 @@ class explorerIndex extends Controller{
 				//复制到自己所在目录,则为克隆;
 				$driver = IO::init($thePath);
 				$father = $driver->getPathOuter($driver->pathFather($driver->path));
-				if(KodIO::clear($father) == KodIO::clear($pathTo) ){
+				if(rtrim(KodIO::clear($father),'/') == rtrim(KodIO::clear($pathTo),'/') ){
 					$repeatType = REPEAT_RENAME_FOLDER;
 				}
 				$itemResult = IO::copy($thePath,$pathTo,$repeatType);
