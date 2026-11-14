@@ -1,6 +1,33 @@
 define(function(require, exports){
+	// 按视频实际画面尺寸(含竖屏)调整弹窗大小并居中; 返回是否调整成功;
+	var dialogFitVideo = function(dialog,player,animate){
+		if(!dialog || !dialog.$main || dialog.$main.hasClass('dialog-max')) return false;
+		var video = player && player.video;
+		var vWidth  = video && video.videoWidth;
+		var vHeight = video && video.videoHeight;
+		if(!vWidth || !vHeight) return false;
+		var wWidth  = $(window).width()  * 0.9;
+		var wHeight = $(window).height() * 0.9;
+		var width = wWidth,height = (wWidth * vHeight) / vWidth;
+		if(height >= wHeight){
+			height = wHeight;width = (wHeight * vWidth) / vHeight;
+		}
+		var left = ($(window).width()  - width) / 2;
+		var top  = ($(window).height() - height) / 2;
+		if(animate){
+			var maxClass = 'dialog-change-max';
+			dialog.$main.removeClass(maxClass).addClass(maxClass);
+			setTimeout(function(){dialog.$main.removeClass(maxClass);},350);
+		}
+		dialog.size(width,height).position(left,top);
+		dialog._width = width;dialog._height = height;
+		return true;
+	};
+
 	var playStart = function(videoInfo,tips){
-		var $target = createDialog(videoInfo.name);
+		var $target = createDialog(videoInfo.name,videoInfo.ext,function(){
+			if(tips){tips.close(1,1);tips = false;} // 弹窗关闭时一并关闭加载遮罩;
+		});
 		var typeArr = {
 			'f4v' : 'flv',
 			'f4a' : 'flv',
@@ -55,47 +82,50 @@ define(function(require, exports){
 		};
 		if(window.G && window.G.lang && G.lang.indexOf('zh') == -1){playerOption.lang = 'en';}
 		
-		var player = new DPlayer(playerOption);
+		var dialog = $target.parents('.dplayer-dialog').data('artDialog');
+		var player;
+		try{
+			player = new DPlayer(playerOption);
+		}catch(e){
+			// 初始化异常: 关闭遮罩与弹窗, 避免残留;
+			console.error('DPlayer init error:',e);
+			if(tips){tips.close(1,1);tips = false;}
+			if(dialog && dialog.close){dialog.close();}
+			return;
+		}
 		window.dplayer = player;
 		$target.data('dplayer',player).attr('tabindex','1');
 
 		// 竖屏/横屏视频先按实际画面尺寸调整弹窗, 尺寸确定并加载出首帧后再显示弹窗;
 		// 避免竖屏视频先以横屏黑屏显示, 再切换为竖屏造成的闪屏;
-		var dialog = $target.parents('.dplayer-dialog').data('artDialog');
-		var dialogResizeByVideo = function(){
-			if(!dialog || !dialog.$main || dialog.$main.hasClass('dialog-max') || !player.video) return;
-			var vWidth = player.video.videoWidth,vHeight = player.video.videoHeight;
-			if(!vWidth || !vHeight) return;
-			var wWidth = $(window).width()  * 0.9;
-			var wHeight = $(window).height() * 0.9;
-			var width = wWidth,height = (wWidth * vHeight) / vWidth;
-			if(height >= wHeight){
-				height = wHeight;width = (wHeight * vWidth) / vHeight;
-			}
-			var left = ($(window).width()  - width) / 2;
-			var top  = ($(window).height() - height) / 2;
-			dialog.size(width,height).position(left,top);
-			dialog._width = width;dialog._height = height;
-		};
 		var isShow = false,showDelay = false;
 		var playerShow = function(){
 			if(isShow) return;isShow = true;
 			clearTimeout(showDelay);
+			if(tips){tips.close(1,1);tips = false;} // 加载完成或弹窗已关闭时关闭遮罩;
 			if(!player.video || !document.body.contains(player.video)) return; // 弹窗已关闭;
-			dialogResizeByVideo();
-			if(tips){tips.close(1,1);tips = false;} // 先关闭加载遮罩再显示弹窗;
 			if(dialog && dialog.DOM && dialog.DOM.wrap){dialog.DOM.wrap.css('display','');}
+			// 弹窗隐藏时 artDialog 量不到宽度(size 会把外层宽度写成 0), 显示后再校正;
+			dialogFitVideo(dialog,player,false);
 			$target.find('video').attr('autoplay','autoplay').removeAttr('muted');
 			if(window.kodApp && kodApp.mediaAutoPlay === false){player.pause();}else{player.play();}
 		};
 		// 仅对浏览器原生支持的格式预加载首帧; flv/hls/dash/webtorrent 等由 DPlayer 自行处理;
 		var nativeType = /^(mp4|m4v|mov|webm|webmv|ogv|mkv)$/i.test(videoInfo.ext);
 		if(nativeType && player.video){
-			player.on('loadedmetadata',dialogResizeByVideo);
 			player.on('loadeddata',playerShow);
 			player.video.addEventListener('error',playerShow);
 			player.video.preload = 'auto';player.video.load();
-			showDelay = setTimeout(playerShow,3000); // 加载异常时兜底显示;
+			// 超时兜底: 已拿到画面尺寸则正常显示; 否则直接关闭, 不以默认横屏尺寸显示后跳变;
+			showDelay = setTimeout(function(){
+				if(isShow) return;
+				if(tips){tips.close(1,1);tips = false;}
+				if(player.video && player.video.videoWidth && document.body.contains(player.video)){
+					playerShow();
+				}else if(dialog && dialog.close){
+					dialog.close();
+				}
+			},10000);
 		}else{
 			playerShow();
 		}
@@ -207,7 +237,7 @@ define(function(require, exports){
 			$target.find('.dplayer-quality-item[data-index="'+index+'"]').addClass('selected');
 		});
 		
-		var playerResize = playerDialogResize($target,dialog,player,false);
+		var playerResize = playerDialogResize(dialog,player,false);
 		player.on('loadeddata',playerResize);
 		$(player.container).trigger('click');// 自动焦点; 视频操作快捷键响应;
 		
@@ -237,7 +267,7 @@ define(function(require, exports){
 	 * 1. 对话框全屏后才加载完成, 不处理尺寸;
 	 * 2. 对话框全屏后才加载完成,再次还原窗口时处理视频尺寸; 
 	 */
-	var playerDialogResize = function($player,dialog,player,animate){
+	var playerDialogResize = function(dialog,player,animate){
 		var isReset  = false;
 		if(!dialog) return;
 		window.postMessage({type:'kodApp.videoLoadReady'},'*');
@@ -245,33 +275,10 @@ define(function(require, exports){
 		// 已经重置过尺寸的不再重置, 视频未加载完成不重置, 最大化时不重置;
 		var resetSize = function(fileLoad){
 			if(isReset && !fileLoad) return;
-			if(!dialog.$main || dialog.$main.hasClass('dialog-max')) return;
-			
+			if(!dialogFitVideo(dialog,player,animate)) return;
 			isReset 	= true;
-			var $video  = $player.find('video');
-			// 优先按视频实际画面尺寸(含竖屏)计算, 避免按弹窗当前尺寸计算时横竖屏错误切换;
-			var vWidth  = player.video.videoWidth  || $video.width();
-			var vHeight = player.video.videoHeight || $video.height();
-			var wWidth  = $(window).width()  * 0.9;
-			var wHeight = $(window).height() * 0.9;
-			if(vHeight >= wHeight){
-				vWidth  = (wHeight * vWidth) / vHeight;
-				vHeight = wHeight;
-			}
-			if( vWidth >= wWidth ){
-				vHeight = (wWidth * vHeight) / vWidth;
-				vWidth  = wWidth;
-			}
-			var left = ($(window).width()  - vWidth) / 2;
-			var top  = ($(window).height() - vHeight) / 2;
-			if(animate){
-				var maxClass = 'dialog-change-max';
-				dialog.$main.removeClass(maxClass).addClass(maxClass);
-				setTimeout(function(){dialog.$main.removeClass(maxClass);},350);
-			}
-			dialog.size(vWidth,vHeight).position(left,top);
-			dialog._width = vWidth;dialog._height = vHeight;
-			// console.error(202,[vWidth,vHeight],[left,top],dialog,dialog.$main.attr('class'));
+			// 弹窗尺寸变化后重新测量进度条缩略图宽度(弹窗隐藏初始化时测得为 0);
+			if(player.resize){player.resize();}
 		}
 
 		setTimeout(function(){
@@ -284,17 +291,18 @@ define(function(require, exports){
 			setTimeout(function(){
 				if(dialog.$main.hasClass('dialog-max')) return;
 				resetSize();
+				if(player.resize){player.resize();} // 还原尺寸后重新测量缩略图;
 			},350); //尺寸调整动画完成后处理;
 		}
 		return function(){
 			playHistoryKeep(player,false); // 首次加载-定位到上次播放位置
-			thumbDirection($player,player);
+			thumbDirection(player);
 			resetSize(true);
 		};
 	};
-	
+
 	// 缩略图方向处理; 跟随视频方向矫正;
-	var thumbDirection = function($player,player){
+	var thumbDirection = function(player){
 		var src = player.options.video.thumbnails;
 		var dom = '<img src="'+src+'" />';
 		if(!src || player.thumbDirectionFinished) return;
@@ -370,9 +378,9 @@ define(function(require, exports){
 		};
 	}
 	
-	var createDialog = function(title,ext){
+	var createDialog = function(title,ext,onClose){
 		var size  = {width:'70%',height:'60%'};
-		if(ext == 'mp3'){
+		if(/^(mp3|m4a|aac|wav|flac|ogg|oga|webma)$/i.test(ext || '')){
 			size  = {width:'320px',height:'420px'};
 		}
 		var dialog = $.dialog({
@@ -386,6 +394,7 @@ define(function(require, exports){
 			padding:0,
 			fixed:true,
 			close:function(){
+				if(onClose){onClose();}
 				var player = dialog.DOM.wrap.find(".Dplayer").data('dplayer');
 				if(player){
 					playHistoryKeep(player,true);
@@ -414,6 +423,8 @@ define(function(require, exports){
 			}else if(tips){
 				tips.close();
 			}
+		}).fail(function(){
+			if(tips){tips.close(1,1);}
 		});
 	}
 
@@ -428,7 +439,17 @@ define(function(require, exports){
 			appStatic+'DPlayer/DPlayer.min.js',
 		],function(){
 			// 遮罩在弹窗显示时关闭(见 playerShow), 避免加载期间无提示;
-			playVedioStart(videoInfo,tips);
+			try{
+				playVedioStart(videoInfo,tips);
+			}catch(e){
+				console.error('DPlayer play error:',e);
+				if(tips){tips.close(1,1);}
+				// 关闭未初始化播放器的残留弹窗;
+				$('.dplayer-dialog').each(function(){
+					var player = $(this).find('.Dplayer').data('dplayer');
+					if(!player){var dlg=$(this).data('artDialog');dlg && dlg.close();}
+				});
+			}
 		});
 	}
 	return playReady;
