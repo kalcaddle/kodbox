@@ -2,7 +2,7 @@
 	"id":"DPlayer",
 	"name":"{{LNG['DPlayer.meta.name']}}",
 	"title":"{{LNG['DPlayer.meta.title']}}",
-	"version":"1.44",//23.05.30
+	"version":"1.45",//26.11.14: 修复竖屏视频打开时先横屏黑屏再切换竖屏的闪屏问题
 	"source":{
 		"icon":"{{pluginHost}}static/images/icon.png",
 	},

@@ -1,5 +1,5 @@
 define(function(require, exports){
-	var playStart = function(videoInfo){
+	var playStart = function(videoInfo,tips){
 		var $target = createDialog(videoInfo.name);
 		var typeArr = {
 			'f4v' : 'flv',
@@ -56,9 +56,49 @@ define(function(require, exports){
 		if(window.G && window.G.lang && G.lang.indexOf('zh') == -1){playerOption.lang = 'en';}
 		
 		var player = new DPlayer(playerOption);
-		player.play();window.dplayer = player;
+		window.dplayer = player;
 		$target.data('dplayer',player).attr('tabindex','1');
-		$target.find('video').attr('autoplay','autoplay').removeAttr('muted');
+
+		// 竖屏/横屏视频先按实际画面尺寸调整弹窗, 尺寸确定并加载出首帧后再显示弹窗;
+		// 避免竖屏视频先以横屏黑屏显示, 再切换为竖屏造成的闪屏;
+		var dialog = $target.parents('.dplayer-dialog').data('artDialog');
+		var dialogResizeByVideo = function(){
+			if(!dialog || !dialog.$main || dialog.$main.hasClass('dialog-max') || !player.video) return;
+			var vWidth = player.video.videoWidth,vHeight = player.video.videoHeight;
+			if(!vWidth || !vHeight) return;
+			var wWidth = $(window).width()  * 0.9;
+			var wHeight = $(window).height() * 0.9;
+			var width = wWidth,height = (wWidth * vHeight) / vWidth;
+			if(height >= wHeight){
+				height = wHeight;width = (wHeight * vWidth) / vHeight;
+			}
+			var left = ($(window).width()  - width) / 2;
+			var top  = ($(window).height() - height) / 2;
+			dialog.size(width,height).position(left,top);
+			dialog._width = width;dialog._height = height;
+		};
+		var isShow = false,showDelay = false;
+		var playerShow = function(){
+			if(isShow) return;isShow = true;
+			clearTimeout(showDelay);
+			if(!player.video || !document.body.contains(player.video)) return; // 弹窗已关闭;
+			dialogResizeByVideo();
+			if(tips){tips.close(1,1);tips = false;} // 先关闭加载遮罩再显示弹窗;
+			if(dialog && dialog.DOM && dialog.DOM.wrap){dialog.DOM.wrap.css('display','');}
+			$target.find('video').attr('autoplay','autoplay').removeAttr('muted');
+			if(window.kodApp && kodApp.mediaAutoPlay === false){player.pause();}else{player.play();}
+		};
+		// 仅对浏览器原生支持的格式预加载首帧; flv/hls/dash/webtorrent 等由 DPlayer 自行处理;
+		var nativeType = /^(mp4|m4v|mov|webm|webmv|ogv|mkv)$/i.test(videoInfo.ext);
+		if(nativeType && player.video){
+			player.on('loadedmetadata',dialogResizeByVideo);
+			player.on('loadeddata',playerShow);
+			player.video.addEventListener('error',playerShow);
+			player.video.preload = 'auto';player.video.load();
+			showDelay = setTimeout(playerShow,3000); // 加载异常时兜底显示;
+		}else{
+			playerShow();
+		}
 		
 		var noticeDelay = false;
 		functionHook(player,'seek',function(setTime){//console.error(1112,arguments)
@@ -167,7 +207,6 @@ define(function(require, exports){
 			$target.find('.dplayer-quality-item[data-index="'+index+'"]').addClass('selected');
 		});
 		
-		var dialog = $target.parents('.dplayer-dialog').data('artDialog');
 		var playerResize = playerDialogResize($target,dialog,player,false);
 		player.on('loadeddata',playerResize);
 		$(player.container).trigger('click');// 自动焦点; 视频操作快捷键响应;
@@ -210,8 +249,9 @@ define(function(require, exports){
 			
 			isReset 	= true;
 			var $video  = $player.find('video');
-			var vWidth  = $video.width();
-			var vHeight = $video.height();
+			// 优先按视频实际画面尺寸(含竖屏)计算, 避免按弹窗当前尺寸计算时横竖屏错误切换;
+			var vWidth  = player.video.videoWidth  || $video.width();
+			var vHeight = player.video.videoHeight || $video.height();
 			var wWidth  = $(window).width()  * 0.9;
 			var wHeight = $(window).height() * 0.9;
 			if(vHeight >= wHeight){
@@ -355,20 +395,24 @@ define(function(require, exports){
 			}
 		});
 		dialog.DOM.wrap.addClass('dplayer-dialog');
+		// 先隐藏弹窗, 待视频画面尺寸确定后再显示(见 playerShow);
+		dialog.DOM.wrap.css('display','none');
 		return dialog.DOM.wrap.find(".Dplayer");
 	}
 	
 	// 磁力链接支持播放
-	var playVedioStart = function(videoInfo){
+	var playVedioStart = function(videoInfo,tips){
 		if(videoInfo.ext != 'magnet'){
-			return playStart(videoInfo);;
+			return playStart(videoInfo,tips);;
 		}
 		// 磁力链接支持播放; magnet文件扩展名; 内容为磁力链接url;
 		$.get(videoInfo.url,function(data){
 			if(data && _.startsWith(data,'magnet:')){
 				videoInfo.url = data;
 				videoInfo.ext = 'webtorrent';
-				playStart(videoInfo);
+				playStart(videoInfo,tips);
+			}else if(tips){
+				tips.close();
 			}
 		});
 	}
@@ -383,8 +427,8 @@ define(function(require, exports){
 			appStatic+'DPlayer/DPlayer.min.css?v=1.39',
 			appStatic+'DPlayer/DPlayer.min.js',
 		],function(){
-			tips.close();
-			playVedioStart(videoInfo);
+			// 遮罩在弹窗显示时关闭(见 playerShow), 避免加载期间无提示;
+			playVedioStart(videoInfo,tips);
 		});
 	}
 	return playReady;
