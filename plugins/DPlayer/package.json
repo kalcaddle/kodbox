@@ -2,7 +2,7 @@
 	"id":"DPlayer",
 	"name":"{{LNG['DPlayer.meta.name']}}",
 	"title":"{{LNG['DPlayer.meta.title']}}",
-	"version":"1.44",//23.05.30
+	"version":"1.46",//26.11.14: 修复竖屏视频闪屏; 修正弹窗尺寸/缩略图/加载遮罩异常
 	"source":{
 		"icon":"{{pluginHost}}static/images/icon.png",
 	},
